@@ -1,9 +1,59 @@
 /* ============================================================
    TARUMAK STUDIO — Main Application
-   Router, grid, navigation, pages, blog renderer.
+   Router, grid, navigation, pages, blog, affiliate banners.
    Loaded last — after all data and tool files.
    ============================================================ */
 
+/* ── Core app: showHome, openTool, route ──────────────────── */
+function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='TARUMAK Tools — Free Online Image, PDF & Document Tools';
+  setActiveNav(['image','pdf','converter'].includes(cat)?cat:'');
+  if(['image','pdf','converter'].includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  else if(cat==='about'){buildRecent();setTimeout(()=>{const el=$('#about');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  else{activeCat='all';buildTabs();buildGrid();buildRecent();scrollTo(0,0);}}
+function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
+function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
+  homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
+  setActiveNav(t[2]);saveRecent(slug);
+  const cat=t[2],related=TOOLS.filter(x=>x[2]===cat&&x[0]!==slug).slice(0,3);
+  const feats=FEAT[slug]||[['Instant &amp; local','Runs entirely in your browser — your files never leave your device.'],[t[1]+' made simple','A focused, no-clutter interface that does one job well.'],['Free forever','No sign-up, no watermark, no limits — use it as often as you like.']];
+  const faqs=FAQ[slug]||[['Are my files uploaded to a server?','No. Everything is processed locally in your browser, so your files stay on your device.'],['Is it really free?','Yes — every TARUMAK tool is free, with no account and no watermark.']];
+  toolEl.innerHTML=
+   '<nav class="crumb"><a onclick="go(\'\')">Home</a><span class="sep">/</span><a onclick="go(\''+cat+'\')">'+CAT[cat]+'</a><span class="sep">/</span><span class="here">'+t[1]+'</span></nav>'+
+   '<div class="tool-head '+cat+'"><div class="badge">'+ICON[cat]+'</div><div style="flex:1"><h1>'+t[1]+'</h1><p>'+t[3]+'</p></div><button class="th-fav'+(isFav(slug)?' active':'')+'" data-slug="'+slug+'" onclick="toggleFav(\''+slug+'\')" aria-label="Save tool" title="Save to favourites">'+heartSvg+'</button></div>'+
+   '<div class="panel" id="panel"></div>'+
+   '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h4>'+f[0]+'</h4><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
+   '<section class="sec" style="padding-top:0"><h2>Frequently asked questions</h2><p class="lead">Quick answers before you start.</p><div class="faq">'+faqs.map(q=>'<details class="q"><summary>'+q[0]+'</summary><div class="a">'+q[1]+'</div></details>').join('')+'</div></section>'+
+   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h4>'+r[1]+'</h4><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+buildAffBanners(cat);
+  document.title=t[1]+' — TARUMAK Tools';
+  fadeIn(toolEl);
+  (INIT[slug]||noInit)($('#panel'));
+  scrollTo(0,0);
+}
+function route(){const h=location.hash||'';const m=h.match(/^#\/t\/(.+)$/);if(m){openTool(m[1]);return;}
+  const pm=h.match(/^#\/p\/(.+)$/);if(pm){openPage(pm[1]);return;}
+  const bm=h.match(/^#\/blog(?:\/(.+))?$/);if(bm){openBlog(bm[1]);return;}
+  const seg=h.replace(/^#\/?/,'');if(seg==='blog'){openBlog();return;}showHome(seg);}
+addEventListener('hashchange',route);
+route();
+
+
+/* ── Affiliate data + banner builder ───────────────────────── */
+const AFFS={
+  image:[{ico:'🎨',name:'Canva Pro',desc:'Professional design templates — 30-day free trial.',cta:'Try Free',url:'https://canva.com'}],
+  pdf:[{ico:'📄',name:'Adobe Acrobat',desc:'The industry-standard PDF editor.',cta:'Start Trial',url:'https://adobe.com/acrobat'}],
+  marketing:[{ico:'📧',name:'ConvertKit',desc:'Email marketing for creators — free up to 1,000 subscribers.',cta:'Start Free',url:'https://convertkit.com'}],
+  converter:[{ico:'✨',name:'Envato Elements',desc:'Unlimited design assets from $16.50/month.',cta:'Browse',url:'https://elements.envato.com'}],
+  all:[{ico:'🌐',name:'Namecheap',desc:'Domains from $0.99/yr. Hosting from $1.98/month.',cta:'Find Domain',url:'https://namecheap.com'}],
+};
+function buildAffBanners(cat){
+  var items=(AFFS[cat]||[]).concat(AFFS.all);
+  return '<div class="aff-section"><div class="aff-label">Recommended Tools</div>'
+    +items.map(function(a){return '<a class="aff-card" href="'+a.url+'" target="_blank" rel="noopener sponsored"><div class="aff-ico">'+a.ico+'</div><div class="aff-info"><strong>'+a.name+'</strong><span>'+a.desc+'</span></div><span class="aff-cta">'+a.cta+' \u2192</span></a>';}).join('')+'</div>';
+}
+
+
+
+/* ── Grid, tabs, features ───────────────────────────────────── */
 function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
 function buildTabs(){
   const c=counts(),fv=getFavs().size;

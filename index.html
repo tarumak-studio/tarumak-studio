@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Tarumak Studio — Free Tools for Designers, Marketers &amp; Developers</title>
+  <meta name="description" content="46 free browser-based tools for designers and marketers. Social media image resizer, PDF tools, color palette generator, UTM builder and more.">
+  <meta property="og:title" content="Tarumak Studio — Free Design &amp; Marketing Tools">
+  <meta property="og:url" content="https://tarumakstudio.com">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://tarumakstudio.com/">
+  <meta name="theme-color" content="#0c111a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <!-- CDN Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="tools.css">
+  <link rel="stylesheet" href="blog.css">
+</head>
+<body>
+
+<div id="cookie-bar" role="region" aria-label="Cookie consent">
+  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a onclick="go('p/cookie')">Cookie Policy</a> · <a onclick="go('p/privacy')">Privacy Policy</a></p>
+  <div class="cb-btns">
+    <button class="cb-decline" id="cb-decline">Decline</button>
+    <button class="cb-accept" id="cb-accept">Accept</button>
+  </div>
+</div>
+<div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
+<button id="top-btn" aria-label="Back to top" title="Back to top">↑</button>
+<header id="header"><div class="wrap nav">
+  <div class="brand" onclick="go('')"><div class="logo">T</div><div><b>Tarumak</b><small>Studio</small></div></div>
+  <nav class="nav-links">
+    <a data-nav="" onclick="go('')">Home</a>
+    <a data-nav="image" onclick="go('image')">Image Tools</a>
+    <a data-nav="pdf" onclick="go('pdf')">PDF Tools</a>
+    <a data-nav="converter" onclick="go('converter')">Converter</a>
+    <a data-nav="p/about" onclick="go('p/about')">About</a>
+    <a data-nav="p/contact" onclick="go('p/contact')">Contact</a>
+    <a data-nav="blog" onclick="go('blog')">Blog</a>
+  </nav>
+  <div class="nav-spacer"></div>
+  <div class="search">
+    <div class="search-inner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="navSearch" type="text" placeholder="Search tools…" autocomplete="off" />
+      <span class="s-kbd">⌘K</span>
+    </div>
+    <div class="search-pop" id="navPop"></div>
+  </div>
+  <button class="icon-btn" id="theme" aria-label="Theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <a class="btn btn-primary" onclick="go('image')">Explore Tools</a>
+  <button class="icon-btn hamburger" id="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+</div></header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mm-head"><div class="brand" onclick="go('')"><div class="logo">T</div><div><b>TARUMAK</b></div></div><button class="icon-btn" id="closeMenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <a onclick="go('')">Home</a><a onclick="go('image')">Image Tools</a><a onclick="go('pdf')">PDF Tools</a><a onclick="go('converter')">Converter Tools</a><a onclick="go('p/about')">About Us</a><a onclick="go('p/contact')">Contact</a><a onclick="go('blog')">Blog</a><a onclick="go('p/privacy')">Privacy Policy</a><a onclick="go('p/disclaimer')">Disclaimer</a>
+</div>
+
+<main>
+  <!-- HOME -->
+  <div id="home">
+    <section class="hero"><div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>38 TOOLS · 100% IN-BROWSER · NO UPLOADS</span>
+        <h1 class="headline">All-in-One Free Online <span class="g">Image &amp; PDF</span> Tools</h1>
+        <p class="sub">Convert, edit, compress, resize, merge, optimize and manage files instantly — powered by tools that run entirely in your browser. Your files never leave your device.</p>
+        <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
+        <div class="hero-stats"><div><div class="n">38</div><div class="l">Free tools</div></div><div><div class="n" id="stat-count">—</div><div class="l">Files converted</div></div><div><div class="n">3</div><div class="l">Categories</div></div><div><div class="n">∞</div><div class="l">Conversions</div></div></div>
+      </div>
+      <div class="stage"><div class="cluster-glow"></div><div class="float-wrap"><div class="cluster">
+        <div class="card3d c1"><span class="glyph">PDF</span><span class="fmt">.pdf</span></div>
+        <div class="card3d c2"><span class="glyph">JPG</span><span class="fmt">.jpg</span></div>
+        <div class="card3d c3"><span class="glyph">PNG</span><span class="fmt">.png</span></div>
+        <div class="card3d c4"><span class="glyph">WebP</span><span class="fmt">.webp</span></div>
+        <div class="card3d c5"><span class="glyph">SVG</span><span class="fmt">.svg</span></div>
+        <div class="card3d c6"><span class="glyph">GIF</span><span class="fmt">.gif</span></div>
+      </div></div></div>
+    </div></section>
+
+    <section class="section" style="padding:28px 0 0" id="recent-section">
+      <div class="wrap">
+        <div id="recent-row" style="display:none">
+          <div class="recent-label">Recently used</div>
+          <div class="recent-list" id="recent-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mk-section" id="marketing-section">
+      <div class="wrap">
+        <div class="mk-eyebrow"><span style="width:7px;height:7px;border-radius:50%;background:#ec4899;display:inline-block"></span>NEW — MARKETING DESIGNER TOOLKIT</div>
+        <h2 class="mk-title">The only toolkit built for<br><span>designers who market</span></h2>
+        <p class="mk-sub">Social image resizer, ad copy generator, UTM builder, OG image creator and more — built specifically for freelancers and marketing designers.</p>
+        <div class="mk-cards" id="mk-home-cards"></div>
+        <button class="mk-cta" onclick="go('marketing')">Explore all 8 marketing tools →</button>
+      </div>
+    </section>
+    <section class="section" id="tools"><div class="wrap">
+      <div class="section-head"><span class="eyebrow"><span class="dot"></span>THE TOOLKIT</span><h2>Every tool you need, one click away</h2><p>Pick a category or search. Each tool opens with drag-and-drop, instant processing and a one-click download.</p></div>
+      <div class="toolbar">
+        <div class="tabs" id="tabs"></div>
+        <div class="filter-search"><div class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="gridSearch" type="text" placeholder="Filter tools by name…" autocomplete="off" /></div></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div></section>
+
+    <section class="section" id="about" style="padding-top:6px"><div class="wrap">
+      <div class="section-head"><span class="eyebrow"><span class="dot"></span>WHY TARUMAK</span><h2>Private by design, fast by default</h2></div>
+      <div class="trust">
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg></div><h4>100% Private</h4><p>Files are processed locally in your browser. Nothing is uploaded to a server.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div><h4>Instant Results</h4><p>No queues, no waiting room. Processing starts the moment you drop a file.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h4>Always Free</h4><p>No sign-up, no limits, no watermark. Every tool is free to use, every time.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/></svg></div><h4>Works Everywhere</h4><p>Mobile, tablet or desktop — no installs, no plugins, no software to download.</p></div>
+      </div>
+    </div></section>
+  </div>
+
+  <!-- TOOL VIEW -->
+  <div id="tool" class="wrap" hidden></div>
+</main>
+
+<footer id="contact"><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol"><div class="brand" onclick="go('')"><div class="logo">T</div><div><b>Tarumak</b><small>Studio</small></div></div>
+      <p class="desc">Free online image, PDF and document tools that work directly in your browser. No uploads, no installs, no nonsense.</p>
+      <div class="socials"><a class="soc fb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H7v3h3v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z"/></svg></a><a class="soc ig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a><a class="soc tw"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h3l-7 8 8 12h-6l-5-7-5 7H3l7-9L2 2h6l4 6z"/></svg></a><a class="soc li"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 9H3v12h3zM4.5 3a2 2 0 100 4 2 2 0 000-4zM21 21h-3v-6c0-1.6-.6-2.5-1.9-2.5-1 0-1.6.7-1.9 1.4-.1.2-.1.6-.1.9V21h-3V9h3v1.3c.4-.6 1.2-1.5 2.9-1.5 2.1 0 3.9 1.4 3.9 4.3z"/></svg></a></div></div>
+    <div class="fcol"><h5>Quick Links</h5><a onclick="go('')">Home</a><a onclick="go('image')">Image Tools</a><a onclick="go('pdf')">PDF Tools</a><a onclick="go('converter')">Converter Tools</a><a onclick="go('p/about')">About Us</a><a onclick="go('p/contact')">Contact</a><a onclick="go('blog')">Blog</a></div>
+    <div class="fcol"><h5>Legal</h5><a onclick="go('p/privacy')" style="cursor:pointer">Privacy Policy</a><a onclick="go('p/disclaimer')" style="cursor:pointer">Disclaimer</a><a onclick="go('p/terms')" style="cursor:pointer">Terms of Service</a><a onclick="go('p/cookie')" style="cursor:pointer">Cookie Policy</a></div>
+    <div class="fcol"><h5>Newsletter</h5><p class="desc">New tools and tips, occasionally. No spam.</p><div class="news"><input type="email" placeholder="you@email.com" /><button class="btn btn-primary">Subscribe</button></div></div>
+  </div>
+  <div class="fbar"><span>© 2026 Tarumak Studio. All rights reserved.</span><span>Built for the browser · No files ever leave your device.</span></div>
+</div></footer>
+
+  <!--
+    Script load order (MUST be exactly this sequence):
+    config  → site config, GA4, AFFS affiliate links
+    utils   → $, $$, toast, download, dropzone
+    data    → TOOLS array, CAT, ICON, INIT registry
+    [tools] → INIT functions per category
+    blog-data → ARTICLES data
+    features → buildGrid, setActiveNav, favourites, counter, cookie
+    app     → counts, buildTabs, showHome, openTool, route, BOOT
+  -->
+  <script src="config.js"></script>
+  <script src="utils.js"></script>
+  <script src="data.js"></script>
+  <script src="image-tools.js"></script>
+  <script src="pdf-tools.js"></script>
+  <script src="converter-tools.js"></script>
+  <script src="marketing-tools.js"></script>
+  <script src="blog-data.js"></script>
+  <script src="features.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>

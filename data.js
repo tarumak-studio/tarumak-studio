@@ -2,8 +2,8 @@
    TOOLS array, categories, icons, INIT/FEAT/FAQ registries.
    INIT is populated by tool files loaded after this. */
 
-const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marketing:'Marketing Designer'};
-const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>'};
+const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marketing:'Marketing Designer',developer:'Developer & SEO'};
+const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',developer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'};
 
 /* build a standard dropzone panel; returns refs */
 function dz(panel,o){o=o||{};
@@ -72,6 +72,16 @@ const TOOLS=[
  ['og-image-gen','Open Graph Image Generator','marketing','Create Open Graph images (1200x630) for social media link previews. Add title, brand colors and logo — download as PNG.',['OG','1200x630','SOCIAL']],
  ['pdf-lead-magnet','PDF Lead Magnet Creator','marketing','Create professional PDF lead magnets — checklists, guides and cheatsheets — to grow your email list. Download instantly.',['PDF','CHECKLIST','LEAD']],
  ['brand-color-extract','Brand Color Extractor','marketing','Extract brand colors from any logo or image. Get HEX, RGB and HSL values plus ready-to-paste CSS custom properties.',['BRAND','HEX','EXTRACT']],
+ ['word-counter','Word & Character Counter','developer','Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.',['WORDS','CHARS','SEO']],
+ ['password-generator','Secure Password Generator','developer','Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.',['PASSWORD','SECURE','RANDOM']],
+ ['css-gradient-gen','CSS Gradient Generator','developer','Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.',['CSS','GRADIENT','DESIGN']],
+ ['base64-encoder','Base64 Encoder & Decoder','developer','Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.',['BASE64','ENCODE','DECODE']],
+ ['json-formatter','JSON Formatter & Validator','developer','Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.',['JSON','FORMAT','VALIDATE']],
+ ['meta-tag-gen','Meta Tag Generator','developer','Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.',['SEO','META','HTML']],
+ ['hashtag-gen','Hashtag Generator','developer','Generate targeted hashtags for Instagram, Twitter and LinkedIn from design, marketing, business and tech categories.',['HASHTAG','SOCIAL','SEO']],
+ ['lorem-ipsum','Lorem Ipsum Generator','developer','Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.',['LOREM','PLACEHOLDER','TEXT']],
+ ['color-converter','Color Code Converter','developer','Convert between HEX, RGB and HSL color formats instantly. Click any result to copy to clipboard.',['HEX','RGB','HSL']],
+ ['url-encoder','URL Encoder & Decoder','developer','Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.',['URL','ENCODE','DECODE']],
 ];
 const bySlug=s=>TOOLS.find(t=>t[0]===s);
 

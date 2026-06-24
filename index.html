@@ -47,6 +47,20 @@
 </head>
 <body>
 
+
+    <section style="padding:80px 24px;background:linear-gradient(135deg,rgba(34,211,238,.06),rgba(99,102,241,.06));border-top:1px solid rgba(255,255,255,.06)">
+      <div class="wrap" style="text-align:center;max-width:560px;margin:0 auto">
+        <div style="font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--p1);margin-bottom:12px">Free newsletter</div>
+        <h2 style="font-family:var(--fd);font-size:clamp(22px,4vw,32px);font-weight:700;letter-spacing:-1px;margin-bottom:12px">Get design tips &amp; tool updates</h2>
+        <p style="font-size:15px;color:var(--text-dim);margin-bottom:24px;line-height:1.65">Weekly tips on design, marketing, and the tools that save hours. No spam, unsubscribe anytime.</p>
+        <form onsubmit="event.preventDefault();var e=this.querySelector('input');if(e.value&&e.value.includes('@')){this.innerHTML='<p style=&quot;color:var(--p1);font-size:15px&quot;>✓ You&apos;re in! Check your inbox.</p>';}" style="display:flex;gap:10px;max-width:420px;margin:0 auto;flex-wrap:wrap">
+          <input type="email" placeholder="your@email.com" required style="flex:1;min-width:200px;padding:12px 16px;border-radius:10px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:14px">
+          <button type="submit" style="padding:12px 22px;border-radius:10px;background:var(--grad);color:#06121a;font-family:var(--fd);font-weight:700;font-size:14px;border:none;cursor:pointer;white-space:nowrap">Subscribe Free</button>
+        </form>
+        <p style="font-size:12px;color:var(--text-faint);margin-top:12px">Join designers and marketers getting better at their craft.</p>
+      </div>
+    </section>
+
 <div id="cookie-bar" role="region" aria-label="Cookie consent">
   <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a onclick="go('p/cookie')">Cookie Policy</a> · <a onclick="window.location.href='work-with-me.html'">Work With Me</a><a onclick="window.location.href='privacy.html'">Privacy Policy</a></p>
   <div class="cb-btns">
@@ -92,11 +106,11 @@
   <div id="home">
     <section class="hero"><div class="wrap hero-grid">
       <div>
-        <span class="eyebrow"><span class="dot"></span>46 TOOLS · 100% IN-BROWSER · NO UPLOADS</span>
+        <span class="eyebrow"><span class="dot"></span>56 TOOLS · 100% IN-BROWSER · NO UPLOADS</span>
         <h1 class="headline">All-in-One Free Online <span class="g">Image &amp; PDF</span> Tools</h1>
         <p class="sub">Convert, edit, compress, resize, merge, optimize and manage files instantly — powered by tools that run entirely in your browser. Your files never leave your device.</p>
         <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
-        <div class="hero-stats"><div><div class="n">46</div><div class="l">Free tools</div></div><div><div class="n" id="stat-count">—</div><div class="l">Files converted</div></div><div><div class="n">4</div><div class="l">Categories</div></div><div><div class="n">∞</div><div class="l">Conversions</div></div></div>
+        <div class="hero-stats"><div><div class="n">56</div><div class="l">Free tools</div></div><div><div class="n" id="stat-count">—</div><div class="l">Files converted</div></div><div><div class="n">4</div><div class="l">Categories</div></div><div><div class="n">∞</div><div class="l">Conversions</div></div></div>
       </div>
       <div class="stage"><div class="cluster-glow"></div><div class="float-wrap"><div class="cluster">
         <div class="card3d c1"><span class="glyph">PDF</span><span class="fmt">.pdf</span></div>
@@ -179,6 +193,7 @@
   <script src="image-tools.js"></script>
   <script src="converter-tools.js"></script>
   <script src="marketing-tools.js"></script>
+  <script src="developer-tools.js"></script>
   <script src="blog-data.js"></script>
   <script src="features.js"></script>
   <script src="app.js"></script>

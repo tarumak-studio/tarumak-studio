@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Blog — Free Design & Marketing Guides — Tarumak Studio</title>
+  <meta name="description" content="Free guides for designers, marketers and developers. Image compression, PDF tools, social media sizing, UTM tracking, brand colors and more.">
+  <meta property="og:title" content="Blog — Tarumak Studio">
+  <meta property="og:url" content="https://tarumakstudio.com/blog.html">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://tarumakstudio.com/blog.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/main.css">
+  <link rel="stylesheet" href="/blog.css">
+</head>
+<body>
+<header style="position:sticky;top:0;z-index:999;background:rgba(12,17,26,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06);padding:0 24px">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;height:64px;gap:20px">
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+      <img src="/favicon.svg" width="32" height="32" alt="Tarumak Studio">
+      <span style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#f1f5f9">Tarumak <span style="color:#94a3b8;font-weight:400">Studio</span></span>
+    </a>
+    <nav style="display:flex;gap:2px;margin-left:16px">
+      <a href="/" style="font-size:13px;color:#94a3b8;padding:6px 12px;border-radius:8px;text-decoration:none">Home</a>
+      <a href="/#/all" style="font-size:13px;color:#94a3b8;padding:6px 12px;border-radius:8px;text-decoration:none">Tools</a>
+      <a href="/about.html" style="font-size:13px;color:#94a3b8;padding:6px 12px;border-radius:8px;text-decoration:none">About</a>
+      <a href="/work-with-me.html" style="font-size:13px;color:#22d3ee;padding:6px 12px;border-radius:8px;text-decoration:none;font-weight:600">Work With Me</a>
+      <a href="/blog.html" style="font-size:13px;color:#f1f5f9;padding:6px 12px;border-radius:8px;text-decoration:none;background:rgba(255,255,255,.06)">Blog</a>
+      <a href="/contact.html" style="font-size:13px;color:#94a3b8;padding:6px 12px;border-radius:8px;text-decoration:none">Contact</a>
+    </nav>
+  </div>
+</header>
+<main style="max-width:1100px;margin:0 auto;padding:60px 24px 100px">
+  <div style="max-width:640px;margin-bottom:56px">
+    <div style="font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#22d3ee;margin-bottom:12px">Free guides</div>
+    <h1 style="font-family:Space Grotesk,sans-serif;font-size:clamp(28px,5vw,44px);font-weight:700;letter-spacing:-1.5px;margin-bottom:14px;color:#f1f5f9">Blog &amp; Guides</h1>
+    <p style="font-size:16px;color:#94a3b8;line-height:1.7">Practical guides for designers, marketers and developers. Every article links to free tools you can use immediately.</p>
+  </div>
+  <div id="blog-grid" class="blog-grid">
+    <!-- Populated by JS from blog-data.js, or fallback static links below -->
+  </div>
+  <!-- Static fallback for SEO crawlers without JS -->
+  <noscript>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
+      <a href="/article-jpg-vs-png-vs-webp.html" style="display:block;padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;color:#94a3b8">JPG vs PNG vs WebP: Which Format Should You Use in 2026?</a>
+      <a href="/article-social-media-image-sizes.html" style="display:block;padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;color:#94a3b8">Social Media Image Sizes 2026 — Complete Cheatsheet</a>
+    </div>
+  </noscript>
+</main>
+<footer style="border-top:1px solid rgba(255,255,255,.06);padding:32px 24px;text-align:center">
+  <p style="font-size:13px;color:#475569">
+    &copy; 2026 Tarumak Studio &nbsp;·&nbsp;
+    <a href="/privacy-policy.html" style="color:#64748b">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/cookie-policy.html" style="color:#64748b">Cookie Policy</a> &nbsp;·&nbsp;
+    <a href="/terms.html" style="color:#64748b">Terms</a>
+  </p>
+</footer>
+<script src="/blog-data.js"></script>
+<script>
+  var grid = document.getElementById('blog-grid');
+  if(grid && typeof ARTICLES !== 'undefined'){
+    var slugs = Object.keys(ARTICLES);
+    grid.innerHTML = slugs.map(function(slug){
+      var a = ARTICLES[slug];
+      return '<div class="blog-card" onclick="window.location.href='/index.html#/blog/'+''+slug+''">'
+        +'<span class="bc-cat">'+a.cat+'</span>'
+        +'<h3>'+a.title+'</h3>'
+        +'<p>'+a.excerpt+'</p>'
+        +'<div class="bc-meta"><span>'+a.date+'</span><span>'+a.read+' read</span></div></div>';
+    }).join('');
+  }
+</script>
+</body></html>

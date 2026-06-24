@@ -7,19 +7,37 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html</loc>
+    <loc>https://tarumakstudio.com/about.html</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://tarumakstudio.com/article-social-media-image-sizes.html</loc>
+    <loc>https://tarumakstudio.com/work-with-me.html</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://tarumakstudio.com/privacy.html</loc>
+    <loc>https://tarumakstudio.com/contact.html</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://tarumakstudio.com/blog.html</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tarumakstudio.com/privacy-policy.html</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://tarumakstudio.com/cookie-policy.html</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
@@ -31,15 +49,15 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://tarumakstudio.com/about.html</loc>
+    <loc>https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tarumakstudio.com/work-with-me.html</loc>
+    <loc>https://tarumakstudio.com/article-social-media-image-sizes.html</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
 </urlset>

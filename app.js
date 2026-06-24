@@ -14,7 +14,7 @@ function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:
 
 function buildTabs(){
   const c=counts(),fv=getFavs().size;
-  tabsEl.innerHTML=[['all','All'],['image','Image'],['pdf','PDF'],['converter','Converter'],['marketing','\u2726 Marketing']].map(([k,l])=>'<button class="tab '+(k===activeCat?'active':'')+'" data-cat="'+k+'">'+l+' <span class="ct">'+c[k]+'</span></button>').join('')
+  tabsEl.innerHTML=[['all','All'],['image','Image'],['pdf','PDF'],['converter','Converter'],['marketing','\u2726 Marketing'],['developer','\u2328 Dev & SEO']].map(([k,l])=>'<button class="tab '+(k===activeCat?'active':'')+'" data-cat="'+k+'">'+l+' <span class="ct">'+c[k]+'</span></button>').join('')
   +'<button class="tab t-saved '+(activeCat==='favs'?'active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
 }
 

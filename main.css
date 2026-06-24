@@ -21,6 +21,8 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .nav-links a{font-size:14px;color:var(--text-dim);padding:8px 12px;border-radius:9px;position:relative;font-weight:500;transition:color .25s;cursor:pointer;white-space:nowrap}
 .nav-links a::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:2px;background:var(--grad);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
 .nav-links a:hover{color:var(--text)}.nav-links a:hover::after{transform:scaleX(1)}
+.nav-links a.nav-active{color:var(--text)!important}
+.nav-links a.nav-active::after{transform:scaleX(1)}
 .nav-spacer{flex:1}
 .search{position:relative;width:250px}
 .search-inner{display:flex;align-items:center;gap:8px;height:40px;padding:0 10px 0 13px;border-radius:11px;border:1px solid var(--border);background:var(--surface);transition:.2s var(--ease)}

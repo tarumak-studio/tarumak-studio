@@ -68,15 +68,16 @@ function openBlog(slug){
 /* Core navigation: go, homeEl, showHome, noInit, openTool, route */
 function go(path){location.hash=path?('#/'+path):'#/';}
 const homeEl=$('#home'),toolEl=$('#tool');
-function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='TARUMAK Tools — Free Online Image, PDF & Document Tools';
-  setActiveNav(['image','pdf','converter','marketing','developer'].includes(cat)?cat:'');
-  if(['image','pdf','converter','marketing','developer'].includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Tools for Designers, Marketers & Developers';
+  const _cats=['image','pdf','converter','marketing','developer'];
+  setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   else if(cat==='about'){buildRecent();setTimeout(()=>{const el=$('#about');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   else{activeCat='all';buildTabs();buildGrid();buildRecent();scrollTo(0,0);}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
-  setActiveNav(t[2]);saveRecent(slug);
+  setActiveNav('all');saveRecent(slug);
   const cat=t[2],related=TOOLS.filter(x=>x[2]===cat&&x[0]!==slug).slice(0,3);
   const feats=FEAT[slug]||[['Instant &amp; local','Runs entirely in your browser — your files never leave your device.'],[t[1]+' made simple','A focused, no-clutter interface that does one job well.'],['Free forever','No sign-up, no watermark, no limits — use it as often as you like.']];
   const faqs=FAQ[slug]||[['Are my files uploaded to a server?','No. Everything is processed locally in your browser, so your files stay on your device.'],['Is it really free?','Yes — every TARUMAK tool is free, with no account and no watermark.']];

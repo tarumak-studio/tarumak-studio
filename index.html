@@ -48,7 +48,7 @@
 <body>
 
 <div id="cookie-bar" role="region" aria-label="Cookie consent">
-  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a onclick="go('p/cookie')">Cookie Policy</a> · <a onclick="window.location.href='work-with-me.html'">Work With Me</a><a onclick="window.location.href='privacy-policy.html'">Privacy Policy</a></p>
+  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a onclick="go('p/cookie')">Cookie Policy</a> · <a href='/work-with-me.html'>Work With Me</a><a onclick="window.location.href='privacy-policy.html'">Privacy Policy</a></p>
   <div class="cb-btns">
     <button class="cb-decline" id="cb-decline">Decline</button>
     <button class="cb-accept" id="cb-accept">Accept</button>
@@ -60,11 +60,11 @@
   <div class="brand" onclick="go('')"><div class="logo">T</div><div><b>Tarumak</b><small>Studio</small></div></div>
   <nav class="nav-links">
     <a data-nav="" onclick="go('')">Home</a>
-    <a data-nav="all" onclick="go('all')">Tools</a>
-    <a data-nav="about" onclick="window.location.href='about.html'">About</a>
-    <a data-nav="work-with-me" onclick="window.location.href='work-with-me.html'">Work With Me</a>
+    <a data-nav="all" onclick="go('');setTimeout(function(){var el=document.getElementById('tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80)">Tools</a>
+    <a href="/about.html" data-nav="about">About</a>
+    <a href="/work-with-me.html" data-nav="work-with-me" style="color:var(--p1);font-weight:600">Work With Me</a>
     <a data-nav="blog" onclick="go('blog')">Blog</a>
-    <a data-nav="contact" onclick="window.location.href='contact.html'">Contact</a>
+    <a href="/contact.html" data-nav="contact">Contact</a>
   </nav>
   <div class="nav-spacer"></div>
   <div class="search">
@@ -82,7 +82,7 @@
 
 <div class="mobile-menu" id="mobileMenu">
   <div class="mm-head"><div class="brand" onclick="go('')"><div class="logo">T</div><div><b>Tarumak</b> <span style="font-weight:400;color:#94a3b8">Studio</span></div></div><button class="icon-btn" id="closeMenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-  <a onclick="go('')">Home</a><a onclick="go('all')">Tools</a><a onclick="window.location.href='about.html'">About</a><a onclick="window.location.href='work-with-me.html'">Work With Me</a><a onclick="go('blog')">Blog</a><a onclick="window.location.href='contact.html'">Contact</a><a onclick="window.location.href='privacy-policy.html'">Privacy Policy</a><a onclick="window.location.href='cookie-policy.html'">Cookie Policy</a><a onclick="window.location.href='terms.html'">Disclaimer</a>
+  <a onclick="go('')">Home</a><a onclick="go('all')">Tools</a><a href='/about.html'>About</a><a href='/work-with-me.html'>Work With Me</a><a onclick="go('blog')">Blog</a><a href='/contact.html'>Contact</a><a onclick="window.location.href='privacy-policy.html'">Privacy Policy</a><a onclick="window.location.href='cookie-policy.html'">Cookie Policy</a><a onclick="window.location.href='terms.html'">Disclaimer</a>
 </div>
 
 <main>

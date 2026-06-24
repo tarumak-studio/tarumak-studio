@@ -69,8 +69,8 @@ function openBlog(slug){
 function go(path){location.hash=path?('#/'+path):'#/';}
 const homeEl=$('#home'),toolEl=$('#tool');
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='TARUMAK Tools — Free Online Image, PDF & Document Tools';
-  setActiveNav(['image','pdf','converter'].includes(cat)?cat:'');
-  if(['image','pdf','converter'].includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  setActiveNav(['image','pdf','converter','marketing','developer'].includes(cat)?cat:'');
+  if(['image','pdf','converter','marketing','developer'].includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   else if(cat==='about'){buildRecent();setTimeout(()=>{const el=$('#about');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   else{activeCat='all';buildTabs();buildGrid();buildRecent();scrollTo(0,0);}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}

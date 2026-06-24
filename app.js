@@ -10,7 +10,7 @@
    ================================================================ */
 
 /* counts() and buildTabs() — gap functions not in any other file */
-function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
+function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0,developer:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
 
 function buildTabs(){
   const c=counts(),fv=getFavs().size;

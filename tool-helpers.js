@@ -57,3 +57,10 @@ function dz(panel,o){o=o||{};
   const r={drop:$('#d_drop',panel),file:$('#d_file',panel),controls:$('#d_controls',panel),results:$('#d_results',panel),actions:$('#d_actions',panel),status:$('#d_status',panel)};
   return r;
 }
+
+async function renderPage(pdf,num,scale){const page=await pdf.getPage(num);const vp=page.getViewport({scale:scale});
+  const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+  await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+  const v1=page.getViewport({scale:1});return {canvas:c,w:v1.width,h:v1.height};}
+
+function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}

@@ -72,8 +72,8 @@ function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
   if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
-  else if(cat==='about'){buildRecent();setTimeout(()=>{const el=$('#about');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
-  else{activeCat='all';buildTabs();buildGrid();buildRecent();scrollTo(0,0);}}
+  
+  else{activeCat='all';buildTabs();buildGrid();buildRecent();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');

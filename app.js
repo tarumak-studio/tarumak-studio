@@ -93,7 +93,10 @@ function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
   (INIT[slug]||noInit)($('#panel'));
   scrollTo(0,0);
 }
-function route(){const h=location.hash||'';const m=h.match(/^#\/t\/(.+)$/);if(m){openTool(m[1]);return;}
+function route(){
+  /* Redirect bare /#/blog to clean URL /blog */
+  var _h=location.hash||'';
+  if(_h==='#/blog'||_h==='#/blog/'||_h==='/blog'){window.location.replace('/blog');return;}const h=location.hash||'';const m=h.match(/^#\/t\/(.+)$/);if(m){openTool(m[1]);return;}
   const pm=h.match(/^#\/p\/(.+)$/);if(pm){openPage(pm[1]);return;}
   const bm=h.match(/^#\/blog(?:\/(.+))?$/);if(bm){openBlog(bm[1]);return;}
   const seg=h.replace(/^#\/?/,'');if(seg==='blog'){openBlog();return;}showHome(seg);}

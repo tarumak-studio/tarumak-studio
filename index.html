@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Tarumak Studio — Free Tools for Designers, Marketers &amp; Developers</title>
+  <title>Tarumak Studio — Free Design &amp; Marketing Tools</title>
   <meta name="description" content="56 free browser-based tools for designers, marketers and developers. Social media image resizer, PDF tools, color palette generator, UTM builder and more.">
+  <meta property="og:description" content="56 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.">
   <meta property="og:title" content="Tarumak Studio — Free Design &amp; Marketing Tools">
-  <meta property="og:url" content="https://tarumakstudio.com">
+  <meta property="og:url" content="https://tarumakstudio.com/">
   <meta property="og:type" content="website">
   <link rel="canonical" href="https://tarumakstudio.com/">
   <meta name="theme-color" content="#0c111a">
@@ -33,17 +34,66 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta name="twitter:title" content="Tarumak Studio — Free Design &amp; Marketing Tools">
+  <meta name="twitter:description" content="56 free browser-based tools — compress images, edit PDFs, resize for social media, build UTMs and more. All browser-based and free.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
 
   <!-- Google Search Console verification — replace content value with your verification code -->
   <!-- Get this from: search.google.com/search-console → Add property → HTML tag method -->
-  <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE_HERE">
+  <!-- Google Search Console: replace content below with your actual verification code from search.google.com/search-console -->
+  <!-- <meta name="google-site-verification" content="YOUR_CODE_HERE"> -->
 
   <!-- Styles -->
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="tools.css">
   <link rel="stylesheet" href="blog.css">
+
+  <!-- Structured Data: WebSite + Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://tarumakstudio.com/#website",
+        "url": "https://tarumakstudio.com/",
+        "name": "Tarumak Studio",
+        "description": "56 free browser-based tools for designers, marketers and developers.",
+        "publisher": { "@id": "https://tarumakstudio.com/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://tarumakstudio.com/#/all?q={search_term_string}" },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://tarumakstudio.com/#organization",
+        "name": "Tarumak Studio",
+        "url": "https://tarumakstudio.com/",
+        "logo": { "@type": "ImageObject", "url": "https://tarumakstudio.com/favicon.svg" },
+        "description": "Free browser-based design and marketing tools built by Sudhir Kumar.",
+        "founder": {
+          "@type": "Person",
+          "name": "Sudhir Kumar",
+          "url": "https://tarumakstudio.com/about.html",
+          "jobTitle": "Freelance UI/UX & Graphic Designer"
+        },
+        "contactPoint": { "@type": "ContactPoint", "email": "hello@tarumakstudio.com", "contactType": "customer support" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://tarumakstudio.com/#webpage",
+        "url": "https://tarumakstudio.com/",
+        "name": "Tarumak Studio — Free Design & Marketing Tools",
+        "isPartOf": { "@id": "https://tarumakstudio.com/#website" },
+        "about": { "@id": "https://tarumakstudio.com/#organization" },
+        "description": "56 free browser-based tools for designers, marketers and developers."
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
@@ -147,10 +197,10 @@
     <section class="section" id="about" style="padding-top:6px"><div class="wrap">
       <div class="section-head"><span class="eyebrow"><span class="dot"></span>WHY TARUMAK STUDIO</span><h2>Private by design, fast by default</h2></div>
       <div class="trust">
-        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg></div><h4>100% Private</h4><p>Files are processed locally in your browser. Nothing is uploaded to a server.</p></div>
-        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div><h4>Instant Results</h4><p>No queues, no waiting room. Processing starts the moment you drop a file.</p></div>
-        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h4>Always Free</h4><p>No sign-up, no limits, no watermark. Every tool is free to use, every time.</p></div>
-        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/></svg></div><h4>Works Everywhere</h4><p>Mobile, tablet or desktop — no installs, no plugins, no software to download.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg></div><h3>100% Private</h3><p>Files are processed locally in your browser. Nothing is uploaded to a server.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div><h3>Instant Results</h3><p>No queues, no waiting room. Processing starts the moment you drop a file.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Always Free</h3><p>No sign-up, no limits, no watermark. Every tool is free to use, every time.</p></div>
+        <div class="t"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/></svg></div><h3>Works Everywhere</h3><p>Mobile, tablet or desktop — no installs, no plugins, no software to download.</p></div>
       </div>
     </div></section>
   </div>

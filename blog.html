@@ -156,6 +156,37 @@ to{opacity:1;transform:none}
       .btn-burger{display:block}
     }
   </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://tarumakstudio.com/blog#webpage",
+        "url": "https://tarumakstudio.com/blog",
+        "name": "Blog & Guides — Tarumak Studio",
+        "description": "Free guides for designers, marketers and developers covering image tools, PDF tools, social media, UTM tracking and brand design.",
+        "isPartOf": { "@id": "https://tarumakstudio.com/#website" },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://tarumakstudio.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://tarumakstudio.com/blog" }
+          ]
+        }
+      },
+      {
+        "@type": "Blog",
+        "@id": "https://tarumakstudio.com/blog#blog",
+        "url": "https://tarumakstudio.com/blog",
+        "name": "Tarumak Studio Blog",
+        "description": "Practical guides for designers, marketers and developers.",
+        "publisher": { "@id": "https://tarumakstudio.com/#organization" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 

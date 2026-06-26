@@ -27,6 +27,39 @@
     .cta-btn-out{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--fd);font-weight:600;font-size:15px;text-decoration:none;transition:.25s}
     .cta-btn-out:hover{border-color:var(--p1);color:var(--p1);transform:translateY(-2px)}
   </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AboutPage",
+        "@id": "https://tarumakstudio.com/about.html#webpage",
+        "url": "https://tarumakstudio.com/about.html",
+        "name": "About — Tarumak Studio",
+        "isPartOf": { "@id": "https://tarumakstudio.com/#website" },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://tarumakstudio.com/" },
+            { "@type": "ListItem", "position": 2, "name": "About", "item": "https://tarumakstudio.com/about.html" }
+          ]
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://tarumakstudio.com/about.html#person",
+        "name": "Sudhir Kumar",
+        "url": "https://tarumakstudio.com/about.html",
+        "jobTitle": "Freelance UI/UX & Graphic Designer",
+        "description": "Freelance UI/UX and graphic designer with 15+ years of experience in hospitality, finance and consumer brands.",
+        "worksFor": { "@type": "Organization", "name": "Tarumak Studio", "url": "https://tarumakstudio.com" },
+        "knowsAbout": ["UI/UX Design","Graphic Design","Brand Identity","Marketing Assets","Landing Pages"],
+        "address": { "@type": "PostalAddress", "addressLocality": "Ambala", "addressRegion": "Haryana", "addressCountry": "IN" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body><header style="position:sticky;top:0;z-index:999;background:rgba(12,17,26,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06);padding:0 24px">
   <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;height:64px;gap:20px">

@@ -244,11 +244,10 @@ to{opacity:1;transform:none}
     'Marketing Designer':'#ec4899','Converter Tools':'#f59e0b','Developer Tools':'#22c55e'};
   grid.innerHTML=Object.keys(ARTICLES).map(function(slug){
     var a=ARTICLES[slug],c=colors[a.cat]||'#22d3ee';
-    return '<a href="/#/blog/'+slug+'" class="blog-card" style="text-decoration:none;display:flex;flex-direction:column">'
-      +'<div style="padding:18px 18px 10px">'
-      +'<span class="bc-cat" style="color:'+c+'">'+a.cat+'</span>'
-      +'<h3 style="margin-top:8px">'+a.title+'</h3>'
-      +'</div>'
+    var href='/article-'+slug+'.html';
+    return '<a href="'+href+'" class="blog-card" style="text-decoration:none;display:flex;flex-direction:column">'
+      +'<div style="padding:18px 18px 10px"><span class="bc-cat" style="color:'+c+'">'+a.cat+'</span>'
+      +'<h3 style="margin-top:8px">'+a.title+'</h3></div>'
       +'<p>'+a.excerpt+'</p>'
       +'<div class="bc-meta"><span>'+a.date+'</span><span>'+a.read+' read</span></div>'
       +'</a>';

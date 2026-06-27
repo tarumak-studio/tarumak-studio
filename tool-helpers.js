@@ -29,6 +29,8 @@ function listRows(box,arr,label){
 }
 
 async function embedImage(pdf,file){
+  try{
+
   const t=file.type||'';
   if(t==='image/jpeg')return await pdf.embedJpg(await file.arrayBuffer());
   if(t==='image/png')return await pdf.embedPng(await file.arrayBuffer());
@@ -36,9 +38,16 @@ async function embedImage(pdf,file){
   c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;
   c.getContext('2d').drawImage(img,0,0);
   return await pdf.embedPng(c.toDataURL('image/png'));
+
+  }catch(err){
+    console.error('embedImage error:',err);
+    throw err;
+  }
 }
 
 async function buildImagesPdf(files,mode){
+  try{
+
   const pdf=await PDFLib.PDFDocument.create();
   for(const f of files){const e=await embedImage(pdf,f);
     if(mode==='fit'){const pg=pdf.addPage([e.width,e.height]);pg.drawImage(e,{x:0,y:0,width:e.width,height:e.height});}
@@ -47,6 +56,11 @@ async function buildImagesPdf(files,mode){
       const s=Math.min(aw/e.width,ah/e.height),w=e.width*s,h=e.height*s;
       pg.drawImage(e,{x:(pw-w)/2,y:(ph-h)/2,width:w,height:h});}}
   return new Blob([await pdf.save()],{type:'application/pdf'});
+
+  }catch(err){
+    console.error('buildImagesPdf error:',err);
+    throw err;
+  }
 }
 
 function dz(panel,o){o=o||{};

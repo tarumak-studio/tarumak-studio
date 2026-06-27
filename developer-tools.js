@@ -123,7 +123,7 @@ INIT['json-formatter']=function(panel){
     var t=document.getElementById('jf-in').value.trim();
     if(!t){document.getElementById('jf-status').innerHTML='';return false;}
     try{JSON.parse(t);document.getElementById('jf-status').innerHTML='<span style="color:#22c55e">✓ Valid JSON</span>';return true;}
-    catch(e){document.getElementById('jf-status').innerHTML='<span style="color:#ef4444">✗ '+e.message+'</span>';return false;}
+    catch(e){document.getElementById('jf-status').textContent='';const _espan=document.createElement('span');_espan.style.color='#ef4444';_espan.textContent='✗ '+e.message;document.getElementById('jf-status').appendChild(_espan);return false;}
   }
   document.getElementById('jf-in').addEventListener('input',validate);
   document.getElementById('jf-fmt').onclick=function(){if(validate()){try{document.getElementById('jf-in').value=JSON.stringify(JSON.parse(document.getElementById('jf-in').value),null,2);}catch(e){}}};

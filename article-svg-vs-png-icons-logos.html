@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SVG vs PNG for Logos and Icons | Tarumak Studio</title>
+  <meta name="description" content="SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.">
+  <link rel="canonical" href="https://tarumakstudio.com/article-svg-vs-png-icons-logos.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="SVG vs PNG: Which Format Should You Use for Logos and Icons? — Tarumak Studio">
+  <meta property="og:description" content="SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.">
+  <meta property="og:url" content="https://tarumakstudio.com/article-svg-vs-png-icons-logos.html">
+  <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
+  <meta property="og:site_name" content="Tarumak Studio">
+  <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:author" content="Sudhir Kumar">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SVG vs PNG: Which Format Should You Use for Logos and Icons? — Tarumak Studio">
+  <meta name="twitter:description" content="SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.">
+  <meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "SVG vs PNG: Which Format Should You Use for Logos and Icons?",
+      "description": "SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.",
+      "url": "https://tarumakstudio.com/article-svg-vs-png-icons-logos.html",
+      "datePublished": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-06-27T00:00:00Z",
+      "author": {
+        "@type": "Person",
+        "name": "Sudhir Kumar",
+        "url": "https://tarumakstudio.com/about.html"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://tarumakstudio.com/#organization",
+        "name": "Tarumak Studio",
+        "url": "https://tarumakstudio.com"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://tarumakstudio.com/article-svg-vs-png-icons-logos.html"
+      },
+      "image": "https://tarumakstudio.com/og-image.png",
+      "isPartOf": {
+        "@type": "Blog",
+        "@id": "https://tarumakstudio.com/blog#blog",
+        "name": "Tarumak Studio Blog",
+        "url": "https://tarumakstudio.com/blog"
+      },
+      "articleSection": "Image Tools"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://tarumakstudio.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://tarumakstudio.com/blog"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "SVG vs PNG: Which Format Should You Use for Logos and Icons?",
+          "item": "https://tarumakstudio.com/article-svg-vs-png-icons-logos.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can I convert a PNG logo to SVG?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Only with significant quality loss. Converting a raster PNG to a true vector SVG requires auto-tracing software like Inkscape or Adobe Illustrator. Always request the original SVG source file from your designer instead of converting from PNG."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which format does Google prefer for favicons?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Google supports both SVG and PNG favicons. SVG is preferred because it renders sharply on all display densities. Also provide a 32x32 PNG and .ico for maximum compatibility."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SVG support transparency?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. SVG supports full transparency natively. Any unfilled areas in an SVG are transparent by default without needing a separate alpha channel."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use SVG in email newsletters?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Most email clients including Gmail, Outlook and Apple Mail do not render SVG. Always use PNG for email graphics."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c111a;--bg2:#111827;--surface:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+  --text:#f1f5f9;--text-dim:#94a3b8;--text-faint:#475569;
+  --p1:#22d3ee;--p2:#6366f1;
+  --grad:linear-gradient(120deg,#22d3ee,#6366f1);
+  --fd:'Space Grotesk',sans-serif;--fm:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--p1);transition:color .2s}
+a:hover{color:#67e8f9}
+main{flex:1}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:999;background:rgba(12,17,26,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.site-header-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:16px}
+.site-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.site-logo-mark{width:32px;height:32px;border-radius:8px;background:var(--grad);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:18px;color:#06121a;flex-shrink:0}
+.site-logo-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text)}
+.site-logo-name span{font-weight:400;color:var(--text-dim)}
+.site-nav{display:flex;align-items:center;gap:2px;margin-left:8px}
+.site-nav a{font-family:var(--fd);font-size:13.5px;font-weight:500;color:var(--text-dim);padding:7px 12px;border-radius:9px;text-decoration:none;white-space:nowrap;transition:color .2s}
+.site-nav a:hover{color:var(--text)}
+.site-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.btn-explore{padding:9px 18px;border-radius:9px;background:var(--grad);color:#06121a;font-family:var(--fd);font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.btn-burger{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px;display:none}
+
+/* Mobile menu */
+.mob-menu{display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);padding:24px;flex-direction:column;gap:4px;overflow:auto}
+.mob-menu.open{display:flex}
+.mob-menu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mob-menu-close{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px}
+.mob-menu a{font-family:var(--fd);font-size:19px;font-weight:600;color:var(--text-dim);padding:13px 4px;border-bottom:1px solid var(--border);text-decoration:none}
+.mob-menu a:hover{color:var(--p1)}
+
+/* Article layout */
+.article-wrap{max-width:760px;margin:0 auto;padding:48px 24px 100px}
+.breadcrumb{font-size:13px;color:var(--text-faint);display:flex;align-items:center;gap:6px;margin-bottom:32px;flex-wrap:wrap}
+.breadcrumb a{color:var(--text-dim);text-decoration:none}
+.breadcrumb a:hover{color:var(--p1)}
+.art-cat{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;display:inline-block}
+.art-h1{font-family:var(--fd);font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.2;color:var(--text);margin-bottom:16px}
+.art-meta{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--text-faint);margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:24px;flex-wrap:wrap}
+.art-meta span{display:flex;align-items:center;gap:5px}
+
+/* Article body */
+.art-body{font-size:15.5px;line-height:1.78;color:var(--text-dim)}
+.art-body h2{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);margin:40px 0 12px;letter-spacing:-.5px}
+.art-body h3{font-family:var(--fd);font-size:17px;font-weight:600;color:var(--text);margin:28px 0 8px}
+.art-body p{margin-bottom:16px}
+.art-body ul,.art-body ol{padding-left:22px;margin-bottom:16px}
+.art-body li{margin-bottom:6px}
+.art-body strong{color:var(--text);font-weight:600}
+.art-body a{color:var(--p1);text-decoration:none;border-bottom:1px solid rgba(34,211,238,.3)}
+.art-body a:hover{border-bottom-color:var(--p1)}
+.art-body code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;font-size:13.5px;font-family:monospace;color:#e2e8f0}
+.art-body details{border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px}
+.art-body details summary{font-weight:600;color:var(--text);cursor:pointer;font-size:15px;list-style:none;padding-right:20px;position:relative}
+.art-body details summary::after{content:'＋';position:absolute;right:0;top:0;color:var(--p1);font-size:18px;line-height:1}
+.art-body details[open] summary::after{content:'－'}
+.art-body details p{margin-top:12px;margin-bottom:0}
+.art-body .art-callout{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.65}
+.art-body .art-callout code{background:rgba(34,211,238,.08)}
+.art-body .tool-cta-link{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--grad);color:#06121a;border-radius:9px;font-family:var(--fd);font-weight:700;font-size:14px;text-decoration:none;margin:8px 0 20px;border:none}
+.art-body .tool-cta-link:hover{opacity:.9}
+.art-body .art-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px}
+.art-body .art-tools a{padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-dim);text-decoration:none;transition:.2s}
+.art-body .art-tools a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Back + Next/Prev nav */
+.art-nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0;border-top:1px solid var(--border);margin-top:48px;gap:12px;flex-wrap:wrap}
+.art-nav a{font-family:var(--fd);font-size:14px;font-weight:600;color:var(--text-dim);text-decoration:none;padding:10px 16px;border:1px solid var(--border);border-radius:9px;transition:.2s}
+.art-nav a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.site-footer p{font-size:13px;color:var(--text-faint)}
+.site-footer a{color:var(--text-faint);text-decoration:none}
+.site-footer a:hover{color:var(--text-dim)}
+
+@media(max-width:820px){.site-nav{display:none}.btn-burger{display:block}}
+@media(max-width:600px){.art-wrap{padding:32px 16px 80px}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">T</div>
+      <div class="site-logo-name">Tarumak <span>Studio</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/#/all">Tools</a>
+      <a href="/about.html">About</a>
+      <a href="/work-with-me.html">Work With Me</a>
+      <a href="/blog">Blog</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="site-actions">
+      <a href="/#/all" class="btn-explore">Explore Tools</a>
+      <button class="btn-burger" id="burgerBtn" aria-label="Open menu" onclick="document.getElementById('mobMenu').classList.add('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-head">
+    <a href="/" class="site-logo"><div class="site-logo-mark">T</div><div class="site-logo-name">Tarumak <span>Studio</span></div></a>
+    <button class="mob-menu-close" onclick="document.getElementById('mobMenu').classList.remove('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+<main>
+  <div class="article-wrap">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/">Home</a><span>›</span><a href="/blog">Blog</a><span>›</span>
+      <span style="color:var(--text)">SVG vs PNG: Which Format Should You Use for Logos and Icons?</span>
+    </nav>
+    <div class="art-cat" style="color:#22d3ee">Image Tools</div>
+    <h1 class="art-h1">SVG vs PNG: Which Format Should You Use for Logos and Icons?</h1>
+    <div class="art-meta">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+    </div>
+    <div class="art-body">
+
+<p>SVG and PNG are both widely supported, but they solve completely different problems. Choosing the wrong one means blurry logos at large sizes, or unnecessarily large files on fast-loading pages. Here is the complete breakdown.</p>
+
+<h2>What is an SVG file?</h2>
+<p>SVG stands for Scalable Vector Graphics. Unlike raster images, an SVG is not a grid of pixels — it is a mathematical description of shapes, paths, and curves stored as XML text. This means an SVG can be scaled to any size — from a 16×16 favicon to a 50-metre billboard — and will always look perfectly sharp.</p>
+
+<p>You can open an SVG in a text editor and read it. A simple circle looks like:</p>
+<div class="art-callout"><code>&lt;svg&gt;&lt;circle cx="50" cy="50" r="40" fill="#22d3ee"/&gt;&lt;/svg&gt;</code></div>
+
+<p>Because they are text, SVGs can be very small (a simple logo might be 2–5 KB), are indexable by Google, can be styled with CSS, and can be animated.</p>
+
+<h2>What is a PNG file?</h2>
+<p>PNG stands for Portable Network Graphics. It is a raster format — a grid of pixels with a fixed resolution. PNG uses lossless compression, so every pixel is stored exactly with no quality loss. PNG also supports a full alpha transparency channel, meaning individual pixels can be partially transparent — something JPG cannot do.</p>
+
+<p>The trade-off: a raster image has a fixed resolution. Scale a 100×100 pixel PNG to 1000×1000 and it will look blurry because you are just enlarging existing pixels without adding new detail.</p>
+
+<h2>When to use SVG</h2>
+<p>SVG is the right choice for almost any logo, icon, or illustration that a designer would typically create in Illustrator or Figma. Specifically:</p>
+<ul>
+<li><strong>Logos</strong> — must look sharp at any size, from a 32px browser tab to a 300px header</li>
+<li><strong>Icons and icon sets</strong> — UI icons that need to scale between mobile and desktop displays</li>
+<li><strong>Infographics and diagrams</strong> — charts, maps, illustrations made of paths and text</li>
+<li><strong>Favicons</strong> — modern browsers support SVG favicons natively, which look perfect on retina displays</li>
+<li><strong>Animated illustrations</strong> — SVGs can be animated with CSS or JavaScript without video codecs</li>
+</ul>
+
+<h2>When to use PNG</h2>
+<p>PNG is the right choice when the image contains photographic detail or complex pixel-level texture that cannot be represented efficiently as vectors:</p>
+<ul>
+<li><strong>Screenshots</strong> — pixel-perfect UI captures, before and after comparisons</li>
+<li><strong>Rasterized artwork</strong> — digital paintings, illustrations with complex gradients, photographic collages</li>
+<li><strong>Transparent overlays</strong> — watermarks, stickers, or UI elements that need pixel-level alpha</li>
+<li><strong>Social media graphics</strong> — exported at fixed pixel dimensions, always viewed at that size</li>
+<li><strong>Platform compatibility</strong> — some older platforms, email clients, and productivity software do not support SVG</li>
+</ul>
+
+<h2>File size comparison</h2>
+<p>For a simple geometric logo, SVG typically produces a much smaller file:</p>
+<ul>
+<li>Simple logo as SVG: 2–8 KB</li>
+<li>Same logo as PNG at 512×512: 15–40 KB</li>
+<li>Same logo as PNG at 1024×1024 (for retina): 40–120 KB</li>
+</ul>
+<p>However, for complex artwork with many paths and gradients, an SVG can become large (50–500 KB) while a PNG at normal web resolution stays small. Use a tool like SVGO to optimise SVG files before deploying.</p>
+
+<h2>Browser support</h2>
+<p>SVG is supported in all modern browsers (Chrome, Firefox, Safari, Edge) and has been since 2011. Internet Explorer 8 and below do not support SVG — in 2026 this is no longer a realistic concern for most projects. PNG is supported universally across everything from browsers to email clients to Word documents.</p>
+
+<h2>The hybrid approach</h2>
+<p>The best practice for logos is to maintain the source as SVG and export PNG versions at specific sizes when needed — for example, a 512×512 PNG for app stores, a 192×192 PNG for PWA manifests, and 16/32/48 PNG for ICO favicons. Keep the SVG as your master file and convert from it rather than trying to convert back from a raster format.</p>
+
+<h2>Quick decision guide</h2>
+<ul>
+<li>Logo or icon created in Figma/Illustrator → <strong>SVG</strong></li>
+<li>Photo or complex digital artwork → <strong>PNG</strong></li>
+<li>Need it on all platforms including old software → <strong>PNG</strong></li>
+<li>Need it animated with CSS → <strong>SVG</strong></li>
+<li>Need the smallest possible file for a simple shape → <strong>SVG</strong></li>
+<li>Need to email it as an attachment → <strong>PNG</strong></li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>Can I convert a PNG logo to SVG?</summary>
+<p>Only with significant quality loss. Converting a raster PNG to a true vector SVG requires auto-tracing software like Inkscape or Adobe Illustrator. The result is rarely as clean as the original vector source. If your designer has the original SVG source file, always request that instead of converting from PNG.</p></details>
+<details class="art-faq"><summary>Which format does Google prefer for favicons?</summary>
+<p>Google supports both SVG and PNG favicons in search results. An SVG favicon is preferred because it renders sharply on all display densities including high-DPI screens. For maximum compatibility also provide a 32×32 PNG and a traditional .ico file.</p></details>
+<details class="art-faq"><summary>Does SVG support transparency?</summary>
+<p>Yes — SVG supports full transparency natively. You do not need a separate alpha channel; any unfilled areas in an SVG are transparent by default.</p></details>
+<details class="art-faq"><summary>Can I use SVG in email newsletters?</summary>
+<p>No. Most email clients including Gmail, Outlook, and Apple Mail do not render SVG. Always use PNG for email graphics.</p></details>
+
+<div class="art-tools"><a href="/#/t/svg-to-png">SVG to PNG Converter</a><a href="/#/t/svg-to-jpg">SVG to JPG Converter</a><a href="/#/t/image-compressor">Image Compressor</a><a href="/#/t/favicon-generator">Favicon Generator</a></div>
+    </div>
+    <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:#94a3b8">Browse all Image Tools</span><a href="/#/image" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Image Tools →</a></div>
+    <div class="art-nav" style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:48px;flex-wrap:wrap">
+      <a href="/blog" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;color:#94a3b8;text-decoration:none;padding:10px 16px;border:0.5px solid rgba(255,255,255,.08);border-radius:9px">← All articles</a>
+    </div>
+    <div class="art-related" style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,.06)"><h2 style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:16px;letter-spacing:-.5px">Related articles</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"><a href="/article-jpg-vs-png-vs-webp.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22d3ee;margin-bottom:6px">Image Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">JPG vs PNG vs WebP — Which to Use?</div></a><a href="/article-best-favicon-size.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22d3ee;margin-bottom:6px">Image Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">Best Favicon Size and Format</div></a><a href="/article-compress-images-without-losing-quality.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22d3ee;margin-bottom:6px">Image Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">How to Compress Images Without Losing Quality</div></a></div></div>
+  </div>
+</main>
+<footer class="site-footer">
+  <p>&copy; 2026 Tarumak Studio &nbsp;&middot;&nbsp;
+  <a href="/privacy-policy.html">Privacy Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/cookie-policy.html">Cookie Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/terms.html">Terms</a></p>
+</footer>
+<script>
+(function(){
+  var b=document.getElementById('burgerBtn'),m=document.getElementById('mobMenu');
+  if(b&&m){b.onclick=function(){m.classList.add('open');};}
+})();
+</script>
+</body>
+</html>

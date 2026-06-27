@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>CSS Gradients: Complete Guide | Tarumak Studio</title>
+  <meta name="description" content="CSS gradient types explained — linear, radial, and conic gradients with syntax examples, color stops, angles, and tips. Includes a free browser-based CSS gradient generator.">
+  <link rel="canonical" href="https://tarumakstudio.com/article-css-gradient-guide.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CSS Gradients: Complete Guide with Types, Examples and a Free Generator — Tarumak Studio">
+  <meta property="og:description" content="CSS gradient types explained — linear, radial, and conic gradients with syntax examples, color stops, angles, and tips. Includes a free browser-based CSS gradient generator.">
+  <meta property="og:url" content="https://tarumakstudio.com/article-css-gradient-guide.html">
+  <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
+  <meta property="og:site_name" content="Tarumak Studio">
+  <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:author" content="Sudhir Kumar">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CSS Gradients: Complete Guide with Types, Examples and a Free Generator — Tarumak Studio">
+  <meta name="twitter:description" content="CSS gradient types explained — linear, radial, and conic gradients with syntax examples, color stops, angles, and tips. Includes a free browser-based CSS gradient generator.">
+  <meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "CSS Gradients: Complete Guide with Types, Examples and a Free Generator",
+      "description": "CSS gradient types explained — linear, radial, and conic gradients with syntax examples, color stops, angles, and tips. Includes a free browser-based CSS gradient generator.",
+      "url": "https://tarumakstudio.com/article-css-gradient-guide.html",
+      "datePublished": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-06-27T00:00:00Z",
+      "author": {
+        "@type": "Person",
+        "name": "Sudhir Kumar",
+        "url": "https://tarumakstudio.com/about.html"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://tarumakstudio.com/#organization",
+        "name": "Tarumak Studio",
+        "url": "https://tarumakstudio.com"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://tarumakstudio.com/article-css-gradient-guide.html"
+      },
+      "image": "https://tarumakstudio.com/og-image.png",
+      "isPartOf": {
+        "@type": "Blog",
+        "@id": "https://tarumakstudio.com/blog#blog",
+        "name": "Tarumak Studio Blog",
+        "url": "https://tarumakstudio.com/blog"
+      },
+      "articleSection": "Developer Tools"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://tarumakstudio.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://tarumakstudio.com/blog"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "CSS Gradients: Complete Guide with Types, Examples and a Free Generator",
+          "item": "https://tarumakstudio.com/article-css-gradient-guide.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can I use CSS gradients as borders?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not directly with border-color. Use a wrapper element with a gradient background and a smaller inner element with a solid background to create the appearance of a gradient border."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I animate a CSS gradient?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "CSS cannot animate gradient properties directly. The workaround is to animate background-position on an oversized gradient, or animate opacity between two overlapping gradient layers using a pseudo-element."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between a gradient and a mesh gradient?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "CSS gradients blend along a mathematical function. Mesh gradients blend on a 2D grid for organic colour fields. CSS does not natively support mesh gradients — they must be rasterised to PNG or SVG."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c111a;--bg2:#111827;--surface:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+  --text:#f1f5f9;--text-dim:#94a3b8;--text-faint:#475569;
+  --p1:#22d3ee;--p2:#6366f1;
+  --grad:linear-gradient(120deg,#22d3ee,#6366f1);
+  --fd:'Space Grotesk',sans-serif;--fm:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--p1);transition:color .2s}
+a:hover{color:#67e8f9}
+main{flex:1}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:999;background:rgba(12,17,26,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.site-header-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:16px}
+.site-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.site-logo-mark{width:32px;height:32px;border-radius:8px;background:var(--grad);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:18px;color:#06121a;flex-shrink:0}
+.site-logo-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text)}
+.site-logo-name span{font-weight:400;color:var(--text-dim)}
+.site-nav{display:flex;align-items:center;gap:2px;margin-left:8px}
+.site-nav a{font-family:var(--fd);font-size:13.5px;font-weight:500;color:var(--text-dim);padding:7px 12px;border-radius:9px;text-decoration:none;white-space:nowrap;transition:color .2s}
+.site-nav a:hover{color:var(--text)}
+.site-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.btn-explore{padding:9px 18px;border-radius:9px;background:var(--grad);color:#06121a;font-family:var(--fd);font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.btn-burger{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px;display:none}
+
+/* Mobile menu */
+.mob-menu{display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);padding:24px;flex-direction:column;gap:4px;overflow:auto}
+.mob-menu.open{display:flex}
+.mob-menu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mob-menu-close{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px}
+.mob-menu a{font-family:var(--fd);font-size:19px;font-weight:600;color:var(--text-dim);padding:13px 4px;border-bottom:1px solid var(--border);text-decoration:none}
+.mob-menu a:hover{color:var(--p1)}
+
+/* Article layout */
+.article-wrap{max-width:760px;margin:0 auto;padding:48px 24px 100px}
+.breadcrumb{font-size:13px;color:var(--text-faint);display:flex;align-items:center;gap:6px;margin-bottom:32px;flex-wrap:wrap}
+.breadcrumb a{color:var(--text-dim);text-decoration:none}
+.breadcrumb a:hover{color:var(--p1)}
+.art-cat{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;display:inline-block}
+.art-h1{font-family:var(--fd);font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.2;color:var(--text);margin-bottom:16px}
+.art-meta{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--text-faint);margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:24px;flex-wrap:wrap}
+.art-meta span{display:flex;align-items:center;gap:5px}
+
+/* Article body */
+.art-body{font-size:15.5px;line-height:1.78;color:var(--text-dim)}
+.art-body h2{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);margin:40px 0 12px;letter-spacing:-.5px}
+.art-body h3{font-family:var(--fd);font-size:17px;font-weight:600;color:var(--text);margin:28px 0 8px}
+.art-body p{margin-bottom:16px}
+.art-body ul,.art-body ol{padding-left:22px;margin-bottom:16px}
+.art-body li{margin-bottom:6px}
+.art-body strong{color:var(--text);font-weight:600}
+.art-body a{color:var(--p1);text-decoration:none;border-bottom:1px solid rgba(34,211,238,.3)}
+.art-body a:hover{border-bottom-color:var(--p1)}
+.art-body code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;font-size:13.5px;font-family:monospace;color:#e2e8f0}
+.art-body details{border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px}
+.art-body details summary{font-weight:600;color:var(--text);cursor:pointer;font-size:15px;list-style:none;padding-right:20px;position:relative}
+.art-body details summary::after{content:'＋';position:absolute;right:0;top:0;color:var(--p1);font-size:18px;line-height:1}
+.art-body details[open] summary::after{content:'－'}
+.art-body details p{margin-top:12px;margin-bottom:0}
+.art-body .art-callout{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.65}
+.art-body .art-callout code{background:rgba(34,211,238,.08)}
+.art-body .tool-cta-link{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--grad);color:#06121a;border-radius:9px;font-family:var(--fd);font-weight:700;font-size:14px;text-decoration:none;margin:8px 0 20px;border:none}
+.art-body .tool-cta-link:hover{opacity:.9}
+.art-body .art-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px}
+.art-body .art-tools a{padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-dim);text-decoration:none;transition:.2s}
+.art-body .art-tools a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Back + Next/Prev nav */
+.art-nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0;border-top:1px solid var(--border);margin-top:48px;gap:12px;flex-wrap:wrap}
+.art-nav a{font-family:var(--fd);font-size:14px;font-weight:600;color:var(--text-dim);text-decoration:none;padding:10px 16px;border:1px solid var(--border);border-radius:9px;transition:.2s}
+.art-nav a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.site-footer p{font-size:13px;color:var(--text-faint)}
+.site-footer a{color:var(--text-faint);text-decoration:none}
+.site-footer a:hover{color:var(--text-dim)}
+
+@media(max-width:820px){.site-nav{display:none}.btn-burger{display:block}}
+@media(max-width:600px){.art-wrap{padding:32px 16px 80px}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">T</div>
+      <div class="site-logo-name">Tarumak <span>Studio</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/#/all">Tools</a>
+      <a href="/about.html">About</a>
+      <a href="/work-with-me.html">Work With Me</a>
+      <a href="/blog">Blog</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="site-actions">
+      <a href="/#/all" class="btn-explore">Explore Tools</a>
+      <button class="btn-burger" id="burgerBtn" aria-label="Open menu" onclick="document.getElementById('mobMenu').classList.add('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-head">
+    <a href="/" class="site-logo"><div class="site-logo-mark">T</div><div class="site-logo-name">Tarumak <span>Studio</span></div></a>
+    <button class="mob-menu-close" onclick="document.getElementById('mobMenu').classList.remove('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+<main>
+  <div class="article-wrap">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/">Home</a><span>›</span><a href="/blog">Blog</a><span>›</span>
+      <span style="color:var(--text)">CSS Gradients: Complete Guide with Types, Examples and a Free Generator</span>
+    </nav>
+    <div class="art-cat" style="color:#22c55e">Developer Tools</div>
+    <h1 class="art-h1">CSS Gradients: Complete Guide with Types, Examples and a Free Generator</h1>
+    <div class="art-meta">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 7 min read</span>
+    </div>
+    <div class="art-body">
+
+<p>CSS gradients let you create smooth transitions between two or more colours without using image files. They are resolution-independent, load instantly, and can be animated — making them far superior to gradient images for most web design uses. Here is everything you need to create any gradient type in CSS.</p>
+
+<h2>The three gradient types</h2>
+<p>CSS has three gradient functions: <code>linear-gradient()</code>, <code>radial-gradient()</code>, and <code>conic-gradient()</code>. Each produces a different shape of transition.</p>
+
+<h2>Linear gradient</h2>
+<p>A linear gradient transitions colours along a straight line. The direction can be specified as an angle or a keyword:</p>
+<div class="art-callout"><code>background: linear-gradient(135deg, #22d3ee, #6366f1);</code></div>
+<ul>
+<li><code>to right</code> — left to right</li>
+<li><code>to bottom</code> — top to bottom (default)</li>
+<li><code>to bottom right</code> — diagonal</li>
+<li><code>45deg</code>, <code>135deg</code> — specific angle in degrees</li>
+</ul>
+<p>Angles work clockwise from the top: <code>0deg</code> goes upward, <code>90deg</code> goes right, <code>180deg</code> goes downward.</p>
+
+<h2>Radial gradient</h2>
+<p>A radial gradient transitions colours outward from a centre point in a circular or elliptical pattern:</p>
+<div class="art-callout"><code>background: radial-gradient(circle at centre, #22d3ee, #6366f1);</code></div>
+<p>Key parameters:</p>
+<ul>
+<li><code>circle</code> — produces a perfect circle</li>
+<li><code>ellipse</code> — (default) stretches to fit the element shape</li>
+<li><code>at top left</code>, <code>at 30% 70%</code> — positions the centre point</li>
+<li><code>closest-side</code>, <code>farthest-corner</code> — determines where the gradient ends</li>
+</ul>
+
+<h2>Conic gradient</h2>
+<p>A conic gradient rotates colours around a centre point, like a colour wheel:</p>
+<div class="art-callout"><code>background: conic-gradient(from 0deg, #22d3ee, #6366f1, #22d3ee);</code></div>
+<p>Conic gradients are newer (Safari support from 2020, Chrome from 2018) and are excellent for pie charts, progress indicators, and colour wheels.</p>
+
+<h2>Color stops</h2>
+<p>All gradient types accept multiple colour stops — the points where one colour transitions to the next:</p>
+<div class="art-callout"><code>background: linear-gradient(90deg, #22d3ee 0%, #6366f1 50%, #ec4899 100%);</code></div>
+<p>The percentage after each colour is its position along the gradient axis. You can add as many stops as you want. Omitting positions lets the browser distribute them evenly.</p>
+
+<h2>Hard stops (no transition)</h2>
+<p>Place two stops at the same position to create a hard edge with no blending:</p>
+<div class="art-callout"><code>background: linear-gradient(90deg, #22d3ee 50%, #6366f1 50%);</code></div>
+<p>This creates a clean split between two colours — useful for striped patterns.</p>
+
+<h2>Repeating gradients</h2>
+<p>Prefix any gradient with <code>repeating-</code> to tile it:</p>
+<div class="art-callout"><code>background: repeating-linear-gradient(45deg, #22d3ee 0px, #22d3ee 10px, transparent 10px, transparent 20px);</code></div>
+<p>This creates diagonal stripes. The pattern repeats every 20px (the sum of the stripe and gap).</p>
+
+<h2>Multiple gradients</h2>
+<p>You can layer multiple gradients by separating them with commas:</p>
+<div class="art-callout"><code>background: radial-gradient(circle at 30% 50%, rgba(34,211,238,.3), transparent 60%), linear-gradient(135deg, #0c111a, #1e1b4b);</code></div>
+<p>The first value is on top. Using <code>rgba()</code> or <code>transparent</code> lets lower layers show through.</p>
+
+<h2>Browser compatibility</h2>
+<p>All three gradient types work in every modern browser without vendor prefixes. For very old browsers (IE 9 and below), gradients require the <code>-ms-</code> prefix — but at 2026 traffic levels this is not a concern for the vast majority of projects.</p>
+
+<h2>Performance</h2>
+<p>CSS gradients are painted by the GPU and have essentially zero performance cost. They are far more efficient than loading gradient images. The one exception: extremely complex multi-stop gradients with many transparent layers may cause paint performance issues on mobile — test at 60fps if you are using many stacked transparent gradients.</p>
+
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>Can I use CSS gradients as borders?</summary>
+<p>Not directly with border-color — CSS borders do not accept gradients. The most reliable approach is to use a wrapper element with a gradient background and a smaller inner element with a solid background, creating the appearance of a gradient border.</p></details>
+<details class="art-faq"><summary>How do I animate a CSS gradient?</summary>
+<p>CSS currently cannot animate gradient properties directly with transitions. The standard workaround is to animate background-position on a gradient that is larger than the element, or to animate opacity between two overlapping gradient layers using a pseudo-element.</p></details>
+<details class="art-faq"><summary>What is the difference between a gradient and a mesh gradient?</summary>
+<p>CSS gradients blend colours along a mathematical function (line, circle, cone). Mesh gradients (popular in design tools like Figma) blend colours on a two-dimensional grid, producing complex organic-looking colour fields. CSS does not natively support mesh gradients — they must be rasterised to a PNG or SVG.</p></details>
+
+<div class="art-tools"><a href="/#/t/css-gradient-gen">CSS Gradient Generator</a><a href="/#/t/color-converter">Color Converter</a><a href="/#/t/color-picker">Color Picker</a><a href="/#/t/brand-color-extract">Brand Color Extractor</a></div>
+    </div>
+    <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:#94a3b8">Browse all Developer Tools</span><a href="/#/developer" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Developer Tools →</a></div>
+    <div class="art-nav" style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:48px;flex-wrap:wrap">
+      <a href="/blog" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;color:#94a3b8;text-decoration:none;padding:10px 16px;border:0.5px solid rgba(255,255,255,.08);border-radius:9px">← All articles</a>
+    </div>
+    <div class="art-related" style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,.06)"><h2 style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:16px;letter-spacing:-.5px">Related articles</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"><a href="/article-color-palette-brand-guide.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#ec4899;margin-bottom:6px">Marketing Designer</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">Color Palette Guide for Brand Design</div></a><a href="/article-brand-color-extraction-guide.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#ec4899;margin-bottom:6px">Marketing Designer</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">How to Extract Brand Colors</div></a><a href="/article-web-design-tools-2026.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22c55e;margin-bottom:6px">Developer Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">Best Free Web Design Tools 2026</div></a></div></div>
+  </div>
+</main>
+<footer class="site-footer">
+  <p>&copy; 2026 Tarumak Studio &nbsp;&middot;&nbsp;
+  <a href="/privacy-policy.html">Privacy Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/cookie-policy.html">Cookie Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/terms.html">Terms</a></p>
+</footer>
+<script>
+(function(){
+  var b=document.getElementById('burgerBtn'),m=document.getElementById('mobMenu');
+  if(b&&m){b.onclick=function(){m.classList.add('open');};}
+})();
+</script>
+</body>
+</html>

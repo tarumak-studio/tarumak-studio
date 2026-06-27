@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>URL Encoding Complete Guide | Tarumak Studio</title>
+  <meta name="description" content="URL encoding (percent-encoding) converts unsafe characters into a format safe for URLs. Learn when to encode, the difference between encodeURI and encodeURIComponent, and common encoding mistakes.">
+  <link rel="canonical" href="https://tarumakstudio.com/article-url-encoding-complete-guide.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="URL Encoding Explained: What It Is, Why It Matters, and When to Use It — Tarumak Studio">
+  <meta property="og:description" content="URL encoding (percent-encoding) converts unsafe characters into a format safe for URLs. Learn when to encode, the difference between encodeURI and encodeURIComponent, and common encoding mistakes.">
+  <meta property="og:url" content="https://tarumakstudio.com/article-url-encoding-complete-guide.html">
+  <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
+  <meta property="og:site_name" content="Tarumak Studio">
+  <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:author" content="Sudhir Kumar">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="URL Encoding Explained: What It Is, Why It Matters, and When to Use It — Tarumak Studio">
+  <meta name="twitter:description" content="URL encoding (percent-encoding) converts unsafe characters into a format safe for URLs. Learn when to encode, the difference between encodeURI and encodeURIComponent, and common encoding mistakes.">
+  <meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "URL Encoding Explained: What It Is, Why It Matters, and When to Use It",
+      "description": "URL encoding (percent-encoding) converts unsafe characters into a format safe for URLs. Learn when to encode, the difference between encodeURI and encodeURIComponent, and common encoding mistakes.",
+      "url": "https://tarumakstudio.com/article-url-encoding-complete-guide.html",
+      "datePublished": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-06-27T00:00:00Z",
+      "author": {
+        "@type": "Person",
+        "name": "Sudhir Kumar",
+        "url": "https://tarumakstudio.com/about.html"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://tarumakstudio.com/#organization",
+        "name": "Tarumak Studio",
+        "url": "https://tarumakstudio.com"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://tarumakstudio.com/article-url-encoding-complete-guide.html"
+      },
+      "image": "https://tarumakstudio.com/og-image.png",
+      "isPartOf": {
+        "@type": "Blog",
+        "@id": "https://tarumakstudio.com/blog#blog",
+        "name": "Tarumak Studio Blog",
+        "url": "https://tarumakstudio.com/blog"
+      },
+      "articleSection": "Developer Tools"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://tarumakstudio.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://tarumakstudio.com/blog"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "URL Encoding Explained: What It Is, Why It Matters, and When to Use It",
+          "item": "https://tarumakstudio.com/article-url-encoding-complete-guide.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Why do some URLs have + instead of %20 for spaces?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The application/x-www-form-urlencoded format (HTML form submissions) encodes spaces as + rather than %20. Both represent spaces but the two schemes are not interchangeable. %20 is correct for path segments and most modern contexts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does URL encoding affect SEO?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Google handles URL-encoded URLs well. However, clean human-readable URLs without unnecessary encoding are preferred for both SEO and user experience. Use hyphens instead of %20 for spaces in permanent URLs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between URL encoding and Base64 encoding?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "URL encoding makes characters safe for use within URLs. Base64 converts arbitrary binary data into ASCII characters safe for text contexts. They solve different problems and are not interchangeable."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c111a;--bg2:#111827;--surface:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+  --text:#f1f5f9;--text-dim:#94a3b8;--text-faint:#475569;
+  --p1:#22d3ee;--p2:#6366f1;
+  --grad:linear-gradient(120deg,#22d3ee,#6366f1);
+  --fd:'Space Grotesk',sans-serif;--fm:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--p1);transition:color .2s}
+a:hover{color:#67e8f9}
+main{flex:1}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:999;background:rgba(12,17,26,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.site-header-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:16px}
+.site-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.site-logo-mark{width:32px;height:32px;border-radius:8px;background:var(--grad);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:18px;color:#06121a;flex-shrink:0}
+.site-logo-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text)}
+.site-logo-name span{font-weight:400;color:var(--text-dim)}
+.site-nav{display:flex;align-items:center;gap:2px;margin-left:8px}
+.site-nav a{font-family:var(--fd);font-size:13.5px;font-weight:500;color:var(--text-dim);padding:7px 12px;border-radius:9px;text-decoration:none;white-space:nowrap;transition:color .2s}
+.site-nav a:hover{color:var(--text)}
+.site-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.btn-explore{padding:9px 18px;border-radius:9px;background:var(--grad);color:#06121a;font-family:var(--fd);font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.btn-burger{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px;display:none}
+
+/* Mobile menu */
+.mob-menu{display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);padding:24px;flex-direction:column;gap:4px;overflow:auto}
+.mob-menu.open{display:flex}
+.mob-menu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mob-menu-close{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px}
+.mob-menu a{font-family:var(--fd);font-size:19px;font-weight:600;color:var(--text-dim);padding:13px 4px;border-bottom:1px solid var(--border);text-decoration:none}
+.mob-menu a:hover{color:var(--p1)}
+
+/* Article layout */
+.article-wrap{max-width:760px;margin:0 auto;padding:48px 24px 100px}
+.breadcrumb{font-size:13px;color:var(--text-faint);display:flex;align-items:center;gap:6px;margin-bottom:32px;flex-wrap:wrap}
+.breadcrumb a{color:var(--text-dim);text-decoration:none}
+.breadcrumb a:hover{color:var(--p1)}
+.art-cat{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;display:inline-block}
+.art-h1{font-family:var(--fd);font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.2;color:var(--text);margin-bottom:16px}
+.art-meta{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--text-faint);margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:24px;flex-wrap:wrap}
+.art-meta span{display:flex;align-items:center;gap:5px}
+
+/* Article body */
+.art-body{font-size:15.5px;line-height:1.78;color:var(--text-dim)}
+.art-body h2{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);margin:40px 0 12px;letter-spacing:-.5px}
+.art-body h3{font-family:var(--fd);font-size:17px;font-weight:600;color:var(--text);margin:28px 0 8px}
+.art-body p{margin-bottom:16px}
+.art-body ul,.art-body ol{padding-left:22px;margin-bottom:16px}
+.art-body li{margin-bottom:6px}
+.art-body strong{color:var(--text);font-weight:600}
+.art-body a{color:var(--p1);text-decoration:none;border-bottom:1px solid rgba(34,211,238,.3)}
+.art-body a:hover{border-bottom-color:var(--p1)}
+.art-body code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;font-size:13.5px;font-family:monospace;color:#e2e8f0}
+.art-body details{border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px}
+.art-body details summary{font-weight:600;color:var(--text);cursor:pointer;font-size:15px;list-style:none;padding-right:20px;position:relative}
+.art-body details summary::after{content:'＋';position:absolute;right:0;top:0;color:var(--p1);font-size:18px;line-height:1}
+.art-body details[open] summary::after{content:'－'}
+.art-body details p{margin-top:12px;margin-bottom:0}
+.art-body .art-callout{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.65}
+.art-body .art-callout code{background:rgba(34,211,238,.08)}
+.art-body .tool-cta-link{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--grad);color:#06121a;border-radius:9px;font-family:var(--fd);font-weight:700;font-size:14px;text-decoration:none;margin:8px 0 20px;border:none}
+.art-body .tool-cta-link:hover{opacity:.9}
+.art-body .art-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px}
+.art-body .art-tools a{padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-dim);text-decoration:none;transition:.2s}
+.art-body .art-tools a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Back + Next/Prev nav */
+.art-nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0;border-top:1px solid var(--border);margin-top:48px;gap:12px;flex-wrap:wrap}
+.art-nav a{font-family:var(--fd);font-size:14px;font-weight:600;color:var(--text-dim);text-decoration:none;padding:10px 16px;border:1px solid var(--border);border-radius:9px;transition:.2s}
+.art-nav a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.site-footer p{font-size:13px;color:var(--text-faint)}
+.site-footer a{color:var(--text-faint);text-decoration:none}
+.site-footer a:hover{color:var(--text-dim)}
+
+@media(max-width:820px){.site-nav{display:none}.btn-burger{display:block}}
+@media(max-width:600px){.art-wrap{padding:32px 16px 80px}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">T</div>
+      <div class="site-logo-name">Tarumak <span>Studio</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/#/all">Tools</a>
+      <a href="/about.html">About</a>
+      <a href="/work-with-me.html">Work With Me</a>
+      <a href="/blog">Blog</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="site-actions">
+      <a href="/#/all" class="btn-explore">Explore Tools</a>
+      <button class="btn-burger" id="burgerBtn" aria-label="Open menu" onclick="document.getElementById('mobMenu').classList.add('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-head">
+    <a href="/" class="site-logo"><div class="site-logo-mark">T</div><div class="site-logo-name">Tarumak <span>Studio</span></div></a>
+    <button class="mob-menu-close" onclick="document.getElementById('mobMenu').classList.remove('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+<main>
+  <div class="article-wrap">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/">Home</a><span>›</span><a href="/blog">Blog</a><span>›</span>
+      <span style="color:var(--text)">URL Encoding Explained: What It Is, Why It Matters, and When to Use It</span>
+    </nav>
+    <div class="art-cat" style="color:#22c55e">Developer Tools</div>
+    <h1 class="art-h1">URL Encoding Explained: What It Is, Why It Matters, and When to Use It</h1>
+    <div class="art-meta">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+    </div>
+    <div class="art-body">
+
+<p>URLs can only contain a specific set of characters. Everything else must be converted into a safe format before it can be sent as part of a URL. This process is called URL encoding or percent-encoding. Understanding it matters for developers building APIs, marketers constructing campaign URLs, and anyone debugging why a link is not working.</p>
+
+<h2>What is URL encoding?</h2>
+<p>URL encoding converts characters that are not allowed in URLs (or that have special meaning) into a percent sign followed by two hexadecimal digits representing the character's ASCII code.</p>
+
+<p>A space becomes <code>%20</code>. An ampersand becomes <code>%26</code>. A hash becomes <code>%23</code>. You have seen this if you have ever copied a URL from an address bar and pasted it somewhere else:</p>
+<div class="art-callout"><code>https://example.com/search?q=red%20shoes%20size%2010</code></div>
+<p>The <code>%20</code> values represent spaces — "red shoes size 10" as a URL-safe query string.</p>
+
+<h2>Which characters need encoding?</h2>
+<p>The URL specification defines a set of "reserved" characters that have structural meaning in a URL, and "unreserved" characters that are always safe. Everything else requires encoding.</p>
+
+<p><strong>Always safe (unreserved):</strong> A–Z, a–z, 0–9, hyphen <code>-</code>, underscore <code>_</code>, period <code>.</code>, tilde <code>~</code></p>
+
+<p><strong>Reserved (structural meaning in URLs):</strong> <code>: / ? # [ ] @ ! $ & ' ( ) * + , ; =</code> — these should be encoded when used as data values but not when used structurally</p>
+
+<p><strong>Always encode:</strong> spaces, most punctuation beyond the above, all non-ASCII characters (accented letters, emoji, Chinese characters, Arabic, etc.)</p>
+
+<h2>encodeURI vs encodeURIComponent</h2>
+<p>JavaScript provides two built-in functions for URL encoding:</p>
+
+<p><strong><code>encodeURI()</code></strong> encodes a full URL. It leaves structural characters (<code>:/?#[]@!$&'()*+,;=</code>) intact because they are needed for the URL structure. Use this when encoding a complete URL.</p>
+<div class="art-callout"><code>encodeURI("https://example.com/search?q=red shoes")<br>→ "https://example.com/search?q=red%20shoes"</code></div>
+
+<p><strong><code>encodeURIComponent()</code></strong> encodes everything including structural characters. Use this when encoding a value that will be placed inside a query string parameter — because an unencoded <code>&</code> or <code>=</code> inside a parameter value would break the URL structure.</p>
+<div class="art-callout"><code>encodeURIComponent("price=100&size=10")<br>→ "price%3D100%26size%3D10"</code></div>
+
+<p>The most common mistake is using <code>encodeURI</code> for parameter values — the <code>&</code> in the value gets treated as a parameter separator instead of part of the value.</p>
+
+<h2>When you actually need URL encoding</h2>
+<p><strong>Building API request URLs.</strong> Query string values often contain user input — names, addresses, search terms. Always <code>encodeURIComponent()</code> each value before concatenating it into a query string.</p>
+
+<p><strong>UTM campaign parameters.</strong> A UTM source value like "Google Ads" contains a space. Without encoding, the URL breaks. Proper UTM builders handle this automatically, but if you are constructing URLs manually, encode all parameter values.</p>
+
+<p><strong>Sharing content with special characters.</strong> Sharing a URL in a tweet or email that contains characters like <code>#</code> or <code>?</code> in the path (not as structural characters) requires encoding them so they are not interpreted as anchors or query string starts.</p>
+
+<p><strong>Internationalized URLs.</strong> Non-ASCII characters in URLs — Arabic, Chinese, Japanese, emoji — must be encoded. Modern browsers do this automatically in the address bar (what you see is the decoded version), but the actual HTTP request uses the encoded form.</p>
+
+<h2>Decoding URL-encoded strings</h2>
+<p>Decoding reverses the process — <code>%20</code> back to a space, <code>%26</code> back to <code>&</code>. In JavaScript: <code>decodeURI()</code> and <code>decodeURIComponent()</code>. The browser tool linked below handles both directions instantly.</p>
+
+<h2>Double encoding — the common mistake</h2>
+<p>Double encoding happens when an already-encoded string is encoded again: <code>%20</code> becomes <code>%2520</code> (the <code>%</code> gets encoded to <code>%25</code>). This breaks the URL at the receiving end. Always decode before re-encoding if you are unsure of the current state of a string.</p>
+
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>Why do some URLs have + instead of %20 for spaces?</summary>
+<p>The application/x-www-form-urlencoded format (used in HTML form submissions) encodes spaces as + rather than %20. Both represent a space, but the two encoding schemes are not interchangeable. %20 is correct for path segments and most modern contexts. + for spaces is specific to form data encoding.</p></details>
+<details class="art-faq"><summary>Does URL encoding affect SEO?</summary>
+<p>Google handles URL-encoded URLs well and decodes them for indexing. However, clean, human-readable URLs without unnecessary encoding are preferred both for SEO and user experience. Use hyphens instead of %20 for spaces in permanent URLs.</p></details>
+<details class="art-faq"><summary>What is the difference between URL encoding and Base64 encoding?</summary>
+<p>URL encoding makes specific characters safe for use within URLs. Base64 encoding converts arbitrary binary data into a set of ASCII characters safe for text contexts like HTML attributes, JSON values, and email. They solve different problems and are not interchangeable.</p></details>
+
+<div class="art-tools"><a href="/#/t/url-encoder">URL Encoder / Decoder</a><a href="/#/t/utm-builder">UTM Builder</a><a href="/#/t/meta-tag-gen">Meta Tag Generator</a><a href="/#/t/json-formatter">JSON Formatter</a></div>
+    </div>
+    <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:#94a3b8">Browse all Developer Tools</span><a href="/#/developer" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Developer Tools →</a></div>
+    <div class="art-nav" style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:48px;flex-wrap:wrap">
+      <a href="/blog" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;color:#94a3b8;text-decoration:none;padding:10px 16px;border:0.5px solid rgba(255,255,255,.08);border-radius:9px">← All articles</a>
+    </div>
+    <div class="art-related" style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,.06)"><h2 style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:16px;letter-spacing:-.5px">Related articles</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"><a href="/article-utm-link-builder-guide.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#ec4899;margin-bottom:6px">Marketing Designer</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">UTM Links Explained</div></a><a href="/article-meta-tags-seo-guide.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22c55e;margin-bottom:6px">Developer Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">Meta Tags SEO Guide</div></a><a href="/article-json-formatting-validation-guide.html" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none"><div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#22c55e;margin-bottom:6px">Developer Tools</div><div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:#f1f5f9;line-height:1.4">JSON Formatting Guide</div></a></div></div>
+  </div>
+</main>
+<footer class="site-footer">
+  <p>&copy; 2026 Tarumak Studio &nbsp;&middot;&nbsp;
+  <a href="/privacy-policy.html">Privacy Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/cookie-policy.html">Cookie Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/terms.html">Terms</a></p>
+</footer>
+<script>
+(function(){
+  var b=document.getElementById('burgerBtn'),m=document.getElementById('mobMenu');
+  if(b&&m){b.onclick=function(){m.classList.add('open');};}
+})();
+</script>
+</body>
+</html>

@@ -23,6 +23,14 @@ The site offers tools across five categories — Image Tools (15), PDF Tools (15
 - [Color Palette Generator](https://tarumakstudio.com/#/t/color-palette-gen): Extracts up to 8 dominant colors from an uploaded image with HEX, RGB, HSL values.
 - [QR Code Generator](https://tarumakstudio.com/#/t/qr-code-generator): Encodes URLs, text, Wi-Fi, vCard, email as scannable QR codes. Exports PNG and SVG.
 
+- [Word to PDF Converter](https://tarumakstudio.com/#/t/word-to-pdf): Converts .docx Word files to PDF in-browser via mammoth.js. No upload required.
+- [Markdown to HTML Converter](https://tarumakstudio.com/#/t/markdown-to-html): Converts Markdown to HTML with live preview.
+- [Text Diff Checker](https://tarumakstudio.com/#/t/text-diff): Word-level diff between two texts highlighting additions and deletions.
+- [Regex Tester](https://tarumakstudio.com/#/t/regex-tester): Tests regular expressions with real-time match highlighting and capture groups.
+- [Slug Generator](https://tarumakstudio.com/#/t/slug-generator): Converts text to SEO-friendly URL slugs with hyphen or underscore separator.
+- [Text Case Converter](https://tarumakstudio.com/#/t/text-case-converter): Converts text between 8 case formats including camelCase, snake_case, kebab-case.
+- [Timestamp Converter](https://tarumakstudio.com/#/t/timestamp-converter): Live UNIX timestamp display and bidirectional date/timestamp conversion.
+
 ## Blog & Guides
 
 In-depth practical guides linking to the tools that solve each problem. All 30 articles are freely accessible at https://tarumakstudio.com/blog

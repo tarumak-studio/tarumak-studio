@@ -242,3 +242,320 @@ INIT['url-encoder']=function(panel){
   };
   document.getElementById('ue-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('ue-out').value).then(function(){toast('Copied!','ok');});};
 };
+
+
+/* ════════════════════════════════════════════════════════════
+   NEW DEVELOPER TOOLS
+   ════════════════════════════════════════════════════════════ */
+
+/* 1 ── Text Diff Checker */
+INIT['text-diff']=function(panel){
+  panel.innerHTML=''
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'<div><label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">ORIGINAL TEXT</label>'
+    +'<textarea id="diff-a" rows="12" placeholder="Paste original text here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea></div>'
+    +'<div><label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">CHANGED TEXT</label>'
+    +'<textarea id="diff-b" rows="12" placeholder="Paste changed text here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea></div>'
+    +'</div>'
+    +'<div class="controls" style="margin:10px 0"><button class="btn btn-primary" id="diff-go">Compare →</button><button class="btn" id="diff-clear">Clear</button></div>'
+    +'<div id="diff-stats" style="font-size:13px;color:var(--text-dim);margin-bottom:8px"></div>'
+    +'<div id="diff-out" style="padding:14px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);font-family:monospace;font-size:13px;white-space:pre-wrap;line-height:1.7;min-height:80px;display:none"></div>'
+    +'<style>.diff-add{background:rgba(34,197,94,.18);color:#4ade80;}.diff-del{background:rgba(239,68,68,.18);color:#f87171;text-decoration:line-through}</style>';
+
+  function wordDiff(a,b){
+    var wa=a.split(/(\s+)/),wb=b.split(/(\s+)/);
+    var m=wa.length,n=wb.length;
+    // LCS-based word diff
+    var dp=[];
+    for(var i=0;i<=m;i++){dp[i]=[];for(var j=0;j<=n;j++)dp[i][j]=0;}
+    for(var i=1;i<=m;i++)for(var j=1;j<=n;j++){if(wa[i-1]===wb[j-1])dp[i][j]=dp[i-1][j-1]+1;else dp[i][j]=Math.max(dp[i-1][j],dp[i][j-1]);}
+    var out=[],i=m,j=n;
+    while(i>0||j>0){
+      if(i>0&&j>0&&wa[i-1]===wb[j-1]){out.unshift({type:'same',val:wa[i-1]});i--;j--;}
+      else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){out.unshift({type:'add',val:wb[j-1]});j--;}
+      else{out.unshift({type:'del',val:wa[i-1]});i--;}
+    }
+    return out;
+  }
+
+  document.getElementById('diff-go').onclick=function(){
+    var a=document.getElementById('diff-a').value;
+    var b=document.getElementById('diff-b').value;
+    if(!a&&!b){document.getElementById('diff-stats').textContent='Enter text in both panels.';return;}
+    var diff=wordDiff(a,b);
+    var adds=diff.filter(function(d){return d.type==='add';}).length;
+    var dels=diff.filter(function(d){return d.type==='del';}).length;
+    document.getElementById('diff-stats').textContent='+'+adds+' additions · -'+dels+' deletions';
+    var html='';
+    diff.forEach(function(d){
+      var esc=d.val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      if(d.type==='same') html+=esc;
+      else if(d.type==='add') html+='<span class="diff-add">'+esc+'</span>';
+      else html+='<span class="diff-del">'+esc+'</span>';
+    });
+    var out=document.getElementById('diff-out');
+    out.innerHTML=html;
+    out.style.display='block';
+  };
+  document.getElementById('diff-clear').onclick=function(){
+    ['diff-a','diff-b'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('diff-out').innerHTML='';
+    document.getElementById('diff-out').style.display='none';
+    document.getElementById('diff-stats').textContent='';
+  };
+};
+
+/* 2 ── Regex Tester */
+INIT['regex-tester']=function(panel){
+  panel.innerHTML=''
+    +'<div style="margin-bottom:10px">'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">REGULAR EXPRESSION</label>'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<span style="color:var(--text-dim);font-size:18px;font-family:monospace">/</span>'
+    +'<input id="rx-pat" type="text" placeholder="e.g. (\\d+)-(\\w+)" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-family:monospace;font-size:14px">'
+    +'<span style="color:var(--text-dim);font-size:18px;font-family:monospace">/</span>'
+    +'<div style="display:flex;gap:4px">'
+    +'<button id="rx-g" class="btn active" title="global" style="font-family:monospace;font-size:13px;padding:6px 10px">g</button>'
+    +'<button id="rx-i" class="btn" title="case-insensitive" style="font-family:monospace;font-size:13px;padding:6px 10px">i</button>'
+    +'<button id="rx-m" class="btn" title="multiline" style="font-family:monospace;font-size:13px;padding:6px 10px">m</button>'
+    +'</div></div>'
+    +'<div id="rx-err" style="font-size:12px;color:#ef4444;min-height:16px;margin-top:4px"></div>'
+    +'</div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">TEST STRING</label>'
+    +'<div id="rx-highlight" style="padding:10px 12px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);font-family:monospace;font-size:13px;white-space:pre-wrap;line-height:1.6;min-height:80px;margin-bottom:8px;word-break:break-all"></div>'
+    +'<textarea id="rx-str" rows="5" placeholder="Enter test string here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-family:monospace;font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea>'
+    +'<div id="rx-info" style="font-size:13px;color:var(--text-dim);margin:8px 0"></div>'
+    +'<div id="rx-groups" style="font-size:13px;margin-top:4px"></div>'
+    +'<style>.rx-match{background:rgba(34,211,238,.28);border-radius:3px;outline:2px solid rgba(34,211,238,.5)}</style>';
+
+  var flags={g:true,i:false,m:false};
+  ['g','i','m'].forEach(function(f){
+    document.getElementById('rx-'+f).onclick=function(){
+      flags[f]=!flags[f];
+      this.classList.toggle('active',flags[f]);
+      run();
+    };
+  });
+
+  function run(){
+    var pat=document.getElementById('rx-pat').value;
+    var str=document.getElementById('rx-str').value;
+    var errEl=document.getElementById('rx-err');
+    var info=document.getElementById('rx-info');
+    var groups=document.getElementById('rx-groups');
+    var hl=document.getElementById('rx-highlight');
+
+    if(!pat){hl.textContent=str;info.textContent='';groups.innerHTML='';errEl.textContent='';return;}
+    var re;
+    try{
+      var fl=Object.keys(flags).filter(function(k){return flags[k];}).join('');
+      re=new RegExp(pat,fl);
+      errEl.textContent='';
+    }catch(e){errEl.textContent='⚠ '+e.message;hl.textContent=str;info.textContent='';groups.innerHTML='';return;}
+
+    // Highlight matches
+    var matches=[],m;
+    if(flags.g){
+      while((m=re.exec(str))!==null){
+        matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1)});
+        if(!flags.g)break;
+      }
+    } else {
+      m=re.exec(str);
+      if(m) matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1)});
+    }
+
+    info.textContent=matches.length? matches.length+' match'+(matches.length>1?'es':'')+ ' found':'No matches';
+
+    // Build highlighted HTML
+    var out='',last=0;
+    matches.forEach(function(ma){
+      var pre=str.slice(last,ma.index).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var match=str.slice(ma.index,ma.end).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      out+=pre+'<mark class="rx-match">'+match+'</mark>';
+      last=ma.end;
+    });
+    out+=str.slice(last).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    hl.innerHTML=out||'&nbsp;';
+
+    // Show capture groups
+    if(matches.length&&matches[0].groups.length){
+      groups.innerHTML='<span style="font-size:12px;font-weight:600;color:var(--text-dim)">CAPTURE GROUPS (first match):</span><br>'
+        +matches[0].groups.map(function(g,i){return '<code style="font-size:12px;background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;margin:2px">$'+(i+1)+': '+g+'</code>';}).join(' ');
+    } else groups.innerHTML='';
+  }
+
+  document.getElementById('rx-pat').addEventListener('input',run);
+  document.getElementById('rx-str').addEventListener('input',run);
+};
+
+/* 3 ── Slug Generator */
+INIT['slug-generator']=function(panel){
+  panel.innerHTML=''
+    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">INPUT TEXT</label>'
+    +'<input id="sg-in" type="text" placeholder="e.g. How to Create a QR Code for Your Business" style="width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:15px;box-sizing:border-box">'
+    +'<div style="display:flex;gap:8px;margin:10px 0">'
+    +'<button id="sg-hyp" class="btn active" style="font-size:13px">hyphens</button>'
+    +'<button id="sg-und" class="btn" style="font-size:13px">underscores</button>'
+    +'</div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">SLUG OUTPUT</label>'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<input id="sg-out" type="text" readonly style="flex:1;padding:11px 14px;border-radius:9px;border:1px solid var(--p1);background:var(--surface);color:var(--p1);font-family:monospace;font-size:15px;font-weight:600;box-sizing:border-box">'
+    +'<button class="btn btn-primary" id="sg-copy">Copy</button>'
+    +'</div>'
+    +'<div id="sg-info" style="font-size:12px;color:var(--text-dim);margin-top:8px"></div>';
+
+  var sep='-';
+  document.getElementById('sg-hyp').onclick=function(){sep='-';this.classList.add('active');document.getElementById('sg-und').classList.remove('active');gen();};
+  document.getElementById('sg-und').onclick=function(){sep='_';this.classList.add('active');document.getElementById('sg-hyp').classList.remove('active');gen();};
+
+  function gen(){
+    var val=document.getElementById('sg-in').value;
+    var slug=val
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove accents
+      .replace(/[^a-z0-9\s-_]/g,'')
+      .trim()
+      .replace(/[\s_-]+/g,sep)
+      .replace(new RegExp('^['+sep+']+|['+sep+']+$','g'),'');
+    document.getElementById('sg-out').value=slug;
+    document.getElementById('sg-info').textContent=slug?slug.length+' chars':'';
+  }
+  document.getElementById('sg-in').addEventListener('input',gen);
+  document.getElementById('sg-copy').onclick=function(){
+    var v=document.getElementById('sg-out').value;
+    if(!v)return;
+    navigator.clipboard.writeText(v).then(function(){toast('Slug copied!','ok');});
+  };
+};
+
+/* 4 ── Text Case Converter */
+INIT['text-case-converter']=function(panel){
+  panel.innerHTML=''
+    +'<textarea id="tc-in" rows="6" placeholder="Type or paste your text here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:14px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">'
+    +'<button class="btn" id="tc-up">UPPERCASE</button>'
+    +'<button class="btn" id="tc-lo">lowercase</button>'
+    +'<button class="btn" id="tc-ti">Title Case</button>'
+    +'<button class="btn" id="tc-se">Sentence case</button>'
+    +'<button class="btn" id="tc-ca">camelCase</button>'
+    +'<button class="btn" id="tc-sn">snake_case</button>'
+    +'<button class="btn" id="tc-ke">kebab-case</button>'
+    +'<button class="btn" id="tc-pa">PascalCase</button>'
+    +'</div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">OUTPUT</label>'
+    +'<textarea id="tc-out" rows="6" readonly style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:14px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea>'
+    +'<div class="controls" style="margin-top:10px"><button class="btn btn-primary" id="tc-copy">Copy result</button><button class="btn" id="tc-swap">Use as input ↑</button></div>';
+
+  var small=['a','an','the','and','but','or','nor','for','yet','so','at','by','in','of','on','to','up','as','is'];
+
+  var fns={
+    'tc-up':function(s){return s.toUpperCase();},
+    'tc-lo':function(s){return s.toLowerCase();},
+    'tc-ti':function(s){return s.toLowerCase().replace(/\b\w+/g,function(w){return small.includes(w)&&s.indexOf(w)>0?w:w.charAt(0).toUpperCase()+w.slice(1);});},
+    'tc-se':function(s){return s.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g,function(c){return c.toUpperCase();});},
+    'tc-ca':function(s){return s.toLowerCase().replace(/[^a-z0-9]+(\w)/g,function(_,c){return c.toUpperCase();});},
+    'tc-sn':function(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');},
+    'tc-ke':function(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');},
+    'tc-pa':function(s){return s.toLowerCase().replace(/(?:^|[^a-z0-9])(\w)/g,function(_,c){return c.toUpperCase();});}
+  };
+
+  Object.keys(fns).forEach(function(id){
+    document.getElementById(id).onclick=function(){
+      var inp=document.getElementById('tc-in').value;
+      if(!inp)return;
+      document.querySelectorAll('#tc-in ~ div .btn').forEach(function(b){b.classList.remove('active');});
+      this.classList.add('active');
+      document.getElementById('tc-out').value=fns[id](inp);
+    };
+  });
+  document.getElementById('tc-copy').onclick=function(){
+    var v=document.getElementById('tc-out').value;
+    if(!v)return;
+    navigator.clipboard.writeText(v).then(function(){toast('Copied!','ok');});
+  };
+  document.getElementById('tc-swap').onclick=function(){
+    var v=document.getElementById('tc-out').value;
+    if(!v)return;
+    document.getElementById('tc-in').value=v;
+    document.getElementById('tc-out').value='';
+    document.querySelectorAll('#tc-in ~ div .btn').forEach(function(b){b.classList.remove('active');});
+  };
+};
+
+/* 5 ── Timestamp Converter */
+INIT['timestamp-converter']=function(panel){
+  panel.innerHTML=''
+    +'<div class="row" style="display:grid;grid-template-columns:1fr;gap:16px">'
+    +'<div style="padding:16px;border:1px solid var(--border-2);border-radius:12px;background:var(--surface)">'
+    +'<div style="font-size:12px;font-weight:600;color:var(--p1);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Current Time</div>'
+    +'<div id="ts-now-unix" style="font-family:monospace;font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">—</div>'
+    +'<div id="ts-now-ms" style="font-family:monospace;font-size:14px;color:var(--text-dim);margin-bottom:8px">—</div>'
+    +'<div id="ts-now-human" style="font-size:14px;color:var(--text-dim)">—</div>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button class="btn" id="ts-copy-unix" style="font-size:12px">Copy seconds</button>'
+    +'<button class="btn" id="ts-copy-ms" style="font-size:12px">Copy milliseconds</button>'
+    +'</div></div>'
+    +'<div style="padding:16px;border:1px solid var(--border-2);border-radius:12px;background:var(--surface)">'
+    +'<div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Unix → Human</div>'
+    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+    +'<input id="ts-ux-in" type="text" placeholder="e.g. 1735689600" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-family:monospace;font-size:14px">'
+    +'<button class="btn btn-primary" id="ts-ux-go" style="white-space:nowrap">Convert →</button>'
+    +'</div>'
+    +'<div id="ts-ux-out" style="font-size:13.5px;color:var(--text);min-height:20px;font-family:monospace"></div>'
+    +'</div>'
+    +'<div style="padding:16px;border:1px solid var(--border-2);border-radius:12px;background:var(--surface)">'
+    +'<div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Human → Unix</div>'
+    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+    +'<input id="ts-hu-in" type="datetime-local" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:14px">'
+    +'<button class="btn btn-primary" id="ts-hu-go" style="white-space:nowrap">Convert →</button>'
+    +'</div>'
+    +'<div id="ts-hu-out" style="font-size:13.5px;font-family:monospace;color:var(--text);min-height:20px"></div>'
+    +'</div>'
+    +'</div>';
+
+  // Live clock
+  function tickClock(){
+    var now=Date.now();
+    var unix=Math.floor(now/1000);
+    var d=new Date(now);
+    document.getElementById('ts-now-unix').textContent=unix;
+    document.getElementById('ts-now-ms').textContent=now+' ms';
+    document.getElementById('ts-now-human').textContent=d.toUTCString()+' (UTC)';
+  }
+  tickClock();
+  var clockInterval=setInterval(tickClock,1000);
+  // Clean up when tool changes
+  var origInner=panel.innerHTML;
+  var obs=new MutationObserver(function(){if(!panel.querySelector('#ts-now-unix')){clearInterval(clockInterval);obs.disconnect();}});
+  obs.observe(panel,{childList:true});
+
+  document.getElementById('ts-copy-unix').onclick=function(){
+    navigator.clipboard.writeText(document.getElementById('ts-now-unix').textContent).then(function(){toast('Unix seconds copied!','ok');});
+  };
+  document.getElementById('ts-copy-ms').onclick=function(){
+    navigator.clipboard.writeText(Date.now().toString()).then(function(){toast('Milliseconds copied!','ok');});
+  };
+  document.getElementById('ts-ux-go').onclick=function(){
+    var v=document.getElementById('ts-ux-in').value.trim();
+    if(!v)return;
+    var ts=parseInt(v);
+    if(isNaN(ts)){document.getElementById('ts-ux-out').textContent='Invalid timestamp';return;}
+    // Auto-detect seconds vs milliseconds
+    if(v.length>11) ts=Math.floor(ts/1000);
+    var d=new Date(ts*1000);
+    if(isNaN(d.getTime())){document.getElementById('ts-ux-out').textContent='Invalid timestamp';return;}
+    document.getElementById('ts-ux-out').innerHTML=
+      '<div>Local: <strong>'+d.toLocaleString()+'</strong></div>'
+      +'<div>UTC: '+d.toUTCString()+'</div>'
+      +'<div>ISO: '+d.toISOString()+'</div>';
+  };
+  document.getElementById('ts-hu-go').onclick=function(){
+    var v=document.getElementById('ts-hu-in').value;
+    if(!v)return;
+    var ts=Math.floor(new Date(v).getTime()/1000);
+    document.getElementById('ts-hu-out').innerHTML=
+      '<div>Unix seconds: <strong>'+ts+'</strong></div>'
+      +'<div>Unix milliseconds: '+(ts*1000)+'</div>';
+  };
+};

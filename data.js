@@ -81,6 +81,13 @@ const TOOL_ARTICLES={
   
   'base64-encoder':[['What can I encode with Base64?','Text strings, HTML, JavaScript, CSS and binary files such as images and PDFs. Base64-encoded images can be embedded directly in HTML or CSS without a separate file request.'],['Why is Base64 used?','It encodes binary data as ASCII text, making it safe to include inside JSON, HTML attributes, XML documents and email messages.'],['Does encoding increase file size?','Yes — Base64 encoding increases size by approximately 33%. It is a trade-off: convenience of inline embedding at the cost of size.']],
   'url-encoder':['utm-link-builder-guide','meta-tags-seo-guide'],
+  'word-to-pdf':['convert-jpg-to-pdf','best-free-pdf-tools-2026'],
+  'markdown-to-html':['meta-tags-seo-guide','web-design-tools-2026'],
+  'text-diff':['web-design-tools-2026','free-tools-freelancers'],
+  'regex-tester':['web-design-tools-2026'],
+  'slug-generator':['utm-link-builder-guide','meta-tags-seo-guide'],
+  'text-case-converter':['free-tools-freelancers'],
+  'timestamp-converter':['utm-link-builder-guide'],
 };
 const FEAT={};            /* slug -> [[title,desc],...] optional */
 const AI_SUMMARY={
@@ -140,6 +147,13 @@ const AI_SUMMARY={
   'lorem-ipsum':'This free Lorem Ipsum generator produces placeholder text in paragraphs, sentences, or words at any quantity for design mockups.',
   'color-converter':'This free color converter translates between HEX, RGB, RGBA, HSL, HSLA, HSB, and CSS named colors with instant updates across all formats.',
   'url-encoder':'This free URL encoder and decoder converts text to and from percent-encoded format for safe inclusion in URLs, query strings, and API requests.',
+  'word-to-pdf':'This free Word to PDF converter changes .docx files to PDF directly in your browser without uploading them to any server.',
+  'markdown-to-html':'This free Markdown to HTML converter transforms Markdown text to clean HTML with a live preview pane and one-click copy, processed in your browser.',
+  'text-diff':'This free text diff checker compares two texts word-by-word and highlights every addition, deletion and change between them, processed entirely in your browser.',
+  'regex-tester':'This free regex tester tests regular expressions against any string in real time, highlighting all matches and showing capture group values, processed in your browser.',
+  'slug-generator':'This free URL slug generator converts any text into a clean, SEO-friendly slug using hyphens or underscores, removing special characters and accents.',
+  'text-case-converter':'This free text case converter changes text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case, kebab-case and PascalCase instantly.',
+  'timestamp-converter':'This free timestamp converter shows the current UNIX timestamp live, converts UNIX timestamps to human-readable dates, and converts dates back to UNIX timestamps.',
 };
 const FAQ={
   'image-compressor':[['What file formats are supported?','JPG, PNG and WebP. The output format matches your input — a JPG stays a JPG after compression.'],['How much will my file size be reduced?','Typically 40–80% depending on the original file. Images with large uniform areas compress the most. You can preview quality before downloading.'],['Are my files uploaded to a server?','No. Compression happens entirely inside your browser using the Canvas API. Your images never leave your device.']],
@@ -199,6 +213,13 @@ const FAQ={
   'color-converter':[['What colour formats does it convert between?','HEX, RGB, RGBA, HSL, HSLA and HSB/HSV. Enter a value in any format and all other formats update instantly.'],['Can I enter a CSS named colour like tomato?','Yes — type any valid CSS named colour and get its HEX, RGB and HSL equivalents immediately.'],['Why do colours look different on screen vs print?','Screens use RGB (additive, light-based) colour; print uses CMYK (subtractive, ink-based) colour. The same HEX value produces a visually different colour on paper.']],
   
   'base64-encoder':[['What can I encode with Base64?','Text strings, HTML, JavaScript, CSS and binary files such as images and PDFs. Base64-encoded images can be embedded directly in HTML or CSS.'],['Why is Base64 used?','It encodes binary data as ASCII text, making it safe to include inside JSON, HTML attributes, XML documents and email messages.'],['Does encoding increase file size?','Yes - Base64 encoding increases size by approximately 33%. It is a trade-off: inline convenience at the cost of larger file size.']],'url-encoder':[['What is URL encoding?','URL encoding converts characters that are not safe in URLs into a percent-encoded format. For example, a space becomes %20 and an ampersand becomes %26.'],['When should I use URL encoding?','When building query strings, passing URLs inside other URLs, constructing API requests, or sending any special characters in URL parameters.'],['What is the difference between encode and decode?','Encoding converts readable text into URL-safe format. Decoding reverses this — converting percent-encoded sequences back into readable characters.']],
+  'word-to-pdf':[['Can I convert any Word document?','Yes — .docx files are supported. The tool uses mammoth.js to extract the document content and convert it to HTML, then your browser\'s print-to-PDF function creates the PDF.'],['Will the formatting be preserved?','Basic formatting including headings, bold, italic, lists, and tables is preserved. Complex formatting like multi-column layouts and custom fonts may not carry through exactly.'],['Is my document uploaded anywhere?','No. Everything happens in your browser using the mammoth.js library. Your document never leaves your device.']],
+  'markdown-to-html':[['Which Markdown syntax is supported?','CommonMark specification — headings, bold, italic, links, images, lists, code blocks, blockquotes, and tables are all supported.'],['Can I download the converted HTML?','Yes — the Download .html button wraps the output in a complete HTML document and downloads it as a .html file.'],['Does it update in real time?','Yes — the preview and HTML output update as you type in the Markdown input panel.']],
+  'text-diff':[['How does the diff algorithm work?','It uses a word-level Longest Common Subsequence (LCS) algorithm — the same approach as git diff — to find the minimal set of additions and deletions that transform the original into the changed text.'],['Can I diff large documents?','Yes, though very large texts (over 50,000 words) may be slow as the LCS algorithm is O(n*m) in complexity.'],['Does it show character-level or word-level differences?','Word-level differences. Whitespace between words is preserved so the output is readable.']],
+  'regex-tester':[['What regex syntax does this tool use?','JavaScript\'s built-in RegExp engine, which follows ECMAScript standards. Most standard regex syntax (character classes, quantifiers, groups, lookaheads) is supported.'],['What do the g, i, and m flags do?','g (global) finds all matches not just the first. i makes the pattern case-insensitive. m makes ^ and $ match the start and end of each line rather than the whole string.'],['Can I test capture groups?','Yes — the first match\'s capture groups ($1, $2, etc.) are displayed below the test string.']],
+  'slug-generator':[['What characters are removed from the slug?','All characters except a-z, 0-9, hyphens, and underscores are removed. Accented characters (é, ñ, ü) are converted to their ASCII equivalents before removal.'],['Can I choose underscores instead of hyphens?','Yes — toggle between hyphen-separated and underscore_separated output using the buttons above the result.'],['What is a URL slug used for?','A slug is the URL-safe version of a page title used in website addresses. For example \'How to Create a QR Code\' becomes how-to-create-a-qr-code.']],
+  'text-case-converter':[['What case formats are supported?','UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case, kebab-case, and PascalCase.'],['What is the difference between camelCase and PascalCase?','camelCase starts with a lowercase letter (myVariableName). PascalCase starts with an uppercase letter (MyVariableName). Both are commonly used in programming.'],['Can I chain conversions?','Yes — use the \'Use as input\' button to swap the output back to the input field, then apply another case conversion.']],
+  'timestamp-converter':[['What is a UNIX timestamp?','A UNIX timestamp is the number of seconds that have elapsed since January 1, 1970, at 00:00:00 UTC. It is the standard way computers represent moments in time.'],['Why does the tool auto-detect seconds vs milliseconds?','JavaScript uses milliseconds, most backend systems use seconds. If the input is 13 digits or more it is treated as milliseconds and divided by 1000 automatically.'],['Can I convert a specific date to a UNIX timestamp?','Yes — use the Human to Unix section to pick any date and time and get the corresponding UNIX timestamp in both seconds and milliseconds.']],
 };             /* slug -> [[q,a],...] optional */
 /* metadata for all 38 tools */
 const TOOLS=[
@@ -258,6 +279,15 @@ const TOOLS=[
  ['lorem-ipsum','Lorem Ipsum Generator','developer','Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.',['LOREM','PLACEHOLDER','TEXT']],
  ['color-converter','Color Code Converter','developer','Convert between HEX, RGB and HSL color formats instantly. Click any result to copy to clipboard.',['HEX','RGB','HSL']],
  ['url-encoder','URL Encoder & Decoder','developer','Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.',['URL','ENCODE','DECODE']],
+
+  /* ── New tools batch 2 ── */
+  ['word-to-pdf','Word to PDF Converter','converter','Convert Word (.docx) documents to PDF directly in your browser. No upload — files stay on your device.'],
+  ['markdown-to-html','Markdown to HTML Converter','converter','Convert Markdown text to clean HTML instantly. Preview the output and copy the generated HTML code.'],
+  ['text-diff','Text Diff Checker','developer','Compare two texts side-by-side and highlight every addition, deletion and change between them.'],
+  ['regex-tester','Regex Tester','developer','Test regular expressions against any string. See matches highlighted in real time with capture group details.'],
+  ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.'],
+  ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.'],
+  ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.'],
 ];
 const bySlug=s=>TOOLS.find(t=>t[0]===s);
 

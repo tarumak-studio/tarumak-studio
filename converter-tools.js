@@ -230,3 +230,107 @@ INIT['favicon-generator']=function(panel){
     sizes.forEach(s=>{const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,0,0,s,s);cv[s]=c;c.toBlob(b=>row(u.results,c.toDataURL(),'favicon-'+s+'.png',s+'×'+s+' PNG',()=>download(b,'favicon-'+s+'x'+s+'.png')),'image/png');});
     setTimeout(()=>{try{const ico=buildIco([cv[16],cv[32],cv[48]]);u.actions.className='actions show';u.actions.innerHTML='';const b=document.createElement('button');b.className='btn btn-primary';b.textContent='Download favicon.ico';b.onclick=()=>download(ico,'favicon.ico');u.actions.appendChild(b);}catch(e){}},250);});
 };
+
+
+/* ════════════════════════════════════════════════════════════
+   NEW CONVERTER TOOLS
+   ════════════════════════════════════════════════════════════ */
+
+/* 1 ── Word to PDF */
+INIT['word-to-pdf']=function(panel){
+  var u=dz(panel,{accept:'.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multiple:false,formats:['DOCX\u2192PDF'],sub:'Upload a .docx Word document to convert to PDF in your browser.'});
+  u.onFiles=function(files){
+    if(!files.length)return;
+    var file=files[0];
+    if(!file.name.match(/\.docx$/i)){setStatus(u.status,'Please upload a .docx file','err');return;}
+    if(typeof mammoth==='undefined'){setStatus(u.status,'mammoth.js not loaded yet — please wait a moment and try again','err');return;}
+    setStatus(u.status,'Converting...','busy');
+    var reader=new FileReader();
+    reader.onload=function(e){
+      mammoth.convertToHtml({arrayBuffer:e.target.result}).then(function(result){
+        var html=result.value;
+        var warnings=result.messages.filter(function(m){return m.type==='warning';});
+        var title=file.name.replace(/\.docx$/i,'');
+        var win=window.open('','_blank','width=900,height=700');
+        if(!win){setStatus(u.status,'Popup blocked — please allow popups and try again','err');return;}
+        win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'
+          +'<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;font-size:13pt;color:#111}'
+          +'h1,h2,h3,h4{color:#0a0a0a;margin-top:1.5em}p{margin:0.8em 0}'
+          +'table{border-collapse:collapse;width:100%;margin:1em 0}'
+          +'td,th{border:1px solid #ccc;padding:6px 10px;text-align:left}'
+          +'img{max-width:100%}'
+          +'@media print{body{margin:0;padding:20px}}'
+          +'</style></head><body>'
+          +'<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:11pt;font-family:sans-serif;color:#0369a1">'
+          +'&#8505; Press <strong>Ctrl+P</strong> (or Cmd+P on Mac) and choose <strong>Save as PDF</strong> to download the PDF.'
+          +(warnings.length?' <br>⚠ '+warnings.length+' formatting note(s) detected.':'')
+          +'</div>'+html+'</body></html>');
+        win.document.close();
+        win.focus();
+        setStatus(u.status,'Print window opened — use Ctrl+P → Save as PDF','ok');
+      }).catch(function(err){
+        setStatus(u.status,'Conversion failed: '+err.message,'err');
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  };
+};
+
+/* 2 ── Markdown to HTML */
+INIT['markdown-to-html']=function(panel){
+  panel.innerHTML=''
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">'
+    +'<div><label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px;font-weight:600">MARKDOWN INPUT</label>'
+    +'<textarea id="md-in" rows="16" placeholder="# Hello\n\nType your **Markdown** here...\n\n- Item 1\n- Item 2" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-family:var(--fm);font-size:13px;resize:vertical;line-height:1.55;box-sizing:border-box"></textarea></div>'
+    +'<div id="md-tabs-wrap"><label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px;font-weight:600">OUTPUT</label>'
+    +'<div style="display:flex;gap:6px;margin-bottom:8px">'
+    +'<button class="btn active" id="md-preview-btn" style="font-size:12px;padding:5px 12px">Preview</button>'
+    +'<button class="btn" id="md-html-btn" style="font-size:12px;padding:5px 12px">HTML Code</button>'
+    +'</div>'
+    +'<div id="md-preview" style="min-height:200px;padding:12px 14px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13.5px;line-height:1.7;overflow:auto"></div>'
+    +'<textarea id="md-html-out" rows="16" readonly style="display:none;width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-family:monospace;font-size:12px;resize:vertical;line-height:1.55;box-sizing:border-box"></textarea>'
+    +'</div></div>'
+    +'<div class="controls"><button class="btn btn-primary" id="md-copy">Copy HTML</button><button class="btn" id="md-dl">Download .html</button><button class="btn" id="md-clear">Clear</button></div>'
+    +'<style>#md-preview h1,#md-preview h2,#md-preview h3{margin:1em 0 .4em;font-family:var(--fd)}#md-preview p{margin:.6em 0}#md-preview code{background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-family:monospace}#md-preview pre code{display:block;padding:10px;overflow:auto;border-radius:8px}#md-preview ul,#md-preview ol{padding-left:20px;margin:.5em 0}#md-preview blockquote{border-left:3px solid var(--p1);margin:0;padding-left:14px;color:var(--text-dim)}#md-preview table{border-collapse:collapse;width:100%}#md-preview td,#md-preview th{border:1px solid var(--border);padding:6px 10px}#md-preview a{color:var(--p1)}</style>';
+
+  var isPreview=true;
+  function render(){
+    var md=document.getElementById('md-in').value;
+    if(typeof marked==='undefined'){document.getElementById('md-preview').textContent='Loading renderer...';return;}
+    var html=marked.parse(md||'');
+    document.getElementById('md-preview').innerHTML=html;
+    document.getElementById('md-html-out').value=html;
+  }
+  document.getElementById('md-in').addEventListener('input',render);
+  document.getElementById('md-preview-btn').onclick=function(){
+    isPreview=true;
+    document.getElementById('md-preview').style.display='block';
+    document.getElementById('md-html-out').style.display='none';
+    this.classList.add('active');
+    document.getElementById('md-html-btn').classList.remove('active');
+  };
+  document.getElementById('md-html-btn').onclick=function(){
+    isPreview=false;
+    document.getElementById('md-preview').style.display='none';
+    document.getElementById('md-html-out').style.display='block';
+    this.classList.add('active');
+    document.getElementById('md-preview-btn').classList.remove('active');
+  };
+  document.getElementById('md-copy').onclick=function(){
+    var html=document.getElementById('md-html-out').value;
+    navigator.clipboard.writeText(html).then(function(){toast('HTML copied!','ok');});
+  };
+  document.getElementById('md-dl').onclick=function(){
+    var html=document.getElementById('md-html-out').value;
+    var full='<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Document</title></head>\n<body>\n'+html+'\n</body>\n</html>';
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([full],{type:'text/html'}));
+    a.download='document.html';a.click();
+  };
+  document.getElementById('md-clear').onclick=function(){
+    document.getElementById('md-in').value='';
+    document.getElementById('md-preview').innerHTML='';
+    document.getElementById('md-html-out').value='';
+  };
+  render();
+};

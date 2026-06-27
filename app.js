@@ -61,20 +61,128 @@ function openBlog(slug){
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
   setActiveNav('blog');
   toolEl.innerHTML=slug&&ARTICLES[slug]?buildArticlePage(slug):buildBlogIndex();
-  fadeIn(toolEl);scrollTo(0,0);
+  fadeIn(toolEl);buildToolArticles(slug);scrollTo(0,0);
   window._ga('page_view',{page:'blog'+(slug?'/'+slug:'')});
 }
 
 /* Core navigation: go, homeEl, showHome, noInit, openTool, route */
 function go(path){location.hash=path?('#/'+path):'#/';}
 const homeEl=$('#home'),toolEl=$('#tool');
-function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Tools for Designers, Marketers & Developers';
+function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
   if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
   else{activeCat='all';buildTabs();buildGrid();buildRecent();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
+
+/* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
+function updateToolMeta(slug,t){
+  var baseUrl='https://tarumakstudio.com';
+  var toolUrl=baseUrl+'/#/t/'+slug;
+  var fullTitle=t[1]+' | Tarumak Studio';
+  var desc=t[3];
+
+  /* Meta description */
+  var md=document.querySelector('meta[name="description"]');
+  if(md) md.setAttribute('content',desc);
+
+  /* Canonical */
+  var can=document.querySelector('link[rel="canonical"]');
+  if(can) can.setAttribute('href',toolUrl);
+
+  /* Open Graph */
+  var _og=function(prop,val){var el=document.querySelector('meta[property="'+prop+'"]');if(el)el.setAttribute('content',val);};
+  _og('og:title',fullTitle);
+  _og('og:description',desc);
+  _og('og:url',toolUrl);
+  _og('og:type','website');
+
+  /* Twitter Card */
+  var _tw=function(name,val){var el=document.querySelector('meta[name="'+name+'"]');if(el)el.setAttribute('content',val);};
+  _tw('twitter:title',fullTitle);
+  _tw('twitter:description',desc);
+
+  /* JSON-LD — remove previous, inject fresh */
+  var old=document.getElementById('tool-jsonld');
+  if(old) old.remove();
+  var ld=document.createElement('script');
+  ld.type='application/ld+json';
+  ld.id='tool-jsonld';
+  var graph=[
+    {
+      '@type':'SoftwareApplication',
+      '@id':toolUrl,
+      'name':t[1],
+      'url':toolUrl,
+      'description':desc,
+      'applicationCategory':'WebApplication',
+      'applicationSubCategory':(CAT[t[2]]||t[2]),
+      'operatingSystem':'Any',
+      'browserRequirements':'Requires JavaScript',
+      'offers':{'@type':'Offer','price':'0','priceCurrency':'USD'},
+      'provider':{'@type':'Organization','name':'Tarumak Studio','url':baseUrl}
+    },
+    {
+      '@type':'BreadcrumbList',
+      'itemListElement':[
+        {'@type':'ListItem','position':1,'name':'Home','item':baseUrl+'/'},
+        {'@type':'ListItem','position':2,'name':(CAT[t[2]]||t[2]),'item':baseUrl+'/#/'+t[2]},
+        {'@type':'ListItem','position':3,'name':t[1],'item':toolUrl}
+      ]
+    }
+  ];
+  var toolFaqs=FAQ[slug];
+  if(toolFaqs&&toolFaqs.length){
+    graph.push({
+      '@type':'FAQPage',
+      'mainEntity':toolFaqs.map(function(q){return{'@type':'Question','name':q[0],'acceptedAnswer':{'@type':'Answer','text':q[1]}};})
+    });
+  }
+  ld.textContent=JSON.stringify({'@context':'https://schema.org','@graph':graph});
+  document.head.appendChild(ld);
+}
+
+/* ── SEO: restore homepage meta tags when navigating back ───── */
+function restoreHomeMeta(){
+  var baseUrl='https://tarumakstudio.com';
+  var md=document.querySelector('meta[name="description"]');
+  if(md) md.setAttribute('content','56 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  var can=document.querySelector('link[rel="canonical"]');
+  if(can) can.setAttribute('href',baseUrl+'/');
+  var _og=function(prop,val){var el=document.querySelector('meta[property="'+prop+'"]');if(el)el.setAttribute('content',val);};
+  _og('og:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
+  _og('og:description','56 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  _og('og:url',baseUrl+'/');
+  _og('og:type','website');
+  var _tw=function(name,val){var el=document.querySelector('meta[name="'+name+'"]');if(el)el.setAttribute('content',val);};
+  _tw('twitter:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
+  _tw('twitter:description','56 free browser-based tools for designers, marketers and developers.');
+  var old=document.getElementById('tool-jsonld');
+  if(old) old.remove();
+}
+
+/* ── SEO: inject related articles under the tool panel ──────── */
+function buildToolArticles(slug){
+  var sec=document.getElementById('tool-articles');
+  if(!sec) return;
+  var artSlugs=(TOOL_ARTICLES&&TOOL_ARTICLES[slug])||[];
+  if(!artSlugs.length||typeof ARTICLES==='undefined'){sec.style.display='none';return;}
+  var cards=artSlugs.slice(0,3).map(function(as){
+    var a=ARTICLES[as];
+    if(!a) return '';
+    var excerpt=a.excerpt?a.excerpt.slice(0,90)+'\u2026':'';
+    return '<a href="/article-'+as+'.html" class="rcard" style="text-decoration:none;display:flex;gap:12px;align-items:flex-start">'
+      +'<div class="ico" aria-hidden="true">&#128196;</div>'
+      +'<div><h3 class="rc-title">'+a.title+'</h3><p>'+excerpt+'</p></div>'
+      +'</a>';
+  }).filter(Boolean).join('');
+  if(!cards){sec.style.display='none';return;}
+  sec.innerHTML='<h2>Related reading</h2>'
+    +'<p class="lead">Guides that go with this tool.</p>'
+    +'<div class="related">'+cards+'</div>';
+}
+
 function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
   setActiveNav('all');saveRecent(slug);
@@ -85,10 +193,10 @@ function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
    '<nav class="crumb"><a onclick="go(\'\')">Home</a><span class="sep">/</span><a onclick="go(\''+cat+'\')">'+CAT[cat]+'</a><span class="sep">/</span><span class="here">'+t[1]+'</span></nav>'+
    '<div class="tool-head '+cat+'"><div class="badge">'+ICON[cat]+'</div><div style="flex:1"><h1>'+t[1]+'</h1><p>'+t[3]+'</p></div><button class="th-fav'+(isFav(slug)?' active':'')+'" data-slug="'+slug+'" onclick="toggleFav(\''+slug+'\')" aria-label="Save tool" title="Save to favourites">'+heartSvg+'</button></div>'+
    '<div class="panel" id="panel"></div>'+
-   '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h4>'+f[0]+'</h4><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
+   '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h3 class="f-title">'+f[0]+'</h3><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
    '<section class="sec" style="padding-top:0"><h2>Frequently asked questions</h2><p class="lead">Quick answers before you start.</p><div class="faq">'+faqs.map(q=>'<details class="q"><summary>'+q[0]+'</summary><div class="a">'+q[1]+'</div></details>').join('')+'</div></section>'+
-   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h4>'+r[1]+'</h4><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+buildAffBanners(cat);
-  document.title=t[1]+' — TARUMAK Tools';
+   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+'<section class="sec" style="padding-top:0" id="tool-articles"></section>'+buildAffBanners(cat);
+  document.title=t[1]+' | Tarumak Studio';updateToolMeta(slug,t);
   fadeIn(toolEl);
   (INIT[slug]||noInit)($('#panel'));
   scrollTo(0,0);

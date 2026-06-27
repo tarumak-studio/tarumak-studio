@@ -87,6 +87,7 @@
 
 ### PDF Tools
 
+- [Tarumak Studio vs Smallpdf — Honest Comparison](https://tarumakstudio.com/article-tarumak-studio-vs-smallpdf.html): Side-by-side feature comparison with honest assessment of strengths and gaps in 2026.
 - [How to Merge PDF Files Online — Free and Instant](https://tarumakstudio.com/article-merge-pdf-online-free.html): Combine multiple PDF files into one document in seconds — no software, no sign-up, completely free.
 - [Best Free PDF Tools in 2026 (All Browser-Based, No Sign-Up)](https://tarumakstudio.com/article-best-free-pdf-tools-2026.html): A curated list of the best free PDF tools available in 2026 — merge, split, compress, edit and more without installing software.
 - [How to Reduce PDF File Size Without Losing Quality](https://tarumakstudio.com/article-reduce-pdf-file-size.html): Compress PDF files online for free. Reduce PDF size for email attachments, web uploads and sharing without installing software.
@@ -128,4 +129,5 @@
 - [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
 - [Privacy Policy](https://tarumakstudio.com/privacy-policy.html)
 - [Terms of Service](https://tarumakstudio.com/terms.html)
+- [Changelog](https://tarumakstudio.com/changelog.html): Recent changes, new tools, fixes and improvements
 - [Sitemap](https://tarumakstudio.com/sitemap.xml): Machine-readable XML sitemap

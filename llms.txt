@@ -35,6 +35,11 @@ In-depth practical guides linking to the tools that solve each problem. All 30 a
 - [Open Graph Images — What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image.html): Social media preview image guide.
 - [Best Free PDF Tools 2026](https://tarumakstudio.com/article-best-free-pdf-tools-2026.html): Roundup of the most useful PDF utilities.
 - [How to Create a PDF Lead Magnet](https://tarumakstudio.com/article-create-pdf-lead-magnet.html): Marketing collateral creation tutorial.
+- [Tarumak Studio vs Smallpdf — Honest Comparison](https://tarumakstudio.com/article-tarumak-studio-vs-smallpdf.html): Side-by-side feature comparison with honest assessment of strengths and gaps.
+
+## Updates
+
+- [Changelog](https://tarumakstudio.com/changelog.html): Recent changes, new tools, fixes and improvements — updated monthly.
 
 ## About
 

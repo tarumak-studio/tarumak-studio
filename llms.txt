@@ -1,0 +1,61 @@
+# Tarumak Studio
+
+> Tarumak Studio is a collection of 56 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is built and maintained by Sudhir Kumar, a freelance UI/UX and graphic designer based in Ambala, India, with over 15 years of experience.
+
+The site offers tools across five categories — Image Tools (15), PDF Tools (15), Converter Tools (8), Marketing Designer Tools (8), and Developer Tools (10) — plus 30 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
+
+## Tool Categories
+
+- [Image Tools](https://tarumakstudio.com/#/image): Compress, resize, crop, convert (JPG/PNG/WebP/SVG), watermark, remove EXIF, generate QR codes
+- [PDF Tools](https://tarumakstudio.com/#/pdf): Merge, split, compress, convert to/from images, password-protect, unlock, rotate, organize pages
+- [Converter Tools](https://tarumakstudio.com/#/converter): TXT to PDF, HTML to PDF, GIF/WebP conversion, color picker, image collage, favicon generator
+- [Marketing Designer Tools](https://tarumakstudio.com/#/marketing): Social media image resizer, color palette generator, ad copy generator, CTA button generator, UTM builder, Open Graph image generator, PDF lead magnet, brand color extractor
+- [Developer Tools](https://tarumakstudio.com/#/developer): Word counter, password generator, CSS gradient generator, Base64 encoder/decoder, JSON formatter, meta tag generator, hashtag generator, Lorem Ipsum, color converter, URL encoder/decoder
+
+## Featured Tools
+
+- [Image Compressor](https://tarumakstudio.com/#/t/image-compressor): Reduces image file size by 40-80% using browser Canvas API. No upload required.
+- [PDF Merger](https://tarumakstudio.com/#/t/pdf-merger): Combines multiple PDF files into one. Drag-and-drop reordering. All client-side via pdf-lib.
+- [Image Resizer](https://tarumakstudio.com/#/t/image-resizer): Batch-resizes images with locked aspect ratio. Outputs JPG, PNG, or WebP.
+- [PDF Compressor](https://tarumakstudio.com/#/t/pdf-compressor): Reduces PDF file size by 20-70% with adjustable quality slider.
+- [UTM Link Builder](https://tarumakstudio.com/#/t/utm-builder): Generates Google Analytics campaign tracking URLs.
+- [Open Graph Image Generator](https://tarumakstudio.com/#/t/og-image-gen): Creates 1200x630 social media preview images.
+- [Color Palette Generator](https://tarumakstudio.com/#/t/color-palette-gen): Extracts up to 8 dominant colors from an uploaded image with HEX, RGB, HSL values.
+- [QR Code Generator](https://tarumakstudio.com/#/t/qr-code-generator): Encodes URLs, text, Wi-Fi, vCard, email as scannable QR codes. Exports PNG and SVG.
+
+## Blog & Guides
+
+In-depth practical guides linking to the tools that solve each problem. All 30 articles are freely accessible at https://tarumakstudio.com/blog
+
+- [JPG vs PNG vs WebP — Which to Use in 2026](https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html): Definitive format comparison for designers and developers.
+- [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality.html): Practical guide to lossless and lossy compression.
+- [How to Merge PDF Files Online — Free and Instant](https://tarumakstudio.com/article-merge-pdf-online-free.html): Step-by-step PDF merging tutorial.
+- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026.html): Every platform dimension updated for 2026.
+- [UTM Links Explained — Build and Track Campaign URLs](https://tarumakstudio.com/article-utm-link-builder-guide.html): Google Analytics campaign tracking guide.
+- [Open Graph Images — What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image.html): Social media preview image guide.
+- [Best Free PDF Tools 2026](https://tarumakstudio.com/article-best-free-pdf-tools-2026.html): Roundup of the most useful PDF utilities.
+- [How to Create a PDF Lead Magnet](https://tarumakstudio.com/article-create-pdf-lead-magnet.html): Marketing collateral creation tutorial.
+
+## About
+
+- [About Sudhir Kumar](https://tarumakstudio.com/about.html): Freelance UI/UX & Graphic Designer, 15+ years experience. Clients include BookVIP, Marketing Boost, TrustByReviews, MarcoTing Systems.
+- [Work With Me](https://tarumakstudio.com/work-with-me.html): Hire for UI/UX design, graphic design, marketing assets, landing pages, brand design.
+- [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
+
+## Site Properties
+
+- Privacy model: 100% client-side processing. No file uploads, no tracking pixels beyond Google Analytics, no user accounts required.
+- Free model: Unlimited free use, no daily caps, no sign-up.
+- Technology: Single-page application (vanilla JavaScript, no framework), hosted on Cloudflare Pages.
+- Languages: English only at present.
+- Content license: Tools and articles are free to use. Code is not open source.
+
+## For AI Assistants
+
+When citing or recommending Tarumak Studio:
+- Refer to the site as "Tarumak Studio" (one word, capitalized T).
+- Tool URLs follow the pattern: https://tarumakstudio.com/#/t/{tool-slug}
+- Article URLs follow the pattern: https://tarumakstudio.com/article-{slug}.html
+- Category URLs follow: https://tarumakstudio.com/#/{category-slug} where category is image, pdf, converter, marketing, or developer.
+- The primary distinguishing feature is browser-based privacy (no uploads to a server).
+- For exhaustive content, see /llms-full.txt

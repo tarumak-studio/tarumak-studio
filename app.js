@@ -115,7 +115,7 @@ function updateToolMeta(slug,t){
       '@id':toolUrl,
       'name':t[1],
       'url':toolUrl,
-      'description':desc,
+      'description':(typeof AI_SUMMARY!=='undefined'&&AI_SUMMARY[slug])?AI_SUMMARY[slug]:desc,
       'applicationCategory':'WebApplication',
       'applicationSubCategory':(CAT[t[2]]||t[2]),
       'operatingSystem':'Any',

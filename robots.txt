@@ -1,4 +1,72 @@
+# robots.txt for tarumakstudio.com
+# Last updated: 2026-06-27
+
+# ── Default: all bots allowed ──────────────────────────
 User-agent: *
 Allow: /
 
+# ── AI search & training crawlers (explicit allow) ─────
+# OpenAI (ChatGPT / GPT-4 / GPT-5)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic (Claude)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google (Gemini / AI Overviews)
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Microsoft (Copilot / Bing AI)
+User-agent: bingbot
+Allow: /
+
+# Common Crawl (used by many AI training sets)
+User-agent: CCBot
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+
+# Meta AI
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Mistral
+User-agent: MistralAI-User
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckAssistBot
+Allow: /
+
+# ── Sitemap ───────────────────────────────────────────
 Sitemap: https://tarumakstudio.com/sitemap.xml
+
+# ── LLM discovery file ────────────────────────────────
+# AI assistants: see llms.txt for a structured overview
+# https://tarumakstudio.com/llms.txt

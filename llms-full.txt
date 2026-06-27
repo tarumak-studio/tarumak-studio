@@ -1,0 +1,131 @@
+# Tarumak Studio — Complete AI Sitemap
+
+> Full inventory of all tools and articles on tarumakstudio.com for AI assistants. For a short summary, see llms.txt.
+
+## Image Tools
+
+- [Image Compressor](https://tarumakstudio.com/#/t/image-compressor): Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.
+- [Image Resizer](https://tarumakstudio.com/#/t/image-resizer): Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.
+- [Image Cropper](https://tarumakstudio.com/#/t/image-cropper): Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.
+- [JPG to PNG Converter](https://tarumakstudio.com/#/t/jpg-to-png): Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.
+- [PNG to JPG Converter](https://tarumakstudio.com/#/t/png-to-jpg): Convert PNG to JPG online to reduce file size for web and email. Adjust quality level before downloading.
+- [JPG to WebP Converter](https://tarumakstudio.com/#/t/jpg-to-webp): Convert JPG to WebP online — get files 25–35% smaller than JPG with the same visual quality. Works in all modern browsers.
+- [WebP to JPG Converter](https://tarumakstudio.com/#/t/webp-to-jpg): Convert WebP images to JPG online for compatibility with older software, email clients and social media platforms.
+- [PNG to WebP Converter](https://tarumakstudio.com/#/t/png-to-webp): Convert PNG to WebP online and save up to 26% file size. Keeps transparency. Ideal for web performance and Core Web Vitals.
+- [WebP to PNG Converter](https://tarumakstudio.com/#/t/webp-to-png): Convert WebP to PNG for full compatibility with all image editors, design tools and platforms that do not yet support WebP.
+- [SVG to PNG Converter](https://tarumakstudio.com/#/t/svg-to-png): Convert SVG vector files to PNG at any resolution online. Set exact pixel width and height — perfect for app icons and assets.
+- [SVG to JPG Converter](https://tarumakstudio.com/#/t/svg-to-jpg): Convert SVG to JPG online with a white background. Choose output quality and dimensions for social media or print.
+- [Image to PDF Converter](https://tarumakstudio.com/#/t/image-to-pdf): Convert JPG or PNG images to a PDF document online. Combine multiple images into one PDF in seconds — no software needed.
+- [Watermark Image Tool](https://tarumakstudio.com/#/t/watermark-image): Add a text or image watermark to photos online. Adjust opacity, size and position. Protect your images before sharing.
+- [EXIF Data Remover](https://tarumakstudio.com/#/t/exif-remover): Remove EXIF metadata from photos to protect your privacy. Strips GPS location, camera model and timestamps from JPG files.
+- [QR Code Generator](https://tarumakstudio.com/#/t/qr-code-generator): Generate a free QR code for any URL, text, email or phone number. Download as high-resolution PNG — no sign-up required.
+
+## PDF Tools
+
+- [PDF Merger](https://tarumakstudio.com/#/t/pdf-merger): Merge multiple PDF files into one online for free. Drag to reorder pages before combining — no uploads, no sign-up.
+- [PDF Splitter](https://tarumakstudio.com/#/t/pdf-splitter): Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.
+- [PDF Compressor](https://tarumakstudio.com/#/t/pdf-compressor): Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.
+- [PDF to JPG Converter](https://tarumakstudio.com/#/t/pdf-to-jpg): Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.
+- [JPG to PDF Converter](https://tarumakstudio.com/#/t/jpg-to-pdf): Convert JPG images to PDF online in seconds. Combine multiple JPGs into one PDF or convert individually.
+- [PNG to PDF Converter](https://tarumakstudio.com/#/t/png-to-pdf): Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.
+- [PDF to Text Converter](https://tarumakstudio.com/#/t/pdf-to-text): Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.
+- [PDF Password Protector](https://tarumakstudio.com/#/t/pdf-password-protect): Add password protection to a PDF online. Encrypt your PDF before sharing to prevent unauthorised access.
+- [PDF Unlock Tool](https://tarumakstudio.com/#/t/pdf-unlock): Remove password from a PDF online. Unlock a PDF you own to enable editing, printing and copying.
+- [PDF Page Rotator](https://tarumakstudio.com/#/t/pdf-page-rotator): Rotate PDF pages online — rotate individual pages or the entire document 90° or 180°. Download the corrected PDF.
+- [PDF Page Remover](https://tarumakstudio.com/#/t/pdf-page-remover): Delete specific pages from a PDF online. Enter page numbers or ranges and download the PDF with those pages removed.
+- [PDF Organizer](https://tarumakstudio.com/#/t/pdf-organizer): Reorder PDF pages online with drag-and-drop thumbnail view. Rearrange, rotate and preview before downloading.
+- [Scan to PDF Tool](https://tarumakstudio.com/#/t/scan-to-pdf): Scan documents to PDF using your device camera. Capture multiple pages and merge them into a single PDF file.
+- [Multiple Images to PDF](https://tarumakstudio.com/#/t/images-to-pdf): Convert multiple images to a single PDF online. Drag in JPG, PNG or WebP files, reorder them and download.
+- [PDF Reader Web App](https://tarumakstudio.com/#/t/pdf-reader): Read and view PDF files online without downloading software. Navigate pages and zoom in — all in your browser.
+
+## Converter Tools
+
+- [TXT to PDF Converter](https://tarumakstudio.com/#/t/txt-to-pdf): Convert plain text files to PDF online. Paste text or upload a .txt file and download a formatted PDF document.
+- [HTML to PDF Converter](https://tarumakstudio.com/#/t/html-to-pdf): Convert HTML to PDF online. Paste HTML code and generate a PDF document — useful for web page archiving.
+- [GIF Maker](https://tarumakstudio.com/#/t/gif-maker): Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.
+- [GIF to WebP Converter](https://tarumakstudio.com/#/t/gif-to-webp): Convert animated GIF to WebP online for smaller file sizes and better web performance. Keeps all animation frames.
+- [WebP to GIF Converter](https://tarumakstudio.com/#/t/webp-to-gif): Convert animated WebP to GIF for wider compatibility with older browsers, email clients and social platforms.
+- [Color Picker from Image](https://tarumakstudio.com/#/t/color-picker): Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.
+- [Image Collage Maker](https://tarumakstudio.com/#/t/image-collage): Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.
+- [Favicon Generator](https://tarumakstudio.com/#/t/favicon-generator): Generate favicons for your website from any image. Creates all required sizes (16x16 to 512x512) — free, instant.
+
+## Marketing Designer Tools
+
+- [Social Media Image Resizer](https://tarumakstudio.com/#/t/social-image-resizer): Resize images for Instagram, Facebook, Twitter, LinkedIn, YouTube and 8 more platforms. Exact pixel dimensions, drag-to-crop.
+- [Color Palette Generator](https://tarumakstudio.com/#/t/color-palette-gen): Extract a color palette from any image or generate harmonious color schemes (complementary, triadic, analogous) from a base color.
+- [Ad Copy Generator](https://tarumakstudio.com/#/t/ad-copy-gen): Generate ad headlines, body copy and CTAs for Facebook, Google and Instagram ads. Template-based, no AI subscription needed.
+- [CTA Button Generator](https://tarumakstudio.com/#/t/cta-button-gen): Design CTA buttons with live preview. Adjust color, radius, size and padding — copy the CSS or download as PNG.
+- [UTM Link Builder](https://tarumakstudio.com/#/t/utm-builder): Build UTM campaign URLs for Google Analytics 4. Track source, medium, campaign and content. Also decodes existing UTM links.
+- [Open Graph Image Generator](https://tarumakstudio.com/#/t/og-image-gen): Create Open Graph images (1200x630) for social media link previews. Add title, brand colors and logo — download as PNG.
+- [PDF Lead Magnet Creator](https://tarumakstudio.com/#/t/pdf-lead-magnet): Create professional PDF lead magnets — checklists, guides and cheatsheets — to grow your email list. Download instantly.
+- [Brand Color Extractor](https://tarumakstudio.com/#/t/brand-color-extract): Extract brand colors from any logo or image. Get HEX, RGB and HSL values plus ready-to-paste CSS custom properties.
+
+## Developer Tools
+
+- [Word & Character Counter](https://tarumakstudio.com/#/t/word-counter): Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.
+- [Secure Password Generator](https://tarumakstudio.com/#/t/password-generator): Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.
+- [CSS Gradient Generator](https://tarumakstudio.com/#/t/css-gradient-gen): Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.
+- [Base64 Encoder & Decoder](https://tarumakstudio.com/#/t/base64-encoder): Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.
+- [JSON Formatter & Validator](https://tarumakstudio.com/#/t/json-formatter): Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.
+- [Meta Tag Generator](https://tarumakstudio.com/#/t/meta-tag-gen): Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.
+- [Hashtag Generator](https://tarumakstudio.com/#/t/hashtag-gen): Generate targeted hashtags for Instagram, Twitter and LinkedIn from design, marketing, business and tech categories.
+- [Lorem Ipsum Generator](https://tarumakstudio.com/#/t/lorem-ipsum): Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.
+- [Color Code Converter](https://tarumakstudio.com/#/t/color-converter): Convert between HEX, RGB and HSL color formats instantly. Click any result to copy to clipboard.
+- [URL Encoder & Decoder](https://tarumakstudio.com/#/t/url-encoder): Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.
+
+## Blog Articles
+
+### Image Tools
+
+- [JPG vs PNG vs WebP: Which Image Format Should You Use in 2026?](https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html): Choosing between JPG, PNG and WebP affects your website speed, quality and SEO. Here is the definitive guide.
+- [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality.html): Reduce image file sizes by 60-80% without any visible quality loss using the right tools and settings.
+- [Complete Guide to Image Compression for Web — Faster Loading Pages](https://tarumakstudio.com/article-compress-images-web.html): Learn how to compress images for web without losing quality. Covers JPG, PNG, WebP formats, compression tools, and best practices for Core Web Vitals.
+- [How to Remove Background From Image Free Online (No Photoshop)](https://tarumakstudio.com/article-remove-background-image-free.html): Remove image backgrounds online for free without Photoshop. Works for product photos, profile pictures, logos and more. Browser-based, no uploads.
+- [20 Best Free Online Tools for Graphic Designers in 2026](https://tarumakstudio.com/article-best-free-tools-designers-2026.html): The best free browser-based tools for graphic designers in 2026 — image editors, PDF tools, color palette generators, and marketing design tools. No d
+- [How to Add a Watermark to Photos Online — Protect Your Work](https://tarumakstudio.com/article-add-watermark-photos.html): Add a text or image watermark to photos online for free. Adjust opacity, position and size. Protect your photography and design work before sharing.
+- [Free Online Tools Every Freelancer Needs in 2026](https://tarumakstudio.com/article-free-tools-freelancers.html): The essential free browser-based tools for freelancers in 2026 — image compressors, PDF tools, marketing assets, invoice tools, and productivity apps.
+
+### PDF Tools
+
+- [How to Merge PDF Files Online — Free and Instant](https://tarumakstudio.com/article-merge-pdf-online-free.html): Combine multiple PDF files into one document in seconds — no software, no sign-up, completely free.
+- [Best Free PDF Tools in 2026 (All Browser-Based, No Sign-Up)](https://tarumakstudio.com/article-best-free-pdf-tools-2026.html): A curated list of the best free PDF tools available in 2026 — merge, split, compress, edit and more without installing software.
+- [How to Reduce PDF File Size Without Losing Quality](https://tarumakstudio.com/article-reduce-pdf-file-size.html): Compress PDF files online for free. Reduce PDF size for email attachments, web uploads and sharing without installing software.
+- [How to Convert PDF to JPG Online — Free, Fast and Private](https://tarumakstudio.com/article-pdf-to-jpg-convert.html): Convert PDF pages to JPG images online for free. Extract all pages or specific pages as high-quality JPG images — no software download, no uploads.
+- [How to Merge PDF Files Online — Free, No Software, No Sign-Up](https://tarumakstudio.com/article-how-to-merge-pdfs.html): Merge multiple PDF files into one document online for free. Drag to reorder, combine unlimited PDFs, download instantly. Browser-based, files never up
+- [How to Convert JPG to PDF Online — Free and Instant](https://tarumakstudio.com/article-convert-jpg-to-pdf.html): Convert JPG images to PDF online for free. Combine multiple JPGs into one PDF or convert individually. Browser-based, no uploads, instant download.
+- [Complete PDF Guide 2026 — Merge, Split, Compress, Convert and More](https://tarumakstudio.com/article-pdf-guide-2026.html): The complete guide to working with PDF files in 2026. How to merge, split, compress, convert, password-protect and extract content from PDFs free onli
+
+### Marketing Designer
+
+- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026.html): Every social media image size for Instagram, Facebook, Twitter, LinkedIn, YouTube and Pinterest — updated for 2026.
+- [UTM Links Explained: How to Build and Track Campaign URLs](https://tarumakstudio.com/article-utm-link-builder-guide.html): UTM parameters tell Google Analytics exactly where your traffic comes from. Learn to build them in 60 seconds.
+- [Open Graph Images: What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image.html): OG images are the preview images that appear when you share a link on social media. Here is how to make one that gets clicked.
+- [How to Create a PDF Lead Magnet That Grows Your Email List](https://tarumakstudio.com/article-create-pdf-lead-magnet.html): A lead magnet is a free resource you offer in exchange for an email address. Here is how to create one in under 10 minutes.
+- [How to Extract Brand Colors from Any Logo or Image](https://tarumakstudio.com/article-brand-color-extraction-guide.html): Extract your exact brand colors as HEX, RGB and CSS variables from any image in seconds — no design software needed.
+- [Hashtag Strategy for Instagram and Twitter in 2026 — Free Generator](https://tarumakstudio.com/article-hashtag-strategy-instagram.html): Learn the best hashtag strategy for Instagram and Twitter in 2026. How many hashtags to use, how to research them, and how to generate them free.
+- [How to Create a Brand Color Palette — Complete Guide for Designers](https://tarumakstudio.com/article-color-palette-brand-guide.html): Learn how to create a professional brand color palette from scratch. Color psychology, palette types, extraction from logos, and CSS variables guide.
+- [Instagram Story Size 2026 — Dimensions, Templates and Best Practices](https://tarumakstudio.com/article-instagram-story-size-guide.html): Instagram Story size guide for 2026: 1080x1920 pixels, safe zones, text placement, and tips for higher engagement. Free story image resizer included.
+- [Best Free Marketing Tools for Designers and Creators in 2026](https://tarumakstudio.com/article-best-free-marketing-tools.html): The best free marketing tools for designers and content creators in 2026 — social media resizer, UTM builder, OG image generator, ad copy generator an
+
+### Developer Tools
+
+- [Favicon Size Guide: What Size Should Your Favicon Be in 2026?](https://tarumakstudio.com/article-best-favicon-size.html): The complete guide to favicon sizes — what dimensions you need, which formats to use, and how to generate them all at once.
+- [Free Favicon Generator — Create Website Favicons in All Sizes](https://tarumakstudio.com/article-free-favicon-generator.html): Generate all required favicon sizes from any image online — 16x16 to 512x512 pixels. Download ICO, PNG and SVG formats instantly. Free, no sign-up.
+- [Meta Tags for SEO — Complete Guide with Examples (2026)](https://tarumakstudio.com/article-meta-tags-seo-guide.html): Learn how to write title tags, meta descriptions, and Open Graph tags for better SEO and social media sharing. Includes examples and character limits.
+- [Best Free Web Design Tools in 2026 — No Subscription Needed](https://tarumakstudio.com/article-web-design-tools-2026.html): The best free web design tools in 2026 — CSS generators, color tools, favicon makers, image optimisers, and developer utilities. All browser-based.
+
+### Converter Tools
+
+- [How to Create an Animated GIF From Images Free Online](https://tarumakstudio.com/article-create-gif-from-images.html): Create animated GIFs from multiple images or video frames online. Set frame speed, loop settings and download instantly — no software, no sign-up.
+- [How to Create a QR Code for Your Business — Free Generator](https://tarumakstudio.com/article-create-qr-code-business.html): Generate a free QR code for your website, menu, business card or social media. Download as high-resolution PNG. No sign-up, no watermarks.
+
+## Reference Pages
+
+- [Homepage](https://tarumakstudio.com/): Full tool grid and category navigation
+- [Blog Index](https://tarumakstudio.com/blog): All 30 articles, organized by category
+- [About](https://tarumakstudio.com/about.html): About Sudhir Kumar, founder
+- [Work With Me](https://tarumakstudio.com/work-with-me.html): Freelance services
+- [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
+- [Privacy Policy](https://tarumakstudio.com/privacy-policy.html)
+- [Terms of Service](https://tarumakstudio.com/terms.html)
+- [Sitemap](https://tarumakstudio.com/sitemap.xml): Machine-readable XML sitemap

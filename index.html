@@ -139,8 +139,8 @@
     </div>
     <button class="icon-btn" id="closeMenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
-  <a onclick="go('')">Home</a>
-  <a onclick="go('all')">Tools</a>
+  <a onclick="go('');document.getElementById('mobileMenu').classList.remove('open');document.getElementById('burger').setAttribute('aria-expanded','false')">Home</a>
+  <a onclick="go('all');document.getElementById('mobileMenu').classList.remove('open');document.getElementById('burger').setAttribute('aria-expanded','false')">Tools</a>
   <a href="/about.html">About</a>
   <a href="/work-with-me.html">Work With Me</a>
   <a href="/blog">Blog</a>

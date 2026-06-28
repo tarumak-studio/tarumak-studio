@@ -233,278 +233,296 @@ INIT['qr-code-generator']=function(panel){
   gen();
 };
 
-
 /* ── Lazy library loader ──────────────────────────────────── */
-function loadLib(src){
-  return new Promise((res,rej)=>{
-    if(document.querySelector('script[src="'+src+'"]')){res();return;}
-    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;
+function loadLib(src,globalName){
+  return new Promise(function(res,rej){
+    if(globalName&&window[globalName]){res(window[globalName]);return;}
+    var existing=document.querySelector('script[src="'+src+'"]');
+    if(existing){
+      var t=0,iv=setInterval(function(){
+        if(globalName&&window[globalName]){clearInterval(iv);res(window[globalName]);}
+        else if(++t>100){clearInterval(iv);rej(new Error('Timeout loading: '+src));}
+      },200);
+      return;
+    }
+    var s=document.createElement('script');s.src=src;
+    s.onload=function(){
+      if(!globalName){res();return;}
+      var t=0,iv=setInterval(function(){
+        if(window[globalName]){clearInterval(iv);res(window[globalName]);}
+        else if(++t>30){clearInterval(iv);res(window);}
+      },100);
+    };
+    s.onerror=function(){rej(new Error('Failed to load '+src));};
     document.head.appendChild(s);
   });
 }
 
 /* ═══════════════════════════════════════════════════════════
    BACKGROUND REMOVER
-   Uses @imgly/background-removal (ONNX WASM — runs in browser)
+   Uses @imgly/background-removal via ESM dynamic module script.
+   The UMD bundle is not available; ESM is loaded via <script type=module>.
    ═══════════════════════════════════════════════════════════ */
 INIT['background-remover']=function(panel){
-  const CDN='https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.umd.js';
-  const PUBLIC='https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/';
-
   panel.innerHTML=
-    '<div style="background:rgba(255,255,255,.04);border:1px dashed var(--border-2);border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:16px" id="bgr-zone">'+
+    '<div class="drop" id="bgr-zone" style="cursor:pointer">'+
       '<input type="file" id="bgr-file" accept="image/png,image/jpeg,image/webp" hidden>'+
-      '<div style="font-size:32px;margin-bottom:10px">🖼️</div>'+
-      '<h3 style="margin-bottom:8px;font-size:17px">Drop your image here</h3>'+
-      '<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">Supports JPG, PNG, WebP · AI removes background instantly</p>'+
-      '<div style="display:flex;gap:8px;justify-content:center">'+
-        '<span class="chip">AI-Powered</span><span class="chip">PNG Output</span><span class="chip">Transparent BG</span>'+
-      '</div>'+
+      '<div class="di">'+UP+'</div>'+
+      '<h3>Drop your image here</h3>'+
+      '<p>JPG, PNG or WebP &middot; AI removes background &middot; Downloads as transparent PNG</p>'+
+      '<div class="formats"><span class="chip">AI-Powered</span><span class="chip">Transparent PNG</span><span class="chip">Privacy Safe</span></div>'+
     '</div>'+
-    '<div id="bgr-status" style="display:none;text-align:center;padding:20px 0"></div>'+
-    '<div id="bgr-result" style="display:none"></div>';
+    '<div class="status" id="bgr-status"></div>'+
+    '<div class="results" id="bgr-res"></div>';
 
-  const zone=panel.querySelector('#bgr-zone');
-  const fi  =panel.querySelector('#bgr-file');
-  const stat=panel.querySelector('#bgr-status');
-  const res =panel.querySelector('#bgr-result');
+  var zone=$('#bgr-zone',panel),fi=$('#bgr-file',panel),
+      stat=$('#bgr-status',panel),res=$('#bgr-res',panel);
 
-  zone.style.cursor='pointer';
-  zone.addEventListener('click',()=>fi.click());
-  zone.addEventListener('dragover',ev=>{ev.preventDefault();zone.style.borderColor='var(--p1)';});
-  zone.addEventListener('dragleave',()=>zone.style.borderColor='var(--border-2)');
-  zone.addEventListener('drop',ev=>{ev.preventDefault();zone.style.borderColor='var(--border-2)';if(ev.dataTransfer.files[0])process(ev.dataTransfer.files[0]);});
-  fi.addEventListener('change',()=>fi.files[0]&&process(fi.files[0]));
+  dropzone(zone,fi,function(files){if(files[0])process(files[0]);});
 
-  async function process(file){
-    zone.style.display='none'; res.style.display='none';
-    stat.style.display='block';
-    stat.innerHTML='<div style="font-size:22px;margin-bottom:10px">⏳</div>'+
-      '<p id="bgr-msg" style="color:var(--text-dim);font-size:14px">Loading AI model — first use takes ~20 seconds…</p>'+
-      '<div style="height:4px;background:var(--border-2);border-radius:2px;margin:14px auto;width:200px"><div id="bgr-bar" style="height:100%;background:var(--p1);border-radius:2px;width:0%;transition:width .4s"></div></div>';
-    const msg=$('#bgr-msg',panel), bar=$('#bgr-bar',panel);
-    try{
-      await loadLib(CDN);
-      const BR=window.BackgroundRemoval||window.imglyBackgroundRemoval;
-      if(!BR||!BR.removeBackground)throw new Error('Library did not load — try refreshing');
-      msg.textContent='Model ready — processing your image…';bar.style.width='40%';
-      const url=URL.createObjectURL(file);
-      const cfg={debug:false,publicPath:PUBLIC,model:'small',output:{format:'image/png',quality:1}};
-      const blob=await BR.removeBackground(url,cfg);
-      URL.revokeObjectURL(url);
-      bar.style.width='100%';
-      const oUrl=URL.createObjectURL(blob);
-      const origUrl=URL.createObjectURL(file);
-      stat.style.display='none';
-      res.style.display='block';
-      const base=file.name.replace(/\.[^.]+$/,'');
+  function loadBGR(){
+    return new Promise(function(resolve,reject){
+      if(window.__removeBackground){resolve(window.__removeBackground);return;}
+      if(window.__bgrLoading){
+        var t=0,iv=setInterval(function(){
+          if(window.__removeBackground){clearInterval(iv);resolve(window.__removeBackground);}
+          else if(++t>150){clearInterval(iv);reject(new Error('Model load timeout — try refreshing'));}
+        },300);
+        return;
+      }
+      window.__bgrLoading=true;
+      var s=document.createElement('script');
+      s.type='module';
+      s.textContent=[
+        'import{removeBackground}from"https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs";',
+        'window.__removeBackground=removeBackground;',
+        'document.dispatchEvent(new CustomEvent("__bgrReady"));'
+      ].join('');
+      document.addEventListener('__bgrReady',function h(){
+        document.removeEventListener('__bgrReady',h);
+        resolve(window.__removeBackground);
+      });
+      s.onerror=function(e){reject(new Error('ESM load failed — check browser console'));};
+      document.head.appendChild(s);
+    });
+  }
+
+  function process(file){
+    zone.style.display='none';
+    res.innerHTML='';res.classList.remove('show');
+    setStatus(stat,'Loading AI model\u2026 first use takes ~20 seconds');
+    loadBGR().then(function(removeBg){
+      setStatus(stat,'\uD83E\uDDE0 Segmenting image\u2026');
+      var url=URL.createObjectURL(file);
+      var cfg={
+        debug:false,
+        publicPath:'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/',
+        model:'small',
+        output:{format:'image/png',quality:1}
+      };
+      return removeBg(url,cfg).then(function(blob){
+        URL.revokeObjectURL(url);
+        return blob;
+      });
+    }).then(function(blob){
+      stat.className='status';
+      res.classList.add('show');
+      var base=file.name.replace(/\.[^.]+$/,'');
+      var oUrl=URL.createObjectURL(blob);
+      var origUrl=URL.createObjectURL(file);
       res.innerHTML=
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'+
           '<div style="text-align:center">'+
-            '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Original</div>'+
-            '<img src="'+origUrl+'" style="width:100%;border-radius:12px;border:1px solid var(--border-2);max-height:280px;object-fit:contain">'+
+            '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px">Original</div>'+
+            '<img src="'+origUrl+'" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid var(--border-2)">'+
           '</div>'+
           '<div style="text-align:center">'+
-            '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Background Removed</div>'+
-            '<div style="background:repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0 0/20px 20px;border-radius:12px;overflow:hidden;max-height:280px;display:flex;align-items:center;justify-content:center">'+
-              '<img src="'+oUrl+'" style="max-width:100%;max-height:280px;object-fit:contain">'+
+            '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px">Background Removed</div>'+
+            '<div style="background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;border-radius:10px;max-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden">'+
+              '<img src="'+oUrl+'" style="max-width:100%;max-height:240px;object-fit:contain">'+
             '</div>'+
           '</div>'+
         '</div>'+
         '<div style="display:flex;gap:10px;justify-content:center">'+
-          '<button class="btn btn-primary" id="bgr-dl">⬇ Download PNG</button>'+
-          '<button class="btn" id="bgr-new" style="background:rgba(255,255,255,.06)">Try another image</button>'+
+          '<button class="btn btn-primary" id="bgr-dl">\u2B07 Download PNG</button>'+
+          '<button class="btn" id="bgr-new" style="background:rgba(255,255,255,.06)">Try another</button>'+
         '</div>';
-      panel.querySelector('#bgr-dl').onclick=()=>download(blob,base+'-no-bg.png');
-      panel.querySelector('#bgr-new').onclick=()=>{res.style.display='none';zone.style.display='';fi.value='';};
-    }catch(e){
-      stat.innerHTML='<div style="font-size:22px;margin-bottom:8px">⚠️</div>'+
-        '<p style="color:#f87171;font-size:14px">'+e.message+'</p>'+
-        '<button class="btn" onclick="this.closest('#bgr-status').style.display='none';document.querySelector('#bgr-zone').style.display=''" style="margin-top:12px;background:rgba(255,255,255,.06)">Try again</button>';
-    }
+      $('#bgr-dl',res).onclick=function(){download(blob,base+'-no-bg.png');};
+      $('#bgr-new',res).onclick=function(){
+        res.innerHTML='';res.classList.remove('show');
+        zone.style.display='';fi.value='';
+      };
+    }).catch(function(e){
+      setStatus(stat,'Error: '+(e.message||String(e))+'  \u2014  Try a JPG or PNG image.',true);
+      zone.style.display='';
+    });
   }
 };
 
 /* ═══════════════════════════════════════════════════════════
-   OCR IMAGE TO TEXT (Tesseract.js)
+   OCR IMAGE TO TEXT  (Tesseract.js v5)
    ═══════════════════════════════════════════════════════════ */
 INIT['ocr-image-to-text']=function(panel){
-  const CDN='https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js';
+  var CDN='https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js';
 
   panel.innerHTML=
-    '<div style="background:rgba(255,255,255,.04);border:1px dashed var(--border-2);border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:16px" id="ocr-zone">'+
-      '<input type="file" id="ocr-file" accept="image/png,image/jpeg,image/webp,image/bmp,image/tiff" hidden>'+
-      '<div style="font-size:32px;margin-bottom:10px">🔍</div>'+
-      '<h3 style="margin-bottom:8px;font-size:17px">Drop image with text here</h3>'+
-      '<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">Extracts text from screenshots, scanned docs, photos of signs and more</p>'+
-      '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
-        '<span class="chip">JPG</span><span class="chip">PNG</span><span class="chip">WebP</span><span class="chip">BMP</span>'+
-      '</div>'+
-    '</div>'+
-    '<div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">'+
+    '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">'+
       '<label style="font-size:13px;font-weight:600;white-space:nowrap">Language:</label>'+
       '<select id="ocr-lang" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">'+
         '<option value="eng">English</option>'+
-        '<option value="hin">Hindi (हिन्दी)</option>'+
+        '<option value="hin">Hindi</option>'+
         '<option value="fra">French</option>'+
         '<option value="deu">German</option>'+
         '<option value="spa">Spanish</option>'+
         '<option value="jpn">Japanese</option>'+
-        '<option value="chi_sim">Chinese Simplified</option>'+
+        '<option value="chi_sim">Chinese (Simplified)</option>'+
         '<option value="ara">Arabic</option>'+
       '</select>'+
     '</div>'+
-    '<div id="ocr-status" style="display:none;text-align:center;padding:20px 0"></div>'+
-    '<div id="ocr-result" style="display:none"></div>';
+    '<div class="drop" id="ocr-zone" style="cursor:pointer">'+
+      '<input type="file" id="ocr-file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>'+
+      '<div class="di">'+UP+'</div>'+
+      '<h3>Drop an image with text</h3>'+
+      '<p>Screenshots, scans, photos of signs \u2014 text extracted in your browser</p>'+
+      '<div class="formats"><span class="chip">Multi-Language</span><span class="chip">8 Languages</span><span class="chip">Privacy Safe</span></div>'+
+    '</div>'+
+    '<div class="status" id="ocr-status"></div>'+
+    '<div class="results" id="ocr-res"></div>';
 
-  const zone=panel.querySelector('#ocr-zone');
-  const fi  =panel.querySelector('#ocr-file');
-  const stat=panel.querySelector('#ocr-status');
-  const res =panel.querySelector('#ocr-result');
-  const lang=panel.querySelector('#ocr-lang');
+  var zone=$('#ocr-zone',panel),fi=$('#ocr-file',panel),
+      stat=$('#ocr-status',panel),res=$('#ocr-res',panel),
+      langEl=$('#ocr-lang',panel);
 
-  zone.style.cursor='pointer';
-  zone.addEventListener('click',()=>fi.click());
-  zone.addEventListener('dragover',ev=>{ev.preventDefault();zone.style.borderColor='var(--p1)';});
-  zone.addEventListener('dragleave',()=>zone.style.borderColor='var(--border-2)');
-  zone.addEventListener('drop',ev=>{ev.preventDefault();zone.style.borderColor='var(--border-2)';if(ev.dataTransfer.files[0])process(ev.dataTransfer.files[0]);});
-  fi.addEventListener('change',()=>fi.files[0]&&process(fi.files[0]));
+  dropzone(zone,fi,function(files){if(files[0])process(files[0]);});
 
-  async function process(file){
-    zone.style.display='none'; res.style.display='none';
-    stat.style.display='block';
-    stat.innerHTML=
-      '<div style="font-size:22px;margin-bottom:10px">⏳</div>'+
-      '<p id="ocr-msg" style="color:var(--text-dim);font-size:14px">Loading OCR engine…</p>'+
-      '<div style="height:4px;background:var(--border-2);border-radius:2px;margin:14px auto;width:200px">'+
-        '<div id="ocr-bar" style="height:100%;background:var(--p1);border-radius:2px;width:5%;transition:width .3s"></div>'+
-      '</div>';
-    const msg=$('#ocr-msg',panel), bar=$('#ocr-bar',panel);
-    try{
-      await loadLib(CDN);
-      msg.textContent='Recognising text…'; bar.style.width='20%';
-      const selectedLang=lang.value;
-      const worker=await Tesseract.createWorker(selectedLang,1,{
-        workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/worker.min.js',
-        corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core-simd-lstm.wasm.js',
-        langPath:'https://tessdata.projectnaptha.com/4.0.0',
-        logger:m=>{
+  function process(file){
+    zone.style.display='none';
+    res.innerHTML='';res.classList.remove('show');
+    setStatus(stat,'\u23F3 Loading OCR engine\u2026');
+
+    loadLib(CDN,'Tesseract').then(function(){
+      setStatus(stat,'\uD83D\uDD0D Reading text (0%)\u2026');
+      return Tesseract.createWorker(langEl.value,1,{
+        logger:function(m){
           if(m.status==='recognizing text'){
-            const pct=Math.round((m.progress||0)*80)+20;
-            bar.style.width=pct+'%';
-            msg.textContent='Reading text… '+pct+'%';
+            var pct=Math.round((m.progress||0)*100);
+            stat.textContent='\uD83D\uDD0D Reading text ('+pct+'%)\u2026';
           }
         }
       });
-      const result=await worker.recognize(file);
-      await worker.terminate();
-      bar.style.width='100%';
-      const text=result.data.text.trim();
-      stat.style.display='none'; res.style.display='block';
+    }).then(function(worker){
+      return worker.recognize(file).then(function(r){worker.terminate();return r;});
+    }).then(function(result){
+      stat.className='status';
+      var text=(result.data.text||'').trim();
+      if(!text){setStatus(stat,'No text detected \u2014 try a clearer, higher-contrast image.',true);zone.style.display='';return;}
+      res.classList.add('show');
+      var esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       res.innerHTML=
-        '<div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px">Extracted Text</div>'+
-        '<textarea id="ocr-text" style="width:100%;min-height:200px;padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--border-2);border-radius:12px;color:var(--text);font-size:14px;line-height:1.7;resize:vertical;font-family:inherit" readonly>'+escapeHtml(text)+'</textarea>'+
-        '<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">'+
-          '<button class="btn btn-primary" id="ocr-copy">📋 Copy Text</button>'+
-          '<button class="btn" id="ocr-dl" style="background:rgba(255,255,255,.06)">⬇ Download .txt</button>'+
-          '<button class="btn" id="ocr-new" style="background:rgba(255,255,255,.06)">Try another image</button>'+
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Extracted Text</div>'+
+        '<textarea id="ocr-out" style="width:100%;min-height:180px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border-2);border-radius:10px;color:var(--text);font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;box-sizing:border-box" readonly>'+esc+'</textarea>'+
+        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+
+          '<button class="btn btn-primary" id="ocr-copy">\uD83D\uDCCB Copy text</button>'+
+          '<button class="btn" id="ocr-dl" style="background:rgba(255,255,255,.06)">\u2B07 Download .txt</button>'+
+          '<button class="btn" id="ocr-new" style="background:rgba(255,255,255,.06)">New image</button>'+
         '</div>'+
-        '<div style="margin-top:12px;font-size:12px;color:var(--text-faint)">Words: '+text.split(/\s+/).filter(Boolean).length+' · Characters: '+text.length+'</div>';
-      panel.querySelector('#ocr-copy').onclick=()=>{navigator.clipboard.writeText(text).then(()=>toast('Text copied!','ok'));};
-      panel.querySelector('#ocr-dl').onclick=()=>{const b=new Blob([text],{type:'text/plain'});download(b,file.name.replace(/\.[^.]+$/,'')+'-text.txt');};
-      panel.querySelector('#ocr-new').onclick=()=>{res.style.display='none';zone.style.display='';fi.value='';};
-    }catch(e){
-      stat.innerHTML='<div style="font-size:22px;margin-bottom:8px">⚠️</div>'+
-        '<p style="color:#f87171;font-size:14px">'+e.message+'</p>'+
-        '<button class="btn" onclick="document.querySelector('#ocr-status').style.display='none';document.querySelector('#ocr-zone').style.display=''" style="margin-top:12px;background:rgba(255,255,255,.06)">Try again</button>';
-    }
+        '<div style="margin-top:8px;font-size:12px;color:var(--text-faint)">'+
+          text.split(/\s+/).filter(Boolean).length+' words &middot; '+text.length+' characters'+
+        '</div>';
+      var ta=$('#ocr-out',res);
+      $('#ocr-copy',res).onclick=function(){
+        if(navigator.clipboard){
+          navigator.clipboard.writeText(ta.value).then(function(){toast('Text copied!','ok');});
+        } else {ta.select();document.execCommand('copy');toast('Text copied!','ok');}
+      };
+      $('#ocr-dl',res).onclick=function(){
+        download(new Blob([text],{type:'text/plain'}),file.name.replace(/\.[^.]+$/,'')+'-text.txt');
+      };
+      $('#ocr-new',res).onclick=function(){
+        res.innerHTML='';res.classList.remove('show');zone.style.display='';fi.value='';
+      };
+    }).catch(function(e){
+      setStatus(stat,'Error: '+(e.message||String(e)),true);
+      zone.style.display='';
+    });
   }
-  function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 };
 
 /* ═══════════════════════════════════════════════════════════
-   HEIC TO JPG CONVERTER (heic2any)
+   HEIC TO JPG  (heic2any)
    ═══════════════════════════════════════════════════════════ */
 INIT['heic-to-jpg']=function(panel){
-  const CDN='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+  var CDN='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
 
   panel.innerHTML=
-    '<div style="background:rgba(255,255,255,.04);border:1px dashed var(--border-2);border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:16px" id="heic-zone">'+
-      '<input type="file" id="heic-file" accept=".heic,.heif,image/heic,image/heif" multiple hidden>'+
-      '<div style="font-size:32px;margin-bottom:10px">📱</div>'+
-      '<h3 style="margin-bottom:8px;font-size:17px">Drop HEIC / HEIF files here</h3>'+
-      '<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">iPhone photos (.heic) converted to JPG or PNG — batch supported</p>'+
-      '<div style="display:flex;gap:8px;justify-content:center">'+
-        '<span class="chip">HEIC</span><span class="chip">HEIF</span><span class="chip">Batch</span>'+
-      '</div>'+
-    '</div>'+
-    '<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap">'+
+    '<div style="display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<label style="font-size:13px;font-weight:600">Format:</label>'+
+        '<label style="font-size:13px;font-weight:600">Output format:</label>'+
         '<select id="heic-fmt" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">'+
           '<option value="image/jpeg">JPG</option>'+
           '<option value="image/png">PNG (lossless)</option>'+
         '</select>'+
       '</div>'+
-      '<div id="heic-qual-wrap" style="display:flex;align-items:center;gap:8px">'+
+      '<div id="heic-qwrap" style="display:flex;align-items:center;gap:8px">'+
         '<label style="font-size:13px;font-weight:600">Quality: <span id="heic-qv">90%</span></label>'+
-        '<input type="range" id="heic-q" min="60" max="100" value="90" style="width:100px">'+
+        '<input type="range" id="heic-q" min="60" max="100" value="90" style="width:90px">'+
       '</div>'+
     '</div>'+
-    '<div id="heic-status" style="display:none;text-align:center;padding:20px 0"></div>'+
-    '<div id="heic-results" style="display:none"></div>';
+    '<div class="drop" id="heic-zone" style="cursor:pointer">'+
+      '<input type="file" id="heic-file" accept=".heic,.heif,image/heic,image/heif" multiple hidden>'+
+      '<div class="di">'+UP+'</div>'+
+      '<h3>Drop HEIC / HEIF files here</h3>'+
+      '<p>iPhone photos (.heic) converted to JPG or PNG &middot; Batch supported</p>'+
+      '<div class="formats"><span class="chip">HEIC</span><span class="chip">HEIF</span><span class="chip">Batch</span><span class="chip">iPhone Photos</span></div>'+
+    '</div>'+
+    '<div class="status" id="heic-status"></div>'+
+    '<div class="results" id="heic-res"></div>';
 
-  const zone=panel.querySelector('#heic-zone');
-  const fi  =panel.querySelector('#heic-file');
-  const stat=panel.querySelector('#heic-status');
-  const res =panel.querySelector('#heic-results');
-  const fmt =panel.querySelector('#heic-fmt');
-  const qual=panel.querySelector('#heic-q');
-  const qval=panel.querySelector('#heic-qv');
-  const qwrap=panel.querySelector('#heic-qual-wrap');
+  var zone=$('#heic-zone',panel),fi=$('#heic-file',panel),
+      stat=$('#heic-status',panel),res=$('#heic-res',panel),
+      fmt=$('#heic-fmt',panel),qual=$('#heic-q',panel),
+      qval=$('#heic-qv',panel),qwrap=$('#heic-qwrap',panel);
 
-  qual.oninput=()=>qval.textContent=qual.value+'%';
-  fmt.onchange=()=>qwrap.style.display=fmt.value==='image/png'?'none':'flex';
+  qual.oninput=function(){qval.textContent=qual.value+'%';};
+  fmt.onchange=function(){qwrap.style.display=(fmt.value==='image/png')?'none':'flex';};
+  dropzone(zone,fi,function(files){process([].slice.call(files));});
 
-  zone.style.cursor='pointer';
-  zone.addEventListener('click',()=>fi.click());
-  zone.addEventListener('dragover',ev=>{ev.preventDefault();zone.style.borderColor='var(--p1)';});
-  zone.addEventListener('dragleave',()=>zone.style.borderColor='var(--border-2)');
-  zone.addEventListener('drop',ev=>{ev.preventDefault();zone.style.borderColor='var(--border-2)';if(ev.dataTransfer.files.length)process([...ev.dataTransfer.files]);});
-  fi.addEventListener('change',()=>fi.files.length&&process([...fi.files]));
-
-  async function process(files){
-    const validFiles=files.filter(f=>f.name.match(/\.(heic|heif)$/i)||f.type.match(/heic|heif/i));
-    if(!validFiles.length){toast('No HEIC/HEIF files found — try .heic or .heif files','err');return;}
-    zone.style.display='none'; res.innerHTML=''; res.style.display='block';
-    stat.style.display='block';
-    stat.innerHTML='<p id="heic-msg" style="color:var(--text-dim);font-size:14px">Loading converter…</p>';
-    const msg=panel.querySelector('#heic-msg');
-    try{
-      await loadLib(CDN);
-      const outFmt=fmt.value; const q=parseInt(qual.value)/100;
-      const ext=outFmt==='image/jpeg'?'jpg':'png';
-      let done=0;
-      for(const f of validFiles){
-        msg.textContent='Converting '+f.name+' ('+(done+1)+'/'+validFiles.length+')…';
-        const blob=await heic2any({blob:f,toType:outFmt,quality:q});
-        const outBlob=Array.isArray(blob)?blob[0]:blob;
-        const base=f.name.replace(/\.(heic|heif)$/i,'');
-        const url=URL.createObjectURL(outBlob);
-        row(res,url,base+'.'+ext,fmtBytes(outBlob.size)+' · '+ext.toUpperCase(),()=>download(outBlob,base+'.'+ext));
-        done++;
-      }
-      stat.style.display='none';
-      if(validFiles.length>1){
-        const moreDiv=document.createElement('div');
-        moreDiv.style.cssText='text-align:center;margin-top:12px';
-        moreDiv.innerHTML='<button class="btn" id="heic-new" style="background:rgba(255,255,255,.06)">Convert more files</button>';
-        res.appendChild(moreDiv);
-        moreDiv.querySelector('#heic-new').onclick=()=>{res.style.display='none';zone.style.display='';fi.value='';};
-      }
-    }catch(e){
-      stat.innerHTML='<div style="font-size:22px;margin-bottom:8px">⚠️</div>'+
-        '<p style="color:#f87171;font-size:14px">'+e.message+'</p>';
+  function process(files){
+    var valid=files.filter(function(f){
+      return /\.(heic|heif)$/i.test(f.name)||/heic|heif/i.test(f.type);
+    });
+    if(!valid.length){
+      setStatus(stat,'No HEIC/HEIF files found \u2014 files must end in .heic or .heif',true);
+      return;
     }
+    zone.style.display='none';res.innerHTML='';res.classList.add('show');
+    setStatus(stat,'\u23F3 Loading converter\u2026');
+    loadLib(CDN,'heic2any').then(function(lib){
+      var fn=(typeof lib==='function')?lib:window.heic2any;
+      var outFmt=fmt.value,q=parseInt(qual.value)/100,done=0;
+      var ext=(outFmt==='image/jpeg')?'jpg':'png';
+      stat.className='status show';
+      function next(){
+        if(done>=valid.length){stat.className='status';return;}
+        var f=valid[done];
+        stat.textContent='Converting '+f.name+' ('+(done+1)+'/'+valid.length+')';
+        fn({blob:f,toType:outFmt,quality:q}).then(function(result){
+          var outBlob=Array.isArray(result)?result[0]:result;
+          var base=f.name.replace(/\.(heic|heif)$/i,'');
+          var url=URL.createObjectURL(outBlob);
+          row(res,url,base+'.'+ext,fmtBytes(outBlob.size)+' \u00B7 '+ext.toUpperCase(),function(){
+            download(outBlob,base+'.'+ext);
+          });
+          done++;next();
+        }).catch(function(e){
+          setStatus(stat,'Error converting '+f.name+': '+(e.message||String(e)),true);
+          zone.style.display='';
+        });
+      }
+      next();
+    }).catch(function(e){
+      setStatus(stat,'Converter failed to load: '+(e.message||String(e)),true);
+      zone.style.display='';
+    });
   }
 };

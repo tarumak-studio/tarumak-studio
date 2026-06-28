@@ -71,7 +71,7 @@ function openBlog(slug){
 }
 
 /* Core navigation: go, homeEl, showHome, noInit, openTool, route */
-function go(path){location.hash=path?('#/'+path):'#/';}
+function go(path){var h=path?('#/'+path):'#/';if(location.hash===h){route();return;}location.hash=h;}
 const homeEl=$('#home'),toolEl=$('#tool');
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
@@ -270,10 +270,11 @@ route();
 
 /* Auto-update hero tool count from TOOLS array */
 (function updateHeroCount(){
-  var n = TOOLS.length;
-  var statEl  = document.getElementById('hero-tool-count');
-  var statEl  = document.getElementById('glance-tool-count');
-  var badgeEl = document.querySelector('.eyebrow');
-  if(statEl)  statEl.textContent = n;
-  if(badgeEl) badgeEl.innerHTML = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
+  var n        = TOOLS.length;
+  var heroEl   = document.getElementById('hero-tool-count');
+  var glanceEl = document.getElementById('glance-tool-count');
+  var badgeEl  = document.querySelector('.eyebrow');
+  if(heroEl)   heroEl.textContent   = n;
+  if(glanceEl) glanceEl.textContent = n + '+';
+  if(badgeEl)  badgeEl.innerHTML    = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
 })();

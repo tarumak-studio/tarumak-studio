@@ -281,13 +281,13 @@ const TOOLS=[
  ['url-encoder','URL Encoder & Decoder','developer','Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.',['URL','ENCODE','DECODE']],
 
   /* ── New tools batch 2 ── */
-  ['word-to-pdf','Word to PDF Converter','converter','Convert Word (.docx) documents to PDF directly in your browser. No upload — files stay on your device.'],
-  ['markdown-to-html','Markdown to HTML Converter','converter','Convert Markdown text to clean HTML instantly. Preview the output and copy the generated HTML code.'],
-  ['text-diff','Text Diff Checker','developer','Compare two texts side-by-side and highlight every addition, deletion and change between them.'],
-  ['regex-tester','Regex Tester','developer','Test regular expressions against any string. See matches highlighted in real time with capture group details.'],
-  ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.'],
-  ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.'],
-  ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.'],
+  ['word-to-pdf','Word to PDF Converter','converter','Convert Word (.docx) documents to PDF directly in your browser. No upload — files stay on your device.',['DOCX','PDF','CONVERT']],
+  ['markdown-to-html','Markdown to HTML Converter','converter','Convert Markdown text to clean HTML instantly. Preview the output and copy the generated HTML code.',['MARKDOWN','HTML','PREVIEW']],
+  ['text-diff','Text Diff Checker','developer','Compare two texts side-by-side and highlight every addition, deletion and change between them.',['DIFF','COMPARE','TEXT']],
+  ['regex-tester','Regex Tester','developer','Test regular expressions against any string. See matches highlighted in real time with capture group details.',['REGEX','PATTERN','TEST']],
+  ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.',['SLUG','URL','SEO']],
+  ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.',['CASE','FORMAT','TEXT']],
+  ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.',['UNIX','DATE','TIME']],
 ];
 const bySlug=s=>TOOLS.find(t=>t[0]===s);
 

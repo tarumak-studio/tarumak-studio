@@ -262,3 +262,12 @@ function openPage(name){
 /* ── BOOT: absolute last lines ────────────────────────────────── */
 addEventListener('hashchange', route);
 route();
+
+/* Auto-update hero tool count from TOOLS array */
+(function updateHeroCount(){
+  var n = TOOLS.length;
+  var statEl  = document.getElementById('hero-tool-count');
+  var badgeEl = document.querySelector('.eyebrow');
+  if(statEl)  statEl.textContent = n;
+  if(badgeEl) badgeEl.innerHTML = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
+})();

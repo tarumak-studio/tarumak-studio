@@ -32,7 +32,7 @@ function buildBlogIndex(){
     +'<h1 style="font-family:var(--fd);font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-1px;margin:32px 0 10px">Blog & Guides</h1>'
     +'<p style="font-size:16px;color:var(--text-dim);margin-bottom:8px">Free guides for designers, marketers and developers. Every article links to free tools you can use right now.</p>'
     +'<div class="blog-grid">'+slugs.map(function(slug){var a=ARTICLES[slug];
-      return '<div class="blog-card" onclick="go(\'blog/\'+\''+slug+'\')">'
+      return '<a href="/article-'+slug+'.html" class="blog-card" style="text-decoration:none">'
         +'<span class="bc-cat">'+a.cat+'</span>'
         +'<h3>'+a.title+'</h3>'
         +'<p>'+a.excerpt+'</p>'
@@ -42,6 +42,7 @@ function buildBlogIndex(){
 
 function buildArticlePage(slug){
   var a=ARTICLES[slug];if(!a)return buildBlogIndex();
+  if(!a.html||a.html.length<500){window.location.href='/article-'+slug+'.html';return '';}
   var all=Object.keys(ARTICLES);var idx=all.indexOf(slug);
   var prev=all[idx-1],next=all[idx+1];
   return '<div class="wrap"><div class="article-body">'

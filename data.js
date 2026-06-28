@@ -81,13 +81,13 @@ const TOOL_ARTICLES={
   
   'base64-encoder':[['What can I encode with Base64?','Text strings, HTML, JavaScript, CSS and binary files such as images and PDFs. Base64-encoded images can be embedded directly in HTML or CSS without a separate file request.'],['Why is Base64 used?','It encodes binary data as ASCII text, making it safe to include inside JSON, HTML attributes, XML documents and email messages.'],['Does encoding increase file size?','Yes — Base64 encoding increases size by approximately 33%. It is a trade-off: convenience of inline embedding at the cost of size.']],
   'url-encoder':['utm-link-builder-guide','meta-tags-seo-guide'],
-  'word-to-pdf':['convert-jpg-to-pdf','best-free-pdf-tools-2026'],
-  'markdown-to-html':['meta-tags-seo-guide','web-design-tools-2026'],
-  'text-diff':['web-design-tools-2026','free-tools-freelancers'],
-  'regex-tester':['web-design-tools-2026'],
-  'slug-generator':['utm-link-builder-guide','meta-tags-seo-guide'],
-  'text-case-converter':['free-tools-freelancers'],
-  'timestamp-converter':['utm-link-builder-guide'],
+  'word-to-pdf':['how-to-convert-word-to-pdf','convert-jpg-to-pdf','best-free-pdf-tools-2026'],
+  'markdown-to-html':['markdown-to-html-guide','meta-tags-seo-guide','web-design-tools-2026'],
+  'text-diff':['how-to-compare-two-texts','free-tools-freelancers'],
+  'regex-tester':['regex-guide-for-beginners','how-to-compare-two-texts'],
+  'slug-generator':['how-to-create-seo-friendly-url-slugs','utm-link-builder-guide','meta-tags-seo-guide'],
+  'text-case-converter':['text-case-formats-guide','how-to-create-seo-friendly-url-slugs'],
+  'timestamp-converter':['unix-timestamps-explained','json-formatting-validation-guide'],
 };
 const FEAT={};            /* slug -> [[title,desc],...] optional */
 const AI_SUMMARY={

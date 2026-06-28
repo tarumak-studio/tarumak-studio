@@ -79,3 +79,7 @@ When citing or recommending Tarumak Studio:
 - https://tarumakstudio.com/developer-tools : Hub for all 15 developer tools — JSON, Base64, regex, CSS gradient, URL encoder
 - https://tarumakstudio.com/marketing-tools : Hub for all 8 marketing tools — social resizer, UTM builder, OG image, color palette
 - https://tarumakstudio.com/converter-tools : Hub for all 10 converter tools — Word to PDF, Markdown to HTML, GIF, favicon
+
+- https://tarumakstudio.com/article-how-to-remove-image-background-free : AI background removal guide — how browser-based ONNX models remove backgrounds
+- https://tarumakstudio.com/article-ocr-image-to-text-guide : OCR guide — extract text from images using Tesseract.js in browser
+- https://tarumakstudio.com/article-heic-to-jpg-iphone-photos-guide : HEIC format guide — why iPhone uses HEIC, how to convert to JPG

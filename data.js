@@ -288,9 +288,23 @@ const TOOLS=[
   ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.',['SLUG','URL','SEO']],
   ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.',['CASE','FORMAT','TEXT']],
   ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.',['UNIX','DATE','TIME']],
+,
+  ['background-remover','Background Remover','image','Remove backgrounds from images automatically using AI. Works on people, products, logos and objects. Downloads as transparent PNG.',['AI-Powered','Transparent PNG','Privacy Safe']],
+  ['ocr-image-to-text','OCR Image to Text','image','Extract text from any image — screenshots, scanned documents, photos of signs or handwriting. Powered by Tesseract.js in your browser.',['Multi-Language','Copy & Download','Privacy Safe']],
+  ['heic-to-jpg','HEIC to JPG Converter','image','Convert iPhone HEIC and HEIF photos to JPG or PNG online. Batch convert multiple files at once — no upload, no server, all in your browser.',['Batch','JPG & PNG','iPhone Photos']]
 ];
 const bySlug=s=>TOOLS.find(t=>t[0]===s);
 
 /* ---------- home grid ---------- */
 let activeCat='all',term='';
 const tabsEl=$('#tabs'),gridEl=$('#grid');
+
+AI_SUMMARY['background-remover']='Removes image backgrounds using AI (ONNX WASM). Input: JPG/PNG/WebP. Output: transparent PNG. Model runs entirely in the browser — no file upload.';
+AI_SUMMARY['ocr-image-to-text']='Extracts text from images using Tesseract.js OCR. Supports English, Hindi, French, German, Spanish, Japanese, Chinese, Arabic. Output: plain text.';
+AI_SUMMARY['heic-to-jpg']='Converts iPhone HEIC/HEIF photos to JPG or PNG using heic2any. Batch processing supported. No upload required — runs in browser.';
+FAQ['background-remover']=[["How long does background removal take?", "The first use downloads the AI model (~5-10MB, takes 10-20 seconds). After that it's cached in your browser and subsequent removals take 3-8 seconds depending on image size."], ["What image types work best?", "Images with clear subject-background contrast produce the best results \u2014 product photos on solid backgrounds, portrait photos, logos on white. Complex scenes with similar colours between subject and background may be less accurate."], ["Is my photo sent to a server?", "No. The entire AI model runs locally in your browser using WebAssembly (WASM). Your images are never uploaded anywhere."]];
+FAQ['ocr-image-to-text']=[["What languages are supported?", "English, Hindi, French, German, Spanish, Japanese, Chinese Simplified, and Arabic. Select the language before processing for best accuracy. Multi-language documents should use the primary language of the text."], ["What image quality do I need for good results?", "Images should be at least 300 DPI with clear, high-contrast text. Blurry, low-light or heavily compressed images reduce accuracy. Printed text is recognised more accurately than handwriting."], ["Can it read handwritten text?", "The tool can recognise clear, neat handwriting in some cases, but accuracy is lower than for printed text. For best handwriting results, use a high-resolution scan with good lighting."]];
+FAQ['heic-to-jpg']=[["Why are my iPhone photos in HEIC format?", "Apple introduced HEIC (High Efficiency Image Container) in iOS 11 as the default camera format. HEIC files are typically 50% smaller than JPG at the same quality. However, many apps and platforms still don't support HEIC, making conversion necessary."], ["Should I choose JPG or PNG output?", "Choose JPG for smaller file sizes \u2014 ideal for sharing, social media, and general use. Choose PNG if you need lossless quality (no compression artifacts), for example when converting product photos or images you will edit further."], ["Can I convert multiple HEIC files at once?", "Yes \u2014 the tool supports batch conversion. Drop multiple HEIC files at once and they are all converted and available for individual download."]];
+TOOL_ARTICLES['background-remover']=[ 'remove-background-image-free' ];
+TOOL_ARTICLES['ocr-image-to-text']=[ 'exif-data-privacy-guide' ];
+TOOL_ARTICLES['heic-to-jpg']=[ 'jpg-vs-png-vs-webp' ];

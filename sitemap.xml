@@ -375,4 +375,19 @@
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
+  <url>
+    <loc>https://tarumakstudio.com/article-how-to-remove-image-background-free</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://tarumakstudio.com/article-ocr-image-to-text-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://tarumakstudio.com/article-heic-to-jpg-iphone-photos-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
 </urlset>

@@ -33,7 +33,7 @@ function buildBlogIndex(){
     +'<p style="font-size:16px;color:var(--text-dim);margin-bottom:8px">Free guides for designers, marketers and developers. Every article links to free tools you can use right now.</p>'
     +'<div class="blog-grid">'+slugs.map(function(slug){var a=ARTICLES[slug];
       return '<a href="/article-'+slug+'.html" class="blog-card" style="text-decoration:none">'
-        +'<span class="bc-cat">'+a.cat+'</span>'
+        +'<a class="bc-cat" href="'+(CAT_SLUGS[a.cat]||'#')+'" style="text-decoration:none">'+a.cat+'</a>'
         +'<h3>'+a.title+'</h3>'
         +'<p>'+a.excerpt+'</p>'
         +'<div class="bc-meta"><span>&#128197; '+a.date+'</span><span>&#9201; '+a.read+' read</span></div></div>';
@@ -46,7 +46,7 @@ function buildArticlePage(slug){
   var all=Object.keys(ARTICLES);var idx=all.indexOf(slug);
   var prev=all[idx-1],next=all[idx+1];
   return '<div class="wrap"><div class="article-body">'
-    +'<div class="crumb"><a href="#/">Home</a> &rsaquo; <a href="#/blog">Blog</a> &rsaquo; <span>'+a.cat+'</span></div>'
+    +'<div class="crumb"><a href="#/">Home</a> &rsaquo; <a href="#/blog">Blog</a> &rsaquo; <a href="'+(CAT_SLUGS[a.cat]||'#')+'" style="color:var(--text-dim)">'+a.cat+'</a></div>'
     +'<h1>'+a.title+'</h1>'
     +'<div class="a-meta"><span>'+a.date+'</span><span>'+a.read+' read</span><span style="background:rgba(99,102,241,.1);color:var(--p1);padding:2px 10px;border-radius:100px">'+a.cat+'</span></div>'
     +a.html
@@ -57,6 +57,10 @@ function buildArticlePage(slug){
     +buildAffBanners((a.cat==='PDF Tools'?'pdf':a.cat==='Marketing Designer'?'marketing':'image'))
     +'</div></div>';
 }
+
+
+/* Category → landing page URL map */
+var CAT_SLUGS={'Image Tools':'/image-tools','PDF Tools':'/pdf-tools','Developer Tools':'/developer-tools','Marketing Designer':'/marketing-tools','Converter Tools':'/converter-tools'};
 
 function openBlog(slug){
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
@@ -268,6 +272,7 @@ route();
 (function updateHeroCount(){
   var n = TOOLS.length;
   var statEl  = document.getElementById('hero-tool-count');
+  var statEl  = document.getElementById('glance-tool-count');
   var badgeEl = document.querySelector('.eyebrow');
   if(statEl)  statEl.textContent = n;
   if(badgeEl) badgeEl.innerHTML = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');

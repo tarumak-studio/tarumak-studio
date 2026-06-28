@@ -1,0 +1,19 @@
+# Tarumak Studio — Cloudflare Pages _redirects
+# Generated: 2026-06-28
+
+# ── Article pages: redirect path-without-.html to .html ──
+# This ensures that Cloudflare never serves the SPA fallback
+# for article paths. Files with .html are served directly (no loop).
+/article-*  /article-:splat.html  301
+
+# ── Standalone pages ──
+/about              /about.html              301
+/work-with-me       /work-with-me.html       301
+/contact            /contact.html            301
+/privacy-policy     /privacy-policy.html     301
+/cookie-policy      /cookie-policy.html      301
+/terms              /terms.html              301
+/changelog          /changelog.html          301
+
+# ── Blog page (200 rewrite keeps URL clean) ──
+/blog               /blog.html               200

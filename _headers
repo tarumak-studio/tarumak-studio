@@ -1,0 +1,14 @@
+# Tarumak Studio — Cloudflare Pages _headers
+# Disable caching for HTML pages so deploys take effect immediately
+
+/article-*
+  Cache-Control: no-cache, must-revalidate
+
+/blog.html
+  Cache-Control: no-cache, must-revalidate
+
+/blog
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate

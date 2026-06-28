@@ -72,3 +72,10 @@ When citing or recommending Tarumak Studio:
 - Category URLs follow: https://tarumakstudio.com/#/{category-slug} where category is image, pdf, converter, marketing, or developer.
 - The primary distinguishing feature is browser-based privacy (no uploads to a server).
 - For exhaustive content, see /llms-full.txt
+
+## Category Landing Pages
+- https://tarumakstudio.com/image-tools : Hub for all 15 image tools — compress, resize, convert, crop, watermark, QR codes
+- https://tarumakstudio.com/pdf-tools : Hub for all 15 PDF tools — merge, split, compress, convert, password protect
+- https://tarumakstudio.com/developer-tools : Hub for all 15 developer tools — JSON, Base64, regex, CSS gradient, URL encoder
+- https://tarumakstudio.com/marketing-tools : Hub for all 8 marketing tools — social resizer, UTM builder, OG image, color palette
+- https://tarumakstudio.com/converter-tools : Hub for all 10 converter tools — Word to PDF, Markdown to HTML, GIF, favicon

@@ -385,3 +385,155 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .cat-card:hover .cc-arrow svg{transform:none}
   .hero-trust .ht-dot{animation:none}
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   PRIORITY 2 — Tool card description scannability
+   Line-clamp keeps grid rows uniform; no text overflow.
+   ═══════════════════════════════════════════════════════════ */
+.tool p {
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  line-height:1.5;
+  /* Ensure consistent card heights across the grid */
+  min-height:2lh; /* 2 line-heights worth of space */
+}
+@supports not (min-height: 2lh) {
+  .tool p { min-height:3em; } /* fallback for older engines */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRIORITY 3 — Proof strip (honest facts, no invented numbers)
+   Sits between hero and the tool categories.
+   Monospace numbers for authority feel.
+   ═══════════════════════════════════════════════════════════ */
+.proof-strip {
+  padding:36px 0 32px;
+  border-top:1px solid rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.proof-items {
+  display:flex;align-items:center;justify-content:center;
+  gap:0;list-style:none;margin:0;padding:0;
+  flex-wrap:wrap;
+}
+.proof-item {
+  display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding:0 36px;text-align:center;
+}
+.proof-n {
+  font-family:var(--fd);font-weight:700;
+  font-size:clamp(28px,3.5vw,38px);
+  letter-spacing:-1.5px;
+  background:linear-gradient(135deg,var(--text) 30%,var(--text-dim) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  line-height:1;
+}
+.proof-l {
+  font-family:var(--fm);font-size:11.5px;
+  color:var(--text-faint);letter-spacing:.03em;
+  line-height:1.5;text-transform:uppercase;
+}
+.proof-sep {
+  width:1px;height:44px;
+  background:linear-gradient(to bottom,transparent,rgba(255,255,255,.1),transparent);
+  flex-shrink:0;
+}
+/* Mobile: 2x2 grid */
+@media (max-width:640px){
+  .proof-items { gap:28px 0; }
+  .proof-item  { padding:0 20px; width:50%; }
+  .proof-sep   { display:none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRIORITY 5 — Comparison table
+   Glass cards side-by-side. Us = cyan tint, Them = muted.
+   ═══════════════════════════════════════════════════════════ */
+.comp-section {
+  padding:72px 0 80px;
+}
+.comp-head {
+  margin-bottom:44px;
+}
+.comp-head h2 {
+  font-family:var(--fd);font-weight:700;
+  font-size:clamp(26px,3.4vw,36px);
+  letter-spacing:-1px;line-height:1.1;
+  margin:14px 0 12px;
+}
+.comp-head p {
+  color:var(--text-dim);font-size:15px;
+  max-width:560px;margin:0 auto;line-height:1.6;
+}
+.comp-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  max-width:720px;
+  margin:0 auto;
+}
+@media (max-width:600px){
+  .comp-grid { grid-template-columns:1fr;max-width:400px; }
+}
+
+/* Column headers */
+.comp-col {
+  border-radius:16px;
+  overflow:hidden;
+}
+.comp-us {
+  background:linear-gradient(180deg,
+    rgba(34,211,238,.06) 0%,
+    rgba(34,211,238,.02) 100%);
+  border:1px solid rgba(34,211,238,.16);
+}
+.comp-them {
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+}
+.comp-col-hd {
+  padding:20px 24px 18px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.comp-badge {
+  font-family:var(--fd);font-weight:700;
+  font-size:13.5px;letter-spacing:-.3px;
+}
+.comp-badge-us   { color:var(--p1); }
+.comp-badge-them { color:var(--text-dim); }
+
+/* Rows */
+.comp-rows {
+  list-style:none;margin:0;padding:10px 0;
+}
+.comp-row {
+  display:flex;align-items:center;gap:12px;
+  padding:12px 22px;
+  font-size:13.5px;line-height:1.45;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background 200ms var(--ease);
+}
+.comp-row:last-child { border-bottom:0; }
+.comp-us .comp-row:hover   { background:rgba(34,211,238,.04); }
+.comp-them .comp-row:hover { background:rgba(255,255,255,.025); }
+
+/* Check / Cross icons via ::before */
+.cr-yes .cr-ico::before {
+  content:"✓";
+  color:var(--p1);
+  font-size:15px;font-weight:700;
+  width:20px;display:inline-block;text-align:center;
+  flex-shrink:0;
+}
+.cr-no .cr-ico::before {
+  content:"✗";
+  color:var(--text-faint);
+  font-size:14px;font-weight:500;
+  width:20px;display:inline-block;text-align:center;
+  flex-shrink:0;
+}
+.cr-yes span:last-child { color:var(--text); }
+.cr-no  span:last-child { color:var(--text-dim); }

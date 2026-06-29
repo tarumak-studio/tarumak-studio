@@ -73,12 +73,48 @@ function openBlog(slug){
 /* Core navigation: go, homeEl, showHome, noInit, openTool, route */
 function go(path){var h=path?('#/'+path):'#/';if(location.hash===h){route();return;}location.hash=h;}
 const homeEl=$('#home'),toolEl=$('#tool');
+
+/* ──────────────────────────────────────────────────
+   buildCategoryCards — renders premium category grid
+   on homepage. Reads CAT, CAT_META, ICON, TOOLS to
+   produce one .cat-card per category with: icon,
+   title, tagline, popular tool chips, count, arrow.
+────────────────────────────────────────────────── */
+function buildCategoryCards(){
+  const grid=document.getElementById('cat-grid');
+  if(!grid||typeof CAT_META==='undefined')return;
+  const order=['image','pdf','developer','marketing','converter'];
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  grid.innerHTML=order.map(cat=>{
+    const meta=CAT_META[cat];if(!meta)return '';
+    const count=TOOLS.filter(t=>t[2]===cat).length;
+    /* Build popular chips — only show tools that actually exist */
+    const popularChips=meta.popular
+      .map(slug=>bySlug(slug))
+      .filter(Boolean)
+      .slice(0,4)
+      .map(t=>'<span class="cc-chip">'+t[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>')
+      .join('');
+    return ''+
+      '<a class="cat-card" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Explore '+CAT[cat]+'">'+
+        '<div class="cc-ico">'+ICON[cat]+'</div>'+
+        '<h3>'+CAT[cat]+'</h3>'+
+        '<p class="cc-tag">'+meta.tagline+'</p>'+
+        '<div class="cc-popular">'+popularChips+'</div>'+
+        '<div class="cc-foot">'+
+          '<span class="cc-count"><strong>'+count+'</strong> free tools</span>'+
+          '<span class="cc-arrow">Explore '+arrow+'</span>'+
+        '</div>'+
+      '</a>';
+  }).join('');
+}
+
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
-  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
-  else{activeCat='all';buildTabs();buildGrid();buildRecent();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
+  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 
 /* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
@@ -278,3 +314,6 @@ route();
   if(glanceEl) glanceEl.textContent = n + '+';
   if(badgeEl)  badgeEl.innerHTML    = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
 })();
+
+/* Boot-time render of category cards */
+buildCategoryCards();

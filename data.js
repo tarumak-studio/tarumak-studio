@@ -3,6 +3,34 @@
    INIT is populated by tool files loaded after this. */
 
 const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marketing:'Marketing Designer',developer:'Developer & SEO'};
+
+  /* ──────────────────────────────────────────────────
+     CAT_META — category metadata for the new homepage
+     category cards. Description shown under the title;
+     popular: 3-4 hand-picked tool slugs shown as chips.
+  ────────────────────────────────────────────────── */
+  const CAT_META={
+    image:{
+      tagline:'Compress, resize, crop and optimize images instantly.',
+      popular:['image-compressor','background-remover','image-resizer','jpg-to-png']
+    },
+    pdf:{
+      tagline:'Merge, split, rotate and convert PDFs — fully in-browser.',
+      popular:['merge-pdf','pdf-to-jpg','split-pdf','compress-pdf']
+    },
+    developer:{
+      tagline:'JSON, Regex, Base64, color and SEO utilities for builders.',
+      popular:['json-formatter','regex-tester','color-converter','base64-encoder']
+    },
+    marketing:{
+      tagline:'UTM builders, OG images, CTAs and campaign tools.',
+      popular:['utm-builder','og-image-generator','qr-code-generator','color-palette']
+    },
+    converter:{
+      tagline:'Convert between popular image, document and text formats.',
+      popular:['word-to-pdf','markdown-to-html','svg-to-png','png-to-jpg']
+    }
+  };
 const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',developer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'};
 
 /* build a standard dropzone panel; returns refs */

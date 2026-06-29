@@ -1273,7 +1273,7 @@
         <h1 class="headline">All-in-One Free Online <span class="g">Design &amp; Developer</span> Tools</h1>
         <p class="sub">Convert, edit, compress, resize, merge, optimize and manage files instantly — powered by tools that run entirely in your browser. Your files never leave your device.</p>
         <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
-        <div class="hero-stats"><div><div class="n" id="hero-tool-count">66</div><div class="l">Free tools</div></div><div><div class="n">0</div><div class="l">Files uploaded<br><span style="font-size:10px;opacity:.6">(nothing ever)</span></div></div><div><div class="n">5</div><div class="l">Categories</div></div><div><div class="n">∞</div><div class="l">Conversions</div></div></div>
+        <div class="hero-trust"><span class="ht-dot"></span><span><strong>100%</strong> in-browser</span><span class="ht-sep">·</span><span>No signup, no limits</span><span class="ht-sep">·</span><span><strong>66+</strong> free tools</span></div></div><div><div class="n">0</div><div class="l">Files uploaded<br><span style="font-size:10px;opacity:.6">(nothing ever)</span></div></div><div><div class="n">5</div><div class="l">Categories</div></div><div><div class="n">∞</div><div class="l">Conversions</div></div></div>
       </div>
       <div class="stage"><div class="cluster-glow"></div><div class="float-wrap"><div class="cluster">
         <div class="card3d c1"><span class="glyph">PDF</span><span class="fmt">.pdf</span></div>
@@ -1285,78 +1285,40 @@
       </div></div></div>
     </div></section>
 
-    <section class="glance-section" id="glance-section">
-      <div class="wrap">
-
-        <div class="glance-label">Tarumak Studio at a glance</div>
-
-        <div class="glance-stats">
-          <div class="glance-stat">
-            <div class="n" id="glance-tool-count">66+</div>
-            <div class="l">Free tools<br>no account needed</div>
-          </div>
-          <div class="glance-stat">
-            <div class="n">47</div>
-            <div class="l">Guides &amp; articles<br>written for beginners</div>
-          </div>
-          <div class="glance-stat">
-            <div class="n">100%</div>
-            <div class="l">Private — files never<br>leave your device</div>
-          </div>
-          <div class="glance-stat">
-            <div class="n">0</div>
-            <div class="l">Uploads, sign-ups,<br>or daily limits</div>
-          </div>
-        </div>
-
-        <div class="glance-divider"><span>Browse by category</span></div>
-
-        <div class="glance-cats">
-          <a href="/image-tools" class="glance-cat" style="--cc:rgba(34,211,238,.15)">
-            <div class="glance-cat-icon">🖼️</div>
-            <div class="glance-cat-name">Image Tools</div>
-            <div class="glance-cat-count">15 tools</div>
-            <div class="glance-cat-arr" style="color:#22d3ee">→</div>
-          </a>
-          <a href="/pdf-tools" class="glance-cat" style="--cc:rgba(99,102,241,.15)">
-            <div class="glance-cat-icon">📄</div>
-            <div class="glance-cat-name">PDF Tools</div>
-            <div class="glance-cat-count">15 tools</div>
-            <div class="glance-cat-arr" style="color:#6366f1">→</div>
-          </a>
-          <a href="/developer-tools" class="glance-cat" style="--cc:rgba(34,197,94,.15)">
-            <div class="glance-cat-icon">⚙️</div>
-            <div class="glance-cat-name">Developer Tools</div>
-            <div class="glance-cat-count">15 tools</div>
-            <div class="glance-cat-arr" style="color:#22c55e">→</div>
-          </a>
-          <a href="/marketing-tools" class="glance-cat" style="--cc:rgba(236,72,153,.15)">
-            <div class="glance-cat-icon">📣</div>
-            <div class="glance-cat-name">Marketing Tools</div>
-            <div class="glance-cat-count">8 tools</div>
-            <div class="glance-cat-arr" style="color:#ec4899">→</div>
-          </a>
-          <a href="/converter-tools" class="glance-cat" style="--cc:rgba(245,158,11,.15)">
-            <div class="glance-cat-icon">🔄</div>
-            <div class="glance-cat-name">Converter Tools</div>
-            <div class="glance-cat-count">10 tools</div>
-            <div class="glance-cat-arr" style="color:#f59e0b">→</div>
-          </a>
-        </div>
-
-      </div>
-    </section>
-
-    <section class="section" style="padding:28px 0 0" id="recent-section">
+    <!-- ═══════════════════════════════════════════════════════
+         RECENTLY USED — shown only when localStorage has entries
+         Renders above categories so return visitors land on
+         their work fast.
+    ════════════════════════════════════════════════════════ -->
+    <section class="section recent-section-v2" id="recent-section">
       <div class="wrap">
         <div id="recent-row" style="display:none">
-          <div class="recent-label">Recently used</div>
+          <div class="recent-head">
+            <span class="recent-label">Recently used</span>
+            <span class="recent-hint">Pick up where you left off</span>
+          </div>
           <div class="recent-list" id="recent-list"></div>
         </div>
       </div>
     </section>
 
-    <section class="mk-section" id="marketing-section">
+    <!-- ═══════════════════════════════════════════════════════
+         CATEGORY CARDS — premium glass cards, one accent
+         per category, hover lift + arrow slide
+    ════════════════════════════════════════════════════════ -->
+    <section class="section category-section" id="category-section">
+      <div class="wrap">
+        <div class="section-head category-head">
+          <span class="eyebrow"><span class="dot"></span>EXPLORE BY CATEGORY</span>
+          <h2>Choose the right tool</h2>
+          <p>Five focused categories. Sixty-six tools. Find what you need in seconds.</p>
+        </div>
+        <div class="cat-grid" id="cat-grid"><!-- buildCategoryCards() --></div>
+      </div>
+    </section>
+
+
+<section class="mk-section" id="marketing-section">
       <div class="wrap">
         <div class="mk-eyebrow"><span style="width:7px;height:7px;border-radius:50%;background:#ec4899;display:inline-block"></span>NEW — MARKETING DESIGNER TOOLKIT</div>
         <h2 class="mk-title">The only toolkit built for<br><span>designers who market</span></h2>

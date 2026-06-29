@@ -233,295 +233,320 @@ INIT['qr-code-generator']=function(panel){
   gen();
 };
 
-/* ══════════════════════════════════════════════════════════
-   SHARED: script loader helper
-   ══════════════════════════════════════════════════════════ */
-function loadScript(src, globalCheck){
-  return new Promise(function(resolve, reject){
-    /* Already available */
-    if(globalCheck && window[globalCheck]){ resolve(window[globalCheck]); return; }
-    /* Already in DOM — wait for it */
-    if(document.querySelector('script[src="'+src+'"]')){
-      var tries=0, iv=setInterval(function(){
-        if(globalCheck && window[globalCheck]){ clearInterval(iv); resolve(window[globalCheck]); }
-        else if(++tries > 150){ clearInterval(iv); reject(new Error('Timeout: '+globalCheck)); }
-      }, 200);
+/* ═══════════════════════════════════════════════════════════
+   SHARED SCRIPT LOADER
+   ═══════════════════════════════════════════════════════════ */
+function _loadScript(src, glob) {
+  return new Promise(function(ok, fail) {
+    if (glob && window[glob]) { ok(window[glob]); return; }
+    if (document.querySelector('script[src="' + src + '"]')) {
+      var n = 0, iv = setInterval(function() {
+        if (glob && window[glob]) { clearInterval(iv); ok(window[glob]); }
+        else if (++n > 120) { clearInterval(iv); fail(new Error('Timeout: ' + glob)); }
+      }, 250);
       return;
     }
-    /* Load fresh */
-    var el = document.createElement('script');
-    el.src = src;
-    el.onload = function(){
-      if(!globalCheck){ resolve(null); return; }
-      var tries=0, iv=setInterval(function(){
-        if(window[globalCheck]){ clearInterval(iv); resolve(window[globalCheck]); }
-        else if(++tries > 50){ clearInterval(iv); reject(new Error(globalCheck+' did not register on window')); }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function() {
+      if (!glob) { ok(null); return; }
+      var n = 0, iv = setInterval(function() {
+        if (window[glob]) { clearInterval(iv); ok(window[glob]); }
+        else if (++n > 40) { clearInterval(iv); ok(null); }
       }, 100);
     };
-    el.onerror = function(){ reject(new Error('Failed to load: '+src)); };
-    document.head.appendChild(el);
+    s.onerror = function() { fail(new Error('Failed to load: ' + src)); };
+    document.head.appendChild(s);
   });
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
    BACKGROUND REMOVER
-   @imgly/background-removal loaded via ESM dynamic script.
-   publicPath intentionally omitted — models load from
-   https://resources.img.ly (the library default).
-   ══════════════════════════════════════════════════════════ */
-INIT['background-remover']=function(panel){
-  panel.innerHTML=
-    '<div class="drop" id="bgr-drop" style="cursor:pointer">'+
-      '<input type="file" id="bgr-in" accept="image/*" hidden>'+
-      '<div class="di">'+UP+'</div>'+
-      '<h3>Drop image here or click to browse</h3>'+
-      '<p>AI removes the background &middot; Downloads as transparent PNG &middot; Privacy safe</p>'+
-      '<div class="formats"><span class="chip">AI-Powered</span><span class="chip">Transparent PNG</span><span class="chip">No Upload</span></div>'+
-    '</div>'+
-    '<div class="status" id="bgr-st"></div>'+
-    '<div class="results" id="bgr-res"></div>';
+   Uses @imgly/background-removal via ESM dynamic module.
+   CORRECT API: default export (imglyRemoveBackground), not named.
+   No publicPath — models auto-fetched from resources.img.ly.
+   ═══════════════════════════════════════════════════════════ */
+INIT['background-remover'] = function(panel) {
 
-  var drop=$('#bgr-drop',panel), inp=$('#bgr-in',panel),
-      st=$('#bgr-st',panel), res=$('#bgr-res',panel);
+  panel.innerHTML =
+    '<div class="drop" id="bgrDrop" style="cursor:pointer">' +
+      '<input type="file" id="bgrIn" accept="image/*" hidden>' +
+      '<div class="di">' + UP + '</div>' +
+      '<h3>Drop image here or click to browse</h3>' +
+      '<p>AI removes the background &middot; Downloads as transparent PNG &middot; No upload</p>' +
+      '<div class="formats">' +
+        '<span class="chip">AI-Powered</span>' +
+        '<span class="chip">Transparent PNG</span>' +
+        '<span class="chip">Privacy Safe</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="status" id="bgrSt"></div>' +
+    '<div class="results" id="bgrRes"></div>';
 
-  dropzone(drop,inp,function(files){ if(files[0]) run(files[0]); });
+  var drop = $('#bgrDrop', panel),
+      inp  = $('#bgrIn',   panel),
+      st   = $('#bgrSt',   panel),
+      res  = $('#bgrRes',  panel);
 
-  function loadBGR(){
-    /* Returns a Promise resolving to the removeBackground function */
-    if(window.__tarumak_bgr){ return Promise.resolve(window.__tarumak_bgr); }
-    if(window.__tarumak_bgr_loading){
-      return new Promise(function(res,rej){
-        var n=0,iv=setInterval(function(){
-          if(window.__tarumak_bgr){ clearInterval(iv); res(window.__tarumak_bgr); }
-          else if(++n>200){ clearInterval(iv); rej(new Error('Model load timeout')); }
-        },300);
+  dropzone(drop, inp, function(files) { if (files[0]) run(files[0]); });
+
+  /* Load via ESM dynamic module — CORRECT: default export */
+  function getRemoveBg() {
+    return new Promise(function(ok, fail) {
+      if (window.__tarumakBgr) { ok(window.__tarumakBgr); return; }
+      if (window.__tarumakBgrLoading) {
+        var n = 0, iv = setInterval(function() {
+          if (window.__tarumakBgr) { clearInterval(iv); ok(window.__tarumakBgr); }
+          else if (++n > 200) { clearInterval(iv); fail(new Error('Model load timeout')); }
+        }, 300);
+        return;
+      }
+      window.__tarumakBgrLoading = true;
+      /* NOTE: @imgly/background-removal uses DEFAULT export, not named */
+      var s = document.createElement('script');
+      s.type = 'module';
+      s.textContent =
+        'import imglyRemoveBg from' +
+        '"https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs";' +
+        'window.__tarumakBgr=imglyRemoveBg;' +
+        'document.dispatchEvent(new CustomEvent("__bgrOk"));';
+      document.addEventListener('__bgrOk', function h() {
+        document.removeEventListener('__bgrOk', h);
+        ok(window.__tarumakBgr);
       });
-    }
-    window.__tarumak_bgr_loading=true;
-    return new Promise(function(resolve,reject){
-      var s=document.createElement('script');
-      s.type='module';
-      /* Do NOT set publicPath — let library fetch models from its default CDN (resources.img.ly) */
-      s.textContent=
-        'import{removeBackground}from"https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs";'+
-        'window.__tarumak_bgr=removeBackground;'+
-        'document.dispatchEvent(new CustomEvent("__bgrLoaded"));';
-      document.addEventListener('__bgrLoaded',function h(){
-        document.removeEventListener('__bgrLoaded',h);
-        resolve(window.__tarumak_bgr);
-      });
-      s.onerror=function(){ reject(new Error('Could not load background-removal library')); };
+      s.onerror = function() { fail(new Error('ESM load failed')); };
       document.head.appendChild(s);
     });
   }
 
-  function run(file){
-    drop.style.display='none'; res.innerHTML=''; res.classList.remove('show');
-    setStatus(st,'Loading AI model\u2026 first use takes ~20 s (model cached after)');
-    loadBGR().then(function(removeBg){
-      setStatus(st,'\uD83E\uDDE0 Segmenting image\u2026 please wait');
-      var src=URL.createObjectURL(file);
-      /* No publicPath — library uses https://resources.img.ly for the model */
-      return removeBg(src, { debug:false, model:'small', output:{format:'image/png',quality:1} })
-        .then(function(blob){ URL.revokeObjectURL(src); return blob; });
-    }).then(function(blob){
-      st.className='status';
+  function run(file) {
+    drop.style.display = 'none';
+    res.innerHTML = ''; res.classList.remove('show');
+    setStatus(st, 'Loading AI model\u2026 (~20 s first time, cached after)');
+    getRemoveBg().then(function(removeBg) {
+      setStatus(st, '\uD83E\uDDE0 Processing image\u2026');
+      var src = URL.createObjectURL(file);
+      /* No publicPath — library fetches model from https://resources.img.ly */
+      return removeBg(src, { debug: false, model: 'small', output: { format: 'image/png', quality: 1 } })
+        .then(function(blob) { URL.revokeObjectURL(src); return blob; });
+    }).then(function(blob) {
+      st.className = 'status';
       res.classList.add('show');
-      var base=file.name.replace(/\.[^.]+$/,'');
-      var out=URL.createObjectURL(blob), orig=URL.createObjectURL(file);
-      res.innerHTML=
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'+
-          '<div><div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;text-align:center">Original</div>'+
-            '<img src="'+orig+'" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid var(--border-2)"></div>'+
-          '<div><div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;text-align:center">Background Removed</div>'+
-            '<div style="background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;border-radius:10px;max-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden">'+
-            '<img src="'+out+'" style="max-width:100%;max-height:240px;object-fit:contain"></div></div>'+
-        '</div>'+
-        '<div style="display:flex;gap:10px;justify-content:center">'+
-          '<button class="btn btn-primary" id="bgr-dl">\u2B07 Download PNG</button>'+
-          '<button class="btn" id="bgr-again" style="background:rgba(255,255,255,.06)">Remove another</button>'+
+      var base = file.name.replace(/\.[^.]+$/, '');
+      var outUrl  = URL.createObjectURL(blob);
+      var origUrl = URL.createObjectURL(file);
+      res.innerHTML =
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+          '<div><p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Original</p>' +
+            '<img src="' + origUrl + '" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid var(--border-2)"></div>' +
+          '<div><p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Background Removed</p>' +
+            '<div style="background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;border-radius:10px;overflow:hidden;max-height:240px;display:flex;align-items:center;justify-content:center">' +
+              '<img src="' + outUrl + '" style="max-width:100%;max-height:240px;object-fit:contain">' +
+            '</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;justify-content:center">' +
+          '<button class="btn btn-primary" id="bgrDl">\u2B07 Download PNG</button>' +
+          '<button class="btn" id="bgrAgain" style="background:rgba(255,255,255,.06)">Remove another</button>' +
         '</div>';
-      $('#bgr-dl',res).onclick=function(){ download(blob,base+'-no-bg.png'); };
-      $('#bgr-again',res).onclick=function(){ res.innerHTML='';res.classList.remove('show');drop.style.display='';inp.value=''; };
-    }).catch(function(e){
-      setStatus(st,'\u26A0\uFE0F '+(e.message||'Processing failed')+' \u2014 try a JPG or PNG image.',true);
-      drop.style.display='';
+      $('#bgrDl', res).onclick   = function() { download(blob, base + '-no-bg.png'); };
+      $('#bgrAgain', res).onclick = function() { res.innerHTML = ''; res.classList.remove('show'); drop.style.display = ''; inp.value = ''; };
+    }).catch(function(e) {
+      setStatus(st, '\u26A0\uFE0F ' + (e.message || 'Processing failed') + ' \u2014 try a JPG or PNG image.', true);
+      drop.style.display = '';
     });
   }
 };
 
-/* ══════════════════════════════════════════════════════════
-   OCR IMAGE TO TEXT  —  Tesseract.js v4.1.2
-   Using v4 (not v5) because v5 needs SharedArrayBuffer
-   which requires COOP/COEP headers not set by Cloudflare Pages.
-   v4 works without SharedArrayBuffer.
-   ══════════════════════════════════════════════════════════ */
-INIT['ocr-image-to-text']=function(panel){
-  /* Tesseract.js v4 — compatible without SharedArrayBuffer */
-  var CDN='https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js';
+/* ═══════════════════════════════════════════════════════════
+   OCR IMAGE TO TEXT  (Tesseract.js v4.1.2)
+   v4 works without SharedArrayBuffer — v5 requires COOP/COEP
+   headers which Cloudflare Pages doesn't set by default.
+   ═══════════════════════════════════════════════════════════ */
+INIT['ocr-image-to-text'] = function(panel) {
 
-  panel.innerHTML=
-    '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">'+
-      '<label style="font-size:13px;font-weight:600">Language:</label>'+
-      '<select id="ocr-lang" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">'+
-        '<option value="eng">English</option>'+
-        '<option value="hin">Hindi</option>'+
-        '<option value="fra">French</option>'+
-        '<option value="deu">German</option>'+
-        '<option value="spa">Spanish</option>'+
-        '<option value="jpn">Japanese</option>'+
-        '<option value="chi_sim">Chinese (Simplified)</option>'+
-        '<option value="ara">Arabic</option>'+
-      '</select>'+
-    '</div>'+
-    '<div class="drop" id="ocr-drop" style="cursor:pointer">'+
-      '<input type="file" id="ocr-in" accept="image/*" hidden>'+
-      '<div class="di">'+UP+'</div>'+
-      '<h3>Drop image with text here</h3>'+
-      '<p>Screenshots, scanned docs, photos of signs \u2014 text extracted in your browser</p>'+
-      '<div class="formats"><span class="chip">8 Languages</span><span class="chip">Multi-Language</span><span class="chip">Privacy Safe</span></div>'+
-    '</div>'+
-    '<div class="status" id="ocr-st"></div>'+
-    '<div class="results" id="ocr-res"></div>';
+  var CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js';
 
-  var drop=$('#ocr-drop',panel), inp=$('#ocr-in',panel),
-      st=$('#ocr-st',panel), res=$('#ocr-res',panel),
-      langSel=$('#ocr-lang',panel);
+  panel.innerHTML =
+    '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">' +
+      '<label style="font-size:13px;font-weight:600">Language:</label>' +
+      '<select id="ocrLang" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">' +
+        '<option value="eng">English</option>' +
+        '<option value="hin">Hindi</option>' +
+        '<option value="fra">French</option>' +
+        '<option value="deu">German</option>' +
+        '<option value="spa">Spanish</option>' +
+        '<option value="jpn">Japanese</option>' +
+        '<option value="chi_sim">Chinese (Simplified)</option>' +
+        '<option value="ara">Arabic</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="drop" id="ocrDrop" style="cursor:pointer">' +
+      '<input type="file" id="ocrIn" accept="image/*" hidden>' +
+      '<div class="di">' + UP + '</div>' +
+      '<h3>Drop image with text here</h3>' +
+      '<p>Screenshots, scanned docs, photos of signs \u2014 extracted in your browser</p>' +
+      '<div class="formats">' +
+        '<span class="chip">8 Languages</span>' +
+        '<span class="chip">Multi-Language</span>' +
+        '<span class="chip">Privacy Safe</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="status" id="ocrSt"></div>' +
+    '<div class="results" id="ocrRes"></div>';
 
-  dropzone(drop,inp,function(files){ if(files[0]) run(files[0]); });
+  var drop    = $('#ocrDrop', panel),
+      inp     = $('#ocrIn',   panel),
+      st      = $('#ocrSt',   panel),
+      res     = $('#ocrRes',  panel),
+      langSel = $('#ocrLang', panel);
 
-  function run(file){
-    drop.style.display='none'; res.innerHTML=''; res.classList.remove('show');
-    setStatus(st,'\u23F3 Loading OCR engine\u2026');
-    loadScript(CDN,'Tesseract').then(function(){
-      setStatus(st,'\uD83D\uDD0D Reading text (0%)\u2026');
-      /* v4 simple API: Tesseract.recognize(image, lang, options) */
+  dropzone(drop, inp, function(files) { if (files[0]) run(files[0]); });
+
+  function run(file) {
+    drop.style.display = 'none';
+    res.innerHTML = ''; res.classList.remove('show');
+    setStatus(st, '\u23F3 Loading OCR engine\u2026');
+    _loadScript(CDN, 'Tesseract').then(function() {
+      setStatus(st, '\uD83D\uDD0D Reading text (0%)\u2026');
+      /* Tesseract.js v4 API: Tesseract.recognize(image, lang, options) */
       return Tesseract.recognize(file, langSel.value, {
-        logger: function(m){
-          if(m.status==='recognizing text'){
-            var pct=Math.round((m.progress||0)*100);
-            st.textContent='\uD83D\uDD0D Reading text ('+pct+'%)\u2026';
+        logger: function(m) {
+          if (m.status === 'recognizing text') {
+            st.textContent = '\uD83D\uDD0D Reading text (' + Math.round((m.progress || 0) * 100) + '%)\u2026';
           }
         }
       });
-    }).then(function(result){
-      st.className='status';
-      var text=((result.data&&result.data.text)||'').trim();
-      if(!text){ setStatus(st,'No text found \u2014 try a clearer image with higher contrast text.',true); drop.style.display=''; return; }
+    }).then(function(result) {
+      st.className = 'status';
+      var text = ((result.data && result.data.text) || '').trim();
+      if (!text) {
+        setStatus(st, 'No text found \u2014 try a higher-resolution or higher-contrast image.', true);
+        drop.style.display = '';
+        return;
+      }
       res.classList.add('show');
-      var esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      res.innerHTML=
-        '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Extracted Text</div>'+
-        '<textarea id="ocr-out" style="width:100%;min-height:180px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border-2);border-radius:10px;color:var(--text);font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;box-sizing:border-box" readonly>'+esc+'</textarea>'+
-        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+
-          '<button class="btn btn-primary" id="ocr-copy">\uD83D\uDCCB Copy text</button>'+
-          '<button class="btn" id="ocr-dl" style="background:rgba(255,255,255,.06)">\u2B07 Download .txt</button>'+
-          '<button class="btn" id="ocr-new" style="background:rgba(255,255,255,.06)">New image</button>'+
-        '</div>'+
-        '<div style="margin-top:8px;font-size:12px;color:var(--text-faint)">'+
-          text.split(/\s+/).filter(Boolean).length+' words \u00B7 '+text.length+' characters'+
+      var safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      res.innerHTML =
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Extracted Text</div>' +
+        '<textarea id="ocrOut" style="width:100%;min-height:180px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border-2);border-radius:10px;color:var(--text);font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;box-sizing:border-box" readonly>' + safe + '</textarea>' +
+        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
+          '<button class="btn btn-primary" id="ocrCopy">\uD83D\uDCCB Copy text</button>' +
+          '<button class="btn" id="ocrDl" style="background:rgba(255,255,255,.06)">\u2B07 Download .txt</button>' +
+          '<button class="btn" id="ocrNew" style="background:rgba(255,255,255,.06)">New image</button>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:12px;color:var(--text-faint)">' +
+          text.split(/\s+/).filter(Boolean).length + ' words \u00B7 ' + text.length + ' characters' +
         '</div>';
-      var ta=$('#ocr-out',res);
-      $('#ocr-copy',res).onclick=function(){
-        if(navigator.clipboard){ navigator.clipboard.writeText(ta.value).then(function(){toast('Copied!','ok');}); }
-        else { ta.select(); document.execCommand('copy'); toast('Copied!','ok'); }
+      var ta = $('#ocrOut', res);
+      $('#ocrCopy', res).onclick = function() {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(ta.value).then(function() { toast('Copied!', 'ok'); });
+        } else { ta.select(); document.execCommand('copy'); toast('Copied!', 'ok'); }
       };
-      $('#ocr-dl',res).onclick=function(){
-        download(new Blob([text],{type:'text/plain'}), file.name.replace(/\.[^.]+$/,'')+'-text.txt');
+      $('#ocrDl', res).onclick = function() {
+        download(new Blob([text], { type: 'text/plain' }), file.name.replace(/\.[^.]+$/, '') + '-text.txt');
       };
-      $('#ocr-new',res).onclick=function(){ res.innerHTML='';res.classList.remove('show');drop.style.display='';inp.value=''; };
-    }).catch(function(e){
-      setStatus(st,'\u26A0\uFE0F Error: '+(e.message||String(e)),true);
-      drop.style.display='';
+      $('#ocrNew', res).onclick = function() {
+        res.innerHTML = ''; res.classList.remove('show'); drop.style.display = ''; inp.value = '';
+      };
+    }).catch(function(e) {
+      setStatus(st, '\u26A0\uFE0F Error: ' + (e.message || String(e)), true);
+      drop.style.display = '';
     });
   }
 };
 
-/* ══════════════════════════════════════════════════════════
-   HEIC TO JPG  —  heic2any
-   ══════════════════════════════════════════════════════════ */
-INIT['heic-to-jpg']=function(panel){
-  var CDN='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+/* ═══════════════════════════════════════════════════════════
+   HEIC TO JPG  (heic2any v0.0.4)
+   ═══════════════════════════════════════════════════════════ */
+INIT['heic-to-jpg'] = function(panel) {
 
-  panel.innerHTML=
-    '<div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;flex-wrap:wrap">'+
-      '<div style="display:flex;align-items:center;gap:8px">'+
-        '<label style="font-size:13px;font-weight:600">Output:</label>'+
-        '<select id="h2j-fmt" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">'+
-          '<option value="image/jpeg">JPG (smaller)</option>'+
-          '<option value="image/png">PNG (lossless)</option>'+
-        '</select>'+
-      '</div>'+
-      '<div id="h2j-qwrap" style="display:flex;align-items:center;gap:8px">'+
-        '<label style="font-size:13px;font-weight:600">Quality: <span id="h2j-qv">90%</span></label>'+
-        '<input type="range" id="h2j-q" min="60" max="100" value="90" style="width:90px">'+
-      '</div>'+
-    '</div>'+
-    '<div class="drop" id="h2j-drop" style="cursor:pointer">'+
-      /* Accept broadly — iPhone doesn't always set correct MIME */
-      '<input type="file" id="h2j-in" accept=".heic,.heif,image/heic,image/heif,image/*" multiple hidden>'+
-      '<div class="di">'+UP+'</div>'+
-      '<h3>Drop HEIC / HEIF files here</h3>'+
-      '<p>iPhone photos converted to JPG or PNG &middot; Batch supported &middot; No upload</p>'+
-      '<div class="formats"><span class="chip">HEIC</span><span class="chip">HEIF</span><span class="chip">Batch</span><span class="chip">iPhone Photos</span></div>'+
-    '</div>'+
-    '<div class="status" id="h2j-st"></div>'+
-    '<div class="results" id="h2j-res"></div>';
+  var CDN = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
 
-  var drop=$('#h2j-drop',panel), inp=$('#h2j-in',panel),
-      st=$('#h2j-st',panel), res=$('#h2j-res',panel),
-      fmt=$('#h2j-fmt',panel), qual=$('#h2j-q',panel),
-      qval=$('#h2j-qv',panel), qwrap=$('#h2j-qwrap',panel);
+  panel.innerHTML =
+    '<div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;flex-wrap:wrap">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<label style="font-size:13px;font-weight:600">Output:</label>' +
+        '<select id="h2jFmt" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:8px;padding:6px 10px;font-size:13px">' +
+          '<option value="image/jpeg">JPG (smaller)</option>' +
+          '<option value="image/png">PNG (lossless)</option>' +
+        '</select>' +
+      '</div>' +
+      '<div id="h2jQwrap" style="display:flex;align-items:center;gap:8px">' +
+        '<label style="font-size:13px;font-weight:600">Quality: <span id="h2jQv">90%</span></label>' +
+        '<input type="range" id="h2jQ" min="60" max="100" value="90" style="width:90px">' +
+      '</div>' +
+    '</div>' +
+    '<div class="drop" id="h2jDrop" style="cursor:pointer">' +
+      '<input type="file" id="h2jIn" accept=".heic,.heif,image/heic,image/heif,image/*" multiple hidden>' +
+      '<div class="di">' + UP + '</div>' +
+      '<h3>Drop HEIC / HEIF files here</h3>' +
+      '<p>iPhone photos converted to JPG or PNG &middot; Batch supported &middot; No upload</p>' +
+      '<div class="formats">' +
+        '<span class="chip">HEIC</span>' +
+        '<span class="chip">HEIF</span>' +
+        '<span class="chip">Batch</span>' +
+        '<span class="chip">iPhone Photos</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="status" id="h2jSt"></div>' +
+    '<div class="results" id="h2jRes"></div>';
 
-  qual.oninput=function(){ qval.textContent=qual.value+'%'; };
-  fmt.onchange=function(){ qwrap.style.display=(fmt.value==='image/png')?'none':'flex'; };
+  var drop  = $('#h2jDrop',  panel),
+      inp   = $('#h2jIn',    panel),
+      st    = $('#h2jSt',    panel),
+      res   = $('#h2jRes',   panel),
+      fmt   = $('#h2jFmt',   panel),
+      qual  = $('#h2jQ',     panel),
+      qval  = $('#h2jQv',    panel),
+      qwrap = $('#h2jQwrap', panel);
 
-  dropzone(drop,inp,function(files){ run([].slice.call(files)); });
+  qual.oninput  = function() { qval.textContent = qual.value + '%'; };
+  fmt.onchange  = function() { qwrap.style.display = (fmt.value === 'image/png') ? 'none' : 'flex'; };
 
-  function isHEIC(f){
-    /* Accept by extension OR MIME or if the user dropped it from a known HEIC source */
-    return /\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type);
-  }
+  dropzone(drop, inp, function(files) { convert([].slice.call(files)); });
 
-  function run(files){
-    /* If all accepted files fail HEIC check, try ALL of them (some systems report generic MIME) */
-    var valid = files.filter(isHEIC);
-    if(!valid.length){ valid = files; } /* fallback: try all dropped files */
-    if(!valid.length){ setStatus(st,'No files selected',true); return; }
+  function convert(files) {
+    /* Accept by extension first, fall back to all files if none match */
+    var heicFiles = files.filter(function(f) {
+      return /\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type);
+    });
+    var toProcess = heicFiles.length ? heicFiles : files;
+    if (!toProcess.length) { setStatus(st, 'No files selected', true); return; }
 
-    drop.style.display='none'; res.innerHTML=''; res.classList.add('show');
-    setStatus(st,'\u23F3 Loading converter\u2026');
+    drop.style.display = 'none';
+    res.innerHTML = ''; res.classList.add('show');
+    setStatus(st, '\u23F3 Loading HEIC converter\u2026');
 
-    loadScript(CDN,'heic2any').then(function(){
-      var cvt = window.heic2any;
-      if(typeof cvt !== 'function'){ throw new Error('heic2any did not load correctly'); }
+    _loadScript(CDN, 'heic2any').then(function(lib) {
+      var fn = (typeof lib === 'function') ? lib : window.heic2any;
+      if (typeof fn !== 'function') throw new Error('heic2any did not load');
 
-      var outFmt=fmt.value, q=parseInt(qual.value)/100;
-      var ext=(outFmt==='image/jpeg')?'jpg':'png';
-      var done=0;
-      st.className='status show';
+      var outFmt = fmt.value,
+          q      = parseInt(qual.value) / 100,
+          ext    = (outFmt === 'image/jpeg') ? 'jpg' : 'png',
+          done   = 0;
 
-      function next(){
-        if(done>=valid.length){ st.className='status'; return; }
-        var f=valid[done];
-        st.textContent='Converting '+f.name+' ('+(done+1)+'/'+valid.length+')';
-        cvt({blob:f, toType:outFmt, quality:q}).then(function(result){
-          var blob=Array.isArray(result)?result[0]:result;
-          var base=f.name.replace(/\.(heic|heif)$/i,'').replace(/\.[^.]+$/,'');
-          var url=URL.createObjectURL(blob);
-          row(res, url, base+'.'+ext, fmtBytes(blob.size)+' \u00B7 '+ext.toUpperCase(), function(){
-            download(blob, base+'.'+ext);
+      st.className = 'status show';
+
+      function next() {
+        if (done >= toProcess.length) { st.className = 'status'; return; }
+        var f = toProcess[done];
+        st.textContent = 'Converting ' + f.name + ' (' + (done + 1) + '/' + toProcess.length + ')';
+        fn({ blob: f, toType: outFmt, quality: q }).then(function(result) {
+          var blob = Array.isArray(result) ? result[0] : result;
+          var base = f.name.replace(/\.(heic|heif)$/i, '').replace(/\.[^.]+$/, '');
+          var url  = URL.createObjectURL(blob);
+          row(res, url, base + '.' + ext, fmtBytes(blob.size) + ' \u00B7 ' + ext.toUpperCase(), function() {
+            download(blob, base + '.' + ext);
           });
           done++; next();
-        }).catch(function(e){
-          /* Not a real HEIC file — skip and continue */
-          done++; next();
-        });
+        }).catch(function() { done++; next(); }); /* skip non-HEIC files silently */
       }
       next();
-    }).catch(function(e){
-      setStatus(st,'\u26A0\uFE0F '+(e.message||'Failed to load converter'),true);
-      drop.style.display='';
+    }).catch(function(e) {
+      setStatus(st, '\u26A0\uFE0F ' + (e.message || 'Failed to load converter'), true);
+      drop.style.display = '';
     });
   }
 };

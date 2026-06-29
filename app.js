@@ -96,7 +96,7 @@ function buildCategoryCards(){
       .map(t=>'<span class="cc-chip">'+t[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>')
       .join('');
     return ''+
-      '<a class="cat-card" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Explore '+CAT[cat]+'">'+
+      '<a class="cat-card" data-cat="'+cat+'" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Explore '+CAT[cat]+'">'+
         '<div class="cc-ico">'+ICON[cat]+'</div>'+
         '<h3>'+CAT[cat]+'</h3>'+
         '<p class="cc-tag">'+meta.tagline+'</p>'+

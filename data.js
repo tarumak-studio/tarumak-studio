@@ -288,7 +288,6 @@ const TOOLS=[
   ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.',['SLUG','URL','SEO']],
   ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.',['CASE','FORMAT','TEXT']],
   ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.',['UNIX','DATE','TIME']],
-,
   ['background-remover','Background Remover','image','Remove backgrounds from images automatically using AI. Works on people, products, logos and objects. Downloads as transparent PNG.',['AI-Powered','Transparent PNG','Privacy Safe']],
   ['ocr-image-to-text','OCR Image to Text','image','Extract text from any image — screenshots, scanned documents, photos of signs or handwriting. Powered by Tesseract.js in your browser.',['Multi-Language','Copy & Download','Privacy Safe']],
   ['heic-to-jpg','HEIC to JPG Converter','image','Convert iPhone HEIC and HEIF photos to JPG or PNG online. Batch convert multiple files at once — no upload, no server, all in your browser.',['Batch','JPG & PNG','iPhone Photos']]

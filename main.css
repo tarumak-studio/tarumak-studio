@@ -453,7 +453,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    Glass cards side-by-side. Us = cyan tint, Them = muted.
    ═══════════════════════════════════════════════════════════ */
 .comp-section {
-  padding:72px 0 80px;
+  padding:120px 0 128px;
 }
 .comp-head {
   margin-bottom:44px;
@@ -521,19 +521,75 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .comp-them .comp-row:hover { background:rgba(255,255,255,.025); }
 
 /* Check / Cross icons via ::before */
-.cr-yes .cr-ico::before {
-  content:"✓";
+/* cr-ico now holds inline SVG, not pseudo-content */
+.cr-ico {
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  width:28px;height:28px;
+  border-radius:8px;
+  transition:background 200ms var(--ease);
+}
+.cr-ico svg {
+  width:15px;height:15px;
+  stroke-width:2.2;
+  transition:transform 220ms var(--ease);
+}
+
+/* Tarumak column: icon in cyan tinted container */
+.comp-us .cr-ico {
+  background:rgba(34,211,238,.1);
   color:var(--p1);
-  font-size:15px;font-weight:700;
-  width:20px;display:inline-block;text-align:center;
-  flex-shrink:0;
 }
-.cr-no .cr-ico::before {
-  content:"✗";
+.comp-us .comp-row:hover .cr-ico {
+  background:rgba(34,211,238,.18);
+}
+.comp-us .comp-row:hover .cr-ico svg { transform:scale(1.08); }
+
+/* Traditional column: icon muted */
+.comp-them .cr-ico {
+  background:rgba(255,255,255,.05);
   color:var(--text-faint);
-  font-size:14px;font-weight:500;
-  width:20px;display:inline-block;text-align:center;
-  flex-shrink:0;
 }
+.comp-them .comp-row:hover .cr-ico { background:rgba(255,255,255,.08); }
+
 .cr-yes span:last-child { color:var(--text); }
 .cr-no  span:last-child { color:var(--text-dim); }
+
+
+/* ═══ Comparison CTA block ═══ */
+.comp-cta {
+  margin-top:44px;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.comp-cta-btn {
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:15px;font-weight:600;
+  padding:0 28px;height:48px;
+  border-radius:13px;
+  letter-spacing:-.2px;
+  transition:
+    transform 220ms var(--ease),
+    box-shadow 220ms var(--ease),
+    gap 220ms var(--ease);
+}
+.comp-cta-btn .cta-arrow {
+  width:16px;height:16px;
+  transition:transform 220ms var(--ease);
+}
+.comp-cta-btn:hover { gap:14px; }
+.comp-cta-btn:hover .cta-arrow { transform:translateX(3px); }
+.comp-cta-sub {
+  font-family:var(--fm);font-size:11.5px;
+  color:var(--text-faint);letter-spacing:.02em;
+  margin:0;
+}
+
+/* Reduced motion: disable icon transforms, CTA shift */
+@media (prefers-reduced-motion: reduce) {
+  .cr-ico svg,
+  .comp-cta-btn,
+  .comp-cta-btn .cta-arrow { transition:none; }
+  .comp-cta-btn:hover { gap:10px; }
+  .comp-cta-btn:hover .cta-arrow { transform:none; }
+}

@@ -266,6 +266,14 @@ function _loadScript(src, glob) {
    CORRECT API: default export (imglyRemoveBackground), not named.
    No publicPath — models auto-fetched from resources.img.ly.
    ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND REMOVER — Pure Canvas Flood-Fill
+   Zero CDN dependencies. Works for solid-color backgrounds
+   (white, black, grey, plain colours — product photos, logos,
+   screenshots). Algorithm: flood-fill from edges using sampled
+   corner colours. Instant processing, runs fully in browser.
+   ═══════════════════════════════════════════════════════════ */
 INIT['background-remover'] = function(panel) {
 
   panel.innerHTML =
@@ -273,89 +281,180 @@ INIT['background-remover'] = function(panel) {
       '<input type="file" id="bgrIn" accept="image/*" hidden>' +
       '<div class="di">' + UP + '</div>' +
       '<h3>Drop image here or click to browse</h3>' +
-      '<p>AI removes the background &middot; Downloads as transparent PNG &middot; No upload</p>' +
+      '<p>Removes solid-colour backgrounds &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
       '<div class="formats">' +
-        '<span class="chip">AI-Powered</span>' +
-        '<span class="chip">Transparent PNG</span>' +
-        '<span class="chip">Privacy Safe</span>' +
+        '<span class="chip">JPG</span><span class="chip">PNG</span>' +
+        '<span class="chip">WebP</span><span class="chip">Transparent PNG</span>' +
       '</div>' +
     '</div>' +
+    '<div id="bgrOpts" style="display:none;margin-bottom:12px">' +
+      '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px">' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<label style="font-size:13px;font-weight:600">Tolerance: <span id="bgrTolV">30</span></label>' +
+          '<input type="range" id="bgrTol" min="5" max="90" value="30" style="width:110px">' +
+        '</div>' +
+        '<button class="btn" id="bgrRerun" style="background:rgba(99,179,237,.15);color:#63b3ed;padding:6px 14px;font-size:13px">' +
+          '\u21BA Re-apply' +
+        '</button>' +
+      '</div>' +
+      '<p style="font-size:12px;color:var(--text-faint)">' +
+        'Higher tolerance = removes more background. Best for photos on white, black or plain coloured backgrounds.' +
+      '</p>' +
+    '</div>' +
     '<div class="status" id="bgrSt"></div>' +
-    '<div class="results" id="bgrRes"></div>';
+    '<div class="results" id="bgrRes"></div>' +
+    '<canvas id="bgrCanvas" style="display:none"></canvas>';
 
-  var drop = $('#bgrDrop', panel),
-      inp  = $('#bgrIn',   panel),
-      st   = $('#bgrSt',   panel),
-      res  = $('#bgrRes',  panel);
+  var drop    = $('#bgrDrop',  panel),
+      inp     = $('#bgrIn',    panel),
+      opts    = $('#bgrOpts',  panel),
+      tolEl   = $('#bgrTol',   panel),
+      tolVal  = $('#bgrTolV',  panel),
+      rerunBtn= $('#bgrRerun', panel),
+      st      = $('#bgrSt',    panel),
+      res     = $('#bgrRes',   panel),
+      canvas  = $('#bgrCanvas',panel),
+      ctx     = canvas.getContext('2d');
 
-  dropzone(drop, inp, function(files) { if (files[0]) run(files[0]); });
+  var currentImg = null, currentFile = null;
 
-  /* Load via ESM dynamic module — CORRECT: default export */
-  function getRemoveBg() {
-    return new Promise(function(ok, fail) {
-      if (window.__tarumakBgr) { ok(window.__tarumakBgr); return; }
-      if (window.__tarumakBgrLoading) {
-        var n = 0, iv = setInterval(function() {
-          if (window.__tarumakBgr) { clearInterval(iv); ok(window.__tarumakBgr); }
-          else if (++n > 200) { clearInterval(iv); fail(new Error('Model load timeout')); }
-        }, 300);
-        return;
-      }
-      window.__tarumakBgrLoading = true;
-      /* NOTE: @imgly/background-removal uses DEFAULT export, not named */
-      var s = document.createElement('script');
-      s.type = 'module';
-      s.textContent =
-        'import imglyRemoveBg from' +
-        '"https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs";' +
-        'window.__tarumakBgr=imglyRemoveBg;' +
-        'document.dispatchEvent(new CustomEvent("__bgrOk"));';
-      document.addEventListener('__bgrOk', function h() {
-        document.removeEventListener('__bgrOk', h);
-        ok(window.__tarumakBgr);
-      });
-      s.onerror = function() { fail(new Error('ESM load failed')); };
-      document.head.appendChild(s);
-    });
-  }
+  tolEl.oninput = function() { tolVal.textContent = tolEl.value; };
+  rerunBtn.onclick = function() {
+    if (currentImg && currentFile) processImage(currentImg, currentFile, parseInt(tolEl.value));
+  };
 
-  function run(file) {
+  dropzone(drop, inp, function(files) {
+    if (!files[0]) return;
+    currentFile = files[0];
+    var url = URL.createObjectURL(files[0]);
+    var img = new Image();
+    img.onload = function() { currentImg = img; processImage(img, files[0], parseInt(tolEl.value)); };
+    img.onerror = function() { setStatus(st, 'Could not load image.', true); };
+    img.src = url;
+  });
+
+  function processImage(img, file, tolerance) {
     drop.style.display = 'none';
     res.innerHTML = ''; res.classList.remove('show');
-    setStatus(st, 'Loading AI model\u2026 (~20 s first time, cached after)');
-    getRemoveBg().then(function(removeBg) {
-      setStatus(st, '\uD83E\uDDE0 Processing image\u2026');
-      var src = URL.createObjectURL(file);
-      /* No publicPath — library fetches model from https://resources.img.ly */
-      return removeBg(src, { debug: false, model: 'small', output: { format: 'image/png', quality: 1 } })
-        .then(function(blob) { URL.revokeObjectURL(src); return blob; });
-    }).then(function(blob) {
-      st.className = 'status';
-      res.classList.add('show');
-      var base = file.name.replace(/\.[^.]+$/, '');
-      var outUrl  = URL.createObjectURL(blob);
-      var origUrl = URL.createObjectURL(file);
-      res.innerHTML =
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
-          '<div><p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Original</p>' +
-            '<img src="' + origUrl + '" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid var(--border-2)"></div>' +
-          '<div><p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Background Removed</p>' +
-            '<div style="background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;border-radius:10px;overflow:hidden;max-height:240px;display:flex;align-items:center;justify-content:center">' +
-              '<img src="' + outUrl + '" style="max-width:100%;max-height:240px;object-fit:contain">' +
-            '</div></div>' +
-        '</div>' +
-        '<div style="display:flex;gap:10px;justify-content:center">' +
-          '<button class="btn btn-primary" id="bgrDl">\u2B07 Download PNG</button>' +
-          '<button class="btn" id="bgrAgain" style="background:rgba(255,255,255,.06)">Remove another</button>' +
-        '</div>';
-      $('#bgrDl', res).onclick   = function() { download(blob, base + '-no-bg.png'); };
-      $('#bgrAgain', res).onclick = function() { res.innerHTML = ''; res.classList.remove('show'); drop.style.display = ''; inp.value = ''; };
-    }).catch(function(e) {
-      setStatus(st, '\u26A0\uFE0F ' + (e.message || 'Processing failed') + ' \u2014 try a JPG or PNG image.', true);
-      drop.style.display = '';
-    });
+    setStatus(st, 'Removing background\u2026');
+
+    /* Give UI a tick to update */
+    setTimeout(function() {
+      try {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        canvas.width = w; canvas.height = h;
+        ctx.drawImage(img, 0, 0);
+
+        var imageData = ctx.getImageData(0, 0, w, h);
+        var d = imageData.data;
+
+        /* ── Sample background from all 4 corner regions (7×7 px) ── */
+        var bgSamples = [];
+        var sampleSize = Math.min(7, Math.floor(Math.min(w, h) / 4));
+        function addCorner(ox, oy) {
+          for (var cy = 0; cy < sampleSize; cy++) {
+            for (var cx = 0; cx < sampleSize; cx++) {
+              var px = ox + cx, py = oy + cy;
+              if (px < 0 || py < 0 || px >= w || py >= h) continue;
+              var i = (py * w + px) * 4;
+              bgSamples.push([d[i], d[i+1], d[i+2]]);
+            }
+          }
+        }
+        addCorner(0, 0);              /* top-left  */
+        addCorner(w-sampleSize, 0);   /* top-right */
+        addCorner(0, h-sampleSize);   /* bot-left  */
+        addCorner(w-sampleSize, h-sampleSize); /* bot-right */
+
+        /* Average background colour */
+        var bgR = 0, bgG = 0, bgB = 0;
+        bgSamples.forEach(function(c) { bgR += c[0]; bgG += c[1]; bgB += c[2]; });
+        var n = bgSamples.length;
+        bgR = Math.round(bgR/n); bgG = Math.round(bgG/n); bgB = Math.round(bgB/n);
+
+        function dist(r,g,b) {
+          return Math.sqrt((r-bgR)*(r-bgR) + (g-bgG)*(g-bgG) + (b-bgB)*(b-bgB));
+        }
+
+        /* ── Flood-fill from all 4 edges ── */
+        var visited = new Uint8Array(w * h);
+        /* Use typed array queue for performance on large images */
+        var qx = new Int16Array(w * h * 2);
+        var qy = new Int16Array(w * h * 2);
+        var head = 0, tail = 0;
+
+        function enqueue(x, y) {
+          var idx = y * w + x;
+          if (visited[idx]) return;
+          visited[idx] = 1;
+          qx[tail] = x; qy[tail] = y; tail++;
+        }
+
+        /* Seed from all edge pixels */
+        for (var x = 0; x < w; x++) { enqueue(x, 0); enqueue(x, h-1); }
+        for (var y = 1; y < h-1; y++) { enqueue(0, y); enqueue(w-1, y); }
+
+        while (head < tail) {
+          var px = qx[head], py = qy[head]; head++;
+          var idx = (py * w + px) * 4;
+          var r = d[idx], g = d[idx+1], b = d[idx+2];
+
+          if (dist(r, g, b) <= tolerance) {
+            d[idx+3] = 0; /* Make transparent */
+            if (px > 0)   enqueue(px-1, py);
+            if (px < w-1) enqueue(px+1, py);
+            if (py > 0)   enqueue(px, py-1);
+            if (py < h-1) enqueue(px, py+1);
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        /* Convert canvas to blob and show result */
+        canvas.toBlob(function(blob) {
+          st.className = 'status';
+          opts.style.display = 'block';
+          res.classList.add('show');
+
+          var outUrl  = URL.createObjectURL(blob);
+          var origUrl = URL.createObjectURL(file);
+          var base    = file.name.replace(/\.[^.]+$/, '');
+
+          res.innerHTML =
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+              '<div>' +
+                '<p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Original</p>' +
+                '<img src="' + origUrl + '" style="width:100%;max-height:250px;object-fit:contain;border-radius:10px;border:1px solid var(--border-2)">' +
+              '</div>' +
+              '<div>' +
+                '<p style="text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:6px">Background Removed</p>' +
+                '<div style="background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;border-radius:10px;max-height:250px;display:flex;align-items:center;justify-content:center;overflow:hidden">' +
+                  '<img src="' + outUrl + '" style="max-width:100%;max-height:250px;object-fit:contain">' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">' +
+              '<button class="btn btn-primary" id="bgrDl">\u2B07 Download PNG</button>' +
+              '<button class="btn" id="bgrAnother" style="background:rgba(255,255,255,.06)">Remove another</button>' +
+            '</div>';
+
+          $('#bgrDl', res).onclick = function() { download(blob, base + '-no-bg.png'); };
+          $('#bgrAnother', res).onclick = function() {
+            currentImg = null; currentFile = null;
+            res.innerHTML = ''; res.classList.remove('show');
+            opts.style.display = 'none'; st.className = 'status';
+            drop.style.display = ''; inp.value = '';
+          };
+        }, 'image/png');
+
+      } catch(e) {
+        setStatus(st, 'Error: ' + (e.message || e), true);
+        drop.style.display = '';
+      }
+    }, 20);
   }
 };
+
 
 /* ═══════════════════════════════════════════════════════════
    OCR IMAGE TO TEXT  (Tesseract.js v4.1.2)

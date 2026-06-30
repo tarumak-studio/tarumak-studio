@@ -423,14 +423,26 @@ INIT['background-remover'] = function(panel) {
           spread = 20; /* sane mid-range fallback so the tool still works correctly */
         }
 
+        var suggestedRaw = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
+        var autoSuggested = isFinite(suggestedRaw) ? suggestedRaw : 32; /* hard fallback, never NaN */
+
         if (!autoTolSet) {
-          var suggestedRaw = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
-          var suggested = isFinite(suggestedRaw) ? suggestedRaw : 32; /* hard fallback, never NaN */
-          tolEl.value = suggested; tolVal.textContent = suggested;
-          sensitivity = suggested; autoTolSet = true;
-          hint.textContent = spread > 14
-            ? 'Gradient or shadowed background detected \u2014 sensitivity auto-tuned. Raise it if any background remains.'
-            : 'Clean background detected \u2014 sensitivity auto-tuned for a precise cut.';
+          tolEl.value = autoSuggested; tolVal.textContent = autoSuggested;
+          sensitivity = autoSuggested; autoTolSet = true;
+        }
+
+        /* Hint is recalculated on EVERY run (fresh upload AND every manual
+           Re-apply) so it never goes stale relative to whatever sensitivity
+           value is actually being applied right now — this is what
+           prevented the confusing "hint says Gradient, value shows 24"
+           mismatch from a manually-adjusted slider after the first run. */
+        var usingBelowRecommended = sensitivity < autoSuggested - 4;
+        if (usingBelowRecommended) {
+          hint.innerHTML = '\u26A0\uFE0F Current sensitivity (' + sensitivity + ') is below the recommended <strong>' + autoSuggested + '</strong> for this image \u2014 raise the slider if background remains.';
+        } else if (spread > 14) {
+          hint.textContent = 'Gradient or shadowed background detected \u2014 sensitivity auto-tuned to ' + autoSuggested + '. Raise it further if any background remains.';
+        } else {
+          hint.textContent = 'Clean background detected \u2014 sensitivity auto-tuned to ' + autoSuggested + ' for a precise cut.';
         }
 
         var tolerance = isFinite(sensitivity) ? sensitivity : 32; /* final defence: never let an invalid value reach the flood fill */

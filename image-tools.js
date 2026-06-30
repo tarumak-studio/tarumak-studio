@@ -384,12 +384,29 @@ INIT['background-remover'] = function(panel) {
         }
         var bgR = median(rs), bgG = median(gs), bgB = median(bs);
 
-        var spreadSum = 0;
-        for (var s = 0; s < rs.length; s++) spreadSum += pdist(rs[s],gs[s],bs[s], bgR,bgG,bgB);
-        var spread = spreadSum / rs.length;
+        /* Defensive: rs/gs/bs should never be empty for a valid image,
+           and bgR/bgG/bgB/pdist should never yield NaN — but if anything
+           upstream ever does (corrupt image data, zero-area canvas, an
+           unexpected decode edge case), we must NEVER let an invalid
+           number reach the slider. Assigning NaN to a <input type=range>
+           silently clamps its DISPLAYED value down to the slider's own
+           min attribute (8) without throwing — which is exactly the
+           "Sensitivity: 8 / Clean background detected" false-positive
+           bug. Every value below is explicitly validated before use. */
+        var spreadSum = 0, validSamples = 0;
+        for (var s = 0; s < rs.length; s++) {
+          var pd = pdist(rs[s],gs[s],bs[s], bgR,bgG,bgB);
+          if (isFinite(pd)) { spreadSum += pd; validSamples++; }
+        }
+        var spread = validSamples > 0 ? (spreadSum / validSamples) : NaN;
+        if (!isFinite(spread)) {
+          console.warn('[background-remover] spread calculation invalid (rs.length=' + rs.length + ', bgR/G/B=' + bgR + '/' + bgG + '/' + bgB + ') — falling back to safe default tolerance.');
+          spread = 20; /* sane mid-range fallback so the tool still works correctly */
+        }
 
         if (!autoTolSet) {
-          var suggested = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
+          var suggestedRaw = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
+          var suggested = isFinite(suggestedRaw) ? suggestedRaw : 32; /* hard fallback, never NaN */
           tolEl.value = suggested; tolVal.textContent = suggested;
           sensitivity = suggested; autoTolSet = true;
           hint.textContent = spread > 14
@@ -397,7 +414,7 @@ INIT['background-remover'] = function(panel) {
             : 'Clean background detected \u2014 sensitivity auto-tuned for a precise cut.';
         }
 
-        var tolerance = sensitivity;
+        var tolerance = isFinite(sensitivity) ? sensitivity : 32; /* final defence: never let an invalid value reach the flood fill */
         var localTol  = Math.max(10, tolerance * 0.6);
 
         /* STEP 2 — region-growing flood fill: each pixel checked against

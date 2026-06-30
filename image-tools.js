@@ -344,14 +344,33 @@ INIT['background-remover'] = function(panel) {
     img.src = url;
   });
 
-  /* Chroma-weighted perceptual distance: lightness differences
-     (shadows/vignette/gradient) count for little; hue/saturation
-     differences (real subject colour) count for a lot. */
-  function pdist(r,g,b,r2,g2,b2) {
+  /* Two DIFFERENT distance functions, used for two DIFFERENT jobs:
+
+     pdistGlobal — chroma-weighted. Used only to ask "is this pixel still
+     plausibly the same overall backdrop colour?". Lightness differences
+     (shadows/vignette/gradient) count for very little here, which is what
+     lets a large, smooth lighting gradient pass without tripping the
+     overall sanity check.
+
+     pdistLocal — plain Euclidean RGB. Used for the neighbour-to-neighbour
+     step during flood fill — this is what actually decides whether the
+     fill is allowed to expand into the next pixel. It must NOT discount
+     lightness: a real subject edge (a sweater fold, a shadow line under a
+     laptop, a desk edge) very often shows up primarily as a lightness
+     change even when the hue is close to the backdrop's. Using the
+     chroma-weighted distance here was the bug — it made the algorithm
+     blind to exactly the edges it needed to stop at, letting the fill
+     walk straight through low-saturation clothing/objects that merely
+     happened to be a similar overall colour to the wall behind them. */
+  function pdistGlobal(r,g,b,r2,g2,b2) {
     var l1 = (r+g+b)/3, l2 = (r2+g2+b2)/3, dL = l1-l2;
     var cr1=r-l1, cg1=g-l1, cb1=b-l1, cr2=r2-l2, cg2=g2-l2, cb2=b2-l2;
     var dC = Math.sqrt(Math.pow(cr1-cr2,2)+Math.pow(cg1-cg2,2)+Math.pow(cb1-cb2,2));
     return Math.sqrt(Math.pow(dL*0.30,2) + Math.pow(dC*1.6,2));
+  }
+  function pdistLocal(r,g,b,r2,g2,b2) {
+    var dr=r-r2, dg=g-g2, db=b-b2;
+    return Math.sqrt(dr*dr+dg*dg+db*db);
   }
 
   function processImage(img, file, sensitivity, feather) {
@@ -395,7 +414,7 @@ INIT['background-remover'] = function(panel) {
            bug. Every value below is explicitly validated before use. */
         var spreadSum = 0, validSamples = 0;
         for (var s = 0; s < rs.length; s++) {
-          var pd = pdist(rs[s],gs[s],bs[s], bgR,bgG,bgB);
+          var pd = pdistGlobal(rs[s],gs[s],bs[s], bgR,bgG,bgB);
           if (isFinite(pd)) { spreadSum += pd; validSamples++; }
         }
         var spread = validSamples > 0 ? (spreadSum / validSamples) : NaN;
@@ -431,7 +450,7 @@ INIT['background-remover'] = function(panel) {
           var idx = y * w + x;
           if (visited[idx]) return;
           var i = idx * 4, r = d[i], g = d[i+1], b = d[i+2];
-          if (pdist(r,g,b, bgR,bgG,bgB) <= gTol && pdist(r,g,b, pr,pg,pb) <= lTol) {
+          if (pdistGlobal(r,g,b, bgR,bgG,bgB) <= gTol && pdistLocal(r,g,b, pr,pg,pb) <= lTol) {
             visited[idx] = 1; mask[idx] = 1;
             qx[tail]=x; qy[tail]=y; qr[tail]=r; qg[tail]=g; qb[tail]=b; tail++;
           }
@@ -473,7 +492,7 @@ INIT['background-remover'] = function(panel) {
               else if (sy<h-1 && mask[sidx+w]) { has=true; var ri=(sidx+w)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
               if (!has) continue;
               var i2 = sidx*4, r2=d[i2], g2=d[i2+1], b2=d[i2+2];
-              if (pdist(r2,g2,b2, bgR,bgG,bgB) <= pGlobal && pdist(r2,g2,b2, refR,refG,refB) <= pLocal) {
+              if (pdistGlobal(r2,g2,b2, bgR,bgG,bgB) <= pGlobal && pdistLocal(r2,g2,b2, refR,refG,refB) <= pLocal) {
                 visited[sidx]=1; mask[sidx]=1;
                 qx[tail]=sx; qy[tail]=sy; qr[tail]=r2; qg[tail]=g2; qb[tail]=b2; tail++;
                 grew = true;

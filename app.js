@@ -109,157 +109,12 @@ function buildCategoryCards(){
   }).join('');
 }
 
-/* ──────────────────────────────────────────────────
-   buildFeaturedTools — renders the 8 flagship-tool
-   cards on the homepage. Reads FEATURED[] (slug+hook)
-   from data.js, validates each slug against TOOLS via
-   bySlug, and skips silently if a slug doesn't exist
-   (e.g. tool renamed/removed) so the section never
-   shows a broken card.
-────────────────────────────────────────────────── */
-function buildFeaturedTools(){
-  const grid=document.getElementById('feat-grid');
-  if(!grid||typeof FEATURED==='undefined')return;
-  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
-  grid.innerHTML=FEATURED.map(f=>{
-    const t=bySlug(f.slug);
-    if(!t)return '';
-    return ''+
-      '<a class="feat-card cat-'+t[2]+'" href="javascript:void(0)" onclick="go(\'t/'+t[0]+'\')" aria-label="Open '+t[1]+'">'+
-        '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
-        '<div class="fc-body">'+
-          '<h3>'+t[1]+'</h3>'+
-          '<p>'+f.hook+'</p>'+
-        '</div>'+
-        '<span class="fc-cta">Try Now '+arrow+'</span>'+
-      '</a>';
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────────
-   buildLatestArticles — renders the "Latest guides"
-   homepage strip from blog-data.js ARTICLES. Takes the
-   4 most recently added entries (Object.keys preserves
-   insertion order for string keys in JS).
-────────────────────────────────────────────────── */
-function buildLatestArticles(){
-  const grid=document.getElementById('blog-strip-grid');
-  if(!grid||typeof ARTICLES==='undefined')return;
-  const slugs=Object.keys(ARTICLES).slice(-4).reverse();
-  grid.innerHTML=slugs.map(slug=>{
-    const a=ARTICLES[slug];
-    if(!a)return '';
-    return ''+
-      '<a class="blog-strip-card" href="/article-'+slug+'.html">'+
-        '<span class="bsc-cat">'+a.cat+'</span>'+
-        '<h3>'+a.title+'</h3>'+
-        '<p>'+a.excerpt+'</p>'+
-        '<div class="bsc-meta"><span>'+a.date+'</span><span>'+a.read+' read</span></div>'+
-      '</a>';
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────────
-   buildNavToolsDropdown — lightweight category dropdown
-   under the "Tools" nav link. 5 categories, each with
-   its 3 most popular tools (from CAT_META) + a direct
-   category link. Pure hover/focus CSS panel, no JS state.
-────────────────────────────────────────────────── */
-function buildNavToolsDropdown(){
-  const panel=document.getElementById('navToolsPanel');
-  if(!panel||typeof CAT_META==='undefined')return;
-  const order=['image','pdf','developer','marketing','converter'];
-  panel.innerHTML=order.map(cat=>{
-    const meta=CAT_META[cat];if(!meta)return '';
-    const popularLinks=meta.popular.map(slug=>{
-      const t=bySlug(slug);
-      return t?'<a onclick="go(\'t/'+t[0]+'\')">'+t[1]+'</a>':'';
-    }).join('');
-    return ''+
-      '<div class="ntp-col">'+
-        '<a class="ntp-cat" onclick="go(\''+cat+'\')">'+CAT[cat]+'</a>'+
-        popularLinks+
-      '</div>';
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────────
-   wireHeroSearch — prominent hero search bar. Separate
-   from the nav Cmd+K search (which stays focused on
-   #navSearch since it's the only search box visible once
-   the hero scrolls out of view). Same filtering pattern,
-   larger result set, basic keyboard navigation.
-────────────────────────────────────────────────── */
-function wireHeroSearch(){
-  const input=document.getElementById('heroSearch');
-  const results=document.getElementById('heroSearchResults');
-  if(!input||!results)return;
-  let activeIndex=-1;
-
-  function render(list){
-    if(!list.length){
-      results.innerHTML='<a style="cursor:default;color:var(--text-faint)">No matches \u2014 try a different word</a>';
-      results.classList.add('show');
-      return;
-    }
-    results.innerHTML=list.map((t,i)=>
-      '<a data-i="'+i+'" onclick="go(\'t/'+t[0]+'\')">'+
-        '<span class="hsr-name">'+t[1]+'</span>'+
-        '<span class="chip">'+t[4][0]+'</span>'+
-      '</a>'
-    ).join('');
-    results.classList.add('show');
-  }
-
-  function search(term){
-    activeIndex=-1;
-    const t=term.toLowerCase().trim();
-    if(!t){results.classList.remove('show');results.innerHTML='';return;}
-    const list=TOOLS.filter(x=>
-      x[1].toLowerCase().includes(t) ||
-      x[3].toLowerCase().includes(t) ||
-      CAT[x[2]].toLowerCase().includes(t)
-    ).slice(0,8);
-    render(list);
-  }
-
-  input.addEventListener('input',()=>search(input.value));
-  input.addEventListener('focus',()=>{ if(input.value.trim())search(input.value); });
-
-  input.addEventListener('keydown',e=>{
-    const items=results.querySelectorAll('a[data-i]');
-    if(e.key==='ArrowDown'){
-      e.preventDefault();
-      activeIndex=Math.min(activeIndex+1,items.length-1);
-      items.forEach((el,i)=>el.classList.toggle('active',i===activeIndex));
-      if(items[activeIndex])items[activeIndex].scrollIntoView({block:'nearest'});
-    } else if(e.key==='ArrowUp'){
-      e.preventDefault();
-      activeIndex=Math.max(activeIndex-1,0);
-      items.forEach((el,i)=>el.classList.toggle('active',i===activeIndex));
-    } else if(e.key==='Enter'){
-      e.preventDefault();
-      const target=activeIndex>=0?items[activeIndex]:items[0];
-      if(target)target.click();
-    } else if(e.key==='Escape'){
-      results.classList.remove('show');
-      input.blur();
-    }
-  });
-
-  document.addEventListener('click',e=>{
-    if(!e.target.closest('.hero-search'))results.classList.remove('show');
-  });
-}
-
-
-
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
-  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
-  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
+  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 
 /* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
@@ -462,7 +317,3 @@ route();
 
 /* Boot-time render of category cards */
 buildCategoryCards();
-buildFeaturedTools();
-buildLatestArticles();
-buildNavToolsDropdown();
-wireHeroSearch();

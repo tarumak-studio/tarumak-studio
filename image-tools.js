@@ -261,20 +261,18 @@ function _loadScript(src, glob) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BACKGROUND REMOVER  —  region-growing flood fill v3
-   Pure canvas, zero CDN. Uses a perceptual, chroma-weighted
-   colour distance instead of raw RGB Euclidean distance:
-   lightness differences (shadows, vignettes, lighting falloff)
-   count much LESS, while hue/saturation differences (real
-   subject colour — skin, hair, clothing) count much MORE.
-   This is what lets it follow large, smooth lighting gradients
-   on a backdrop while still stopping cleanly at the subject's
-   edge. A short multi-pass growth stage afterwards mops up any
-   residual sharp-but-still-background steps (e.g. JPEG banding).
-   Known limitation: clothing whose colour is nearly identical
-   to the backdrop (e.g. light-grey shirt on a light-grey wall)
-   can still be misread as background — this is a shared limit
-   of every non-AI colour-distance approach, not just this one.
+   BACKGROUND REMOVER
+   Uses @imgly/background-removal via ESM dynamic module.
+   CORRECT API: default export (imglyRemoveBackground), not named.
+   No publicPath — models auto-fetched from resources.img.ly.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND REMOVER — Pure Canvas Flood-Fill
+   Zero CDN dependencies. Works for solid-color backgrounds
+   (white, black, grey, plain colours — product photos, logos,
+   screenshots). Algorithm: flood-fill from edges using sampled
+   corner colours. Instant processing, runs fully in browser.
    ═══════════════════════════════════════════════════════════ */
 INIT['background-remover'] = function(panel) {
 
@@ -283,101 +281,64 @@ INIT['background-remover'] = function(panel) {
       '<input type="file" id="bgrIn" accept="image/*" hidden>' +
       '<div class="di">' + UP + '</div>' +
       '<h3>Drop image here or click to browse</h3>' +
-      '<p>Removes solid or gradient backgrounds &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
+      '<p>Removes solid-colour backgrounds &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
       '<div class="formats">' +
         '<span class="chip">JPG</span><span class="chip">PNG</span>' +
         '<span class="chip">WebP</span><span class="chip">Transparent PNG</span>' +
       '</div>' +
     '</div>' +
     '<div id="bgrOpts" style="display:none;margin-bottom:12px">' +
-      '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px">' +
+      '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px">' +
         '<div style="display:flex;gap:8px;align-items:center">' +
-          '<label style="font-size:13px;font-weight:600">Sensitivity: <span id="bgrTolV">38</span></label>' +
-          '<input type="range" id="bgrTol" min="8" max="100" value="38" style="width:120px">' +
+          '<label style="font-size:13px;font-weight:600">Tolerance: <span id="bgrTolV">30</span></label>' +
+          '<input type="range" id="bgrTol" min="5" max="90" value="30" style="width:110px">' +
         '</div>' +
-        '<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">' +
-          '<input type="checkbox" id="bgrFeather" checked style="accent-color:var(--p1)">Smooth edges' +
-        '</label>' +
         '<button class="btn" id="bgrRerun" style="background:rgba(99,179,237,.15);color:#63b3ed;padding:6px 14px;font-size:13px">' +
           '\u21BA Re-apply' +
         '</button>' +
       '</div>' +
-      '<p style="font-size:12px;color:var(--text-faint)" id="bgrHint">' +
-        'Auto-tuned to your image. Handles gradients, shadows and soft vignettes &mdash; raise sensitivity if any background remains.' +
+      '<p style="font-size:12px;color:var(--text-faint)">' +
+        'Higher tolerance = removes more background. Best for photos on white, black or plain coloured backgrounds.' +
       '</p>' +
     '</div>' +
     '<div class="status" id="bgrSt"></div>' +
     '<div class="results" id="bgrRes"></div>' +
     '<canvas id="bgrCanvas" style="display:none"></canvas>';
 
-  var drop     = $('#bgrDrop',    panel),
-      inp      = $('#bgrIn',      panel),
-      opts     = $('#bgrOpts',    panel),
-      tolEl    = $('#bgrTol',     panel),
-      tolVal   = $('#bgrTolV',    panel),
-      feathEl  = $('#bgrFeather', panel),
-      hint     = $('#bgrHint',    panel),
-      rerunBtn = $('#bgrRerun',   panel),
-      st       = $('#bgrSt',      panel),
-      res      = $('#bgrRes',     panel),
-      canvas   = $('#bgrCanvas',  panel),
-      ctx      = canvas.getContext('2d');
+  var drop    = $('#bgrDrop',  panel),
+      inp     = $('#bgrIn',    panel),
+      opts    = $('#bgrOpts',  panel),
+      tolEl   = $('#bgrTol',   panel),
+      tolVal  = $('#bgrTolV',  panel),
+      rerunBtn= $('#bgrRerun', panel),
+      st      = $('#bgrSt',    panel),
+      res     = $('#bgrRes',   panel),
+      canvas  = $('#bgrCanvas',panel),
+      ctx     = canvas.getContext('2d');
 
-  var currentImg = null, currentFile = null, autoTolSet = false;
+  var currentImg = null, currentFile = null;
 
   tolEl.oninput = function() { tolVal.textContent = tolEl.value; };
-  feathEl.onchange = function() {
-    if (currentImg && currentFile) processImage(currentImg, currentFile, parseInt(tolEl.value), feathEl.checked);
-  };
   rerunBtn.onclick = function() {
-    if (currentImg && currentFile) processImage(currentImg, currentFile, parseInt(tolEl.value), feathEl.checked);
+    if (currentImg && currentFile) processImage(currentImg, currentFile, parseInt(tolEl.value));
   };
 
   dropzone(drop, inp, function(files) {
     if (!files[0]) return;
     currentFile = files[0];
-    autoTolSet = false;
     var url = URL.createObjectURL(files[0]);
     var img = new Image();
-    img.onload = function() { currentImg = img; processImage(img, files[0], parseInt(tolEl.value), feathEl.checked); };
+    img.onload = function() { currentImg = img; processImage(img, files[0], parseInt(tolEl.value)); };
     img.onerror = function() { setStatus(st, 'Could not load image.', true); };
     img.src = url;
   });
 
-  /* Two DIFFERENT distance functions, used for two DIFFERENT jobs:
-
-     pdistGlobal — chroma-weighted. Used only to ask "is this pixel still
-     plausibly the same overall backdrop colour?". Lightness differences
-     (shadows/vignette/gradient) count for very little here, which is what
-     lets a large, smooth lighting gradient pass without tripping the
-     overall sanity check.
-
-     pdistLocal — plain Euclidean RGB. Used for the neighbour-to-neighbour
-     step during flood fill — this is what actually decides whether the
-     fill is allowed to expand into the next pixel. It must NOT discount
-     lightness: a real subject edge (a sweater fold, a shadow line under a
-     laptop, a desk edge) very often shows up primarily as a lightness
-     change even when the hue is close to the backdrop's. Using the
-     chroma-weighted distance here was the bug — it made the algorithm
-     blind to exactly the edges it needed to stop at, letting the fill
-     walk straight through low-saturation clothing/objects that merely
-     happened to be a similar overall colour to the wall behind them. */
-  function pdistGlobal(r,g,b,r2,g2,b2) {
-    var l1 = (r+g+b)/3, l2 = (r2+g2+b2)/3, dL = l1-l2;
-    var cr1=r-l1, cg1=g-l1, cb1=b-l1, cr2=r2-l2, cg2=g2-l2, cb2=b2-l2;
-    var dC = Math.sqrt(Math.pow(cr1-cr2,2)+Math.pow(cg1-cg2,2)+Math.pow(cb1-cb2,2));
-    return Math.sqrt(Math.pow(dL*0.30,2) + Math.pow(dC*1.6,2));
-  }
-  function pdistLocal(r,g,b,r2,g2,b2) {
-    var dr=r-r2, dg=g-g2, db=b-b2;
-    return Math.sqrt(dr*dr+dg*dg+db*db);
-  }
-
-  function processImage(img, file, sensitivity, feather) {
+  function processImage(img, file, tolerance) {
     drop.style.display = 'none';
     res.innerHTML = ''; res.classList.remove('show');
-    setStatus(st, 'Analysing background\u2026');
+    setStatus(st, 'Removing background\u2026');
 
+    /* Give UI a tick to update */
     setTimeout(function() {
       try {
         var w = img.naturalWidth, h = img.naturalHeight;
@@ -386,179 +347,70 @@ INIT['background-remover'] = function(panel) {
 
         var imageData = ctx.getImageData(0, 0, w, h);
         var d = imageData.data;
-        var n = w * h;
 
-        /* STEP 1 — sample full perimeter, use median (robust to subject touching edge) */
-        var step = Math.max(1, Math.floor(Math.min(w, h) / 400));
-        var rs = [], gs = [], bs = [];
-        for (var x = 0; x < w; x += step) { pushSample(x, 0); pushSample(x, h - 1); }
-        for (var y = 0; y < h; y += step) { pushSample(0, y); pushSample(w - 1, y); }
-        function pushSample(px, py) {
-          var i = (py * w + px) * 4;
-          rs.push(d[i]); gs.push(d[i+1]); bs.push(d[i+2]);
+        /* ── Sample background from all 4 corner regions (7×7 px) ── */
+        var bgSamples = [];
+        var sampleSize = Math.min(7, Math.floor(Math.min(w, h) / 4));
+        function addCorner(ox, oy) {
+          for (var cy = 0; cy < sampleSize; cy++) {
+            for (var cx = 0; cx < sampleSize; cx++) {
+              var px = ox + cx, py = oy + cy;
+              if (px < 0 || py < 0 || px >= w || py >= h) continue;
+              var i = (py * w + px) * 4;
+              bgSamples.push([d[i], d[i+1], d[i+2]]);
+            }
+          }
         }
-        function median(arr) {
-          var a = arr.slice().sort(function(x,y){return x-y;});
-          return a[Math.floor(a.length / 2)];
-        }
-        var bgR = median(rs), bgG = median(gs), bgB = median(bs);
+        addCorner(0, 0);              /* top-left  */
+        addCorner(w-sampleSize, 0);   /* top-right */
+        addCorner(0, h-sampleSize);   /* bot-left  */
+        addCorner(w-sampleSize, h-sampleSize); /* bot-right */
 
-        /* Defensive: rs/gs/bs should never be empty for a valid image,
-           and bgR/bgG/bgB/pdist should never yield NaN — but if anything
-           upstream ever does (corrupt image data, zero-area canvas, an
-           unexpected decode edge case), we must NEVER let an invalid
-           number reach the slider. Assigning NaN to a <input type=range>
-           silently clamps its DISPLAYED value down to the slider's own
-           min attribute (8) without throwing — which is exactly the
-           "Sensitivity: 8 / Clean background detected" false-positive
-           bug. Every value below is explicitly validated before use. */
-        var spreadSum = 0, validSamples = 0;
-        for (var s = 0; s < rs.length; s++) {
-          var pd = pdistGlobal(rs[s],gs[s],bs[s], bgR,bgG,bgB);
-          if (isFinite(pd)) { spreadSum += pd; validSamples++; }
-        }
-        var spread = validSamples > 0 ? (spreadSum / validSamples) : NaN;
-        if (!isFinite(spread)) {
-          console.warn('[background-remover] spread calculation invalid (rs.length=' + rs.length + ', bgR/G/B=' + bgR + '/' + bgG + '/' + bgB + ') — falling back to safe default tolerance.');
-          spread = 20; /* sane mid-range fallback so the tool still works correctly */
+        /* Average background colour */
+        var bgR = 0, bgG = 0, bgB = 0;
+        bgSamples.forEach(function(c) { bgR += c[0]; bgG += c[1]; bgB += c[2]; });
+        var n = bgSamples.length;
+        bgR = Math.round(bgR/n); bgG = Math.round(bgG/n); bgB = Math.round(bgB/n);
+
+        function dist(r,g,b) {
+          return Math.sqrt((r-bgR)*(r-bgR) + (g-bgG)*(g-bgG) + (b-bgB)*(b-bgB));
         }
 
-        var suggestedRaw = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
-        var autoSuggested = isFinite(suggestedRaw) ? suggestedRaw : 32; /* hard fallback, never NaN */
-
-        if (!autoTolSet) {
-          tolEl.value = autoSuggested; tolVal.textContent = autoSuggested;
-          sensitivity = autoSuggested; autoTolSet = true;
-        }
-
-        /* Hint is recalculated on EVERY run (fresh upload AND every manual
-           Re-apply) so it never goes stale relative to whatever sensitivity
-           value is actually being applied right now — this is what
-           prevented the confusing "hint says Gradient, value shows 24"
-           mismatch from a manually-adjusted slider after the first run. */
-        var usingBelowRecommended = sensitivity < autoSuggested - 4;
-        if (usingBelowRecommended) {
-          hint.innerHTML = '\u26A0\uFE0F Current sensitivity (' + sensitivity + ') is below the recommended <strong>' + autoSuggested + '</strong> for this image \u2014 raise the slider if background remains.';
-        } else if (spread > 14) {
-          hint.textContent = 'Gradient or shadowed background detected \u2014 sensitivity auto-tuned to ' + autoSuggested + '. Raise it further if any background remains.';
-        } else {
-          hint.textContent = 'Clean background detected \u2014 sensitivity auto-tuned to ' + autoSuggested + ' for a precise cut.';
-        }
-
-        var tolerance = isFinite(sensitivity) ? sensitivity : 32; /* final defence: never let an invalid value reach the flood fill */
-        var localTol  = Math.max(10, tolerance * 0.6);
-
-        /* STEP 2 — region-growing flood fill: each pixel checked against
-           BOTH the global background colour AND its classified neighbour,
-           using the chroma-weighted distance above. */
-        var mask = new Uint8Array(n);
-        var visited = new Uint8Array(n);
-        var qx = new Int32Array(n), qy = new Int32Array(n);
-        var qr = new Uint8Array(n), qg = new Uint8Array(n), qb = new Uint8Array(n);
+        /* ── Flood-fill from all 4 edges ── */
+        var visited = new Uint8Array(w * h);
+        /* Use typed array queue for performance on large images */
+        var qx = new Int16Array(w * h * 2);
+        var qy = new Int16Array(w * h * 2);
         var head = 0, tail = 0;
 
-        function tryEnqueue(x, y, pr, pg, pb, gTol, lTol) {
-          if (x < 0 || y < 0 || x >= w || y >= h) return;
+        function enqueue(x, y) {
           var idx = y * w + x;
           if (visited[idx]) return;
-          var i = idx * 4, r = d[i], g = d[i+1], b = d[i+2];
-          if (pdistGlobal(r,g,b, bgR,bgG,bgB) <= gTol && pdistLocal(r,g,b, pr,pg,pb) <= lTol) {
-            visited[idx] = 1; mask[idx] = 1;
-            qx[tail]=x; qy[tail]=y; qr[tail]=r; qg[tail]=g; qb[tail]=b; tail++;
-          }
+          visited[idx] = 1;
+          qx[tail] = x; qy[tail] = y; tail++;
         }
 
-        for (var x0 = 0; x0 < w; x0++) {
-          tryEnqueue(x0, 0,   bgR,bgG,bgB, tolerance, localTol);
-          tryEnqueue(x0, h-1, bgR,bgG,bgB, tolerance, localTol);
-        }
-        for (var y0 = 1; y0 < h-1; y0++) {
-          tryEnqueue(0,   y0, bgR,bgG,bgB, tolerance, localTol);
-          tryEnqueue(w-1, y0, bgR,bgG,bgB, tolerance, localTol);
-        }
+        /* Seed from all edge pixels */
+        for (var x = 0; x < w; x++) { enqueue(x, 0); enqueue(x, h-1); }
+        for (var y = 1; y < h-1; y++) { enqueue(0, y); enqueue(w-1, y); }
+
         while (head < tail) {
-          var px = qx[head], py = qy[head], pr = qr[head], pg = qg[head], pb = qb[head]; head++;
-          tryEnqueue(px-1, py, pr,pg,pb, tolerance, localTol);
-          tryEnqueue(px+1, py, pr,pg,pb, tolerance, localTol);
-          tryEnqueue(px, py-1, pr,pg,pb, tolerance, localTol);
-          tryEnqueue(px, py+1, pr,pg,pb, tolerance, localTol);
-        }
+          var px = qx[head], py = qy[head]; head++;
+          var idx = (py * w + px) * 4;
+          var r = d[idx], g = d[idx+1], b = d[idx+2];
 
-        /* STEP 2b — multi-pass escalating growth: mops up any residual
-           background left behind by a sharp-but-still-background step
-           (e.g. JPEG compression banding inside a smooth gradient). */
-        var passMultipliers = [1.7, 2.4];
-        for (var pm = 0; pm < passMultipliers.length; pm++) {
-          var pLocal  = Math.min(60, localTol * passMultipliers[pm]);
-          var pGlobal = Math.min(90, tolerance * (1 + pm * 0.15));
-          var grew = false;
-
-          for (var sy = 0; sy < h; sy++) {
-            for (var sx = 0; sx < w; sx++) {
-              var sidx = sy*w+sx;
-              if (visited[sidx]) continue;
-              var refR=0, refG=0, refB=0, has=false;
-              if      (sx>0   && mask[sidx-1]) { has=true; var ri=(sidx-1)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
-              else if (sx<w-1 && mask[sidx+1]) { has=true; var ri=(sidx+1)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
-              else if (sy>0   && mask[sidx-w]) { has=true; var ri=(sidx-w)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
-              else if (sy<h-1 && mask[sidx+w]) { has=true; var ri=(sidx+w)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
-              if (!has) continue;
-              var i2 = sidx*4, r2=d[i2], g2=d[i2+1], b2=d[i2+2];
-              if (pdistGlobal(r2,g2,b2, bgR,bgG,bgB) <= pGlobal && pdistLocal(r2,g2,b2, refR,refG,refB) <= pLocal) {
-                visited[sidx]=1; mask[sidx]=1;
-                qx[tail]=sx; qy[tail]=sy; qr[tail]=r2; qg[tail]=g2; qb[tail]=b2; tail++;
-                grew = true;
-              }
-            }
-          }
-          while (head < tail) {
-            var px2=qx[head], py2=qy[head], pr2=qr[head], pg2=qg[head], pb2=qb[head]; head++;
-            tryEnqueue(px2-1, py2, pr2,pg2,pb2, pGlobal, pLocal);
-            tryEnqueue(px2+1, py2, pr2,pg2,pb2, pGlobal, pLocal);
-            tryEnqueue(px2, py2-1, pr2,pg2,pb2, pGlobal, pLocal);
-            tryEnqueue(px2, py2+1, pr2,pg2,pb2, pGlobal, pLocal);
-          }
-          if (!grew) break;
-        }
-
-        /* STEP 3 — apply mask to alpha */
-        for (var p = 0; p < n; p++) { if (mask[p]) d[p*4+3] = 0; }
-
-        /* STEP 4 — optional edge feathering: small alpha-only box blur
-           restricted to the boundary band, for anti-aliased cut edges. */
-        if (feather) {
-          var alpha = new Uint8ClampedArray(n);
-          for (var a = 0; a < n; a++) alpha[a] = d[a*4+3];
-          var boundary = new Uint8Array(n);
-          for (var by = 0; by < h; by++) {
-            for (var bx = 0; bx < w; bx++) {
-              var bi = by*w+bx, av = alpha[bi], edge = false;
-              if (bx>0   && alpha[bi-1] !== av) edge = true;
-              if (bx<w-1 && alpha[bi+1] !== av) edge = true;
-              if (by>0   && alpha[bi-w] !== av) edge = true;
-              if (by<h-1 && alpha[bi+w] !== av) edge = true;
-              if (edge) boundary[bi] = 1;
-            }
-          }
-          for (var fy = 0; fy < h; fy++) {
-            for (var fx = 0; fx < w; fx++) {
-              var fi = fy*w+fx;
-              if (!boundary[fi]) continue;
-              var sum = 0, cnt = 0;
-              for (var oy = -1; oy <= 1; oy++) {
-                for (var ox = -1; ox <= 1; ox++) {
-                  var nx = fx+ox, ny = fy+oy;
-                  if (nx<0||ny<0||nx>=w||ny>=h) continue;
-                  sum += alpha[ny*w+nx]; cnt++;
-                }
-              }
-              d[fi*4+3] = Math.round(sum / cnt);
-            }
+          if (dist(r, g, b) <= tolerance) {
+            d[idx+3] = 0; /* Make transparent */
+            if (px > 0)   enqueue(px-1, py);
+            if (px < w-1) enqueue(px+1, py);
+            if (py > 0)   enqueue(px, py-1);
+            if (py < h-1) enqueue(px, py+1);
           }
         }
 
         ctx.putImageData(imageData, 0, 0);
 
+        /* Convert canvas to blob and show result */
         canvas.toBlob(function(blob) {
           st.className = 'status';
           opts.style.display = 'block';
@@ -588,7 +440,7 @@ INIT['background-remover'] = function(panel) {
 
           $('#bgrDl', res).onclick = function() { download(blob, base + '-no-bg.png'); };
           $('#bgrAnother', res).onclick = function() {
-            currentImg = null; currentFile = null; autoTolSet = false;
+            currentImg = null; currentFile = null;
             res.innerHTML = ''; res.classList.remove('show');
             opts.style.display = 'none'; st.className = 'status';
             drop.style.display = ''; inp.value = '';
@@ -605,13 +457,10 @@ INIT['background-remover'] = function(panel) {
 
 
 /* ═══════════════════════════════════════════════════════════
-   BACKGROUND REMOVER
-   Uses @imgly/background-removal via ESM dynamic module.
-   CORRECT API: default export (imglyRemoveBackground), not named.
-   No publicPath — models auto-fetched from resources.img.ly.
+   OCR IMAGE TO TEXT  (Tesseract.js v4.1.2)
+   v4 works without SharedArrayBuffer — v5 requires COOP/COEP
+   headers which Cloudflare Pages doesn't set by default.
    ═══════════════════════════════════════════════════════════ */
-
-
 INIT['ocr-image-to-text'] = function(panel) {
 
   var CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js';

@@ -1287,16 +1287,16 @@
         <span class="eyebrow"><span class="dot"></span>66+ TOOLS · 5 CATEGORIES · 100% IN-BROWSER</span>
         <h1 class="headline">Free Browser Tools for <span class="g">Designers, Developers</span> &amp; Marketers</h1>
         <p class="sub">Convert, edit, compress, resize, merge, optimize and manage files instantly — powered by tools that run entirely in your browser. Your files never leave your device.</p>
-        <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
-                <div class="hero-search">
+        <div class="hero-search hero-search-primary">
           <div class="hs-box">
             <svg class="hs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="heroSearch" placeholder="Search 66+ tools&hellip; try &ldquo;compress image&rdquo; or &ldquo;merge pdf&rdquo;" autocomplete="off" aria-label="Search tools">
+            <input type="text" id="heroSearch" placeholder="" autocomplete="off" aria-label="Search tools">
+            <span class="hs-rotator" id="hsRotator" aria-hidden="true"></span>
             <kbd class="hs-kbd">&#8984;K</kbd>
           </div>
           <div class="hs-results" id="heroSearchResults"></div>
         </div>
-        <div class="hero-trust"><span class="ht-dot"></span><span><strong>100%</strong> in-browser</span><span class="ht-sep">·</span><span>No signup, no limits</span><span class="ht-sep">·</span><span><strong>66+</strong> free tools</span></div>
+        <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
       </div>
       <div class="stage"><div class="cluster-glow"></div><div class="float-wrap"><div class="cluster">
         <div class="card3d c1"><span class="glyph">PDF</span><span class="fmt">.pdf</span></div>
@@ -1308,14 +1308,15 @@
       </div></div></div>
     </div></section>
 
-<section class="section recent-section-v2" id="recent-section">
+<section class="section filter-section" id="filter-section">
       <div class="wrap">
-        <div id="recent-row" style="display:none">
-          <div class="recent-head">
-            <span class="recent-label">Recently used</span>
-            <span class="recent-hint">Pick up where you left off</span>
-          </div>
-          <div class="recent-list" id="recent-list"></div>
+        <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filter featured tools by category">
+          <button class="fp-pill active" data-cat="all" role="tab" aria-selected="true">All</button>
+          <button class="fp-pill" data-cat="image" role="tab" aria-selected="false">Image</button>
+          <button class="fp-pill" data-cat="pdf" role="tab" aria-selected="false">PDF</button>
+          <button class="fp-pill" data-cat="developer" role="tab" aria-selected="false">Developer</button>
+          <button class="fp-pill" data-cat="marketing" role="tab" aria-selected="false">Marketing</button>
+          <button class="fp-pill" data-cat="converter" role="tab" aria-selected="false">Converters</button>
         </div>
       </div>
     </section>

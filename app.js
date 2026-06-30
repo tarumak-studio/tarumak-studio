@@ -117,23 +117,129 @@ function buildCategoryCards(){
    (e.g. tool renamed/removed) so the section never
    shows a broken card.
 ────────────────────────────────────────────────── */
-function buildFeaturedTools(){
+function buildFeaturedTools(cat){
+  cat=cat||'all';
   const grid=document.getElementById('feat-grid');
   if(!grid||typeof FEATURED==='undefined')return;
   const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
-  grid.innerHTML=FEATURED.map(f=>{
+
+  /* "All" shows the curated flagship 8. A specific category swaps to
+     that category's top picks (CAT_META.popular) so every filter pill
+     always shows real, relevant tools \u2014 never an empty grid. */
+  let items;
+  if(cat==='all'){
+    items=FEATURED;
+  } else {
+    const meta=CAT_META&&CAT_META[cat];
+    items=meta?meta.popular.map(slug=>({slug:slug,hook:null})):[];
+  }
+
+  grid.innerHTML=items.map(f=>{
     const t=bySlug(f.slug);
     if(!t)return '';
+    const hook=f.hook||t[3];
+    const preview=FEATURED_PREVIEWS[f.slug]?FEATURED_PREVIEWS[f.slug]():'';
     return ''+
       '<a class="feat-card cat-'+t[2]+'" href="javascript:void(0)" onclick="go(\'t/'+t[0]+'\')" aria-label="Open '+t[1]+'">'+
         '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
         '<div class="fc-body">'+
           '<h3>'+t[1]+'</h3>'+
-          '<p>'+f.hook+'</p>'+
+          '<p>'+hook+'</p>'+
+          preview+
         '</div>'+
         '<span class="fc-cta">Try Now '+arrow+'</span>'+
       '</a>';
   }).join('');
+}
+
+/* ──────────────────────────────────────────────────
+   FEATURED_PREVIEWS \u2014 tiny, static, CSS/text-only
+   visual previews for the flagship 8 cards. No images,
+   no live processing, no canvas \u2014 every preview is
+   plain markup so it costs nothing to render and never
+   blocks page load.
+────────────────────────────────────────────────── */
+const FEATURED_PREVIEWS={
+  'background-remover':()=>
+    '<div class="fc-preview fc-preview-split">'+
+      '<span class="fcp-before"><span class="fcp-subject"></span></span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-after"><span class="fcp-subject"></span></span>'+
+    '</div>',
+  'image-compressor':()=>
+    '<div class="fc-preview fc-preview-size">'+
+      '<span class="fcp-size fcp-size-before">3.5 MB</span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-size fcp-size-after">680 KB</span>'+
+    '</div>',
+  'ocr-image-to-text':()=>
+    '<div class="fc-preview fc-preview-ocr">'+
+      '<span class="fcp-img-mini"><i></i><i></i><i></i></span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-text-mini">Lorem ipsum<br>dolor sit amet</span>'+
+    '</div>',
+  'word-to-pdf':()=>
+    '<div class="fc-preview fc-preview-format">'+
+      '<span class="fcp-chip">.DOCX</span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-chip fcp-chip-accent">.PDF</span>'+
+    '</div>',
+  'heic-to-jpg':()=>
+    '<div class="fc-preview fc-preview-format">'+
+      '<span class="fcp-chip">.HEIC</span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-chip fcp-chip-accent">.JPG</span>'+
+    '</div>',
+  'regex-tester':()=>
+    '<div class="fc-preview fc-preview-regex">'+
+      '<code class="fcp-code">^\\d{3}-<mark>\\d{4}</mark>$</code>'+
+    '</div>',
+  'qr-code-generator':()=>
+    '<div class="fc-preview fc-preview-qr">'+
+      '<span class="fcp-url">tarumakstudio.com</span>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<svg class="fcp-qr-mini" viewBox="0 0 28 28" fill="currentColor">'+
+        '<rect x="0" y="0" width="8" height="8" rx="1.5"/><rect x="2" y="2" width="4" height="4" rx="0.8" fill="var(--bg-2)"/>'+
+        '<rect x="20" y="0" width="8" height="8" rx="1.5"/><rect x="22" y="2" width="4" height="4" rx="0.8" fill="var(--bg-2)"/>'+
+        '<rect x="0" y="20" width="8" height="8" rx="1.5"/><rect x="2" y="22" width="4" height="4" rx="0.8" fill="var(--bg-2)"/>'+
+        '<rect x="11" y="2" width="2.5" height="2.5"/><rect x="16" y="11" width="2.5" height="2.5"/>'+
+        '<rect x="11" y="11" width="2.5" height="2.5"/><rect x="11" y="16" width="2.5" height="2.5"/>'+
+        '<rect x="20" y="11" width="2.5" height="2.5"/><rect x="11" y="20" width="2.5" height="2.5"/>'+
+        '<rect x="16" y="20" width="2.5" height="2.5"/><rect x="20" y="16" width="2.5" height="2.5"/>'+
+      '</svg>'+
+    '</div>',
+  'markdown-to-html':()=>
+    '<div class="fc-preview fc-preview-md">'+
+      '<code class="fcp-code"># Heading</code>'+
+      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-html-mini">Heading</span>'+
+    '</div>'
+};
+
+/* ──────────────────────────────────────────────────
+   wireFilterPills \u2014 instant client-side category
+   filter for the Featured Tools grid. No reload, no
+   navigation, just a re-render + a subtle fade.
+────────────────────────────────────────────────── */
+function wireFilterPills(){
+  const wrap=document.getElementById('filterPills');
+  if(!wrap||wrap.dataset.wired)return;
+  wrap.dataset.wired='1';
+  wrap.addEventListener('click',e=>{
+    const btn=e.target.closest('.fp-pill');
+    if(!btn)return;
+    wrap.querySelectorAll('.fp-pill').forEach(p=>{p.classList.remove('active');p.setAttribute('aria-selected','false');});
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected','true');
+    const grid=document.getElementById('feat-grid');
+    if(grid){
+      grid.classList.add('fading');
+      setTimeout(()=>{
+        buildFeaturedTools(btn.dataset.cat);
+        grid.classList.remove('fading');
+      },140);
+    }
+  });
 }
 
 /* ──────────────────────────────────────────────────
@@ -196,6 +302,36 @@ function wireHeroSearch(){
   if(!input||!results)return;
   let activeIndex=-1;
 
+  /* Rotating placeholder \u2014 cycles through real example searches so
+     the search bar also doubles as implicit tool discovery. Uses a
+     separate overlay span (not the native placeholder attribute) so the
+     text change can crossfade smoothly; native placeholders can only
+     swap instantly. Pauses whenever the input has a value or is focused
+     with content, and respects prefers-reduced-motion. */
+  const rotatorEl=document.getElementById('hsRotator');
+  const examples=['Search "Background Remover"','Search "Merge PDF"','Search "OCR"','Search "Regex Tester"','Search "HEIC to JPG"','Search "Image Compressor"'];
+  const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rotatorEl){
+    let exIndex=0;
+    function paintPlaceholder(){
+      if(input.value){rotatorEl.style.opacity='0';return;}
+      rotatorEl.textContent=examples[exIndex];
+      rotatorEl.style.opacity='1';
+    }
+    paintPlaceholder();
+    if(!reduceMotion){
+      setInterval(()=>{
+        if(input.value||document.activeElement===input&&input.value)return;
+        rotatorEl.style.opacity='0';
+        setTimeout(()=>{
+          exIndex=(exIndex+1)%examples.length;
+          paintPlaceholder();
+        },280);
+      },2600);
+    }
+    input.addEventListener('input',()=>{ rotatorEl.style.opacity=input.value?'0':'1'; });
+  }
+
   function render(list){
     if(!list.length){
       results.innerHTML='<a style="cursor:default;color:var(--text-faint)">No matches \u2014 try a different word</a>';
@@ -257,9 +393,9 @@ function wireHeroSearch(){
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
-  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();wireFilterPills();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
-  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
+  else{activeCat='all';buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();wireFilterPills();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 
 /* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
@@ -466,3 +602,4 @@ buildFeaturedTools();
 buildLatestArticles();
 buildNavToolsDropdown();
 wireHeroSearch();
+wireFilterPills();

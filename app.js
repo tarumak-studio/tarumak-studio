@@ -109,12 +109,40 @@ function buildCategoryCards(){
   }).join('');
 }
 
+/* ──────────────────────────────────────────────────
+   buildFeaturedTools — renders the 8 flagship-tool
+   cards on the homepage. Reads FEATURED[] (slug+hook)
+   from data.js, validates each slug against TOOLS via
+   bySlug, and skips silently if a slug doesn't exist
+   (e.g. tool renamed/removed) so the section never
+   shows a broken card.
+────────────────────────────────────────────────── */
+function buildFeaturedTools(){
+  const grid=document.getElementById('feat-grid');
+  if(!grid||typeof FEATURED==='undefined')return;
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  grid.innerHTML=FEATURED.map(f=>{
+    const t=bySlug(f.slug);
+    if(!t)return '';
+    return ''+
+      '<a class="feat-card cat-'+t[2]+'" href="javascript:void(0)" onclick="go(\'t/'+t[0]+'\')" aria-label="Open '+t[1]+'">'+
+        '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
+        '<div class="fc-body">'+
+          '<h3>'+t[1]+'</h3>'+
+          '<p>'+f.hook+'</p>'+
+        '</div>'+
+        '<span class="fc-cta">Try Now '+arrow+'</span>'+
+      '</a>';
+  }).join('');
+}
+
+
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
-  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
-  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
+  else{activeCat='all';buildTabs();buildGrid();buildRecent();buildCategoryCards();buildFeaturedTools();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 
 /* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
@@ -317,3 +345,4 @@ route();
 
 /* Boot-time render of category cards */
 buildCategoryCards();
+buildFeaturedTools();

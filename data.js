@@ -31,6 +31,24 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       popular:['word-to-pdf','markdown-to-html','svg-to-png','png-to-jpg']
     }
   };
+
+  /* ──────────────────────────────────────────────────
+     FEATURED — flagship tools shown in the homepage
+     "Featured Tools" section. Curated, not automatic —
+     update slugs here as priorities shift. hook is a
+     short, punchy line distinct from the tool's normal
+     card description (used only in the featured section).
+  ────────────────────────────────────────────────── */
+  const FEATURED=[
+    {slug:'background-remover',  hook:'Erase any background in one click — no design skill needed.'},
+    {slug:'image-compressor',    hook:'Shrink image file size by up to 80% with zero visible quality loss.'},
+    {slug:'ocr-image-to-text',   hook:'Pull text out of any screenshot, scan or photo instantly.'},
+    {slug:'word-to-pdf',         hook:'Turn any Word doc into a clean, shareable PDF in seconds.'},
+    {slug:'heic-to-jpg',         hook:'Open iPhone photos anywhere — convert HEIC to JPG instantly.'},
+    {slug:'regex-tester',        hook:'Build and debug regex patterns with live match highlighting.'},
+    {slug:'markdown-to-html',    hook:'Convert Markdown to clean, ready-to-paste HTML instantly.'},
+    {slug:'qr-code-generator',   hook:'Generate a scannable QR code for any link in one step.'}
+  ];
 const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',developer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'};
 
 /* build a standard dropzone panel; returns refs */

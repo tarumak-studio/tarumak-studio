@@ -131,7 +131,7 @@ function buildFeaturedTools(){
           '<h3>'+t[1]+'</h3>'+
           '<p>'+f.hook+'</p>'+
         '</div>'+
-        '<span class="fc-cta">Open Tool '+arrow+'</span>'+
+        '<span class="fc-cta">Try Now '+arrow+'</span>'+
       '</a>';
   }).join('');
 }

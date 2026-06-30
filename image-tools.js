@@ -261,20 +261,21 @@ function _loadScript(src, glob) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BACKGROUND REMOVER
-   Uses @imgly/background-removal via ESM dynamic module.
-   CORRECT API: default export (imglyRemoveBackground), not named.
-   No publicPath — models auto-fetched from resources.img.ly.
+   BACKGROUND REMOVER  —  region-growing flood fill v3
+   Pure canvas, zero CDN. Uses a perceptual, chroma-weighted
+   colour distance instead of raw RGB Euclidean distance:
+   lightness differences (shadows, vignettes, lighting falloff)
+   count much LESS, while hue/saturation differences (real
+   subject colour — skin, hair, clothing) count much MORE.
+   This is what lets it follow large, smooth lighting gradients
+   on a backdrop while still stopping cleanly at the subject's
+   edge. A short multi-pass growth stage afterwards mops up any
+   residual sharp-but-still-background steps (e.g. JPEG banding).
+   Known limitation: clothing whose colour is nearly identical
+   to the backdrop (e.g. light-grey shirt on a light-grey wall)
+   can still be misread as background — this is a shared limit
+   of every non-AI colour-distance approach, not just this one.
    ═══════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════
-   BACKGROUND REMOVER — Pure Canvas Flood-Fill
-   Zero CDN dependencies. Works for solid-color backgrounds
-   (white, black, grey, plain colours — product photos, logos,
-   screenshots). Algorithm: flood-fill from edges using sampled
-   corner colours. Instant processing, runs fully in browser.
-   ═══════════════════════════════════════════════════════════ */
-
 INIT['background-remover'] = function(panel) {
 
   panel.innerHTML =
@@ -282,7 +283,7 @@ INIT['background-remover'] = function(panel) {
       '<input type="file" id="bgrIn" accept="image/*" hidden>' +
       '<div class="di">' + UP + '</div>' +
       '<h3>Drop image here or click to browse</h3>' +
-      '<p>Removes solid or gently-graded backgrounds &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
+      '<p>Removes solid or gradient backgrounds &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
       '<div class="formats">' +
         '<span class="chip">JPG</span><span class="chip">PNG</span>' +
         '<span class="chip">WebP</span><span class="chip">Transparent PNG</span>' +
@@ -302,7 +303,7 @@ INIT['background-remover'] = function(panel) {
         '</button>' +
       '</div>' +
       '<p style="font-size:12px;color:var(--text-faint)" id="bgrHint">' +
-        'Higher sensitivity removes more background. Best results on solid or smoothly-lit backgrounds.' +
+        'Auto-tuned to your image. Handles gradients, shadows and soft vignettes &mdash; raise sensitivity if any background remains.' +
       '</p>' +
     '</div>' +
     '<div class="status" id="bgrSt"></div>' +
@@ -343,7 +344,17 @@ INIT['background-remover'] = function(panel) {
     img.src = url;
   });
 
-  function processImage(img, file, tolerance, feather) {
+  /* Chroma-weighted perceptual distance: lightness differences
+     (shadows/vignette/gradient) count for little; hue/saturation
+     differences (real subject colour) count for a lot. */
+  function pdist(r,g,b,r2,g2,b2) {
+    var l1 = (r+g+b)/3, l2 = (r2+g2+b2)/3, dL = l1-l2;
+    var cr1=r-l1, cg1=g-l1, cb1=b-l1, cr2=r2-l2, cg2=g2-l2, cb2=b2-l2;
+    var dC = Math.sqrt(Math.pow(cr1-cr2,2)+Math.pow(cg1-cg2,2)+Math.pow(cb1-cb2,2));
+    return Math.sqrt(Math.pow(dL*0.30,2) + Math.pow(dC*1.6,2));
+  }
+
+  function processImage(img, file, sensitivity, feather) {
     drop.style.display = 'none';
     res.innerHTML = ''; res.classList.remove('show');
     setStatus(st, 'Analysing background\u2026');
@@ -358,24 +369,11 @@ INIT['background-remover'] = function(panel) {
         var d = imageData.data;
         var n = w * h;
 
-        /* ════════════════════════════════════════════════════════
-           STEP 1 — Sample background from the FULL perimeter,
-           not just 4 small corners. Using the median (not mean)
-           makes the estimate robust even if the subject touches
-           part of the border. We also compute the spread (avg
-           deviation) of the perimeter samples — a noisy/uneven
-           background (shadows, vignette, texture) needs a higher
-           tolerance than a clean studio backdrop, so we use this
-           to set a smarter default on first run.
-           ════════════════════════════════════════════════════════ */
-        var step = Math.max(1, Math.floor(Math.min(w, h) / 400)); /* adaptive sampling density */
+        /* STEP 1 — sample full perimeter, use median (robust to subject touching edge) */
+        var step = Math.max(1, Math.floor(Math.min(w, h) / 400));
         var rs = [], gs = [], bs = [];
-        for (var x = 0; x < w; x += step) {
-          pushSample(x, 0); pushSample(x, h - 1);
-        }
-        for (var y = 0; y < h; y += step) {
-          pushSample(0, y); pushSample(w - 1, y);
-        }
+        for (var x = 0; x < w; x += step) { pushSample(x, 0); pushSample(x, h - 1); }
+        for (var y = 0; y < h; y += step) { pushSample(0, y); pushSample(w - 1, y); }
         function pushSample(px, py) {
           var i = (py * w + px) * 4;
           rs.push(d[i]); gs.push(d[i+1]); bs.push(d[i+2]);
@@ -386,120 +384,107 @@ INIT['background-remover'] = function(panel) {
         }
         var bgR = median(rs), bgG = median(gs), bgB = median(bs);
 
-        /* Spread = average distance of perimeter samples from the median bg colour */
         var spreadSum = 0;
-        for (var s = 0; s < rs.length; s++) {
-          spreadSum += Math.sqrt(
-            Math.pow(rs[s]-bgR,2) + Math.pow(gs[s]-bgG,2) + Math.pow(bs[s]-bgB,2)
-          );
-        }
+        for (var s = 0; s < rs.length; s++) spreadSum += pdist(rs[s],gs[s],bs[s], bgR,bgG,bgB);
         var spread = spreadSum / rs.length;
 
-        /* On first run, suggest a tolerance based on measured noise instead
-           of always defaulting to 38 — a clean white backdrop needs less,
-           a shadowed/uneven one needs more. */
         if (!autoTolSet) {
-          var suggested = Math.round(Math.min(70, Math.max(16, spread * 2.4 + 14)));
-          tolEl.value = suggested;
-          tolVal.textContent = suggested;
-          tolerance = suggested;
-          autoTolSet = true;
-          hint.textContent = spread > 18
-            ? 'Background looks uneven (shadows/gradient) — sensitivity auto-tuned higher. Adjust if needed.'
-            : 'Clean background detected — sensitivity auto-tuned for a precise cut. Adjust if needed.';
+          var suggested = Math.round(Math.min(90, Math.max(16, spread * 2.4 + 14)));
+          tolEl.value = suggested; tolVal.textContent = suggested;
+          sensitivity = suggested; autoTolSet = true;
+          hint.textContent = spread > 14
+            ? 'Gradient or shadowed background detected \u2014 sensitivity auto-tuned. Raise it if any background remains.'
+            : 'Clean background detected \u2014 sensitivity auto-tuned for a precise cut.';
         }
 
-        function distGlobal(r,g,b) {
-          var dr=r-bgR, dg=g-bgG, db=b-bgB;
-          return Math.sqrt(dr*dr+dg*dg+db*db);
-        }
+        var tolerance = sensitivity;
+        var localTol  = Math.max(10, tolerance * 0.6);
 
-        /* ════════════════════════════════════════════════════════
-           STEP 2 — Region-growing flood fill (not a flat threshold).
-           Each candidate pixel is checked against TWO references:
-             (a) the global background colour  — keeps the fill
-                 anchored to "this is background-ish overall"
-             (b) its already-classified NEIGHBOUR's colour — a
-                 tighter local check that lets the fill follow
-                 gentle gradients/shadows smoothly, while a sharp
-                 jump in colour (a real subject edge) stops it
-                 even if that colour happens to be globally close
-                 to the background average.
-           This is what makes gradient backgrounds and soft shadow
-           edges resolve correctly, where the old single-threshold
-           approach left patches behind.
-           ════════════════════════════════════════════════════════ */
-        var localTol = Math.max(6, tolerance * 0.55);
-        var mask = new Uint8Array(n);   /* 1 = background, 0 = subject */
+        /* STEP 2 — region-growing flood fill: each pixel checked against
+           BOTH the global background colour AND its classified neighbour,
+           using the chroma-weighted distance above. */
+        var mask = new Uint8Array(n);
         var visited = new Uint8Array(n);
-        var qx = new Int32Array(n);
-        var qy = new Int32Array(n);
-        var qr = new Uint8Array(n);
-        var qg = new Uint8Array(n);
-        var qb = new Uint8Array(n);
+        var qx = new Int32Array(n), qy = new Int32Array(n);
+        var qr = new Uint8Array(n), qg = new Uint8Array(n), qb = new Uint8Array(n);
         var head = 0, tail = 0;
 
-        function tryEnqueue(x, y, pr, pg, pb) {
+        function tryEnqueue(x, y, pr, pg, pb, gTol, lTol) {
+          if (x < 0 || y < 0 || x >= w || y >= h) return;
           var idx = y * w + x;
           if (visited[idx]) return;
-          var i = idx * 4;
-          var r = d[i], g = d[i+1], b = d[i+2];
-          var dr = r-pr, dg = g-pg, db = b-pb;
-          var localD = Math.sqrt(dr*dr+dg*dg+db*db);
-          if (distGlobal(r,g,b) <= tolerance && localD <= localTol) {
-            visited[idx] = 1;
-            mask[idx] = 1;
+          var i = idx * 4, r = d[i], g = d[i+1], b = d[i+2];
+          if (pdist(r,g,b, bgR,bgG,bgB) <= gTol && pdist(r,g,b, pr,pg,pb) <= lTol) {
+            visited[idx] = 1; mask[idx] = 1;
             qx[tail]=x; qy[tail]=y; qr[tail]=r; qg[tail]=g; qb[tail]=b; tail++;
           }
         }
 
-        /* Seed every border pixel using the global bg colour as the
-           starting reference point */
         for (var x0 = 0; x0 < w; x0++) {
-          tryEnqueue(x0, 0,   bgR, bgG, bgB);
-          tryEnqueue(x0, h-1, bgR, bgG, bgB);
+          tryEnqueue(x0, 0,   bgR,bgG,bgB, tolerance, localTol);
+          tryEnqueue(x0, h-1, bgR,bgG,bgB, tolerance, localTol);
         }
         for (var y0 = 1; y0 < h-1; y0++) {
-          tryEnqueue(0,   y0, bgR, bgG, bgB);
-          tryEnqueue(w-1, y0, bgR, bgG, bgB);
+          tryEnqueue(0,   y0, bgR,bgG,bgB, tolerance, localTol);
+          tryEnqueue(w-1, y0, bgR,bgG,bgB, tolerance, localTol);
         }
-
         while (head < tail) {
-          var px = qx[head], py = qy[head];
-          var pr = qr[head], pg = qg[head], pb = qb[head];
-          head++;
-          if (px > 0)   tryEnqueue(px-1, py, pr, pg, pb);
-          if (px < w-1) tryEnqueue(px+1, py, pr, pg, pb);
-          if (py > 0)   tryEnqueue(px, py-1, pr, pg, pb);
-          if (py < h-1) tryEnqueue(px, py+1, pr, pg, pb);
+          var px = qx[head], py = qy[head], pr = qr[head], pg = qg[head], pb = qb[head]; head++;
+          tryEnqueue(px-1, py, pr,pg,pb, tolerance, localTol);
+          tryEnqueue(px+1, py, pr,pg,pb, tolerance, localTol);
+          tryEnqueue(px, py-1, pr,pg,pb, tolerance, localTol);
+          tryEnqueue(px, py+1, pr,pg,pb, tolerance, localTol);
         }
 
-        /* ════════════════════════════════════════════════════════
-           STEP 3 — Apply mask to alpha channel
-           ════════════════════════════════════════════════════════ */
-        for (var p = 0; p < n; p++) {
-          if (mask[p]) d[p*4+3] = 0;
+        /* STEP 2b — multi-pass escalating growth: mops up any residual
+           background left behind by a sharp-but-still-background step
+           (e.g. JPEG compression banding inside a smooth gradient). */
+        var passMultipliers = [1.7, 2.4];
+        for (var pm = 0; pm < passMultipliers.length; pm++) {
+          var pLocal  = Math.min(60, localTol * passMultipliers[pm]);
+          var pGlobal = Math.min(90, tolerance * (1 + pm * 0.15));
+          var grew = false;
+
+          for (var sy = 0; sy < h; sy++) {
+            for (var sx = 0; sx < w; sx++) {
+              var sidx = sy*w+sx;
+              if (visited[sidx]) continue;
+              var refR=0, refG=0, refB=0, has=false;
+              if      (sx>0   && mask[sidx-1]) { has=true; var ri=(sidx-1)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
+              else if (sx<w-1 && mask[sidx+1]) { has=true; var ri=(sidx+1)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
+              else if (sy>0   && mask[sidx-w]) { has=true; var ri=(sidx-w)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
+              else if (sy<h-1 && mask[sidx+w]) { has=true; var ri=(sidx+w)*4; refR=d[ri];refG=d[ri+1];refB=d[ri+2]; }
+              if (!has) continue;
+              var i2 = sidx*4, r2=d[i2], g2=d[i2+1], b2=d[i2+2];
+              if (pdist(r2,g2,b2, bgR,bgG,bgB) <= pGlobal && pdist(r2,g2,b2, refR,refG,refB) <= pLocal) {
+                visited[sidx]=1; mask[sidx]=1;
+                qx[tail]=sx; qy[tail]=sy; qr[tail]=r2; qg[tail]=g2; qb[tail]=b2; tail++;
+                grew = true;
+              }
+            }
+          }
+          while (head < tail) {
+            var px2=qx[head], py2=qy[head], pr2=qr[head], pg2=qg[head], pb2=qb[head]; head++;
+            tryEnqueue(px2-1, py2, pr2,pg2,pb2, pGlobal, pLocal);
+            tryEnqueue(px2+1, py2, pr2,pg2,pb2, pGlobal, pLocal);
+            tryEnqueue(px2, py2-1, pr2,pg2,pb2, pGlobal, pLocal);
+            tryEnqueue(px2, py2+1, pr2,pg2,pb2, pGlobal, pLocal);
+          }
+          if (!grew) break;
         }
 
-        /* ════════════════════════════════════════════════════════
-           STEP 4 — Edge feathering (optional, on by default).
-           A hard binary cutout leaves jagged pixel-stair edges.
-           We run a small box blur on the ALPHA channel only,
-           restricted to a thin band around the mask boundary, so
-           cut edges look anti-aliased instead of stair-stepped.
-           Interior fully-opaque / fully-transparent regions are
-           left untouched for speed and to avoid muddying the
-           subject itself.
-           ════════════════════════════════════════════════════════ */
+        /* STEP 3 — apply mask to alpha */
+        for (var p = 0; p < n; p++) { if (mask[p]) d[p*4+3] = 0; }
+
+        /* STEP 4 — optional edge feathering: small alpha-only box blur
+           restricted to the boundary band, for anti-aliased cut edges. */
         if (feather) {
           var alpha = new Uint8ClampedArray(n);
           for (var a = 0; a < n; a++) alpha[a] = d[a*4+3];
           var boundary = new Uint8Array(n);
           for (var by = 0; by < h; by++) {
             for (var bx = 0; bx < w; bx++) {
-              var bi = by*w+bx;
-              var av = alpha[bi];
-              var edge = false;
+              var bi = by*w+bx, av = alpha[bi], edge = false;
               if (bx>0   && alpha[bi-1] !== av) edge = true;
               if (bx<w-1 && alpha[bi+1] !== av) edge = true;
               if (by>0   && alpha[bi-w] !== av) edge = true;
@@ -572,10 +557,13 @@ INIT['background-remover'] = function(panel) {
 
 
 /* ═══════════════════════════════════════════════════════════
-   OCR IMAGE TO TEXT  (Tesseract.js v4.1.2)
-   v4 works without SharedArrayBuffer — v5 requires COOP/COEP
-   headers which Cloudflare Pages doesn't set by default.
+   BACKGROUND REMOVER
+   Uses @imgly/background-removal via ESM dynamic module.
+   CORRECT API: default export (imglyRemoveBackground), not named.
+   No publicPath — models auto-fetched from resources.img.ly.
    ═══════════════════════════════════════════════════════════ */
+
+
 INIT['ocr-image-to-text'] = function(panel) {
 
   var CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js';

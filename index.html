@@ -1236,12 +1236,12 @@
 </div>
 <div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
 <button id="top-btn" aria-label="Back to top" title="Back to top">↑</button>
-<header id="header"><div class="wrap nav">
+<header id="header"><div class="wrap nav header-wrap">
   <div class="brand" onclick="go('')"><div class="logo">T</div><div><b>Tarumak</b> <span style="font-weight:400;color:#94a3b8">Studio</span></div></div>
   <nav class="nav-links">
     <a data-nav="" onclick="go('')">Home</a>
     <div class="nav-tools-drop">
-      <a data-nav="all" onclick="go('all')">Tools</a>
+      <a data-nav="all" onclick="go('all')">Tools<svg class="ntd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
       <div class="nav-tools-panel" id="navToolsPanel" role="menu" aria-label="Tool categories"><!-- buildNavToolsDropdown() --></div>
     </div>
     <a data-nav="about" href="/about.html">About</a>
@@ -1326,7 +1326,6 @@
             </div>
           </div>
         </div>
-        <div class="hero-cta hero-cta-secondary"><a class="btn btn-primary" onclick="go('image')">Explore Tools</a><a class="btn btn-convert" onclick="go('t/image-compressor')">Start Converting</a></div>
       </div>
     </div></section>
 
@@ -1531,7 +1530,7 @@
         </div>
         <div class="blog-strip-grid" id="blog-strip-grid"><!-- buildLatestArticles() --></div>
         <div class="blog-strip-cta">
-          <a class="btn" onclick="go('blog')" href="javascript:void(0)">View all guides</a>
+          <a class="blog-view-all-cta" onclick="go('blog')" href="javascript:void(0)">Explore all articles<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
         </div>
       </div>
     </section>

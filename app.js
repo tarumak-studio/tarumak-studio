@@ -311,6 +311,17 @@ function wireFilterPills(){
         grid.classList.remove('fading');
       },140);
     }
+    /* Latest Guides reacts to the SAME pill \u2014 selecting a category
+       filters both the tools grid and the blog strip together, so
+       the guides stop feeling like an unrelated section. */
+    const blogGrid=document.getElementById('blog-strip-grid');
+    if(blogGrid){
+      blogGrid.classList.add('fading');
+      setTimeout(()=>{
+        buildLatestArticles(btn.dataset.cat);
+        blogGrid.classList.remove('fading');
+      },140);
+    }
   }
 
   wrap.addEventListener('click',e=>{
@@ -344,19 +355,36 @@ function wireFilterPills(){
    4 most recently added entries (Object.keys preserves
    insertion order for string keys in JS).
 ────────────────────────────────────────────────── */
-function buildLatestArticles(){
+function buildLatestArticles(cat){
+  cat=cat||'all';
   const grid=document.getElementById('blog-strip-grid');
   if(!grid||typeof ARTICLES==='undefined')return;
-  const slugs=Object.keys(ARTICLES).slice(-4).reverse();
   const CLOCK_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
-  /* Article.cat stores a display label ("Image Tools"), not a raw
-     category key \u2014 build a reverse lookup once so we can pick the
-     right accent colour + icon (reusing the same 5-colour system
-     already used on category and featured-tool cards). */
   const catKeyByLabel={};
   if(typeof CAT!=='undefined'){
     Object.keys(CAT).forEach(k=>{ catKeyByLabel[CAT[k]]=k; });
   }
+
+  /* When a category pill is selected, show guides tagged for that
+     category instead of the global latest-4 \u2014 ties the blog
+     directly to whatever the visitor is currently browsing rather
+     than sitting as an unrelated section. Falls back to the newest
+     articles overall if a category has fewer than 4 matches, so the
+     grid never looks sparse. */
+  let slugs;
+  const allSlugs=Object.keys(ARTICLES);
+  if(cat==='all'){
+    slugs=allSlugs.slice(-4).reverse();
+  } else {
+    const matched=allSlugs.filter(s=>catKeyByLabel[ARTICLES[s].cat]===cat).slice(-4).reverse();
+    if(matched.length>=4){
+      slugs=matched;
+    } else {
+      const fill=allSlugs.slice().reverse().filter(s=>!matched.includes(s)).slice(0,4-matched.length);
+      slugs=matched.concat(fill);
+    }
+  }
+
   grid.innerHTML=slugs.map((slug,i)=>{
     const a=ARTICLES[slug];
     if(!a)return '';
@@ -365,14 +393,56 @@ function buildLatestArticles(){
     return ''+
       '<a class="blog-strip-card cat-'+key+'" href="/article-'+slug+'.html">'+
         (i===0?'<span class="bsc-featured">Featured</span>':'')+
-        '<div class="bsc-thumb"><span class="bsc-thumb-ico">'+icoSvg+'</span></div>'+
+        getArticleThumb(slug, key, icoSvg)+
         '<span class="bsc-cat">'+a.cat+'</span>'+
         '<h3>'+a.title+'</h3>'+
         '<p>'+a.excerpt+'</p>'+
-        '<div class="bsc-meta"><span>'+a.date+'</span><span class="bsc-read">'+CLOCK_ICO+a.read+' read</span></div>'+
+        '<div class="bsc-meta"><span>'+a.date+'</span><span class="bsc-dot">&bull;</span><span class="bsc-read">'+CLOCK_ICO+a.read+' read</span></div>'+
       '</a>';
   }).join('');
 }
+
+/* ──────────────────────────────────────────────────
+   getArticleThumb \u2014 bespoke, topic-specific mini
+   illustrations for guides where a generic category icon
+   undersells the content (a HEIC guide showing the same
+   plain "image" icon as a compression guide isn't very
+   informative). Matched by slug KEYWORD, not a hardcoded
+   list of specific articles, so any future guide on the
+   same topic automatically gets the right treatment.
+   Falls back to the existing category-icon block for
+   everything else \u2014 CSS/SVG only, no real photography,
+   same honesty standard as the Featured Tools previews.
+────────────────────────────────────────────────── */
+function getArticleThumb(slug, key, fallbackIcoSvg){
+  if(/heic|iphone/i.test(slug)){
+    return '<div class="bsc-thumb bsc-thumb-heic">'+
+      '<span class="bsct-phone"><span class="bsct-phone-notch"></span></span>'+
+      '<span class="bsct-heic-badge">HEIC</span>'+
+    '</div>';
+  }
+  if(/\bocr\b|image-to-text|text-extract/i.test(slug)){
+    return '<div class="bsc-thumb bsc-thumb-ocr">'+
+      '<span class="bsct-scanlines"><i></i><i></i><i></i></span>'+
+      '<span class="bsct-ocr-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>'+
+      '<span class="bsct-textlines"><i></i><i></i></span>'+
+    '</div>';
+  }
+  if(/remove-background|background.*remov/i.test(slug)){
+    return '<div class="bsc-thumb bsc-thumb-bgr">'+
+      '<span class="bsct-swatch bsct-swatch-before"><span class="bsct-subject"></span></span>'+
+      '<span class="bsct-swatch bsct-swatch-after"><span class="bsct-subject"></span></span>'+
+    '</div>';
+  }
+  if(/timestamp|json|regex|base64|markdown|slug-generator|text-diff|html-to-pdf/i.test(slug)){
+    return '<div class="bsc-thumb bsc-thumb-code">'+
+      '<span class="bsct-editor-bar"><i></i><i></i><i></i></span>'+
+      '<span class="bsct-editor-lines"><i></i><i></i><i></i></span>'+
+    '</div>';
+  }
+  return '<div class="bsc-thumb"><span class="bsc-thumb-ico">'+fallbackIcoSvg+'</span></div>';
+}
+
 
 
 /* ──────────────────────────────────────────────────

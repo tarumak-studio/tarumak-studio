@@ -707,7 +707,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    Distinct from .cat-card (vertical, category-level) — this is
    tool-level, denser, faster to scan.
    ═══════════════════════════════════════════════════════════ */
-.featured-section { padding: 16px 0 56px; }
+.featured-section { padding: 56px 0 56px; }
 .featured-head { margin-bottom: 36px; }
 .featured-head h2 {
   font-family: var(--fd); font-weight: 700;
@@ -1164,6 +1164,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .hero-search-primary .hs-box {
   padding: 24px 26px;
+  gap: 18px;
   min-height: 68px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(34,211,238,.02));

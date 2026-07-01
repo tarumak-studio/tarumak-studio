@@ -85,6 +85,72 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p1);box-
 @media(max-width:640px){.howto{gap:18px}}
 
 .rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:.3s var(--ease);display:flex;gap:13px;align-items:center;cursor:pointer}
+
+/* ── Related Tools: explicit "Try Tool ->" CTA on hover ── */
+.rcard-tool{align-items:flex-start;flex-direction:column;gap:6px}
+.rcard-tool .ico{margin-bottom:2px}
+.rc-cta{
+  display:inline-flex;align-items:center;gap:5px;margin-top:4px;
+  font-family:var(--fd);font-weight:700;font-size:12.5px;color:var(--p1);
+  opacity:.75;transition:opacity 220ms var(--ease),gap 220ms var(--ease);
+}
+.rc-cta svg{width:11px;height:11px;transition:transform 220ms var(--ease)}
+.rcard-tool:hover .rc-cta{opacity:1;gap:8px}
+.rcard-tool:hover .rc-cta svg{transform:translateX(2px)}
+
+/* ── Recently Used: relative-time / continue-prompt subtitle ── */
+.rc-recent-sub{color:var(--p1)!important;font-weight:500;font-size:12px!important}
+.rcard-recent:first-child{border-color:rgba(34,211,238,.25)}
+.rcard-recent:first-child .rc-recent-sub{font-weight:600}
+
+/* ── Related Guides: deliberately distinct from tool cards ──
+   Vertical layout, "Guide" badge, larger icon-thumbnail block,
+   real publish date + read time. Should read as an article to
+   open, not a tool to run. */
+.related-guides{grid-template-columns:repeat(2,1fr)}
+@media(max-width:640px){.related-guides{grid-template-columns:1fr}}
+
+.rcard-guide{
+  position:relative;display:block;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;
+  text-decoration:none;color:inherit;cursor:pointer;
+  transition:.3s var(--ease);
+}
+.rcard-guide:hover{transform:translateY(-3px);border-color:rgba(34,211,238,.28)}
+
+.rcg-badge{
+  position:absolute;top:14px;right:14px;z-index:1;
+  font-family:var(--fd);font-weight:700;font-size:9.5px;
+  text-transform:uppercase;letter-spacing:.05em;
+  padding:4px 9px;border-radius:999px;
+  background:rgba(34,211,238,.15);color:var(--p1);
+  border:1px solid rgba(34,211,238,.28);
+}
+
+.rcg-thumb{
+  width:56px;height:56px;border-radius:13px;margin-bottom:14px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(99,102,241,.06));
+  border:1px solid rgba(34,211,238,.16);
+  color:var(--p1);
+}
+.rcg-thumb svg{width:26px;height:26px}
+
+.rcg-title{
+  font-family:var(--fd);font-weight:600;font-size:15px;line-height:1.35;
+  color:var(--text);margin:0 0 8px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.rcg-excerpt{
+  font-size:12.5px;line-height:1.55;color:var(--text-dim);margin:0 0 14px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.rcg-meta{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;color:var(--text-faint)}
+.rcg-dot{opacity:.5}
+.rcg-read{display:inline-flex;align-items:center;gap:4px}
+.rcg-read svg{width:11px;height:11px}
+
 .rcard:hover{transform:translateY(-3px);background:var(--surface-2);box-shadow:var(--shadow)}
 .rcard .ico{width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--p1);flex-shrink:0}
 .rcard .ico svg{width:20px;height:20px}

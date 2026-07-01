@@ -619,10 +619,10 @@ function wireHeroSearch(){
     const chips=document.getElementById('hsRecentChips');
     if(!section||!chips||typeof RK==='undefined')return;
     try{
-      const r=JSON.parse(localStorage.getItem(RK)||'[]');
-      const valid=r.map(s=>bySlug(s)).filter(Boolean).slice(0,4);
+      const entries=(typeof getRecentWithTime==='function')?getRecentWithTime():[];
+      const valid=entries.map(e=>({tool:bySlug(e.slug),ts:e.ts})).filter(x=>x.tool).slice(0,4);
       if(!valid.length){ section.style.display='none'; return; }
-      chips.innerHTML=valid.map(t=>'<button type="button" data-slug="'+t[0]+'"><span class="hs-item-ico">'+HS_DOT_ICO+'</span>'+t[1]+'</button>').join('');
+      chips.innerHTML=valid.map(x=>'<button type="button" data-slug="'+x.tool[0]+'"><span class="hs-item-ico">'+HS_DOT_ICO+'</span>'+x.tool[1]+'<span class="hs-recent-time">'+timeAgo(x.ts)+'</span></button>').join('');
       chips.querySelectorAll('button[data-slug]').forEach(btn=>{
         btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
       });
@@ -836,7 +836,7 @@ function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
 
   /* Recently used, read BEFORE saveRecent(slug) below updates it, so the
      current tool doesn't appear in its own "recently used" list. */
-  const recentSlugs=getRecentSlugs().filter(s=>s!==slug).slice(0,4);
+  const recentEntries=getRecentWithTime().filter(e=>e.slug!==slug).slice(0,4);
   saveRecent(slug);
 
   toolEl.innerHTML=
@@ -846,9 +846,9 @@ function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
    buildHowToGuide(t,cat)+
    '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h3 class="f-title">'+f[0]+'</h3><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
    '<section class="sec" style="padding-top:0"><h2>Frequently asked questions</h2><p class="lead">Quick answers before you start.</p><div class="faq">'+faqs.map(q=>'<details class="q"><summary>'+q[0]+'</summary><div class="a">'+q[1]+'</div></details>').join('')+'</div></section>'+
-   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+
+   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard rcard-tool" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p><span class="rc-cta">Try Tool '+RC_ARROW+'</span></div></div>').join('')+'</div></section>'+
    buildRelatedArticlesSection(slug)+
-   buildRecentToolsSection(recentSlugs)+
+   buildRecentToolsSection(recentEntries)+
    buildAffBanners(cat);
   document.title=t[1]+' | Tarumak Studio';updateToolMeta(slug,t);
   fadeIn(toolEl);
@@ -900,8 +900,20 @@ function buildRelatedArticlesSection(slug){
   if(typeof TOOL_ARTICLES==='undefined'||typeof ARTICLES==='undefined')return '';
   const slugs=(TOOL_ARTICLES[slug]||[]).map(s=>ARTICLES[s]?{slug:s,...ARTICLES[s]}:null).filter(Boolean);
   if(!slugs.length)return '';
-  return '<section class="sec" style="padding-top:0"><h2>Related guides</h2><p class="lead">Learn more about this workflow.</p><div class="related">'+
-    slugs.map(a=>'<a class="rcard" href="/article-'+a.slug+'.html" style="text-decoration:none"><div class="ico">'+DOC_ICO+'</div><div><h3 class="rc-title">'+a.title+'</h3><p>'+a.excerpt+'</p></div></a>').join('')+
+  /* Deliberately differentiated from .rcard (tools) and
+     .rcard-recent: larger thumbnail, a "Guide" badge, and real
+     publish date + read time \u2014 so these read as articles to
+     click into, not more tools to run. */
+  return '<section class="sec" style="padding-top:0"><h2>Related guides</h2><p class="lead">Learn more about this workflow.</p><div class="related related-guides">'+
+    slugs.map(a=>
+      '<a class="rcard-guide" href="/article-'+a.slug+'.html">'+
+        '<span class="rcg-badge">Guide</span>'+
+        '<div class="rcg-thumb">'+DOC_ICO+'</div>'+
+        '<h3 class="rcg-title">'+a.title+'</h3>'+
+        '<p class="rcg-excerpt">'+a.excerpt+'</p>'+
+        '<div class="rcg-meta"><span>'+a.date+'</span><span class="rcg-dot">&bull;</span><span class="rcg-read">'+CLOCK_ICO_SM+a.read+' read</span></div>'+
+      '</a>'
+    ).join('')+
   '</div></section>';
 }
 
@@ -912,25 +924,42 @@ function buildRelatedArticlesSection(slug){
    tool they used a few minutes ago without navigating away.
    Renders nothing at all if there's no history yet.
 ────────────────────────────────────────────────── */
-function buildRecentToolsSection(recentSlugs){
-  if(!recentSlugs.length)return '';
-  const items=recentSlugs.map(s=>bySlug(s)).filter(Boolean);
+function buildRecentToolsSection(recentEntries){
+  if(!recentEntries.length)return '';
+  const items=recentEntries.map(e=>({tool:bySlug(e.slug),ts:e.ts})).filter(x=>x.tool);
   if(!items.length)return '';
   return '<section class="sec" style="padding-top:0"><h2>Recently used</h2><p class="lead">Pick up where you left off.</p><div class="related">'+
-    items.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+
+    items.map((x,i)=>{
+      const r=x.tool;
+      const subtitle=i===0?'Continue where you left off':timeAgo(x.ts);
+      return '<div class="rcard rcard-recent" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p class="rc-recent-sub">'+subtitle+'</p></div></div>';
+    }).join('')+
   '</div></section>';
 }
 
 var DOC_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>';
+var RC_ARROW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+var CLOCK_ICO_SM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
 
 /* getRecentSlugs — small helper so both the homepage search
    dropdown and tool pages read from the exact same source of
    truth (RK localStorage key) without duplicating the parsing
    logic in two places. */
+/* getRecentSlugs — plain slug strings, unchanged signature so
+   nothing else that already consumes it needs to change. */
 function getRecentSlugs(){
+  return getRecentWithTime().map(e=>e.slug);
+}
+
+/* getRecentWithTime — the new {slug,ts} form, normalised so it
+   works identically whether the stored entry is the old plain-
+   string format or the new timestamped one. */
+function getRecentWithTime(){
   if(typeof RK==='undefined')return [];
-  try{ return JSON.parse(localStorage.getItem(RK)||'[]'); }
-  catch(e){ return []; }
+  try{
+    const raw=JSON.parse(localStorage.getItem(RK)||'[]');
+    return raw.map(normalizeRecentEntry).filter(e=>e.slug);
+  }catch(e){ return []; }
 }
 
 function route(){

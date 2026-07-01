@@ -122,8 +122,48 @@ function setActiveNav(key){
 
 /* 3 ─ Recently used tools ─────────────────────────── */
 const RK='tmk_recent';
+/* normalizeRecentEntry \u2014 accepts either a legacy plain slug
+   string or a {slug,ts} object and always returns {slug,ts}
+   (ts:null for legacy entries with no recorded time). Used by
+   every reader/writer of the RK localStorage key so the storage
+   format can evolve without ever breaking a returning visitor's
+   existing history. */
+function normalizeRecentEntry(entry){
+  if(typeof entry==='string')return {slug:entry,ts:null};
+  return entry&&entry.slug?entry:{slug:null,ts:null};
+}
+
+/* timeAgo \u2014 small relative-time humaniser. No timestamp
+   (legacy entry) falls back to a neutral, still-true label rather
+   than guessing or showing an implausible "0 minutes ago". */
+function timeAgo(ts){
+  if(!ts)return 'Recently';
+  var s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return 'Just now';
+  var m=Math.floor(s/60);
+  if(m<60)return m+' minute'+(m===1?'':'s')+' ago';
+  var h=Math.floor(m/60);
+  if(h<24)return h+' hour'+(h===1?'':'s')+' ago';
+  var d=Math.floor(h/24);
+  if(d<7)return d+' day'+(d===1?'':'s')+' ago';
+  var w=Math.floor(d/7);
+  if(w<5)return w+' week'+(w===1?'':'s')+' ago';
+  return 'A while ago';
+}
+
+/* saveRecent now stores {slug, ts} objects instead of plain slug
+   strings, so "recently used" can show relative time ("2 hours
+   ago"). normalizeRecentEntry (shared, see app.js) transparently
+   upgrades any OLD plain-string entries already sitting in a
+   visitor's localStorage — existing history is never lost or
+   reset by this change. */
 function saveRecent(slug){
-  try{let r=JSON.parse(localStorage.getItem(RK)||'[]');r=[slug,...r.filter(s=>s!==slug)].slice(0,5);localStorage.setItem(RK,JSON.stringify(r));}catch(e){}
+  try{
+    let r=JSON.parse(localStorage.getItem(RK)||'[]');
+    r=r.map(normalizeRecentEntry).filter(e=>e.slug!==slug);
+    r=[{slug:slug,ts:Date.now()},...r].slice(0,5);
+    localStorage.setItem(RK,JSON.stringify(r));
+  }catch(e){}
 }
 function buildRecent(){
   const row=$('#recent-row'),list=$('#recent-list');if(!row||!list)return;

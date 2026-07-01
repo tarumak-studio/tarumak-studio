@@ -80,31 +80,33 @@ const homeEl=$('#home'),toolEl=$('#tool');
    produce one .cat-card per category with: icon,
    title, tagline, popular tool chips, count, arrow.
 ────────────────────────────────────────────────── */
+/* buildCategoryCards \u2014 redesigned as compact navigation, not a
+   feature showcase. Two-row layout (icon+title+arrow, then a
+   one-line description) replaces the old vertical stack of
+   icon-block / title / description / 4-chip-row / divider /
+   footer. Height cut from ~230px to ~120-130px (roughly 45%),
+   comfortably past the requested 30-40% while staying above the
+   comfortable touch-target floor. Popular-tool chips reduced from
+   4 to exactly 1 \u2014 enough to hint at content, not enough to
+   compete with Featured Tools below it. */
 function buildCategoryCards(){
   const grid=document.getElementById('cat-grid');
   if(!grid||typeof CAT_META==='undefined')return;
   const order=['image','pdf','developer','marketing','converter'];
-  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
   grid.innerHTML=order.map(cat=>{
     const meta=CAT_META[cat];if(!meta)return '';
     const count=TOOLS.filter(t=>t[2]===cat).length;
-    /* Build popular chips — only show tools that actually exist */
-    const popularChips=meta.popular
-      .map(slug=>bySlug(slug))
-      .filter(Boolean)
-      .slice(0,4)
-      .map(t=>'<span class="cc-chip">'+t[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>')
-      .join('');
+    const topTool=meta.popular.map(slug=>bySlug(slug)).filter(Boolean)[0];
+    const hint=topTool?'<span class="cc-hint">Incl. '+topTool[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>':'';
     return ''+
-      '<a class="cat-card" data-cat="'+cat+'" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Explore '+CAT[cat]+'">'+
-        '<div class="cc-ico">'+ICON[cat]+'</div>'+
-        '<h3>'+CAT[cat]+'</h3>'+
-        '<p class="cc-tag">'+meta.tagline+'</p>'+
-        '<div class="cc-popular">'+popularChips+'</div>'+
-        '<div class="cc-foot">'+
-          '<span class="cc-count"><strong>'+count+'</strong> free tools</span>'+
-          '<span class="cc-arrow">Explore '+arrow+'</span>'+
+      '<a class="cat-card" data-cat="'+cat+'" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Browse '+CAT[cat]+' — '+count+' tools">'+
+        '<div class="cc-row">'+
+          '<div class="cc-ico">'+ICON[cat]+'</div>'+
+          '<div class="cc-heading"><h3>'+CAT[cat]+'</h3><span class="cc-count">'+count+' tools</span></div>'+
+          '<span class="cc-arrow">'+arrow+'</span>'+
         '</div>'+
+        '<p class="cc-tag">'+meta.tagline+' '+hint+'</p>'+
       '</a>';
   }).join('');
 }

@@ -934,12 +934,6 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .hs-icon { width: 18px; height: 18px; color: var(--text-faint); flex-shrink: 0; }
 .hs-box:focus-within .hs-icon { color: var(--p1); }
-.hero-search input {
-  flex: 1; min-width: 0;
-  background: transparent; border: 0; outline: none;
-  font-family: var(--fb); font-size: 14.5px; color: var(--text);
-}
-.hero-search input::placeholder { color: var(--text-faint); }
 .hs-kbd {
   font-family: var(--fm); font-size: 11px;
   padding: 3px 7px;
@@ -1633,4 +1627,50 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (prefers-reduced-motion: reduce) {
   .fp-pill.active::after { transition: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FIX \u2014 hero search field hidden by browser autofill overlay.
+   Chrome/Edge/Safari paint an opaque box-shadow inset on inputs
+   they consider autofill-eligible, which completely defeats a
+   normal `background: transparent` (autocomplete="off" does not
+   reliably prevent this on search-shaped inputs in every browser
+   version). This is what created the solid dark box hiding the
+   rotating placeholder text. Standard, well-documented fix: force
+   a transparent inset shadow + matching text-fill-color so the
+   browser's own overlay can never paint anything visible.
+   ═══════════════════════════════════════════════════════════ */
+.hero-search input:-webkit-autofill,
+.hero-search input:-webkit-autofill:hover,
+.hero-search input:-webkit-autofill:focus,
+.hero-search input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  background-color: transparent !important;
+  transition: background-color 999999s ease-in-out 0s; /* defeats the browser's own transition-in of its autofill colour */
+}
+.hero-search input { background-color: transparent !important; }
+
+/* ── Widen search further \u2014 fills its hero column instead of
+   capping at a fixed px value, per repeated "make it dominant"
+   feedback. ── */
+.hero-search-primary { max-width: 100%; }
+
+/* ═══════════════════════════════════════════════════════════
+   Hero balance, round 2 \u2014 the 3D format-card cluster was
+   240px sitting inside a much wider right column, leaving a
+   visible empty margin. Enlarging it (and its stage/glow) so it
+   actually fills its column reduces the left-heavy imbalance
+   without touching the column ratio itself.
+   ═══════════════════════════════════════════════════════════ */
+.stage { height: 460px; }
+.cluster { width: 280px; height: 280px; }
+.cluster-glow { width: 360px; height: 360px; }
+
+@media (max-width: 900px) {
+  .stage { height: 360px; }
+  .cluster { width: 220px; height: 220px; }
+  .cluster-glow { width: 280px; height: 280px; }
 }

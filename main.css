@@ -421,6 +421,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .comp-section {
   padding:120px 0 128px;
 }
+.comp-section .wrap { max-width: 1240px; }
 .comp-head {
   margin-bottom:44px;
 }
@@ -1126,11 +1127,11 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   transition: opacity 280ms var(--ease);
 }
 .hero-search .hs-box { position: relative; }
-.hero-search:not(.hero-search-primary) .hs-rotator { font-size: 14.5px; left: 44px; right: 50px; }
+.hero-search:not(.hero-search-primary) .hs-rotator { font-size: 14.5px; }
 
 @media (max-width: 720px) {
   .hero-search-primary { max-width: 100%; }
-  .hs-rotator { font-size: 14.5px; left: 44px; right: 60px; }
+  .hs-rotator { font-size: 14.5px; }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1250,9 +1251,12 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-search input::placeholder { color: transparent; }
 
 /* Rotating placeholder \u2014 slide + fade, not just an opacity swap */
+.hs-input-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.hs-input-wrap input { flex: 1; min-width: 0; }
 .hs-rotator {
   position: absolute;
-  left: 52px; right: 70px;
+  inset: 0;
+  display: flex; align-items: center;
   font-family: var(--fb); font-size: 16px;
   color: var(--text-faint);
   pointer-events: none;
@@ -1266,7 +1270,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.hero-search-primary .hs-rotator { font-size: 17px; left: 62px; right: 90px; }
+.hero-search-primary .hs-rotator { font-size: 17px; }
 
 .hs-kbd {
   font-family: var(--fm); font-size: 11px;
@@ -1364,7 +1368,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .hero-search-primary .hs-box { padding: 18px 18px; min-height: 58px; }
   .hero-search-primary .hs-icon { width: 21px; height: 21px; }
   .hero-search-primary input { font-size: 16px; } /* 16px minimum prevents iOS auto-zoom on focus */
-  .hero-search-primary .hs-rotator { font-size: 14.5px; left: 48px; right: 56px; }
+  .hero-search-primary .hs-rotator { font-size: 14.5px; }
   .hero-search-primary .hs-kbd { display: none; } /* no physical keyboard shortcut relevance on touch */
 }
 
@@ -1861,4 +1865,27 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (prefers-reduced-motion: reduce) {
   .blog-strip-grid { transition: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Hero Marketing Suite link \u2014 deliberately NOT a button.
+   Search remains the hero's only real CTA; this is a quiet,
+   single text link for the one audience segment (marketers)
+   who benefit from an explicit nudge beyond the headline.
+   ═══════════════════════════════════════════════════════════ */
+.hero-mkt-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px;
+  font-family: var(--fd); font-weight: 600; font-size: 13px;
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: color 200ms var(--ease), gap 200ms var(--ease);
+}
+.hero-mkt-link svg { width: 13px; height: 13px; transition: transform 200ms var(--ease); }
+.hero-mkt-link:hover { color: var(--p1); gap: 9px; }
+.hero-mkt-link:hover svg { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mkt-link, .hero-mkt-link svg { transition: none !important; }
+  .hero-mkt-link:hover svg { transform: none !important; }
 }

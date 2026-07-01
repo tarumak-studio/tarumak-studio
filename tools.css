@@ -79,7 +79,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p1);box-
 .rcard p{font-size:12px;color:var(--text-dim)}
 /* footer */
 footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg-2) 60%,transparent)}
-.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.3fr;gap:40px;padding:54px 0 30px}
+.fgrid{display:grid;grid-template-columns:1.3fr .8fr .8fr .7fr 1.1fr;gap:32px;padding:54px 0 30px}
 .fcol h5{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:18px}
 .fcol a{display:block;font-size:14px;color:var(--text-dim);padding:5px 0;cursor:pointer}
 .fcol a:hover{color:var(--p1)}

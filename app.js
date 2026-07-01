@@ -428,7 +428,7 @@ function getArticleThumb(slug, key, fallbackIcoSvg){
       '<span class="bsct-textlines"><i></i><i></i></span>'+
     '</div>';
   }
-  if(/remove-background|background.*remov/i.test(slug)){
+  if(/remov.*background|background.*remov/i.test(slug)){
     return '<div class="bsc-thumb bsc-thumb-bgr">'+
       '<span class="bsct-swatch bsct-swatch-before"><span class="bsct-subject"></span></span>'+
       '<span class="bsct-swatch bsct-swatch-after"><span class="bsct-subject"></span></span>'+

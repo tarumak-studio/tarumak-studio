@@ -752,6 +752,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-search input {
   flex: 1; min-width: 0;
   background: transparent; border: 0; outline: none;
+  padding: 0; margin: 0;
   font-family: var(--fb); font-size: 14.5px; color: var(--text);
 }
 .hero-search input::placeholder { color: var(--text-faint); }
@@ -1886,7 +1887,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .hbh-label {
   font-family: var(--fd); font-weight: 600; font-size: 12.5px;
-  color: var(--text-dim);
+  color: var(--text);
   letter-spacing: -.1px;
 }
 /* Pill-style chips, not plain inline text \u2014 gives the row real

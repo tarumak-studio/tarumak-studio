@@ -1099,22 +1099,10 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 /* Rotating placeholder overlay \u2014 sits visually where native
    placeholder text would be, crossfades via opacity, hides the
    instant the user types or a real value is present. */
-.hs-rotator {
-  position: absolute;
-  left: 52px; right: 70px;
-  font-family: var(--fb); font-size: 16px;
-  color: var(--text-faint);
-  pointer-events: none;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  transition: opacity 280ms var(--ease);
-}
 .hero-search .hs-box { position: relative; }
-.hero-search:not(.hero-search-primary) .hs-rotator { font-size: 14.5px; }
-
-@media (max-width: 720px) {
+.hero-search:not(.hero-search-primary) @media (max-width: 720px) {
   .hero-search-primary { max-width: 100%; }
-  .hs-rotator { font-size: 14.5px; }
-}
+  }
 
 /* ═══════════════════════════════════════════════════════════
    TASK 2 — Category filter pills (replaces Recently Used)
@@ -1157,7 +1145,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    processing. Sits between the hook text and the bottom CTA.
    ═══════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .hs-rotator, .hero-search-primary .hs-box, .feat-grid { transition: none !important; }
+  .hero-search-primary .hs-box, .feat-grid { transition: none !important; }
   .hero-search-primary .hs-box:focus-within { transform: none !important; }
 }
 
@@ -1233,28 +1221,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-search input::placeholder { color: transparent; }
 
 /* Rotating placeholder \u2014 slide + fade, not just an opacity swap */
-.hs-input-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
-.hs-input-wrap input { flex: 1; min-width: 0; }
-.hs-rotator {
-  position: absolute;
-  inset: 0;
-  display: flex; align-items: center;
-  font-family: var(--fb); font-size: 16px;
-  color: var(--text-faint);
-  pointer-events: none;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  opacity: 1; transform: translateY(0);
-  transition: opacity 260ms var(--ease), transform 260ms var(--ease);
-}
-.hs-rotator.hs-rotator-out { opacity: 0; transform: translateY(-8px); }
-.hs-rotator-in { animation: hsRotatorIn 320ms var(--ease); }
-@keyframes hsRotatorIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.hero-search-primary .hs-rotator { font-size: 17px; }
-
-.hs-kbd {
+.hero-search-primary .hs-kbd {
   font-family: var(--fm); font-size: 11px;
   padding: 3px 7px;
   background: rgba(255,255,255,.06);
@@ -1350,8 +1317,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .hero-search-primary .hs-box { padding: 18px 18px; min-height: 58px; }
   .hero-search-primary .hs-icon { width: 21px; height: 21px; }
   .hero-search-primary input { font-size: 16px; } /* 16px minimum prevents iOS auto-zoom on focus */
-  .hero-search-primary .hs-rotator { font-size: 14.5px; }
-  .hero-search-primary .hs-kbd { display: none; } /* no physical keyboard shortcut relevance on touch */
+  .hero-search-primary .hero-search-primary .hs-kbd { display: none; } /* no physical keyboard shortcut relevance on touch */
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1595,15 +1561,14 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (prefers-reduced-motion: reduce) {
   .feat-card, .fc-ico, .fc-cta, .fc-cta svg, .feat-grid,
-  .hs-rotator, .hero-search-primary .hs-box {
+  .hero-search-primary .hs-box {
     transition: none !important;
   }
   .feat-card:hover { transform: none !important; }
   .feat-card:hover .fc-ico { transform: none !important; }
   .feat-card:hover .fc-cta svg { transform: none !important; }
   .hero-search-primary .hs-box:focus-within { transform: none !important; }
-  .hs-rotator-in { animation: none !important; }
-}
+  }
 
 /* ═══════════════════════════════════════════════════════════
    Hero CTA demotion — search is now the primary interaction;
@@ -1744,8 +1709,6 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    SAME transition mechanism as fade-out, so there's exactly one
    thing controlling opacity/transform at any moment.
    ═══════════════════════════════════════════════════════════ */
-.hs-rotator-in { animation: none !important; }
-
 @media (prefers-reduced-motion: reduce) {
   .hero-search-row { transition: none !important; }
 }
@@ -1903,3 +1866,49 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   flex-shrink: 0;
   white-space: nowrap;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Hero browse hint \u2014 always-visible (no click/hover required),
+   directly under search. Serves a moment nothing else on the
+   page currently covers: a first-time visitor who glances at
+   the hero and doesn't yet know what to type, before they've
+   even clicked into search. Deliberately tiny \u2014 one line,
+   real SVG icons matching the same 5-category language used
+   everywhere else (nav dropdown, filter pills, category cards).
+   ═══════════════════════════════════════════════════════════ */
+.hero-browse-hint {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 14px;
+}
+.hbh-label {
+  font-family: var(--fm); font-size: 12px;
+  color: var(--text-faint);
+}
+.hero-browse-hint a {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--fb); font-size: 12.5px; font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 200ms var(--ease);
+}
+.hero-browse-hint a:hover { color: var(--p1); }
+.hbh-ico { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-faint); transition: color 200ms var(--ease); }
+.hbh-ico svg { width: 100%; height: 100%; }
+.hero-browse-hint a:hover .hbh-ico { color: var(--p1); }
+
+@media (max-width: 560px) {
+  .hero-browse-hint { gap: 4px 10px; }
+  .hbh-label { width: 100%; margin-bottom: 2px; }
+}
+
+/* Dismissible "x" on the active-category chip (Toolkit tabs) */
+.tab-active-cat { display: inline-flex; align-items: center; gap: 6px; }
+.tab-clear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  font-size: 13px; line-height: 1;
+  background: rgba(255,255,255,.08);
+  transition: background 180ms var(--ease);
+}
+.tab-clear:hover { background: rgba(255,255,255,.16); }

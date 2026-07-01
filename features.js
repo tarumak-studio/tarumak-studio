@@ -61,7 +61,15 @@ function buildGrid(){
     return '<div class="tool cat-'+x[2]+'" onclick="go(\'t/'+x[0]+'\')">'+arrowSvg+'<button class="fav-btn'+(faved?' active':'')+'" data-slug="'+x[0]+'" onclick="toggleFav(\''+x[0]+'\',event)" aria-label="Save '+x[1]+'">'+heartSvg+'</button><div class="ico">'+ICON[x[2]]+'</div><h3>'+x[1]+'</h3><p>'+x[3]+'</p><div class="chips">'+x[4].map(c=>'<span class="chip">'+c+'</span>').join('')+'</div></div>';
   }).join('');
 }
-tabsEl.addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;activeCat=b.dataset.cat;buildTabs();buildGrid();});
+tabsEl.addEventListener('click',e=>{
+  /* The clear (x) button is nested inside the active-category
+     chip, so it needs to be checked BEFORE the general .tab
+     handler below — otherwise closest('.tab') would just find
+     the parent chip and re-select the same category instead of
+     clearing it. */
+  if(e.target.closest('[data-clear]')){ activeCat='all'; buildTabs(); buildGrid(); return; }
+  const b=e.target.closest('.tab');if(!b)return;activeCat=b.dataset.cat;buildTabs();buildGrid();
+});
 $('#gridSearch').addEventListener('input',e=>{term=e.target.value;buildGrid();});
 /* grid initialised by route() boot call in app.js */
 

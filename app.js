@@ -12,9 +12,28 @@
 /* counts() and buildTabs() — gap functions not in any other file */
 function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0,developer:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
 
+/* buildTabs — deliberately reduced to just All + Saved. The
+   5 category tabs that used to live here were functionally
+   redundant with the "Browse by Category" cards higher up the
+   page: clicking a category card already sets activeCat, filters
+   this exact grid, AND auto-scrolls down to it (see showHome()) —
+   so a visitor arriving here via a category card would have seen
+   the same 5 options twice in a row. "All" (reset) and "Saved"
+   (favourites, which has no other entry point anywhere on the
+   page) are the only two that do something a category card can't. */
 function buildTabs(){
   const c=counts(),fv=getFavs().size;
-  tabsEl.innerHTML=[['all','All'],['image','Image'],['pdf','PDF'],['converter','Converter'],['marketing','\u2726 Marketing'],['developer','\u2328 Dev & SEO']].map(([k,l])=>'<button class="tab '+(k===activeCat?'active':'')+'" data-cat="'+k+'">'+l+' <span class="ct">'+c[k]+'</span></button>').join('')
+  const catKeys=['image','pdf','converter','marketing','developer'];
+  /* When a category card sets activeCat to a real category (not
+     'all'/'favs'), show a dismissible "currently showing" chip —
+     without this, arriving here via a category card would filter
+     the grid correctly but show no visible confirmation of what's
+     active, since the old per-category tabs were removed. */
+  const activeCatChip=catKeys.includes(activeCat)
+    ? '<button class="tab active tab-active-cat" data-cat="'+activeCat+'">'+CAT[activeCat]+' <span class="ct">'+c[activeCat]+'</span><span class="tab-clear" data-clear="1">&times;</span></button>'
+    : '';
+  tabsEl.innerHTML='<button class="tab '+(activeCat==='all'?'active':'')+'" data-cat="all">All <span class="ct">'+c['all']+'</span></button>'
+  +activeCatChip
   +'<button class="tab t-saved '+(activeCat==='favs'?'active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
 }
 
@@ -560,33 +579,24 @@ function wireHeroSearch(){
      text change can crossfade AND slide, which native placeholders
      can't do (they can only swap instantly). Pauses whenever the input
      has a value, and respects prefers-reduced-motion. */
-  const rotatorEl=document.getElementById('hsRotator');
+  /* Rotating placeholder \u2014 drives the input's own NATIVE
+     placeholder attribute directly, rather than a separate
+     absolutely-positioned overlay element. This trades away the
+     smooth crossfade transition (native placeholders can only
+     swap instantly) for a guarantee that matters more: the
+     browser positions its own placeholder text correctly by
+     construction, so there is no longer any custom left/right/
+     inset math that can drift out of sync with the icon size,
+     padding, or input width \u2014 the entire class of alignment
+     bug from earlier rounds is now structurally impossible. */
   const examples=['Search "Background Remover"','Search "Merge PDF"','Search "OCR"','Search "Regex Tester"','Search "HEIC to JPG"','Search "Image Compressor"'];
-  const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(rotatorEl){
-    let exIndex=0;
-    function paintPlaceholder(){
-      if(input.value){rotatorEl.style.opacity='0';return;}
-      rotatorEl.textContent=examples[exIndex];
-      rotatorEl.classList.remove('hs-rotator-in');
-      void rotatorEl.offsetWidth; /* restart animation */
-      rotatorEl.classList.add('hs-rotator-in');
-      rotatorEl.style.opacity='1';
-    }
-    paintPlaceholder();
-    if(!reduceMotion){
-      setInterval(()=>{
-        if(input.value)return;
-        rotatorEl.classList.add('hs-rotator-out');
-        setTimeout(()=>{
-          rotatorEl.classList.remove('hs-rotator-out');
-          exIndex=(exIndex+1)%examples.length;
-          paintPlaceholder();
-        },260);
-      },2600);
-    }
-    input.addEventListener('input',()=>{ rotatorEl.style.opacity=input.value?'0':'1'; });
-  }
+  let exIndex=0;
+  input.placeholder=examples[0];
+  setInterval(()=>{
+    if(input.value)return;
+    exIndex=(exIndex+1)%examples.length;
+    input.placeholder=examples[exIndex];
+  },2600);
 
   /* Popular-searches quick chips \u2014 shown only when the input is
      empty and focused, so first-time visitors get an instant sense of

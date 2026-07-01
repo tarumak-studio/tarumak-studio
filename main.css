@@ -752,8 +752,9 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-search input {
   flex: 1; min-width: 0;
   background: transparent; border: 0; outline: none;
-  padding: 0; margin: 0;
+  padding: 0; margin: 0; text-indent: 0; box-sizing: border-box;
   font-family: var(--fb); font-size: 14.5px; color: var(--text);
+  line-height: normal;
 }
 .hero-search input::placeholder { color: var(--text-faint); }
 .hs-kbd {
@@ -1948,7 +1949,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hs-rotator {
   position: absolute; inset: 0;
   display: flex; align-items: center;
-  font-family: var(--fb); font-size: 17px;
+  font-family: var(--fb); font-size: 17px; line-height: normal; box-sizing: border-box;
   color: var(--text-faint);
   pointer-events: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

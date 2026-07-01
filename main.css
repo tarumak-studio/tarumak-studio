@@ -52,7 +52,7 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .mobile-menu a{font-family:var(--fd);font-weight:600;font-size:20px;padding:13px 4px;border-bottom:1px solid var(--border);color:var(--text-dim);cursor:pointer}
 .mm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 /* hero */
-.hero{position:relative;padding:70px 0 56px}
+.hero{position:relative;padding:44px 0 36px}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11.5px;letter-spacing:.5px;color:var(--p1);background:var(--surface);border:1px solid var(--border);padding:7px 13px;border-radius:100px;margin-bottom:22px}
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--p1);box-shadow:0 0 10px var(--p1)}
@@ -880,7 +880,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 @media (max-width: 560px) { .blog-strip-grid { grid-template-columns: 1fr; } }
 
 .blog-strip-card {
-  display: block; padding: 20px;
+  position: relative;
+  display: block; padding: 16px;
   background: rgba(255,255,255,.03);
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 14px;
@@ -897,6 +898,44 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   text-transform: uppercase; letter-spacing: .04em;
   color: var(--p1); margin-bottom: 10px;
 }
+
+/* Generated thumbnail \u2014 category-tinted gradient block with the
+   category icon centred inside, in place of a real article photo we
+   don't have. Honest illustrative treatment, not a fake photo. */
+.bsc-thumb {
+  height: 84px; border-radius: 10px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(34,211,238,.16), rgba(99,102,241,.06));
+  border: 1px solid rgba(34,211,238,.14);
+}
+.bsc-thumb-ico { width: 30px; height: 30px; color: var(--p1); opacity: .85; }
+.bsc-thumb-ico svg { width: 100%; height: 100%; }
+
+.bsc-featured {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  font-family: var(--fd); font-weight: 700; font-size: 9.5px;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 4px 8px; border-radius: 999px;
+  background: rgba(34,211,238,.16); color: var(--p1);
+  border: 1px solid rgba(34,211,238,.3);
+}
+
+/* Per-category accent (same palette as category + featured-tool cards) */
+.blog-strip-card.cat-pdf .bsc-thumb       { background: linear-gradient(135deg, rgba(167,139,250,.16), rgba(167,139,250,.05)); border-color: rgba(167,139,250,.16); }
+.blog-strip-card.cat-pdf .bsc-thumb-ico   { color: #a78bfa; }
+.blog-strip-card.cat-pdf .bsc-cat         { color: #a78bfa; }
+
+.blog-strip-card.cat-developer .bsc-thumb     { background: linear-gradient(135deg, rgba(52,211,153,.16), rgba(52,211,153,.05)); border-color: rgba(52,211,153,.16); }
+.blog-strip-card.cat-developer .bsc-thumb-ico { color: #34d399; }
+.blog-strip-card.cat-developer .bsc-cat       { color: #34d399; }
+
+.blog-strip-card.cat-marketing .bsc-thumb     { background: linear-gradient(135deg, rgba(251,146,60,.16), rgba(251,146,60,.05)); border-color: rgba(251,146,60,.16); }
+.blog-strip-card.cat-marketing .bsc-thumb-ico { color: #fb923c; }
+.blog-strip-card.cat-marketing .bsc-cat       { color: #fb923c; }
+
+.blog-strip-card.cat-converter .bsc-thumb     { background: linear-gradient(135deg, rgba(163,230,53,.16), rgba(163,230,53,.05)); border-color: rgba(163,230,53,.16); }
+.blog-strip-card.cat-converter .bsc-thumb-ico { color: #a3e635; }
+.blog-strip-card.cat-converter .bsc-cat       { color: #a3e635; }
 .blog-strip-card h3 {
   font-family: var(--fd); font-weight: 600; font-size: 14.5px;
   line-height: 1.35; margin: 0 0 8px; color: var(--text);
@@ -907,6 +946,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .bsc-meta { display: flex; gap: 10px; font-family: var(--fm); font-size: 11px; color: var(--text-faint); }
+.bsc-read { display: inline-flex; align-items: center; gap: 4px; }
+.bsc-read svg { width: 11px; height: 11px; }
 .blog-strip-cta { text-align: center; margin-top: 28px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1041,14 +1082,6 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 @media (max-width: 980px) { .blog-strip-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .blog-strip-grid { grid-template-columns: 1fr; } }
 
-.blog-strip-card {
-  display: block; padding: 20px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 14px;
-  text-decoration: none; color: inherit;
-  transition: transform 220ms var(--ease), border-color 220ms var(--ease), background 220ms var(--ease);
-}
 .blog-strip-card:hover {
   transform: translateY(-4px);
   border-color: rgba(34,211,238,.18);
@@ -1069,6 +1102,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .bsc-meta { display: flex; gap: 10px; font-family: var(--fm); font-size: 11px; color: var(--text-faint); }
+.bsc-read { display: inline-flex; align-items: center; gap: 4px; }
+.bsc-read svg { width: 11px; height: 11px; }
 .blog-strip-cta { text-align: center; margin-top: 28px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1188,7 +1223,11 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
     0 8px 22px -8px rgba(0,0,0,.34);
   transform: translateY(-2px);
 }
-.hero-search-primary .hs-results { max-height: 420px; top: calc(100% + 10px); }
+.hero-search-primary .hs-results {
+  max-height: 340px; top: calc(100% + 12px);
+  backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 32px 76px -18px rgba(0,0,0,.72), 0 8px 24px -10px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);
+}
 
 /* ── Base search box (shared by hero + nav variants) ── */
 .hs-box {
@@ -1284,30 +1323,45 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   display: none; flex-direction: column; gap: 14px;
   padding: 12px 10px 8px;
 }
-.hs-pop-section:not(:last-child) {
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
+.hs-pop-section:not(:first-child) {
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255,255,255,.06);
 }
 .hs-popular-label {
   display: block;
   font-family: var(--fm); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--text-faint); margin-bottom: 8px;
+  color: var(--text-faint); margin-bottom: 6px;
 }
-.hs-pop-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Single-column navigation list \u2014 not a wrapped chip cluster.
+   Each row reads like a menu item: icon, label, full-width click
+   target, left-aligned \u2014 this is the "feels like navigation,
+   not buttons" redesign. */
+.hs-pop-list { display: flex; flex-direction: column; gap: 1px; }
 .hs-popular button {
-  font-family: var(--fb); font-size: 12.5px; font-weight: 500;
-  padding: 7px 13px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 999px;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  font-family: var(--fb); font-size: 13px; font-weight: 500;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
   color: var(--text-dim);
+  text-align: left;
   cursor: pointer;
-  transition: all 180ms var(--ease);
+  transition: background 150ms var(--ease), color 150ms var(--ease);
 }
-.hs-popular button:hover { background: rgba(34,211,238,.1); border-color: rgba(34,211,238,.25); color: var(--text); }
-.hs-pop-section:first-child .hs-popular button {
-  background: rgba(34,211,238,.06); border-color: rgba(34,211,238,.16);
+.hs-popular button:hover { background: rgba(34,211,238,.09); color: var(--text); }
+.hs-item-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; flex-shrink: 0;
+  color: var(--text-faint);
 }
+.hs-item-ico svg { width: 100%; height: 100%; }
+.hs-popular button:hover .hs-item-ico { color: var(--p1); }
+/* Popular section's flame icon keeps a warm tint even at rest \u2014
+   distinguishes "trending" rows from plain nav rows at a glance. */
+.hs-pop-section:nth-child(2) .hs-item-ico { color: rgba(251,146,60,.75); }
 
 @media (max-width: 720px) {
   .hero-search-primary { max-width: 100%; }
@@ -1331,8 +1385,9 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .fp-pill {
   position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
   font-family: var(--fd); font-weight: 600; font-size: 13.5px;
-  padding: 10px 20px;
+  padding: 10px 20px 10px 16px;
   background: rgba(255,255,255,.03);
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 999px;
@@ -1340,6 +1395,9 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   cursor: pointer;
   transition: all 220ms var(--ease);
 }
+.fp-ico { display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; flex-shrink: 0; color: var(--text-faint); }
+.fp-ico svg { width: 100%; height: 100%; }
+.fp-pill:hover .fp-ico, .fp-pill.active .fp-ico { color: var(--p1); }
 .fp-pill:hover {
   background: rgba(255,255,255,.06);
   border-color: rgba(255,255,255,.16);

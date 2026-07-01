@@ -1308,31 +1308,25 @@
             <div class="hs-popular" id="hsPopular">
               <div class="hs-pop-section" id="hsRecentSection" style="display:none">
                 <span class="hs-popular-label">Recently used</span>
-                <div class="hs-pop-chips" id="hsRecentChips"></div>
+                <div class="hs-pop-list" id="hsRecentChips"></div>
               </div>
               <div class="hs-pop-section">
                 <span class="hs-popular-label">Popular</span>
-                <div class="hs-pop-chips">
-                  <button type="button" data-slug="background-remover">Background Remover</button>
-                  <button type="button" data-slug="ocr-image-to-text">OCR</button>
-                  <button type="button" data-slug="regex-tester">Regex</button>
-                  <button type="button" data-slug="word-to-pdf">Word to PDF</button>
-                  <button type="button" data-slug="svg-to-png">SVG to PNG</button>
+                <div class="hs-pop-list">
+                  <button type="button" data-slug="background-remover"><span class="hs-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1.5 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.5-2 1-2.8.3.9 1 1.3 1 1.3-.3-2 .5-4 2-6.5Z"/><path d="M9.5 13.5c0 2 1.2 3.5 2.8 3.5s2.7-1.2 2.7-3"/></svg></span>Background Remover</button>
+                  <button type="button" data-slug="word-to-pdf"><span class="hs-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1.5 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.5-2 1-2.8.3.9 1 1.3 1 1.3-.3-2 .5-4 2-6.5Z"/><path d="M9.5 13.5c0 2 1.2 3.5 2.8 3.5s2.7-1.2 2.7-3"/></svg></span>Word to PDF</button>
+                  <button type="button" data-slug="regex-tester"><span class="hs-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1.5 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.5-2 1-2.8.3.9 1 1.3 1 1.3-.3-2 .5-4 2-6.5Z"/><path d="M9.5 13.5c0 2 1.2 3.5 2.8 3.5s2.7-1.2 2.7-3"/></svg></span>Regex</button>
+                  <button type="button" data-slug="merge-pdf"><span class="hs-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1.5 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.5-2 1-2.8.3.9 1 1.3 1 1.3-.3-2 .5-4 2-6.5Z"/><path d="M9.5 13.5c0 2 1.2 3.5 2.8 3.5s2.7-1.2 2.7-3"/></svg></span>Merge PDF</button>
                 </div>
               </div>
               <div class="hs-pop-section">
-                <span class="hs-popular-label">Categories</span>
-                <div class="hs-pop-chips">
-                  <button type="button" data-cat="image">Images</button>
-                  <button type="button" data-cat="pdf">PDF</button>
-                  <button type="button" data-cat="developer">Developer</button>
-                  <button type="button" data-cat="converter">Converters</button>
-                </div>
+                <span class="hs-popular-label">Browse categories</span>
+                <div class="hs-pop-list" id="hsCatList"></div>
               </div>
             </div>
           </div>
         </div>
-        <div class="hero-cta hero-cta-secondary"><a class="btn btn-ghost" onclick="go('image')">Explore Tools</a><a class="btn btn-ghost" onclick="go('t/image-compressor')">Start Converting</a></div>
+        <div class="hero-cta hero-cta-secondary"><a class="btn btn-primary" onclick="go('image')">Explore Tools</a><a class="btn btn-convert" onclick="go('t/image-compressor')">Start Converting</a></div>
       </div>
     </div></section>
 
@@ -1345,11 +1339,11 @@
         </div>
         <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filter featured tools by category">
           <button class="fp-pill active" data-cat="all" role="tab" aria-selected="true" tabindex="0">All</button>
-          <button class="fp-pill" data-cat="image" role="tab" aria-selected="false" tabindex="-1">Image</button>
-          <button class="fp-pill" data-cat="pdf" role="tab" aria-selected="false" tabindex="-1">PDF</button>
-          <button class="fp-pill" data-cat="developer" role="tab" aria-selected="false" tabindex="-1">Developer</button>
-          <button class="fp-pill" data-cat="marketing" role="tab" aria-selected="false" tabindex="-1">Marketing</button>
-          <button class="fp-pill" data-cat="converter" role="tab" aria-selected="false" tabindex="-1">Converters</button>
+          <button class="fp-pill" data-cat="image" role="tab" aria-selected="false" tabindex="-1"><span class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>Image</button>
+          <button class="fp-pill" data-cat="pdf" role="tab" aria-selected="false" tabindex="-1"><span class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF</button>
+          <button class="fp-pill" data-cat="developer" role="tab" aria-selected="false" tabindex="-1"><span class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>Developer</button>
+          <button class="fp-pill" data-cat="marketing" role="tab" aria-selected="false" tabindex="-1"><span class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></span>Marketing</button>
+          <button class="fp-pill" data-cat="converter" role="tab" aria-selected="false" tabindex="-1"><span class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg></span>Converters</button>
         </div>
         <div class="feat-grid" id="feat-grid"><!-- buildFeaturedTools() --></div>
       </div>

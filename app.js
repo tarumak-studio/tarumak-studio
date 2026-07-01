@@ -348,18 +348,32 @@ function buildLatestArticles(){
   const grid=document.getElementById('blog-strip-grid');
   if(!grid||typeof ARTICLES==='undefined')return;
   const slugs=Object.keys(ARTICLES).slice(-4).reverse();
-  grid.innerHTML=slugs.map(slug=>{
+  const CLOCK_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
+  /* Article.cat stores a display label ("Image Tools"), not a raw
+     category key \u2014 build a reverse lookup once so we can pick the
+     right accent colour + icon (reusing the same 5-colour system
+     already used on category and featured-tool cards). */
+  const catKeyByLabel={};
+  if(typeof CAT!=='undefined'){
+    Object.keys(CAT).forEach(k=>{ catKeyByLabel[CAT[k]]=k; });
+  }
+  grid.innerHTML=slugs.map((slug,i)=>{
     const a=ARTICLES[slug];
     if(!a)return '';
+    const key=catKeyByLabel[a.cat]||'image';
+    const icoSvg=(typeof ICON!=='undefined'&&ICON[key])?ICON[key]:'';
     return ''+
-      '<a class="blog-strip-card" href="/article-'+slug+'.html">'+
+      '<a class="blog-strip-card cat-'+key+'" href="/article-'+slug+'.html">'+
+        (i===0?'<span class="bsc-featured">Featured</span>':'')+
+        '<div class="bsc-thumb"><span class="bsc-thumb-ico">'+icoSvg+'</span></div>'+
         '<span class="bsc-cat">'+a.cat+'</span>'+
         '<h3>'+a.title+'</h3>'+
         '<p>'+a.excerpt+'</p>'+
-        '<div class="bsc-meta"><span>'+a.date+'</span><span>'+a.read+' read</span></div>'+
+        '<div class="bsc-meta"><span>'+a.date+'</span><span class="bsc-read">'+CLOCK_ICO+a.read+' read</span></div>'+
       '</a>';
   }).join('');
 }
+
 
 /* ──────────────────────────────────────────────────
    buildNavToolsDropdown — lightweight category dropdown
@@ -443,14 +457,26 @@ function wireHeroSearch(){
     popular.querySelectorAll('button[data-slug]').forEach(btn=>{
       btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
     });
-    popular.querySelectorAll('button[data-cat]').forEach(btn=>{
-      btn.addEventListener('click',()=>{ go(btn.dataset.cat); });
-    });
+    /* Category list rendered from real ICON/CAT data (not hardcoded
+       HTML) so it always matches the site's actual 5 categories and
+       reuses the exact same SVG icon language used everywhere else \u2014
+       no emoji, for OS-rendering consistency. */
+    const catList=document.getElementById('hsCatList');
+    if(catList && typeof CAT!=='undefined' && typeof ICON!=='undefined'){
+      const order=['image','pdf','developer','marketing','converter'];
+      catList.innerHTML=order.map(c=>
+        '<button type="button" data-cat="'+c+'"><span class="hs-item-ico">'+ICON[c]+'</span>'+CAT[c]+'</button>'
+      ).join('');
+      catList.querySelectorAll('button[data-cat]').forEach(btn=>{
+        btn.addEventListener('click',()=>{ go(btn.dataset.cat); });
+      });
+    }
   }
   /* Recently used \u2014 reuses the same RK localStorage key that
      tool-visit tracking already writes to (see features.js), so this
      works immediately with zero new tracking code. Hidden entirely
      if the visitor has no history yet. */
+  var HS_DOT_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/></svg>';
   function renderRecent(){
     const section=document.getElementById('hsRecentSection');
     const chips=document.getElementById('hsRecentChips');
@@ -459,7 +485,7 @@ function wireHeroSearch(){
       const r=JSON.parse(localStorage.getItem(RK)||'[]');
       const valid=r.map(s=>bySlug(s)).filter(Boolean).slice(0,4);
       if(!valid.length){ section.style.display='none'; return; }
-      chips.innerHTML=valid.map(t=>'<button type="button" data-slug="'+t[0]+'">'+t[1]+'</button>').join('');
+      chips.innerHTML=valid.map(t=>'<button type="button" data-slug="'+t[0]+'"><span class="hs-item-ico">'+HS_DOT_ICO+'</span>'+t[1]+'</button>').join('');
       chips.querySelectorAll('button[data-slug]').forEach(btn=>{
         btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
       });

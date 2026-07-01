@@ -1878,24 +1878,39 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    ═══════════════════════════════════════════════════════════ */
 .hero-browse-hint {
   display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
-  gap: 4px 14px;
-  margin-top: 14px;
+  gap: 8px 8px;
+  margin-top: 16px;
   align-self: stretch;
   width: 100%;
 }
 .hbh-label {
-  font-family: var(--fm); font-size: 12px;
-  color: var(--text-faint);
+  font-family: var(--fd); font-weight: 600; font-size: 12.5px;
+  color: var(--text-dim);
+  letter-spacing: -.1px;
 }
+/* Pill-style chips, not plain inline text \u2014 gives the row real
+   visual weight and an obvious "this is clickable" affordance,
+   matching the same pill language as the filter pills (.fp-pill)
+   elsewhere on the page rather than reading as footer text. */
 .hero-browse-hint a {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--fb); font-size: 12.5px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--fb); font-size: 12.5px; font-weight: 600;
   color: var(--text-dim);
   text-decoration: none;
-  transition: color 200ms var(--ease);
+  padding: 6px 13px 6px 10px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 999px;
+  transition: color 200ms var(--ease), background 200ms var(--ease),
+              border-color 200ms var(--ease), transform 200ms var(--ease);
 }
-.hero-browse-hint a:hover { color: var(--p1); }
-.hbh-ico { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-faint); transition: color 200ms var(--ease); }
+.hero-browse-hint a:hover {
+  color: var(--text);
+  background: rgba(34,211,238,.1);
+  border-color: rgba(34,211,238,.28);
+  transform: translateY(-1px);
+}
+.hbh-ico { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-faint); transition: color 200ms var(--ease); }
 .hbh-ico svg { width: 100%; height: 100%; }
 .hero-browse-hint a:hover .hbh-ico { color: var(--p1); }
 
@@ -1949,4 +1964,22 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (prefers-reduced-motion: reduce) {
   .hs-rotator { transition: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Page-wide width consistency \u2014 every major homepage section
+   now shares the exact same 1240px content width as the hero.
+   Previously only hero and "Why Tarumak" had this override,
+   which is what kept producing repeated "this section looks
+   misaligned" reports. One canonical width, no exceptions,
+   removes the ambiguity permanently rather than deciding this
+   section-by-section.
+   ═══════════════════════════════════════════════════════════ */
+.featured-section .wrap,
+.filter-section .wrap,
+.category-section .wrap,
+.blog-strip-section .wrap,
+#tools .wrap,
+footer .wrap {
+  max-width: 1240px;
 }

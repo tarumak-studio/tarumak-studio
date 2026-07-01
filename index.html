@@ -1294,7 +1294,15 @@
             <span class="hs-rotator" id="hsRotator" aria-hidden="true"></span>
             <kbd class="hs-kbd">&#8984;K</kbd>
           </div>
-          <div class="hs-results" id="heroSearchResults"></div>
+          <div class="hs-results" id="heroSearchResults">
+            <div class="hs-popular" id="hsPopular">
+              <span class="hs-popular-label">Popular</span>
+              <button type="button" data-slug="background-remover">Background Remover</button>
+              <button type="button" data-slug="image-compressor">Image Compressor</button>
+              <button type="button" data-slug="merge-pdf">Merge PDF</button>
+              <button type="button" data-slug="json-formatter">JSON Formatter</button>
+            </div>
+          </div>
         </div>
         <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
       </div>
@@ -1308,25 +1316,20 @@
       </div></div></div>
     </div></section>
 
-<section class="section filter-section" id="filter-section">
-      <div class="wrap">
-        <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filter featured tools by category">
-          <button class="fp-pill active" data-cat="all" role="tab" aria-selected="true">All</button>
-          <button class="fp-pill" data-cat="image" role="tab" aria-selected="false">Image</button>
-          <button class="fp-pill" data-cat="pdf" role="tab" aria-selected="false">PDF</button>
-          <button class="fp-pill" data-cat="developer" role="tab" aria-selected="false">Developer</button>
-          <button class="fp-pill" data-cat="marketing" role="tab" aria-selected="false">Marketing</button>
-          <button class="fp-pill" data-cat="converter" role="tab" aria-selected="false">Converters</button>
-        </div>
-      </div>
-    </section>
-
 <section class="section featured-section" id="featured-section">
       <div class="wrap">
         <div class="section-head featured-head">
           <span class="eyebrow"><span class="dot"></span>FEATURED TOOLS</span>
           <h2>Start with our best</h2>
           <p>Eight tools our users reach for most. Everything else is one search away.</p>
+        </div>
+        <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filter featured tools by category">
+          <button class="fp-pill active" data-cat="all" role="tab" aria-selected="true" tabindex="0">All</button>
+          <button class="fp-pill" data-cat="image" role="tab" aria-selected="false" tabindex="-1">Image</button>
+          <button class="fp-pill" data-cat="pdf" role="tab" aria-selected="false" tabindex="-1">PDF</button>
+          <button class="fp-pill" data-cat="developer" role="tab" aria-selected="false" tabindex="-1">Developer</button>
+          <button class="fp-pill" data-cat="marketing" role="tab" aria-selected="false" tabindex="-1">Marketing</button>
+          <button class="fp-pill" data-cat="converter" role="tab" aria-selected="false" tabindex="-1">Converters</button>
         </div>
         <div class="feat-grid" id="feat-grid"><!-- buildFeaturedTools() --></div>
       </div>

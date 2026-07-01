@@ -121,11 +121,11 @@ function buildFeaturedTools(cat){
   cat=cat||'all';
   const grid=document.getElementById('feat-grid');
   if(!grid||typeof FEATURED==='undefined')return;
-  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
 
   /* "All" shows the curated flagship 8. A specific category swaps to
      that category's top picks (CAT_META.popular) so every filter pill
-     always shows real, relevant tools \u2014 never an empty grid. */
+     always shows real, relevant tools — never an empty grid. */
   let items;
   if(cat==='all'){
     items=FEATURED;
@@ -141,63 +141,118 @@ function buildFeaturedTools(cat){
     const preview=FEATURED_PREVIEWS[f.slug]?FEATURED_PREVIEWS[f.slug]():'';
     return ''+
       '<a class="feat-card cat-'+t[2]+'" href="javascript:void(0)" onclick="go(\'t/'+t[0]+'\')" aria-label="Open '+t[1]+'">'+
-        '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
-        '<div class="fc-body">'+
+        '<div class="fc-head">'+
+          '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
           '<h3>'+t[1]+'</h3>'+
-          '<p>'+hook+'</p>'+
-          preview+
         '</div>'+
+        (preview?'<div class="fc-preview-panel">'+preview+'</div>':'')+
+        '<p class="fc-hook">'+hook+'</p>'+
         '<span class="fc-cta">Try Now '+arrow+'</span>'+
       '</a>';
   }).join('');
 }
 
 /* ──────────────────────────────────────────────────
-   FEATURED_PREVIEWS \u2014 tiny, static, CSS/text-only
-   visual previews for the flagship 8 cards. No images,
-   no live processing, no canvas \u2014 every preview is
-   plain markup so it costs nothing to render and never
-   blocks page load.
+   FEATURED_PREVIEWS
+
+   Honest breakdown of what's REAL vs REPRESENTATIVE below,
+   because "should every card show real output" deserves a
+   real answer, not a blanket yes:
+
+   GENUINELY REAL (computed live, right here, every render):
+     - Regex Tester   — an actual RegExp executed against a
+                         sample string via .exec(); the highlighted
+                         span is the real match, not hardcoded HTML.
+     - Markdown→HTML  — a real (small, inline) markdown transform
+                         run against real markdown source text.
+   Both are free: no external library, no network request, no
+   asset — just JS that already ships with the page.
+
+   REPRESENTATIVE / STATIC (and why, honestly):
+     - Background Remover, OCR, Image Compressor, Word→PDF,
+       HEIC→JPG, QR Generator all need either a real photo/
+       document asset we don't host on the homepage, or a heavy
+       external library (Tesseract.js for OCR, @imgly for BG
+       removal, mammoth.js for DOCX, heic2any, a QR-encoding
+       library) that would have to load on first paint just to
+       render a decorative preview. That directly contradicts
+       "fast loading, no heavy animations" — so these stay as
+       polished, honest illustrations rather than fake-real output.
 ────────────────────────────────────────────────── */
 const FEATURED_PREVIEWS={
+
   'background-remover':()=>
     '<div class="fc-preview fc-preview-split">'+
-      '<span class="fcp-before"><span class="fcp-subject"></span></span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-after"><span class="fcp-subject"></span></span>'+
+      '<span class="fcp-photo fcp-before"><span class="fcp-subject"></span></span>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
+      '<span class="fcp-photo fcp-after"><span class="fcp-subject"></span></span>'+
     '</div>',
+
   'image-compressor':()=>
     '<div class="fc-preview fc-preview-size">'+
-      '<span class="fcp-size fcp-size-before">3.5 MB</span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-size fcp-size-after">680 KB</span>'+
+      '<div class="fcp-bar-row">'+
+        '<span class="fcp-bar fcp-bar-before" style="width:100%"></span>'+
+        '<span class="fcp-size-label">3.6 MB</span>'+
+      '</div>'+
+      '<div class="fcp-bar-row">'+
+        '<span class="fcp-bar fcp-bar-after" style="width:19%"></span>'+
+        '<span class="fcp-size-label fcp-size-label-accent">540 KB</span>'+
+      '</div>'+
     '</div>',
+
   'ocr-image-to-text':()=>
     '<div class="fc-preview fc-preview-ocr">'+
       '<span class="fcp-img-mini"><i></i><i></i><i></i></span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-text-mini">Lorem ipsum<br>dolor sit amet</span>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
+      '<span class="fcp-text-mini">Invoice #4471<br>Total: $214.00</span>'+
     '</div>',
+
   'word-to-pdf':()=>
     '<div class="fc-preview fc-preview-format">'+
-      '<span class="fcp-chip">.DOCX</span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-chip fcp-chip-accent">.PDF</span>'+
+      '<span class="fcp-file fcp-file-docx">DOCX</span>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
+      '<span class="fcp-file fcp-file-pdf">PDF</span>'+
     '</div>',
+
   'heic-to-jpg':()=>
     '<div class="fc-preview fc-preview-format">'+
-      '<span class="fcp-chip">.HEIC</span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-chip fcp-chip-accent">.JPG</span>'+
+      '<span class="fcp-file fcp-file-heic">HEIC</span>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
+      '<span class="fcp-file fcp-file-jpg">JPG</span>'+
     '</div>',
-  'regex-tester':()=>
-    '<div class="fc-preview fc-preview-regex">'+
-      '<code class="fcp-code">^\\d{3}-<mark>\\d{4}</mark>$</code>'+
-    '</div>',
+
+  /* GENUINELY REAL: pattern + sample string are real JS values run
+     through an actual RegExp.exec() call below. The highlighted
+     portion is the true match span, not a hand-written string. */
+  'regex-tester':()=>{
+    const pattern=/(\d{3})-(\d{4})/;
+    const sample='Call 555-0148 for support';
+    const m=pattern.exec(sample);
+    let highlighted=sample;
+    if(m){
+      const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      highlighted=esc(sample.slice(0,m.index))+'<mark>'+esc(m[0])+'</mark>'+esc(sample.slice(m.index+m[0].length));
+    }
+    return '<div class="fc-preview fc-preview-regex">'+
+      '<code class="fcp-pattern">/(\\d{3})-(\\d{4})/</code>'+
+      '<code class="fcp-code">'+highlighted+'</code>'+
+    '</div>';
+  },
+
   'qr-code-generator':()=>
     '<div class="fc-preview fc-preview-qr">'+
       '<span class="fcp-url">tarumakstudio.com</span>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
       '<svg class="fcp-qr-mini" viewBox="0 0 28 28" fill="currentColor">'+
         '<rect x="0" y="0" width="8" height="8" rx="1.5"/><rect x="2" y="2" width="4" height="4" rx="0.8" fill="var(--bg-2)"/>'+
         '<rect x="20" y="0" width="8" height="8" rx="1.5"/><rect x="22" y="2" width="4" height="4" rx="0.8" fill="var(--bg-2)"/>'+
@@ -208,29 +263,54 @@ const FEATURED_PREVIEWS={
         '<rect x="16" y="20" width="2.5" height="2.5"/><rect x="20" y="16" width="2.5" height="2.5"/>'+
       '</svg>'+
     '</div>',
-  'markdown-to-html':()=>
-    '<div class="fc-preview fc-preview-md">'+
-      '<code class="fcp-code"># Heading</code>'+
-      '<svg class="fcp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '<span class="fcp-html-mini">Heading</span>'+
-    '</div>'
+
+  /* GENUINELY REAL: this is a real (deliberately minimal) markdown
+     transform \u2014 bold/italic/heading only \u2014 run against real
+     markdown source text below. Not the full `marked` library used
+     by the actual tool (that stays CDN-loaded, on the tool page
+     only), but the transform IS actually executed here, not faked. */
+  'markdown-to-html':()=>{
+    /* Real newlines (not escaped \n) so the heading regex only
+       matches its own line -- fixes an earlier version where the
+       heading match greedily absorbed the rest of the text because
+       the source still had literal backslash-n at match time. */
+    const src='## Release notes\n**v2.4** adds _dark mode_.';
+    function tinyMarkdown(md){
+      const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return md.split('\n').map(function(line){
+        var headingMatch=line.match(/^## (.+)$/);
+        if(headingMatch)return '<strong class="fcp-h">'+esc(headingMatch[1])+'</strong>';
+        return esc(line)
+          .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+          .replace(/_(.+?)_/g,'<i>$1</i>');
+      }).join('<br>');
+    }
+    return '<div class="fc-preview fc-preview-md">'+
+      '<code class="fcp-code fcp-code-src">'+src.split('\n').map(l=>l.replace(/&/g,'&amp;')).join('<br>')+'</code>'+
+      '<span class="fcp-mid-arrow">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
+      '</span>'+
+      '<span class="fcp-html-mini">'+tinyMarkdown(src)+'</span>'+
+    '</div>';
+  }
 };
 
-/* ──────────────────────────────────────────────────
-   wireFilterPills \u2014 instant client-side category
-   filter for the Featured Tools grid. No reload, no
-   navigation, just a re-render + a subtle fade.
-────────────────────────────────────────────────── */
+
 function wireFilterPills(){
   const wrap=document.getElementById('filterPills');
   if(!wrap||wrap.dataset.wired)return;
   wrap.dataset.wired='1';
-  wrap.addEventListener('click',e=>{
-    const btn=e.target.closest('.fp-pill');
-    if(!btn)return;
-    wrap.querySelectorAll('.fp-pill').forEach(p=>{p.classList.remove('active');p.setAttribute('aria-selected','false');});
+
+  function selectPill(btn,{focus}={}){
+    wrap.querySelectorAll('.fp-pill').forEach(p=>{
+      p.classList.remove('active');
+      p.setAttribute('aria-selected','false');
+      p.tabIndex=-1;
+    });
     btn.classList.add('active');
     btn.setAttribute('aria-selected','true');
+    btn.tabIndex=0;
+    if(focus)btn.focus();
     const grid=document.getElementById('feat-grid');
     if(grid){
       grid.classList.add('fading');
@@ -239,8 +319,32 @@ function wireFilterPills(){
         grid.classList.remove('fading');
       },140);
     }
+  }
+
+  wrap.addEventListener('click',e=>{
+    const btn=e.target.closest('.fp-pill');
+    if(!btn)return;
+    selectPill(btn);
+  });
+
+  /* Roving tabindex + arrow-key navigation \u2014 standard WAI-ARIA
+     tablist pattern. Only the active pill is in the tab order; arrow
+     keys move focus AND selection between pills, Home/End jump to
+     the first/last pill. */
+  wrap.addEventListener('keydown',e=>{
+    const pills=Array.from(wrap.querySelectorAll('.fp-pill'));
+    const current=document.activeElement.closest('.fp-pill');
+    if(!current)return;
+    const i=pills.indexOf(current);
+    let next=null;
+    if(e.key==='ArrowRight')next=pills[(i+1)%pills.length];
+    else if(e.key==='ArrowLeft')next=pills[(i-1+pills.length)%pills.length];
+    else if(e.key==='Home')next=pills[0];
+    else if(e.key==='End')next=pills[pills.length-1];
+    if(next){ e.preventDefault(); selectPill(next,{focus:true}); }
   });
 }
+
 
 /* ──────────────────────────────────────────────────
    buildLatestArticles — renders the "Latest guides"
@@ -299,15 +403,16 @@ function buildNavToolsDropdown(){
 function wireHeroSearch(){
   const input=document.getElementById('heroSearch');
   const results=document.getElementById('heroSearchResults');
+  const popular=document.getElementById('hsPopular');
   if(!input||!results)return;
   let activeIndex=-1;
 
   /* Rotating placeholder \u2014 cycles through real example searches so
      the search bar also doubles as implicit tool discovery. Uses a
      separate overlay span (not the native placeholder attribute) so the
-     text change can crossfade smoothly; native placeholders can only
-     swap instantly. Pauses whenever the input has a value or is focused
-     with content, and respects prefers-reduced-motion. */
+     text change can crossfade AND slide, which native placeholders
+     can't do (they can only swap instantly). Pauses whenever the input
+     has a value, and respects prefers-reduced-motion. */
   const rotatorEl=document.getElementById('hsRotator');
   const examples=['Search "Background Remover"','Search "Merge PDF"','Search "OCR"','Search "Regex Tester"','Search "HEIC to JPG"','Search "Image Compressor"'];
   const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -316,20 +421,37 @@ function wireHeroSearch(){
     function paintPlaceholder(){
       if(input.value){rotatorEl.style.opacity='0';return;}
       rotatorEl.textContent=examples[exIndex];
+      rotatorEl.classList.remove('hs-rotator-in');
+      void rotatorEl.offsetWidth; /* restart animation */
+      rotatorEl.classList.add('hs-rotator-in');
       rotatorEl.style.opacity='1';
     }
     paintPlaceholder();
     if(!reduceMotion){
       setInterval(()=>{
-        if(input.value||document.activeElement===input&&input.value)return;
-        rotatorEl.style.opacity='0';
+        if(input.value)return;
+        rotatorEl.classList.add('hs-rotator-out');
         setTimeout(()=>{
+          rotatorEl.classList.remove('hs-rotator-out');
           exIndex=(exIndex+1)%examples.length;
           paintPlaceholder();
-        },280);
+        },260);
       },2600);
     }
     input.addEventListener('input',()=>{ rotatorEl.style.opacity=input.value?'0':'1'; });
+  }
+
+  /* Popular-searches quick chips \u2014 shown only when the input is
+     empty and focused, so first-time visitors get an instant sense of
+     what's searchable without having to type anything. Hidden the
+     moment real results are showing or the input has text. */
+  if(popular){
+    popular.querySelectorAll('button[data-slug]').forEach(btn=>{
+      btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
+    });
+  }
+  function togglePopular(show){
+    if(popular)popular.style.display=show?'flex':'none';
   }
 
   function render(list){
@@ -340,6 +462,7 @@ function wireHeroSearch(){
     }
     results.innerHTML=list.map((t,i)=>
       '<a data-i="'+i+'" onclick="go(\'t/'+t[0]+'\')">'+
+        '<span class="hsr-ico">'+ICON[t[2]]+'</span>'+
         '<span class="hsr-name">'+t[1]+'</span>'+
         '<span class="chip">'+t[4][0]+'</span>'+
       '</a>'
@@ -350,7 +473,13 @@ function wireHeroSearch(){
   function search(term){
     activeIndex=-1;
     const t=term.toLowerCase().trim();
-    if(!t){results.classList.remove('show');results.innerHTML='';return;}
+    if(!t){
+      results.classList.toggle('show', document.activeElement===input);
+      togglePopular(document.activeElement===input);
+      if(results.querySelector('a[data-i]'))results.innerHTML=popular?results.innerHTML:'';
+      return;
+    }
+    togglePopular(false);
     const list=TOOLS.filter(x=>
       x[1].toLowerCase().includes(t) ||
       x[3].toLowerCase().includes(t) ||
@@ -360,7 +489,10 @@ function wireHeroSearch(){
   }
 
   input.addEventListener('input',()=>search(input.value));
-  input.addEventListener('focus',()=>{ if(input.value.trim())search(input.value); });
+  input.addEventListener('focus',()=>{
+    if(input.value.trim()){ search(input.value); }
+    else { togglePopular(true); results.classList.add('show'); }
+  });
 
   input.addEventListener('keydown',e=>{
     const items=results.querySelectorAll('a[data-i]');
@@ -387,6 +519,7 @@ function wireHeroSearch(){
     if(!e.target.closest('.hero-search'))results.classList.remove('show');
   });
 }
+
 
 
 

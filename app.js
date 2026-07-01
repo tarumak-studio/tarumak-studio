@@ -478,6 +478,73 @@ function buildNavToolsDropdown(){
    the hero scrolls out of view). Same filtering pattern,
    larger result set, basic keyboard navigation.
 ────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────
+   Shared search helpers \u2014 used by BOTH the hero search
+   and the persistent nav search, so behaviour (extension
+   matching, highlighting, ranking) stays identical no matter
+   which search box the visitor is using.
+────────────────────────────────────────────────── */
+
+/* normalizeSearchTerm \u2014 strips a leading "." so typing a
+   file extension like ".png" or ".pdf" matches naturally
+   against tool names/slugs (which contain "png"/"pdf" as
+   plain text, not literally ".png"). Also folds a couple of
+   very common extension synonyms so "jpeg" also finds "jpg"
+   tools and vice versa. */
+var EXT_SYNONYMS={jpeg:'jpg',jpg:'jpeg',yml:'yaml',yaml:'yml',htm:'html'};
+function normalizeSearchTerm(raw){
+  var t=raw.toLowerCase().trim();
+  if(t.charAt(0)==='.')t=t.slice(1);
+  return t;
+}
+
+/* escapeHtml \u2014 minimal, used before wrapping any user-typed
+   substring in <mark> so a search term can never inject HTML. */
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* highlightMatch \u2014 wraps the first case-insensitive occurrence
+   of `term` inside `text` in <mark>, HTML-escaping everything
+   else. Falls back to plain escaped text if no match is found
+   (e.g. the match came from the description/category, not the
+   visible name). */
+function highlightMatch(text,term){
+  if(!term)return escapeHtml(text);
+  var idx=text.toLowerCase().indexOf(term.toLowerCase());
+  if(idx<0)return escapeHtml(text);
+  return escapeHtml(text.slice(0,idx))+'<mark>'+escapeHtml(text.slice(idx,idx+term.length))+'</mark>'+escapeHtml(text.slice(idx+term.length));
+}
+
+/* matchTools \u2014 the shared ranking/matching logic. Checks name,
+   description, category label AND slug (slugs like "jpg-to-png"
+   catch extension searches that the display name alone might
+   miss), plus a small extension-synonym pass. Name matches are
+   ranked before description/category-only matches. */
+function matchTools(rawTerm,limit){
+  var t=normalizeSearchTerm(rawTerm);
+  if(!t)return [];
+  var syn=EXT_SYNONYMS[t];
+  function hit(x){
+    var name=x[1].toLowerCase(),desc=x[3].toLowerCase(),cat=CAT[x[2]].toLowerCase(),slug=x[0].toLowerCase();
+    var terms=syn?[t,syn]:[t];
+    return terms.some(function(term){
+      return name.indexOf(term)>-1||slug.indexOf(term)>-1||desc.indexOf(term)>-1||cat.indexOf(term)>-1;
+    });
+  }
+  function nameHit(x){
+    var name=x[1].toLowerCase(),slug=x[0].toLowerCase();
+    var terms=syn?[t,syn]:[t];
+    return terms.some(function(term){ return name.indexOf(term)>-1||slug.indexOf(term)>-1; });
+  }
+  var all=TOOLS.filter(hit);
+  all.sort(function(a,b){
+    var an=nameHit(a)?0:1, bn=nameHit(b)?0:1;
+    return an-bn;
+  });
+  return all.slice(0,limit||8);
+}
+
 function wireHeroSearch(){
   const input=document.getElementById('heroSearch');
   const results=document.getElementById('heroSearchResults');
@@ -567,16 +634,30 @@ function wireHeroSearch(){
     if(popular)popular.style.display=show?'flex':'none';
   }
 
-  function render(list){
+  function render(list,rawTerm){
     if(!list.length){
-      results.innerHTML='<a style="cursor:default;color:var(--text-faint)">No matches \u2014 try a different word</a>';
+      /* No-results suggestions instead of a bare message: a few
+         genuinely popular tools, so the visitor still has a next
+         action instead of a dead end. */
+      var suggestions=['background-remover','image-compressor','merge-pdf','json-formatter']
+        .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
+      results.innerHTML=
+        '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(rawTerm||'')+'&rdquo;</span></div>'+
+        suggestions.map((t,i)=>
+          '<a data-i="'+i+'" onclick="go(\'t/'+t[0]+'\')">'+
+            '<span class="hsr-ico">'+ICON[t[2]]+'</span>'+
+            '<span class="hsr-name">'+t[1]+'</span>'+
+            '<span class="chip">'+t[4][0]+'</span>'+
+          '</a>'
+        ).join('');
       results.classList.add('show');
       return;
     }
+    const normTerm=normalizeSearchTerm(rawTerm||'');
     results.innerHTML=list.map((t,i)=>
       '<a data-i="'+i+'" onclick="go(\'t/'+t[0]+'\')">'+
         '<span class="hsr-ico">'+ICON[t[2]]+'</span>'+
-        '<span class="hsr-name">'+t[1]+'</span>'+
+        '<span class="hsr-name">'+highlightMatch(t[1],normTerm)+'</span>'+
         '<span class="chip">'+t[4][0]+'</span>'+
       '</a>'
     ).join('');
@@ -593,12 +674,7 @@ function wireHeroSearch(){
       return;
     }
     togglePopular(false);
-    const list=TOOLS.filter(x=>
-      x[1].toLowerCase().includes(t) ||
-      x[3].toLowerCase().includes(t) ||
-      CAT[x[2]].toLowerCase().includes(t)
-    ).slice(0,8);
-    render(list);
+    render(matchTools(term,8),term);
   }
 
   input.addEventListener('input',()=>search(input.value));
@@ -753,22 +829,110 @@ function buildToolArticles(slug){
 
 function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
-  setActiveNav('all');saveRecent(slug);
+  setActiveNav('all');
   const cat=t[2],related=TOOLS.filter(x=>x[2]===cat&&x[0]!==slug).slice(0,3);
   const feats=FEAT[slug]||[['Instant &amp; local','Runs entirely in your browser — your files never leave your device.'],[t[1]+' made simple','A focused, no-clutter interface that does one job well.'],['Free forever','No sign-up, no watermark, no limits — use it as often as you like.']];
   const faqs=FAQ[slug]||[['Are my files uploaded to a server?','No. Everything is processed locally in your browser, so your files stay on your device.'],['Is it really free?','Yes — every TARUMAK tool is free, with no account and no watermark.']];
+
+  /* Recently used, read BEFORE saveRecent(slug) below updates it, so the
+     current tool doesn't appear in its own "recently used" list. */
+  const recentSlugs=getRecentSlugs().filter(s=>s!==slug).slice(0,4);
+  saveRecent(slug);
+
   toolEl.innerHTML=
    '<nav class="crumb"><a onclick="go(\'\')">Home</a><span class="sep">/</span><a onclick="go(\''+cat+'\')">'+CAT[cat]+'</a><span class="sep">/</span><span class="here">'+t[1]+'</span></nav>'+
    '<div class="tool-head '+cat+'"><div class="badge">'+ICON[cat]+'</div><div style="flex:1"><h1>'+t[1]+'</h1><p>'+t[3]+'</p></div><button class="th-fav'+(isFav(slug)?' active':'')+'" data-slug="'+slug+'" onclick="toggleFav(\''+slug+'\')" aria-label="Save tool" title="Save to favourites">'+heartSvg+'</button></div>'+
    '<div class="panel" id="panel"></div>'+
+   buildHowToGuide(t,cat)+
    '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h3 class="f-title">'+f[0]+'</h3><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
    '<section class="sec" style="padding-top:0"><h2>Frequently asked questions</h2><p class="lead">Quick answers before you start.</p><div class="faq">'+faqs.map(q=>'<details class="q"><summary>'+q[0]+'</summary><div class="a">'+q[1]+'</div></details>').join('')+'</div></section>'+
-   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+'<section class="sec" style="padding-top:0" id="tool-articles"></section>'+buildAffBanners(cat);
+   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+'</div></section>'+
+   buildRelatedArticlesSection(slug)+
+   buildRecentToolsSection(recentSlugs)+
+   buildAffBanners(cat);
   document.title=t[1]+' | Tarumak Studio';updateToolMeta(slug,t);
   fadeIn(toolEl);
   (INIT[slug]||noInit)($('#panel'));
   scrollTo(0,0);
 }
+
+/* ──────────────────────────────────────────────────
+   buildHowToGuide — a genuine, parameterised step-by-step
+   guide, not filler text. Wording adapts to the tool's
+   category (what you drop in, what you're adjusting, what
+   you get out) so it reads as specific to the tool rather
+   than a copy-pasted generic block. This is intentionally
+   NOT 66 hand-written unique guides — that's a real content
+   project of its own — but it IS an accurate, useful guide
+   for the drop-configure-download pattern nearly every one
+   of these tools actually follows, which is what a visitor
+   searching "how to [x]" actually needs to see.
+────────────────────────────────────────────────── */
+function buildHowToGuide(t,cat){
+  const inputNoun={
+    image:'your image (JPG, PNG, WebP, or similar)',
+    pdf:'your PDF file',
+    developer:'your text, code or data',
+    marketing:'your details',
+    converter:'your file'
+  }[cat]||'your file';
+  const actionVerb={ image:'Drop', pdf:'Drop', converter:'Drop', developer:'Paste or type', marketing:'Enter' }[cat]||'Drop';
+  const steps=[
+    ['Open '+t[1], 'No sign-up or install needed — the tool is ready as soon as the page loads.'],
+    [actionVerb+' '+inputNoun, actionVerb==='Drop'?'Drag it into the drop zone, or click to browse your files. Nothing is uploaded to a server.':'Type or paste directly into the input field.'],
+    ['Adjust the settings if needed', 'Most options have a sensible default already selected — change them only if you need something specific.'],
+    ['Download your result', 'Your output is ready instantly. Click download to save it — the file never left your device during processing.']
+  ];
+  return '<section class="sec" style="padding-top:0"><h2>How to use '+t[1]+'</h2><p class="lead">Four steps, no learning curve.</p>'+
+    '<ol class="howto">'+steps.map((s,i)=>'<li class="howto-step"><span class="howto-n">'+(i+1)+'</span><div><h3 class="howto-title">'+s[0]+'</h3><p>'+s[1]+'</p></div></li>').join('')+'</ol>'+
+  '</section>';
+}
+
+/* ──────────────────────────────────────────────────
+   buildRelatedArticlesSection — this slot existed in the
+   template before but was never actually populated (an
+   empty <section id="tool-articles"> with nothing filling
+   it), despite TOOL_ARTICLES/ARTICLES data already covering
+   64 of 66 tools. Wiring it up surfaces real, already-written
+   content that was completely invisible to visitors until now.
+────────────────────────────────────────────────── */
+function buildRelatedArticlesSection(slug){
+  if(typeof TOOL_ARTICLES==='undefined'||typeof ARTICLES==='undefined')return '';
+  const slugs=(TOOL_ARTICLES[slug]||[]).map(s=>ARTICLES[s]?{slug:s,...ARTICLES[s]}:null).filter(Boolean);
+  if(!slugs.length)return '';
+  return '<section class="sec" style="padding-top:0"><h2>Related guides</h2><p class="lead">Learn more about this workflow.</p><div class="related">'+
+    slugs.map(a=>'<a class="rcard" href="/article-'+a.slug+'.html" style="text-decoration:none"><div class="ico">'+DOC_ICO+'</div><div><h3 class="rc-title">'+a.title+'</h3><p>'+a.excerpt+'</p></div></a>').join('')+
+  '</div></section>';
+}
+
+/* ──────────────────────────────────────────────────
+   buildRecentToolsSection — shows the visitor's own recent
+   tool history directly on a tool page (not just the homepage
+   search dropdown), so mid-workflow users can jump back to a
+   tool they used a few minutes ago without navigating away.
+   Renders nothing at all if there's no history yet.
+────────────────────────────────────────────────── */
+function buildRecentToolsSection(recentSlugs){
+  if(!recentSlugs.length)return '';
+  const items=recentSlugs.map(s=>bySlug(s)).filter(Boolean);
+  if(!items.length)return '';
+  return '<section class="sec" style="padding-top:0"><h2>Recently used</h2><p class="lead">Pick up where you left off.</p><div class="related">'+
+    items.map(r=>'<div class="rcard" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p></div></div>').join('')+
+  '</div></section>';
+}
+
+var DOC_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>';
+
+/* getRecentSlugs — small helper so both the homepage search
+   dropdown and tool pages read from the exact same source of
+   truth (RK localStorage key) without duplicating the parsing
+   logic in two places. */
+function getRecentSlugs(){
+  if(typeof RK==='undefined')return [];
+  try{ return JSON.parse(localStorage.getItem(RK)||'[]'); }
+  catch(e){ return []; }
+}
+
 function route(){
   /* Redirect bare /#/blog to clean URL /blog */
   var _h=location.hash||'';

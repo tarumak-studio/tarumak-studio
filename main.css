@@ -1889,3 +1889,24 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .hero-mkt-link, .hero-mkt-link svg { transition: none !important; }
   .hero-mkt-link:hover svg { transform: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Search: match highlighting + no-results suggestions
+   Shared styling for both hero search and nav search results.
+   ═══════════════════════════════════════════════════════════ */
+.hs-results mark, .search-pop mark {
+  background: rgba(34,211,238,.22);
+  color: var(--p1);
+  border-radius: 3px;
+  padding: 0 1px;
+  font-weight: 600;
+}
+.hs-noresult {
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 4px;
+}
+.hs-noresult-msg {
+  display: block;
+  font-size: 12.5px; color: var(--text-faint);
+}

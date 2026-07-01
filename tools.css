@@ -71,6 +71,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p1);box-
 .q[open] summary::after{transform:rotate(45deg)}
 .q .a{padding:0 20px 18px;color:var(--text-dim);font-size:14.5px}
 .related{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.howto{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:22px;counter-reset:howto}
+.howto-step{display:flex;gap:16px;align-items:flex-start}
+.howto-n{
+  flex-shrink:0;width:32px;height:32px;border-radius:10px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(99,102,241,.1));
+  border:1px solid rgba(34,211,238,.25);
+  color:var(--p1);font-family:var(--fd);font-weight:700;font-size:14px;
+}
+.howto-title{font-family:var(--fd);font-weight:600;font-size:15.5px;color:var(--text);margin:0 0 4px}
+.howto-step p{font-size:13.5px;line-height:1.55;color:var(--text-dim);margin:0}
+@media(max-width:640px){.howto{gap:18px}}
+
 .rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:.3s var(--ease);display:flex;gap:13px;align-items:center;cursor:pointer}
 .rcard:hover{transform:translateY(-3px);background:var(--surface-2);box-shadow:var(--shadow)}
 .rcard .ico{width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--p1);flex-shrink:0}

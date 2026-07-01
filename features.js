@@ -70,10 +70,20 @@ const navSearch=$('#navSearch'),navPop=$('#navPop');
 let navActiveIndex=-1;
 navSearch.addEventListener('input',()=>{
   navActiveIndex=-1;
-  const t=navSearch.value.toLowerCase().trim();
+  const raw=navSearch.value;
+  const t=raw.toLowerCase().trim();
   if(!t){navPop.classList.remove('show');return;}
-  const list=TOOLS.filter(x=>x[1].toLowerCase().includes(t)||x[3].toLowerCase().includes(t)||CAT[x[2]].toLowerCase().includes(t)).slice(0,8);
-  navPop.innerHTML=list.length?list.map((x,i)=>'<a data-i="'+i+'" onclick="go(\'t/'+x[0]+'\')">'+x[1]+'<span class="chip">'+x[4][0]+'</span></a>').join(''):'<a style="cursor:default">No matches</a>';
+  const list=matchTools(raw,8);
+  if(!list.length){
+    const suggestions=['background-remover','image-compressor','merge-pdf','json-formatter']
+      .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
+    navPop.innerHTML=
+      '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(raw)+'&rdquo;</span></div>'+
+      suggestions.map((x,i)=>'<a data-i="'+i+'" onclick="go(\'t/'+x[0]+'\')"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+x[1]+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+  } else {
+    const normTerm=normalizeSearchTerm(raw);
+    navPop.innerHTML=list.map((x,i)=>'<a data-i="'+i+'" onclick="go(\'t/'+x[0]+'\')"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+highlightMatch(x[1],normTerm)+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+  }
   navPop.classList.add('show');});
 navSearch.addEventListener('keydown',e=>{
   const items=navPop.querySelectorAll('a[data-i]');

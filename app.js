@@ -589,14 +589,41 @@ function wireHeroSearch(){
      inset math that can drift out of sync with the icon size,
      padding, or input width \u2014 the entire class of alignment
      bug from earlier rounds is now structurally impossible. */
-  const examples=['Search "Background Remover"','Search "Merge PDF"','Search "OCR"','Search "Regex Tester"','Search "HEIC to JPG"','Search "Image Compressor"'];
-  let exIndex=0;
-  input.placeholder=examples[0];
-  setInterval(()=>{
-    if(input.value)return;
-    exIndex=(exIndex+1)%examples.length;
-    input.placeholder=examples[exIndex];
-  },2600);
+  const rotatorEl=document.getElementById('hsRotator');
+  const examples=['Search "Compress PDF"','Search "Background Remover"','Search "OCR Image"','Search "Merge PDF"','Search "JPG to PNG"','Search "Image Resizer"','Search "SVG to PNG"','Search "Word to PDF"'];
+  const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rotatorEl){
+    let exIndex=0;
+
+    /* "Paused" = input has a value OR is currently focused, even
+       if empty. Only an EMPTY, BLURRED input shows the rotator \u2014
+       matches the requested "stop on focus/typing, resume only
+       when empty AND blurred" behaviour exactly. */
+    function isPaused(){ return !!input.value || document.activeElement===input; }
+
+    function paintPlaceholder(){
+      if(isPaused()){ rotatorEl.classList.add('hs-rotator-hidden'); return; }
+      rotatorEl.textContent=examples[exIndex];
+      rotatorEl.classList.remove('hs-rotator-hidden');
+    }
+    paintPlaceholder();
+
+    if(!reduceMotion){
+      setInterval(()=>{
+        if(isPaused())return;
+        rotatorEl.classList.add('hs-rotator-hidden');
+        setTimeout(()=>{
+          if(isPaused())return; /* re-check: user may have focused mid-transition */
+          exIndex=(exIndex+1)%examples.length;
+          paintPlaceholder();
+        },260);
+      },2600);
+    }
+
+    input.addEventListener('focus',()=>{ rotatorEl.classList.add('hs-rotator-hidden'); });
+    input.addEventListener('blur',paintPlaceholder);
+    input.addEventListener('input',()=>{ if(input.value)rotatorEl.classList.add('hs-rotator-hidden'); });
+  }
 
   /* Popular-searches quick chips \u2014 shown only when the input is
      empty and focused, so first-time visitors get an instant sense of

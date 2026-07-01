@@ -1877,9 +1877,11 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    everywhere else (nav dropdown, filter pills, category cards).
    ═══════════════════════════════════════════════════════════ */
 .hero-browse-hint {
-  display: flex; align-items: center; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
   gap: 4px 14px;
   margin-top: 14px;
+  align-self: stretch;
+  width: 100%;
 }
 .hbh-label {
   font-family: var(--fm); font-size: 12px;
@@ -1899,7 +1901,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (max-width: 560px) {
   .hero-browse-hint { gap: 4px 10px; }
-  .hbh-label { width: 100%; margin-bottom: 2px; }
+  .hbh-label { width: 100%; margin-bottom: 2px; text-align: center; }
 }
 
 /* Dismissible "x" on the active-category chip (Toolkit tabs) */
@@ -1912,3 +1914,39 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   transition: background 180ms var(--ease);
 }
 .tab-clear:hover { background: rgba(255,255,255,.16); }
+
+/* ═══════════════════════════════════════════════════════════
+   Animated hero search placeholder \u2014 rebuilt cleanly, single
+   definition only (no legacy duplicate rules this time \u2014
+   verified zero pre-existing .hs-rotator/.hs-input-wrap rules
+   before adding these). The wrapper establishes ONE positioning
+   context that both the real input and the rotator overlay
+   share via inset:0, so the rotator's box is always identical
+   to the input's own box regardless of icon size, padding, or
+   future spacing changes \u2014 no hardcoded left/right pixel values
+   anywhere in this block.
+   ═══════════════════════════════════════════════════════════ */
+.hs-input-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+
+.hs-rotator {
+  position: absolute; inset: 0;
+  display: flex; align-items: center;
+  font-family: var(--fb); font-size: 17px;
+  color: var(--text-faint);
+  pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 1; transform: translateY(0);
+  transition: opacity 260ms var(--ease), transform 260ms var(--ease);
+}
+.hs-rotator.hs-rotator-hidden {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (max-width: 720px) {
+  .hs-rotator { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-rotator { transition: none !important; }
+}

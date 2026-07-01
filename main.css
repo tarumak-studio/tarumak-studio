@@ -1674,3 +1674,38 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .cluster { width: 220px; height: 220px; }
   .cluster-glow { width: 280px; height: 280px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Hero search \u2014 now a genuine full-width row spanning the
+   entire hero container, not bound by the 2-column grid's
+   column math. Directly satisfies "1240px or more" since it
+   now spans the hero's own full max-width, and removes the
+   dependency on column-share arithmetic entirely.
+   ═══════════════════════════════════════════════════════════ */
+.hero-search-row {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  display: flex; flex-direction: column; align-items: flex-start;
+}
+.hero-search-row .hero-search-primary { max-width: 100%; width: 100%; }
+
+@media (max-width: 720px) {
+  .hero-search-row { margin-top: 4px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Rotator crossfade fix \u2014 the placeholder was driven by BOTH
+   a CSS transition (opacity/transform on the base rule) AND a
+   separate keyframe animation (.hs-rotator-in) targeting the
+   exact same properties at the same time on every rotation.
+   Two competing effects on one property is a known source of
+   visual glitching/ghosting during the swap moment. Fix: drop
+   the keyframe animation entirely and drive fade-in through the
+   SAME transition mechanism as fade-out, so there's exactly one
+   thing controlling opacity/transform at any moment.
+   ═══════════════════════════════════════════════════════════ */
+.hs-rotator-in { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-search-row { transition: none !important; }
+}

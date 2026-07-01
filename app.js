@@ -182,12 +182,10 @@ function buildFeaturedTools(cat){
 const FEATURED_PREVIEWS={
 
   'background-remover':()=>
-    '<div class="fc-preview fc-preview-split">'+
-      '<span class="fcp-photo fcp-before"><span class="fcp-subject"></span></span>'+
-      '<span class="fcp-mid-arrow">'+
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '</span>'+
-      '<span class="fcp-photo fcp-after"><span class="fcp-subject"></span></span>'+
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">Before</span><span class="fcp-photo fcp-before"><span class="fcp-subject"></span></span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">After</span><span class="fcp-photo fcp-after"><span class="fcp-subject"></span></span></div>'+
     '</div>',
 
   'image-compressor':()=>
@@ -203,30 +201,24 @@ const FEATURED_PREVIEWS={
     '</div>',
 
   'ocr-image-to-text':()=>
-    '<div class="fc-preview fc-preview-ocr">'+
-      '<span class="fcp-img-mini"><i></i><i></i><i></i></span>'+
-      '<span class="fcp-mid-arrow">'+
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '</span>'+
-      '<span class="fcp-text-mini">Invoice #4471<br>Total: $214.00</span>'+
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">Scanned image</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">Extracted text</span><span class="fcp-text-mini">Invoice #4471<br>Total: $214.00</span></div>'+
     '</div>',
 
   'word-to-pdf':()=>
-    '<div class="fc-preview fc-preview-format">'+
-      '<span class="fcp-file fcp-file-docx">DOCX</span>'+
-      '<span class="fcp-mid-arrow">'+
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '</span>'+
-      '<span class="fcp-file fcp-file-pdf">PDF</span>'+
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-file fcp-file-docx">DOCX</span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-file fcp-file-pdf">PDF</span></div>'+
     '</div>',
 
   'heic-to-jpg':()=>
-    '<div class="fc-preview fc-preview-format">'+
-      '<span class="fcp-file fcp-file-heic">HEIC</span>'+
-      '<span class="fcp-mid-arrow">'+
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'+
-      '</span>'+
-      '<span class="fcp-file fcp-file-jpg">JPG</span>'+
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-file fcp-file-heic">HEIC</span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-file fcp-file-jpg">JPG</span></div>'+
     '</div>',
 
   /* GENUINELY REAL: pattern + sample string are real JS values run
@@ -387,11 +379,13 @@ function buildNavToolsDropdown(){
     }).join('');
     return ''+
       '<div class="ntp-col">'+
-        '<a class="ntp-cat" onclick="go(\''+cat+'\')">'+CAT[cat]+'</a>'+
+        '<a class="ntp-cat" onclick="go(\''+cat+'\')"><span class="ntp-cat-ico">'+ICON[cat]+'</span>'+CAT[cat]+'</a>'+
         popularLinks+
+        '<a class="ntp-viewall" onclick="go(\''+cat+'\')">View all &rarr;</a>'+
       '</div>';
   }).join('');
 }
+
 
 /* ──────────────────────────────────────────────────
    wireHeroSearch — prominent hero search bar. Separate
@@ -449,7 +443,30 @@ function wireHeroSearch(){
     popular.querySelectorAll('button[data-slug]').forEach(btn=>{
       btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
     });
+    popular.querySelectorAll('button[data-cat]').forEach(btn=>{
+      btn.addEventListener('click',()=>{ go(btn.dataset.cat); });
+    });
   }
+  /* Recently used \u2014 reuses the same RK localStorage key that
+     tool-visit tracking already writes to (see features.js), so this
+     works immediately with zero new tracking code. Hidden entirely
+     if the visitor has no history yet. */
+  function renderRecent(){
+    const section=document.getElementById('hsRecentSection');
+    const chips=document.getElementById('hsRecentChips');
+    if(!section||!chips||typeof RK==='undefined')return;
+    try{
+      const r=JSON.parse(localStorage.getItem(RK)||'[]');
+      const valid=r.map(s=>bySlug(s)).filter(Boolean).slice(0,4);
+      if(!valid.length){ section.style.display='none'; return; }
+      chips.innerHTML=valid.map(t=>'<button type="button" data-slug="'+t[0]+'">'+t[1]+'</button>').join('');
+      chips.querySelectorAll('button[data-slug]').forEach(btn=>{
+        btn.addEventListener('click',()=>{ go('t/'+btn.dataset.slug); });
+      });
+      section.style.display='block';
+    }catch(e){ section.style.display='none'; }
+  }
+  renderRecent();
   function togglePopular(show){
     if(popular)popular.style.display=show?'flex':'none';
   }

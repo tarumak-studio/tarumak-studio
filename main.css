@@ -842,7 +842,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
 }
-.ntp-col { display: flex; flex-direction: column; gap: 2px; padding: 4px; }
+.ntp-col { display: flex; flex-direction: column; gap: 6px; padding: 4px; }
 .ntp-col a {
   display: block; padding: 7px 8px; border-radius: 7px;
   font-size: 12.5px; text-decoration: none; color: var(--text-dim);
@@ -851,12 +851,22 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .ntp-col a:hover { background: rgba(34,211,238,.1); color: var(--text); }
 .ntp-cat {
+  display: flex !important; align-items: center; gap: 7px;
   font-family: var(--fd); font-weight: 700 !important;
   font-size: 12px !important; text-transform: uppercase; letter-spacing: .03em;
   color: var(--p1) !important;
   border-bottom: 1px solid rgba(255,255,255,.07);
-  margin-bottom: 4px; padding-bottom: 8px !important;
+  margin-bottom: 6px; padding-bottom: 9px !important;
 }
+.ntp-cat-ico { width: 14px; height: 14px; flex-shrink: 0; display: flex; }
+.ntp-cat-ico svg { width: 100%; height: 100%; }
+.ntp-viewall {
+  font-size: 11.5px !important; font-weight: 600;
+  color: var(--text-faint) !important;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: 4px; padding-top: 9px !important;
+}
+.ntp-viewall:hover { color: var(--p1) !important; background: transparent !important; }
 @media (max-width: 900px) { .nav-tools-panel { display: none !important; } }
 
 /* ═══════════════════════════════════════════════════════════
@@ -909,33 +919,174 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    Wider, taller, centered visual weight, premium focus state,
    rotating placeholder overlay.
    ═══════════════════════════════════════════════════════════ */
-.hero-search-primary {
-  max-width: 620px;
-  margin-top: 28px;
-  margin-bottom: 22px;
+.hs-box {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 16px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 13px;
+  transition: border-color 220ms var(--ease), background 220ms var(--ease), box-shadow 220ms var(--ease);
 }
-.hero-search-primary .hs-box {
-  padding: 18px 20px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
-  border: 1.5px solid rgba(255,255,255,.12);
-  box-shadow:
-    0 18px 44px -18px rgba(0,0,0,.55),
-    0 4px 14px -6px rgba(0,0,0,.3);
-  gap: 14px;
+.hs-box:focus-within {
+  border-color: rgba(34,211,238,.35);
+  background: rgba(255,255,255,.05);
+  box-shadow: 0 0 0 3px rgba(34,211,238,.08);
 }
-.hero-search-primary .hs-icon { width: 21px; height: 21px; }
-.hero-search-primary input { font-size: 16px; }
-.hero-search-primary .hs-box:focus-within {
-  border-color: rgba(34,211,238,.5);
-  background: linear-gradient(180deg, rgba(34,211,238,.06), rgba(99,102,241,.03));
-  box-shadow:
-    0 0 0 4px rgba(34,211,238,.1),
-    0 22px 50px -16px rgba(34,211,238,.22),
-    0 4px 14px -6px rgba(0,0,0,.3);
-  transform: translateY(-1px);
+.hs-icon { width: 18px; height: 18px; color: var(--text-faint); flex-shrink: 0; }
+.hs-box:focus-within .hs-icon { color: var(--p1); }
+.hero-search input {
+  flex: 1; min-width: 0;
+  background: transparent; border: 0; outline: none;
+  font-family: var(--fb); font-size: 14.5px; color: var(--text);
 }
-.hero-search-primary .hs-results { max-height: 400px; }
+.hero-search input::placeholder { color: var(--text-faint); }
+.hs-kbd {
+  font-family: var(--fm); font-size: 11px;
+  padding: 3px 7px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.hs-results {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  z-index: 40;
+  background: rgba(14,18,38,.97);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  padding: 6px;
+  max-height: 360px; overflow-y: auto;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.6);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity 180ms var(--ease), transform 180ms var(--ease), visibility 180ms;
+}
+.hs-results.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.hs-results a {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 13.5px; font-weight: 500; color: var(--text);
+  text-decoration: none; cursor: pointer;
+  transition: background 150ms var(--ease);
+}
+.hs-results a:hover, .hs-results a.active { background: rgba(34,211,238,.1); }
+.hs-results a .chip {
+  font-family: var(--fm); font-size: 10px;
+  padding: 2px 7px;
+  background: rgba(255,255,255,.05);
+  border-radius: 5px; color: var(--text-faint);
+  flex-shrink: 0;
+}
+@media (max-width: 720px) { .hero-search { max-width: 100%; } }
+
+/* ═══════════════════════════════════════════════════════════
+   NAV TOOLS DROPDOWN
+   Lightweight hover/focus panel under the "Tools" nav link —
+   5 category columns, 3 popular tools each + category link.
+   ═══════════════════════════════════════════════════════════ */
+.nav-tools-drop { position: relative; }
+.nav-tools-panel {
+  position: absolute; top: calc(100% + 14px); left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  z-index: 50;
+  display: grid; grid-template-columns: repeat(5, 150px);
+  gap: 4px;
+  padding: 14px;
+  background: rgba(14,18,38,.98);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  box-shadow: 0 28px 64px -20px rgba(0,0,0,.65);
+  opacity: 0; visibility: hidden;
+  transition: opacity 200ms var(--ease), transform 200ms var(--ease), visibility 200ms;
+  pointer-events: none;
+}
+.nav-tools-drop:hover .nav-tools-panel,
+.nav-tools-drop:focus-within .nav-tools-panel {
+  opacity: 1; visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.ntp-col { display: flex; flex-direction: column; gap: 6px; padding: 4px; }
+.ntp-col a {
+  display: block; padding: 7px 8px; border-radius: 7px;
+  font-size: 12.5px; text-decoration: none; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+.ntp-col a:hover { background: rgba(34,211,238,.1); color: var(--text); }
+.ntp-cat {
+  display: flex !important; align-items: center; gap: 7px;
+  font-family: var(--fd); font-weight: 700 !important;
+  font-size: 12px !important; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--p1) !important;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  margin-bottom: 6px; padding-bottom: 9px !important;
+}
+.ntp-cat-ico { width: 14px; height: 14px; flex-shrink: 0; display: flex; }
+.ntp-cat-ico svg { width: 100%; height: 100%; }
+.ntp-viewall {
+  font-size: 11.5px !important; font-weight: 600;
+  color: var(--text-faint) !important;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: 4px; padding-top: 9px !important;
+}
+.ntp-viewall:hover { color: var(--p1) !important; background: transparent !important; }
+@media (max-width: 900px) { .nav-tools-panel { display: none !important; } }
+
+/* ═══════════════════════════════════════════════════════════
+   LATEST GUIDES (blog strip)
+   ═══════════════════════════════════════════════════════════ */
+.blog-strip-section { padding: 56px 0 72px; }
+.blog-strip-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+@media (max-width: 980px) { .blog-strip-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .blog-strip-grid { grid-template-columns: 1fr; } }
+
+.blog-strip-card {
+  display: block; padding: 20px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  text-decoration: none; color: inherit;
+  transition: transform 220ms var(--ease), border-color 220ms var(--ease), background 220ms var(--ease);
+}
+.blog-strip-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34,211,238,.18);
+  background: rgba(255,255,255,.045);
+}
+.bsc-cat {
+  display: inline-block; font-family: var(--fm); font-size: 10px;
+  text-transform: uppercase; letter-spacing: .04em;
+  color: var(--p1); margin-bottom: 10px;
+}
+.blog-strip-card h3 {
+  font-family: var(--fd); font-weight: 600; font-size: 14.5px;
+  line-height: 1.35; margin: 0 0 8px; color: var(--text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.blog-strip-card p {
+  font-size: 12.5px; line-height: 1.5; color: var(--text-dim); margin: 0 0 12px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.bsc-meta { display: flex; gap: 10px; font-family: var(--fm); font-size: 11px; color: var(--text-faint); }
+.blog-strip-cta { text-align: center; margin-top: 28px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-results, .nav-tools-panel, .blog-strip-card { transition: none !important; }
+  .blog-strip-card:hover { transform: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TASK 1 — Hero search becomes the primary interaction.
+   Wider, taller, centered visual weight, premium focus state,
+   rotating placeholder overlay.
+   ═══════════════════════════════════════════════════════════ */
 
 /* Rotating placeholder overlay \u2014 sits visually where native
    placeholder text would be, crossfades via opacity, hides the
@@ -1019,24 +1170,28 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   padding: 24px 26px;
   min-height: 68px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
-  border: 1.5px solid rgba(255,255,255,.14);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(34,211,238,.02));
+  border: 1.5px solid rgba(255,255,255,.17);
+  /* Idle ambient glow \u2014 visible even before focus, so search reads
+     as the centerpiece from the first paint, not only on interaction. */
   box-shadow:
-    0 22px 54px -20px rgba(0,0,0,.6),
-    0 6px 18px -8px rgba(0,0,0,.32);
+    0 24px 60px -20px rgba(0,0,0,.6),
+    0 8px 22px -8px rgba(0,0,0,.34),
+    0 0 0 1px rgba(34,211,238,.05),
+    0 0 46px -18px rgba(34,211,238,.22);
   gap: 16px;
   transition: border-color 240ms var(--ease), background 240ms var(--ease), box-shadow 240ms var(--ease), transform 240ms var(--ease);
 }
-.hero-search-primary .hs-icon { width: 26px; height: 26px; flex-shrink: 0; }
+.hero-search-primary .hs-icon { width: 27px; height: 27px; flex-shrink: 0; color: rgba(235,240,255,.75); }
 .hero-search-primary input { font-size: 17px; }
 
 .hero-search-primary .hs-box:focus-within {
-  border-color: rgba(34,211,238,.6);
-  background: linear-gradient(180deg, rgba(34,211,238,.09), rgba(99,102,241,.04));
+  border-color: rgba(34,211,238,.75);
+  background: linear-gradient(180deg, rgba(34,211,238,.12), rgba(99,102,241,.05));
   box-shadow:
-    0 0 0 5px rgba(34,211,238,.13),
-    0 28px 64px -18px rgba(34,211,238,.32),
-    0 6px 18px -8px rgba(0,0,0,.32);
+    0 0 0 6px rgba(34,211,238,.16),
+    0 32px 72px -18px rgba(34,211,238,.4),
+    0 8px 22px -8px rgba(0,0,0,.34);
   transform: translateY(-2px);
 }
 .hero-search-primary .hs-results { max-height: 420px; top: calc(100% + 10px); }
@@ -1132,13 +1287,19 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 /* Popular-search quick chips \u2014 shown when input is empty + focused */
 .hs-popular {
-  display: none; flex-wrap: wrap; align-items: center; gap: 8px;
-  padding: 10px 8px 6px;
+  display: none; flex-direction: column; gap: 14px;
+  padding: 12px 10px 8px;
+}
+.hs-pop-section:not(:last-child) {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
 }
 .hs-popular-label {
+  display: block;
   font-family: var(--fm); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--text-faint); margin-right: 2px; width: 100%; margin-bottom: 4px;
+  color: var(--text-faint); margin-bottom: 8px;
 }
+.hs-pop-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .hs-popular button {
   font-family: var(--fb); font-size: 12.5px; font-weight: 500;
   padding: 7px 13px;
@@ -1150,6 +1311,9 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   transition: all 180ms var(--ease);
 }
 .hs-popular button:hover { background: rgba(34,211,238,.1); border-color: rgba(34,211,238,.25); color: var(--text); }
+.hs-pop-section:first-child .hs-popular button {
+  background: rgba(34,211,238,.06); border-color: rgba(34,211,238,.16);
+}
 
 @media (max-width: 720px) {
   .hero-search-primary { max-width: 100%; }
@@ -1405,4 +1569,68 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .feat-card:hover .fc-cta svg { transform: none !important; }
   .hero-search-primary .hs-box:focus-within { transform: none !important; }
   .hs-rotator-in { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Hero CTA demotion — search is now the primary interaction;
+   these become a lightweight secondary row underneath it.
+   Kept (not removed) because some visitors don't yet know
+   what to search for and still need a browse entry point.
+   ═══════════════════════════════════════════════════════════ */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text-dim);
+  transition: border-color 200ms var(--ease), color 200ms var(--ease), background 200ms var(--ease);
+}
+.btn-ghost:hover {
+  border-color: rgba(255,255,255,.26);
+  color: var(--text);
+  background: rgba(255,255,255,.03);
+}
+.hero-cta-secondary {
+  gap: 10px;
+  opacity: .92;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Hero balance — more breathing room, less left-heavy.
+   ═══════════════════════════════════════════════════════════ */
+.hero .wrap.hero-grid { max-width: 1240px; gap: 56px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-ghost { transition: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Featured Tools \u2014 vertical "Before \u2193 After" stacked preview
+   layout (Background Remover, OCR, Word\u2192PDF, HEIC\u2192JPG). More
+   convincing than the earlier horizontal icon-arrow-icon row \u2014
+   matches how an actual before/after result reads.
+   ═══════════════════════════════════════════════════════════ */
+.fc-preview-stack {
+  flex-direction: column; align-items: stretch; gap: 6px;
+  width: 100%;
+}
+.fcp-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 2px;
+}
+.fcp-row-label {
+  font-family: var(--fm); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--text-faint);
+}
+.fcp-down-arrow {
+  align-self: center;
+  width: 14px; height: 14px; color: var(--text-faint);
+  opacity: .7;
+}
+.fcp-down-arrow svg { width: 100%; height: 100%; }
+
+/* Format-conversion rows (Word\u2192PDF, HEIC\u2192JPG) center their single
+   file badge since there's no label/value pair on those rows. */
+.fc-preview-stack .fcp-row:has(.fcp-file) { justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-pill.active::after { transition: none !important; }
 }

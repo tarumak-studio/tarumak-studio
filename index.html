@@ -1296,15 +1296,33 @@
           </div>
           <div class="hs-results" id="heroSearchResults">
             <div class="hs-popular" id="hsPopular">
-              <span class="hs-popular-label">Popular</span>
-              <button type="button" data-slug="background-remover">Background Remover</button>
-              <button type="button" data-slug="image-compressor">Image Compressor</button>
-              <button type="button" data-slug="merge-pdf">Merge PDF</button>
-              <button type="button" data-slug="json-formatter">JSON Formatter</button>
+              <div class="hs-pop-section" id="hsRecentSection" style="display:none">
+                <span class="hs-popular-label">Recently used</span>
+                <div class="hs-pop-chips" id="hsRecentChips"></div>
+              </div>
+              <div class="hs-pop-section">
+                <span class="hs-popular-label">Popular</span>
+                <div class="hs-pop-chips">
+                  <button type="button" data-slug="background-remover">Background Remover</button>
+                  <button type="button" data-slug="ocr-image-to-text">OCR</button>
+                  <button type="button" data-slug="regex-tester">Regex</button>
+                  <button type="button" data-slug="word-to-pdf">Word to PDF</button>
+                  <button type="button" data-slug="svg-to-png">SVG to PNG</button>
+                </div>
+              </div>
+              <div class="hs-pop-section">
+                <span class="hs-popular-label">Categories</span>
+                <div class="hs-pop-chips">
+                  <button type="button" data-cat="image">Images</button>
+                  <button type="button" data-cat="pdf">PDF</button>
+                  <button type="button" data-cat="developer">Developer</button>
+                  <button type="button" data-cat="converter">Converters</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="hero-cta"><a class="btn btn-primary btn-lg" onclick="go('image')">Explore Tools</a><a class="btn btn-convert btn-lg" onclick="go('t/image-compressor')">Start Converting</a></div>
+        <div class="hero-cta hero-cta-secondary"><a class="btn btn-ghost" onclick="go('image')">Explore Tools</a><a class="btn btn-ghost" onclick="go('t/image-compressor')">Start Converting</a></div>
       </div>
       <div class="stage"><div class="cluster-glow"></div><div class="float-wrap"><div class="cluster">
         <div class="card3d c1"><span class="glyph">PDF</span><span class="fmt">.pdf</span></div>

@@ -47,7 +47,7 @@ function buildAffBanners(cat){
 /* Blog renderers */
 function buildBlogIndex(){
   var slugs=Object.keys(ARTICLES);
-  return '<div class="wrap" style="padding:40px 24px 80px"><div class="crumb"><a href="#/">Home</a> &rsaquo; <span>Blog</span></div>'
+  return '<div class="wrap" style="max-width:1240px;padding:40px 24px 80px"><div class="crumb"><a href="#/">Home</a> &rsaquo; <span>Blog</span></div>'
     +'<h1 style="font-family:var(--fd);font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-1px;margin:32px 0 10px">Blog & Guides</h1>'
     +'<p style="font-size:16px;color:var(--text-dim);margin-bottom:8px">Free guides for designers, marketers and developers. Every article links to free tools you can use right now.</p>'
     +'<div class="blog-grid">'+slugs.map(function(slug){var a=ARTICLES[slug];
@@ -55,7 +55,7 @@ function buildBlogIndex(){
         +'<a class="bc-cat" href="'+(CAT_SLUGS[a.cat]||'#')+'" style="text-decoration:none">'+a.cat+'</a>'
         +'<h3>'+a.title+'</h3>'
         +'<p>'+a.excerpt+'</p>'
-        +'<div class="bc-meta"><span>&#128197; '+a.date+'</span><span>&#9201; '+a.read+' read</span></div></div>';
+        +'<div class="bc-meta"><span>'+a.date+'</span><span>'+a.read+' read</span></div></div>';
     }).join('')+'</div></div>';
 }
 
@@ -64,7 +64,7 @@ function buildArticlePage(slug){
   if(!a.html||a.html.length<500){window.location.href='/article-'+slug+'.html';return '';}
   var all=Object.keys(ARTICLES);var idx=all.indexOf(slug);
   var prev=all[idx-1],next=all[idx+1];
-  return '<div class="wrap"><div class="article-body">'
+  return '<div class="wrap" style="max-width:1240px"><div class="article-body">'
     +'<div class="crumb"><a href="#/">Home</a> &rsaquo; <a href="#/blog">Blog</a> &rsaquo; <a href="'+(CAT_SLUGS[a.cat]||'#')+'" style="color:var(--text-dim)">'+a.cat+'</a></div>'
     +'<h1>'+a.title+'</h1>'
     +'<div class="a-meta"><span>'+a.date+'</span><span>'+a.read+' read</span><span style="background:rgba(99,102,241,.1);color:var(--p1);padding:2px 10px;border-radius:100px">'+a.cat+'</span></div>'

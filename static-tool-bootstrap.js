@@ -46,8 +46,8 @@
         var name = document.body.getAttribute('data-tool-name') || 'the tool';
         panel.innerHTML =
           '<div style="text-align:center;padding:36px 16px">' +
-            '<p style="color:var(--text-dim);font-size:14.5px;margin-bottom:16px">This tool opens in the Tarumak Studio app.</p>' +
-            '<a href="/#/t/' + SLUG + '" style="display:inline-flex;padding:11px 22px;border-radius:11px;background:var(--p1);color:#0b0f16;font-weight:600;font-size:14px;text-decoration:none">Open ' + name + '</a>' +
+            '<p style="color:var(--text-dim);font-size:14.5px;margin-bottom:16px">This tool could not load here \u2014 it may be temporarily unavailable.</p>' +
+            '<a href="/#tools" style="display:inline-flex;padding:11px 22px;border-radius:11px;background:var(--p1);color:#0b0f16;font-weight:600;font-size:14px;text-decoration:none">Browse all tools</a>' +
           '</div>';
       }
     }

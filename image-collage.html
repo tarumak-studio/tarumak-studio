@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Image Collage Maker — Free Online Tool | Tarumak Studio</title>
+  <meta name="description" content="Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.">
+  <link rel="canonical" href="https://tarumakstudio.com/image-collage">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tarumak Studio">
+  <meta property="og:title" content="Image Collage Maker — Free Online Tool | Tarumak Studio">
+  <meta property="og:description" content="Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.">
+  <meta property="og:url" content="https://tarumakstudio.com/image-collage">
+  <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Tarumak Studio — 66+ free browser tools. Nothing uploaded.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Image Collage Maker — Free Online Tool | Tarumak Studio">
+  <meta name="twitter:description" content="Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.">
+  <meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/tools.css">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c111a;--bg2:#111827;--surface:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+  --text:#f1f5f9;--text-dim:#94a3b8;--text-faint:#475569;
+  --p1:#22d3ee;--p2:#6366f1;
+  --grad:linear-gradient(120deg,#22d3ee,#6366f1);
+  --fd:'Space Grotesk',sans-serif;--fm:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--p1);transition:color .2s}
+a:hover{color:#67e8f9}
+main{flex:1}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:999;background:rgba(12,17,26,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.site-header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:16px}
+.site-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.site-logo-mark{width:32px;height:32px;border-radius:8px;background:var(--grad);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:18px;color:#06121a;flex-shrink:0}
+.site-logo-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text)}
+.site-logo-name span{font-weight:400;color:var(--text-dim)}
+.site-nav{display:flex;align-items:center;gap:2px;margin-left:8px}
+.site-nav a{font-family:var(--fd);font-size:13.5px;font-weight:500;color:var(--text-dim);padding:7px 12px;border-radius:9px;text-decoration:none;white-space:nowrap;transition:color .2s}
+.site-nav a:hover{color:var(--text)}
+.site-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.btn-explore{padding:9px 18px;border-radius:9px;background:var(--grad);color:#06121a;font-family:var(--fd);font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.btn-burger{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px;display:none}
+
+/* Mobile menu */
+.mob-menu{display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);padding:24px;flex-direction:column;gap:4px;overflow:auto}
+.mob-menu.open{display:flex}
+.mob-menu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mob-menu-close{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:6px}
+.mob-menu a{font-family:var(--fd);font-size:19px;font-weight:600;color:var(--text-dim);padding:13px 4px;border-bottom:1px solid var(--border);text-decoration:none}
+.mob-menu a:hover{color:var(--p1)}
+
+/* Article layout */
+.article-wrap{max-width:760px;margin:0 auto;padding:48px 24px 100px}
+.breadcrumb{font-size:13px;color:var(--text-faint);display:flex;align-items:center;gap:6px;margin-bottom:32px;flex-wrap:wrap}
+.breadcrumb a{color:var(--text-dim);text-decoration:none}
+.breadcrumb a:hover{color:var(--p1)}
+.art-cat{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;display:inline-block}
+.art-h1{font-family:var(--fd);font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.2;color:var(--text);margin-bottom:16px}
+.art-meta{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--text-faint);margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:24px;flex-wrap:wrap}
+.art-meta span{display:flex;align-items:center;gap:5px}
+
+/* Article body */
+.art-body{font-size:15.5px;line-height:1.78;color:var(--text-dim)}
+.art-body h2{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);margin:40px 0 12px;letter-spacing:-.5px}
+.art-body h3{font-family:var(--fd);font-size:17px;font-weight:600;color:var(--text);margin:28px 0 8px}
+.art-body p{margin-bottom:16px}
+.art-body ul,.art-body ol{padding-left:22px;margin-bottom:16px}
+.art-body li{margin-bottom:6px}
+.art-body strong{color:var(--text);font-weight:600}
+.art-body a{color:var(--p1);text-decoration:none;border-bottom:1px solid rgba(34,211,238,.3)}
+.art-body a:hover{border-bottom-color:var(--p1)}
+.art-body code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;font-size:13.5px;font-family:monospace;color:#e2e8f0}
+.art-body details{border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px}
+.art-body details summary{font-weight:600;color:var(--text);cursor:pointer;font-size:15px;list-style:none;padding-right:20px;position:relative}
+.art-body details summary::after{content:'＋';position:absolute;right:0;top:0;color:var(--p1);font-size:18px;line-height:1}
+.art-body details[open] summary::after{content:'－'}
+.art-body details p{margin-top:12px;margin-bottom:0}
+.art-body .art-callout{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.65}
+.art-body .art-callout code{background:rgba(34,211,238,.08)}
+.art-body .tool-cta-link{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--grad);color:#06121a;border-radius:9px;font-family:var(--fd);font-weight:700;font-size:14px;text-decoration:none;margin:8px 0 20px;border:none}
+.art-body .tool-cta-link:hover{opacity:.9}
+.art-body .art-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px}
+.art-body .art-tools a{padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-dim);text-decoration:none;transition:.2s}
+.art-body .art-tools a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Back + Next/Prev nav */
+.art-nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0;border-top:1px solid var(--border);margin-top:48px;gap:12px;flex-wrap:wrap}
+.art-nav a{font-family:var(--fd);font-size:14px;font-weight:600;color:var(--text-dim);text-decoration:none;padding:10px 16px;border:1px solid var(--border);border-radius:9px;transition:.2s}
+.art-nav a:hover{border-color:var(--p1);color:var(--p1)}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.site-footer p{font-size:13px;color:var(--text-faint)}
+.site-footer a{color:var(--text-faint);text-decoration:none}
+.site-footer a:hover{color:var(--text-dim)}
+
+@media(max-width:820px){.site-nav{display:none}.btn-burger{display:block}}
+@media(max-width:600px){.art-wrap{padding:32px 16px 80px}}
+
+
+/* ── Category page styles ── */
+.cat-wrap{max-width:900px;margin:0 auto;padding:48px 24px 100px}
+.cat-eyebrow{font-family:var(--fd);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.cat-h1{font-family:var(--fd);font-size:clamp(28px,5vw,42px);font-weight:700;letter-spacing:-1.5px;line-height:1.15;margin-bottom:18px}
+.cat-lead{font-size:16.5px;color:var(--text-dim);line-height:1.75;max-width:680px;margin-bottom:36px}
+.cat-stat-row{display:flex;gap:32px;margin-bottom:40px;padding:20px 24px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;flex-wrap:wrap}
+.cat-stat{text-align:center}
+.cat-stat .n{font-family:var(--fd);font-size:24px;font-weight:700;color:var(--p1)}
+.cat-stat .l{font-size:12px;color:var(--text-faint);margin-top:2px}
+.cat-section-title{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px;letter-spacing:-.4px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.cat-tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:48px}
+.cat-tool-card{display:block;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:14px;text-decoration:none;transition:.2s;position:relative}
+.cat-tool-card:hover{border-color:var(--p1);background:rgba(34,211,238,.04);transform:translateY(-1px)}
+.cat-tool-card h3{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}
+.cat-tool-card p{font-size:13px;color:var(--text-dim);line-height:1.55}
+.cat-tool-card .arr{position:absolute;top:16px;right:16px;color:var(--p1);opacity:.6;font-size:16px}
+.cat-art-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:48px}
+.cat-art-card{display:block;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:14px;text-decoration:none;transition:.2s}
+.cat-art-card:hover{border-color:var(--p2);background:rgba(99,102,241,.04)}
+.cat-art-card h3{font-family:var(--fd);font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.35}
+.cat-art-card p{font-size:13px;color:var(--text-dim);line-height:1.55}
+.cat-faq{margin-bottom:48px}
+.cat-faq details{border:0.5px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.cat-faq summary{padding:16px 20px;cursor:pointer;font-family:var(--fd);font-size:15px;font-weight:600;color:var(--text);list-style:none;display:flex;justify-content:space-between;align-items:center}
+.cat-faq summary::after{content:'+';color:var(--p1);font-size:20px;font-weight:400;flex-shrink:0}
+.cat-faq details[open] summary::after{content:'−'}
+.cat-faq details p{padding:0 20px 16px;font-size:14.5px;color:var(--text-dim);line-height:1.7;margin:0}
+.cat-cta{text-align:center;padding:40px 24px;background:rgba(34,211,238,.05);border:0.5px solid rgba(34,211,238,.15);border-radius:16px;margin-bottom:48px}
+.cat-cta h2{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px}
+.cat-cta p{font-size:15px;color:var(--text-dim);margin-bottom:20px}
+.cat-cta a{display:inline-block;padding:12px 28px;background:var(--grad);color:#06121a;border-radius:10px;font-family:var(--fd);font-weight:700;font-size:15px;text-decoration:none}
+@media(max-width:600px){.cat-wrap{padding:32px 16px 80px}.cat-stat-row{gap:16px}.cat-tool-grid,.cat-art-grid{grid-template-columns:1fr}}
+
+
+.tp-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.tp-hero{padding:40px 0 8px}
+.tp-hero h1{font-family:var(--fd);font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-1.2px;margin:14px 0 10px}
+.tp-lead{font-size:16.5px;color:var(--text-dim);max-width:720px;line-height:1.65}
+.tp-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.tp-cat-badge{font-size:12px;font-weight:700;color:var(--p1);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);padding:5px 12px;border-radius:100px;text-decoration:none}
+.tp-chip{font-size:11.5px;font-weight:600;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:100px}
+.tp-actions{display:flex;gap:8px;margin-left:auto}
+.tp-act{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:100px;cursor:pointer;transition:all .2s}
+.tp-act:hover{color:var(--p1);border-color:rgba(34,211,238,.3)}
+.tp-act.active{color:#f472b6;border-color:rgba(244,114,182,.35);background:rgba(244,114,182,.08)}
+.tp-act svg{width:14px;height:14px}
+.tp-open{margin:26px 0 8px;padding:34px 30px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(34,211,238,.03));border:1.5px solid var(--border2);text-align:center}
+.tp-open h2{font-family:var(--fd);font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px}
+.tp-open p{font-size:14px;color:var(--text-dim);margin-bottom:18px}
+.tp-open-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--fd);font-size:15.5px;font-weight:700;color:#0b0f16;background:var(--grad);padding:14px 32px;border-radius:12px;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 8px 24px -8px rgba(34,211,238,.5)}
+.tp-open-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px -8px rgba(34,211,238,.65)}
+.tp-open-note{font-size:11.5px;color:var(--text-faint);margin-top:14px}
+.tp-panel-frame{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));border:1px solid var(--border-2,rgba(255,255,255,.14));border-radius:20px;padding:26px;margin:26px 0 8px;box-shadow:0 24px 60px -30px rgba(0,0,0,.55)}
+.tp-panel-loading{display:flex;align-items:center;justify-content:center;gap:10px;min-height:170px;color:var(--text-faint);font-size:14px}
+.tp-panel-loading .dot{width:9px;height:9px;border-radius:50%;background:var(--p1);animation:tpPulse 1s ease-in-out infinite}
+@keyframes tpPulse{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.tp-panel-loading .dot{animation:none}}
+@media (max-width:720px){.tp-panel-frame{padding:14px;border-radius:16px}}
+/* Tokens tools.css consumes that the donor page's :root may not define —
+   values copied exactly from main.css so panel components render identically. */
+:root{--bg-2:#0e1226;--surface-2:rgba(255,255,255,.06);--border-2:rgba(255,255,255,.14);--ok:#34d399;--bad:#ff6b6b;--grad-accent:linear-gradient(120deg,var(--accent,#f5b042),var(--accent-2,#ff8a3c));--shadow:0 24px 60px -24px rgba(0,0,0,.7);--r:18px;--fb:"Inter",system-ui,sans-serif;--ease:cubic-bezier(.22,.61,.36,1)}
+.tp-sec{padding:34px 0 6px}
+.tp-sec h2{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.tp-sec .tp-sub{font-size:14px;color:var(--text-dim);margin-bottom:22px}
+.tp-benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.tp-benefit{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.tp-benefit svg{width:20px;height:20px;color:var(--p1);margin-bottom:10px}
+.tp-benefit h3{font-size:14.5px;font-weight:700;margin-bottom:6px}
+.tp-benefit p{font-size:13px;color:var(--text-dim);line-height:1.55}
+.tp-steps{list-style:none;display:grid;gap:10px;counter-reset:step}
+.tp-step{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.tp-step-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(34,211,238,.13);color:var(--p1);font-family:var(--fd);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.tp-step h3{font-size:14.5px;font-weight:700;margin-bottom:3px}
+.tp-step p{font-size:13px;color:var(--text-dim);line-height:1.55}
+.tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.tp-feature{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:13px;font-weight:600}
+.tp-feature svg{width:15px;height:15px;color:var(--p1);flex-shrink:0}
+.tp-faq details{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden}
+.tp-faq summary{cursor:pointer;padding:15px 18px;font-size:14px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tp-faq summary::-webkit-details-marker{display:none}
+.tp-faq summary::after{content:'+';color:var(--p1);font-size:18px;font-weight:400;flex-shrink:0}
+.tp-faq details[open] summary::after{content:'\2212'}
+.tp-faq details p{padding:0 18px 15px;font-size:13.5px;color:var(--text-dim);line-height:1.65}
+.tp-related{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.tp-rel-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-decoration:none;transition:border-color .2s,transform .2s}
+.tp-rel-card:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-rel-card h3{font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tp-rel-card p{font-size:12.5px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tp-rel-card .tp-rel-cta{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--p1)}
+.tp-guides{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.tp-guide{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-decoration:none;transition:border-color .2s}
+.tp-guide:hover{border-color:rgba(34,211,238,.35)}
+.tp-guide .tp-g-badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--p1);margin-bottom:7px;display:block}
+.tp-guide h3{font-size:14px;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:7px}
+.tp-guide .tp-g-meta{font-size:11.5px;color:var(--text-faint)}
+.tp-cta-band{margin:40px 0 50px;padding:30px;border-radius:18px;background:linear-gradient(120deg,rgba(34,211,238,.08),rgba(99,102,241,.08));border:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.tp-cta-band h2{font-family:var(--fd);font-size:19px;font-weight:700;letter-spacing:-.4px}
+.tp-cta-band p{font-size:13px;color:var(--text-dim);margin-top:4px}
+.tp-cta-links{display:flex;gap:10px;flex-wrap:wrap}
+.tp-cta-links a{font-size:13.5px;font-weight:700;text-decoration:none;padding:11px 20px;border-radius:11px}
+.tp-cta-primary{color:#0b0f16;background:var(--grad)}
+.tp-cta-ghost{color:var(--text);background:var(--surface);border:1px solid var(--border2)}
+@media(max-width:640px){.tp-hero{padding-top:26px}.tp-open{padding:26px 18px}.tp-cta-band{flex-direction:column;align-items:flex-start}}
+</style>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/image-collage#page","url":"https://tarumakstudio.com/image-collage","name":"Image Collage Maker — Free Online Tool | Tarumak Studio","description":"Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-07-03"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/image-collage#app","name":"Image Collage Maker","url":"https://tarumakstudio.com/image-collage","description":"Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.","applicationCategory":"WebApplication","applicationSubCategory":"Converter Tools","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Converter Tools","item":"https://tarumakstudio.com/converter-tools"},{"@type":"ListItem","position":3,"name":"Image Collage Maker"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I choose the collage layout?","acceptedAnswer":{"@type":"Answer","text":"Multiple grid layouts are available — 2, 3 and 4 photo grids in different arrangements."}},{"@type":"Question","name":"What output format is the finished collage?","acceptedAnswer":{"@type":"Answer","text":"JPG or PNG. PNG is recommended if any collage images have transparent areas."}},{"@type":"Question","name":"Can I adjust spacing between photos?","acceptedAnswer":{"@type":"Answer","text":"Yes — a gap setting controls the pixel spacing between collage cells."}},{"@type":"Question","name":"Is Image Collage Maker really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Do I need to create an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no sign-up, no login and no email required. Open the tool and use it immediately."}},{"@type":"Question","name":"Are my files uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"Never. Image Collage Maker runs entirely in your browser using local processing — your files never leave your device, which also makes it faster than upload-based alternatives."}},{"@type":"Question","name":"What formats does it support?","acceptedAnswer":{"@type":"Answer","text":"Image Collage Maker works with JPG, PNG."}},{"@type":"Question","name":"Does it work on mobile?","acceptedAnswer":{"@type":"Answer","text":"Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed."}}]}]}</script>
+</head>
+<body data-tool-slug="image-collage" data-tool-name="Image Collage Maker">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">T</div>
+      <div class="site-logo-name">Tarumak <span>Studio</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/#/all">Tools</a>
+      <a href="/about.html">About</a>
+      <a href="/work-with-me.html">Work With Me</a>
+      <a href="/blog">Blog</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="site-actions">
+      <a href="/#/all" class="btn-explore">Explore Tools</a>
+      <button class="btn-burger" id="burgerBtn" aria-label="Open menu" onclick="document.getElementById('mobMenu').classList.add('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-head">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">T</div>
+      <div class="site-logo-name">Tarumak <span>Studio</span></div>
+    </a>
+    <button class="mob-menu-close" onclick="document.getElementById('mobMenu').classList.remove('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <a href="/">Home</a>
+  <a href="/#/all">Tools</a>
+  <a href="/about.html">About</a>
+  <a href="/work-with-me.html">Work With Me</a>
+  <a href="/blog">Blog</a>
+  <a href="/contact.html">Contact</a>
+</div>
+
+<main>
+  <div class="tp-wrap">
+
+    <nav class="breadcrumb" aria-label="breadcrumb" style="padding-top:22px">
+      <a href="/">Home</a><span>›</span>
+      <a href="/converter-tools">Converter Tools</a><span>›</span>
+      <span style="color:var(--text)">Image Collage Maker</span>
+    </nav>
+
+    <section class="tp-hero">
+      <h1>Image Collage Maker</h1>
+      <p class="tp-lead">Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.</p>
+      <div class="tp-badges">
+        <a class="tp-cat-badge" href="/converter-tools">Converter Tools</a>
+        <span class="tp-chip">JPG</span><span class="tp-chip">PNG</span>
+        <div class="tp-actions">
+          <button class="tp-act" id="tpFav" data-slug="image-collage" aria-label="Save Image Collage Maker to favourites" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg><span id="tpFavLabel">Save</span></button>
+          <button class="tp-act" id="tpShare" aria-label="Share Image Collage Maker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span id="tpShareLabel">Share</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tp-mount" aria-label="Image Collage Maker tool">
+      <div id="toolPanel" class="tp-panel-frame">
+        <div class="tp-panel-loading"><span class="dot"></span><span class="dot" style="animation-delay:.18s"></span><span class="dot" style="animation-delay:.36s"></span>Loading Image Collage Maker…</div>
+        <noscript><p style="text-align:center;color:var(--text-dim);padding:20px">This tool needs JavaScript. <a href="/#/t/image-collage" style="color:var(--p1)">Open it in the Tarumak Studio app</a>.</p></noscript>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-why">
+      <h2 id="tp-why">Why use Image Collage Maker?</h2>
+      <p class="tp-sub">Built browser-first — which changes what you can expect from a free tool.</p>
+      <div class="tp-benefits">
+        <div class="tp-benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><h3>100% in your browser</h3><p>Image Collage Maker runs locally on your device — there is no server doing the work, so there is nothing to queue for and nothing to trust with your files.</p></div>
+        <div class="tp-benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h3>Private by architecture</h3><p>Your files never upload anywhere. That is not a policy promise — it is how the tool is built.</p></div>
+        <div class="tp-benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><h3>Instant results</h3><p>No upload wait, no processing queue, no download-from-server step. The only speed limit is your own device.</p></div>
+        <div class="tp-benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 3l-4 6 4 12 4-12-4-6"/></svg><h3>Full quality output</h3><p>You get exactly what the tool produces — no watermarks, no resolution caps, no premium-only quality tiers.</p></div>
+        <div class="tp-benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><h3>Formats covered</h3><p>Works with JPG, PNG.</p></div>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-how">
+      <h2 id="tp-how">How to use Image Collage Maker</h2>
+      <p class="tp-sub">Four steps, no learning curve.</p>
+      <ol class="tp-steps">
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">1</span><div><h3>Open Image Collage Maker</h3><p>No sign-up or install needed — the tool is ready as soon as the page loads.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">2</span><div><h3>Drop your file</h3><p>Drag it into the drop zone, or click to browse your files. Nothing is uploaded to a server.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">3</span><div><h3>Adjust the settings if needed</h3><p>Most options have a sensible default already selected — change them only if you need something specific.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">4</span><div><h3>Download your result</h3><p>Your output is ready instantly. Click download to save it — the file never left your device during processing.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-feat">
+      <h2 id="tp-feat">Features</h2>
+      <p class="tp-sub">Everything included, nothing gated.</p>
+      <div class="tp-features">
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>100% browser-based</div>
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Free forever</div>
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>No sign-up</div>
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Privacy safe</div>
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Instant processing</div>
+        <div class="tp-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Works on mobile</div>
+      </div>
+    </section>
+
+    <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
+      <h2 id="tp-faq-h">Frequently asked questions</h2>
+      <p class="tp-sub">About Image Collage Maker and how Tarumak Studio works.</p>
+      <details><summary>Can I choose the collage layout?</summary><p>Multiple grid layouts are available — 2, 3 and 4 photo grids in different arrangements.</p></details>
+      <details><summary>What output format is the finished collage?</summary><p>JPG or PNG. PNG is recommended if any collage images have transparent areas.</p></details>
+      <details><summary>Can I adjust spacing between photos?</summary><p>Yes — a gap setting controls the pixel spacing between collage cells.</p></details>
+      <details><summary>Is Image Collage Maker really free?</summary><p>Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.</p></details>
+      <details><summary>Do I need to create an account?</summary><p>No. There is no sign-up, no login and no email required. Open the tool and use it immediately.</p></details>
+      <details><summary>Are my files uploaded to a server?</summary><p>Never. Image Collage Maker runs entirely in your browser using local processing — your files never leave your device, which also makes it faster than upload-based alternatives.</p></details>
+      <details><summary>What formats does it support?</summary><p>Image Collage Maker works with JPG, PNG.</p></details>
+      <details><summary>Does it work on mobile?</summary><p>Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed.</p></details>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-rel">
+      <h2 id="tp-rel">Related tools</h2>
+      <p class="tp-sub">More free converter tools — same privacy, same price.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/txt-to-pdf"><h3>TXT to PDF Converter</h3><p>Convert plain text files to PDF online. Paste text or upload a .txt file and download a formatted PDF document.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/html-to-pdf"><h3>HTML to PDF Converter</h3><p>Convert HTML to PDF online. Paste HTML code and generate a PDF document — useful for web page archiving.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/gif-maker"><h3>GIF Maker</h3><p>Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/gif-to-webp"><h3>GIF to WebP Converter</h3><p>Convert animated GIF to WebP online for smaller file sizes and better web performance. Keeps all animation frames.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/webp-to-gif"><h3>WebP to GIF Converter</h3><p>Convert animated WebP to GIF for wider compatibility with older browsers, email clients and social platforms.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/color-picker"><h3>Color Picker from Image</h3><p>Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.</p><span class="tp-rel-cta">Try Tool →</span></a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-guides">
+      <h2 id="tp-guides">Related guides</h2>
+      <p class="tp-sub">From the Tarumak Studio blog.</p>
+      <div class="tp-guides">
+        <a class="tp-guide" href="/article-best-free-tools-designers-2026.html"><span class="tp-g-badge">Guide</span><h3>20 Best Free Online Tools for Graphic Designers in 2026</h3><span class="tp-g-meta">June 2026 · 7 min read</span></a>
+      </div>
+    </section>
+
+    <section class="tp-cta-band" aria-label="Explore more tools">
+      <div>
+        <h2>Keep going — there are 66 tools here</h2>
+        <p>All free, all browser-based, none of them ever see your files.</p>
+      </div>
+      <div class="tp-cta-links">
+        <a class="tp-cta-primary" href="/converter-tools">More Converter Tools</a>
+        <a class="tp-cta-ghost" href="/#/all">Browse all tools</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+<footer class="site-footer">
+  <p>&copy; 2026 Tarumak Studio &nbsp;&middot;&nbsp;
+  <a href="/privacy-policy.html">Privacy Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/cookie-policy.html">Cookie Policy</a> &nbsp;&middot;&nbsp;
+  <a href="/terms.html">Terms</a></p>
+</footer>
+<script>
+(function(){
+  var b=document.getElementById('burgerBtn'),m=document.getElementById('mobMenu');
+  if(b&&m){b.onclick=function(){m.classList.add('open');};}
+})();
+</script>
+<script>
+(function(){
+  /* Favourite — shares the SPA's exact localStorage contract (tmk_favs) */
+  var FK='tmk_favs', btn=document.getElementById('tpFav'), lbl=document.getElementById('tpFavLabel');
+  function favs(){try{return JSON.parse(localStorage.getItem(FK)||'[]');}catch(e){return [];}}
+  function paint(){var on=favs().indexOf(btn.getAttribute('data-slug'))>-1;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',on?'true':'false');lbl.textContent=on?'Saved':'Save';}
+  btn.addEventListener('click',function(){
+    var slug=btn.getAttribute('data-slug'),f=favs(),i=f.indexOf(slug);
+    if(i>-1)f.splice(i,1);else f.push(slug);
+    try{localStorage.setItem(FK,JSON.stringify(f));}catch(e){}
+    paint();
+  });
+  paint();
+  /* Share — native sheet where available, clipboard fallback */
+  var sh=document.getElementById('tpShare'), shl=document.getElementById('tpShareLabel');
+  sh.addEventListener('click',function(){
+    var data={title:document.title,url:location.href};
+    if(navigator.share){navigator.share(data).catch(function(){});}
+    else if(navigator.clipboard){navigator.clipboard.writeText(location.href).then(function(){shl.textContent='Copied!';setTimeout(function(){shl.textContent='Share';},1600);});}
+  });
+})();
+</script>
+<script src="/config.js" defer></script>
+<script src="/utils.js" defer></script>
+<script src="/tool-helpers.js" defer></script>
+<script src="/data.js" defer></script>
+<script src="/converter-tools.js" defer></script>
+<script src="/static-tool-bootstrap.js" defer></script>
+</body>
+</html>

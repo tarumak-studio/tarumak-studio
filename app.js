@@ -119,7 +119,7 @@ function buildCategoryCards(){
     const topTool=meta.popular.map(slug=>bySlug(slug)).filter(Boolean)[0];
     const hint=topTool?'<span class="cc-hint">Incl. '+topTool[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>':'';
     return ''+
-      '<a class="cat-card" data-cat="'+cat+'" href="javascript:void(0)" onclick="go(\''+cat+'\')" aria-label="Browse '+CAT[cat]+' — '+count+' tools">'+
+      '<a class="cat-card" data-cat="'+cat+'" href="/'+cat+'-tools" onclick="go(\''+cat+'\');return false" aria-label="Browse '+CAT[cat]+' — '+count+' tools">'+
         '<div class="cc-row">'+
           '<div class="cc-ico">'+ICON[cat]+'</div>'+
           '<div class="cc-heading"><h3>'+CAT[cat]+'</h3><span class="cc-count">'+count+' tools</span></div>'+
@@ -161,7 +161,7 @@ function buildFeaturedTools(cat){
     const hook=f.hook||t[3];
     const preview=FEATURED_PREVIEWS[f.slug]?FEATURED_PREVIEWS[f.slug]():'';
     return ''+
-      '<a class="feat-card cat-'+t[2]+'" href="javascript:void(0)" onclick="go(\'t/'+t[0]+'\')" aria-label="Open '+t[1]+'">'+
+      '<a class="feat-card cat-'+t[2]+'" href="/'+t[0]+'" onclick="go(\'t/'+t[0]+'\');return false" aria-label="Open '+t[1]+'">'+
         '<div class="fc-head">'+
           '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
           '<h3>'+t[1]+'</h3>'+
@@ -885,7 +885,7 @@ function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
    buildHowToGuide(t,cat)+
    '<section class="sec"><h2>Tool features</h2><p class="lead">Built to be fast, private and genuinely useful.</p><div class="feat">'+feats.map(f=>'<div class="f"><div class="ico">'+ICON[cat]+'</div><h3 class="f-title">'+f[0]+'</h3><p>'+f[1]+'</p></div>').join('')+'</div></section>'+
    '<section class="sec" style="padding-top:0"><h2>Frequently asked questions</h2><p class="lead">Quick answers before you start.</p><div class="faq">'+faqs.map(q=>'<details class="q"><summary>'+q[0]+'</summary><div class="a">'+q[1]+'</div></details>').join('')+'</div></section>'+
-   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<div class="rcard rcard-tool" onclick="go(\'t/'+r[0]+'\')"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p><span class="rc-cta">Try Tool '+RC_ARROW+'</span></div></div>').join('')+'</div></section>'+
+   '<section class="sec" style="padding-top:0"><h2>Related tools</h2><p class="lead">More from '+CAT[cat]+'.</p><div class="related">'+related.map(r=>'<a class="rcard rcard-tool" href="/'+r[0]+'" style="text-decoration:none;color:inherit" onclick="go(\'t/'+r[0]+'\');return false"><div class="ico">'+ICON[r[2]]+'</div><div><h3 class="rc-title">'+r[1]+'</h3><p>'+r[3]+'</p><span class="rc-cta">Try Tool '+RC_ARROW+'</span></div></a>').join('')+'</div></section>'+
    buildRelatedArticlesSection(slug)+
    buildRecentToolsSection(recentEntries)+
    buildAffBanners(cat);

@@ -45,9 +45,9 @@ function capture(files, names) {
   vm.runInContext(src + cap, sandbox);
   return captured;
 }
-const D = capture(['data.js', 'blog-data.js'], ['TOOLS', 'CAT', 'FAQ', 'TOOL_ARTICLES', 'ARTICLES', 'FEAT']);
+const D = capture(['data.js', 'blog-data.js'], ['TOOLS', 'CAT', 'FAQ', 'TOOL_ARTICLES', 'ARTICLES', 'FEAT', 'CAT_META', 'ICON']);
 if (!D.TOOLS || !D.TOOLS.length) throw new Error('TOOLS capture failed');
-const { TOOLS, CAT, FAQ, TOOL_ARTICLES, ARTICLES } = D;
+const { TOOLS, CAT, FAQ, TOOL_ARTICLES, ARTICLES, CAT_META, ICON } = D;
 const FEAT_SET = new Set();
 (function collect(v) {
   if (typeof v === 'string') { FEAT_SET.add(v); return; }
@@ -60,19 +60,48 @@ const CAT_PAGE = { image: '/image-tools', pdf: '/pdf-tools', developer: '/develo
 const CAT_JS = { image: 'image-tools.js', pdf: 'pdf-tools.js', converter: 'converter-tools.js', marketing: 'marketing-tools.js', developer: 'developer-tools.js' };
 
 /* ── 2. Harvest chrome from the existing static design ─────────── */
-const donor = fs.readFileSync('image-tools.html', 'utf8');
-function must(re, label) {
-  const m = donor.match(re);
-  if (!m) throw new Error('Chrome harvest failed: ' + label);
+/* CDN libraries + full category chain: harvested from index.html so the
+   tool pages always load the SPA's EXACT dependency stack in its exact
+   order. Discovered the hard way: category files share functions across
+   files (image-tools needs pdf-tools' imagesToPdfTool; converter needs
+   image-tools' imgConv), and tools need the CDN libs at run time. */
+const indexSrc = fs.readFileSync('index.html', 'utf8');
+const CDN_TAGS = [...indexSrc.matchAll(/<script src="https:\/\/cdnjs\.cloudflare\.com[^>]*><\/script>/g)]
+  .map(m => m[0].includes(' defer') ? m[0] : m[0].replace('><\/script>', ' defer><\/script>'))
+  .join('\n');
+if (!CDN_TAGS) throw new Error('CDN tags not found in index.html');
+/* ── UNIFIED CHROME: harvested from index.html so tool pages share the
+   SPA's exact header (nav search, theme toggle, tools dropdown, Explore
+   button, mobile menu) and footer — one layout system site-wide for the
+   landing pages. The dropdown panel is JS-built on the homepage
+   (buildNavToolsDropdown in app.js); here its output is BAKED at build
+   time from the same data, so no app.js is needed. */
+function mustIdx(re, label) {
+  const m = indexSrc.match(re);
+  if (!m) throw new Error('Index chrome harvest failed: ' + label);
   return m[0];
 }
-const HEADER = must(/<header class="site-header">[\s\S]*?<\/header>/, 'header');
-const MOBMENU = must(/<div class="mob-menu"[\s\S]*?<\/div>\n(?=<)/, 'mob-menu');
-const FOOTER = must(/<footer[\s\S]*?<\/footer>/, 'footer');
-const STYLES = [...donor.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]);
-const HEAD_LINKS = [...donor.matchAll(/<link[^>]*(?:icon|font|preconnect)[^>]*>/g)].map(m => m[0]).join('\n  ');
-const TAIL_SCRIPT = (donor.match(/<script>[\s\S]*?<\/script>\s*<\/body>/) || [''])[0].replace(/<\/body>$/, '').trim();
-console.log(`Chrome: header ${HEADER.length}c, styles ${STYLES.map(s => s.length).join('+')}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
+let CHROME_TOP = indexSrc.slice(indexSrc.indexOf('<header id="header">'), indexSrc.indexOf('<main'));
+if (!CHROME_TOP.includes('mobileMenu') || !CHROME_TOP.includes('navToolsPanel')) throw new Error('index header harvest incomplete');
+const FOOTER = mustIdx(/<footer[\s\S]*?<\/footer>/, 'footer');
+/* Bake the tools dropdown (port of app.js buildNavToolsDropdown) */
+const NAV_ORDER = ['image','pdf','developer','marketing','converter'];
+const bakedPanel = NAV_ORDER.map(c => {
+  const meta = CAT_META && CAT_META[c]; if (!meta) return '';
+  const popular = (meta.popular || []).map(sl => {
+    const t = TOOLS.find(x => x[0] === sl);
+    return t ? '<a href="/' + t[0] + '">' + t[1] + '</a>' : '';
+  }).join('');
+  return '<div class="ntp-col">'
+    + '<a class="ntp-cat" href="/' + c + '-tools"><span class="ntp-cat-ico">' + (ICON && ICON[c] || '') + '</span>' + CAT[c] + '</a>'
+    + popular
+    + '<a class="ntp-viewall" href="/' + c + '-tools">View all &rarr;</a>'
+    + '</div>';
+}).join('');
+CHROME_TOP = CHROME_TOP.replace('<!-- buildNavToolsDropdown() -->', bakedPanel);
+const HEAD_LINKS = [...indexSrc.matchAll(/<link[^>]*(?:preconnect|fonts\.googleapis\.com\/css2|icon)[^>]*>/g)].map(m => m[0]).join('\n  ')
+  + '\n  <link rel="stylesheet" href="/main.css">';
+console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
 
 /* ── 3. Page-specific CSS (tokens only from :root — no new palette) ─ */
 const TOOL_CSS = `
@@ -94,9 +123,7 @@ const TOOL_CSS = `
 @keyframes tpPulse{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
 @media (prefers-reduced-motion: reduce){.tp-panel-loading .dot{animation:none}}
 @media (max-width:720px){.tp-panel-frame{padding:14px;border-radius:16px}}
-/* Tokens tools.css consumes that the donor page's :root may not define —
-   values copied exactly from main.css so panel components render identically. */
-:root{--bg-2:#0e1226;--surface-2:rgba(255,255,255,.06);--border-2:rgba(255,255,255,.14);--ok:#34d399;--bad:#ff6b6b;--grad-accent:linear-gradient(120deg,var(--accent,#f5b042),var(--accent-2,#ff8a3c));--shadow:0 24px 60px -24px rgba(0,0,0,.7);--r:18px;--fb:"Inter",system-ui,sans-serif;--ease:cubic-bezier(.22,.61,.36,1)}
+
 .tp-sec{padding:34px 0 6px}
 .tp-sec h2{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
 .tp-sec .tp-sub{font-size:14px;color:var(--text-dim);margin-bottom:22px}
@@ -280,12 +307,11 @@ function buildPage(t) {
   <meta name="twitter:image" content="${SITE}/og-image.png">
   ${HEAD_LINKS}
   <link rel="stylesheet" href="/tools.css">
-  <style>${STYLES.join('\n')}\n${TOOL_CSS}</style>
+  <style>${TOOL_CSS}</style>
   <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body data-tool-slug="${slug}" data-tool-name="${esc(name)}">
-${HEADER}
-${MOBMENU}
+${CHROME_TOP}
 <main>
   <div class="tp-wrap">
 
@@ -375,7 +401,6 @@ ${MOBMENU}
   </div>
 </main>
 ${FOOTER}
-${TAIL_SCRIPT}
 <script>
 (function(){
   /* Favourite — shares the SPA's exact localStorage contract (tmk_favs) */
@@ -398,11 +423,17 @@ ${TAIL_SCRIPT}
   });
 })();
 </script>
+${CDN_TAGS}
 <script src="/config.js" defer></script>
 <script src="/utils.js" defer></script>
 <script src="/tool-helpers.js" defer></script>
 <script src="/data.js" defer></script>
-<script src="/${CAT_JS[cat]}" defer></script>
+<script src="/pdf-tools.js" defer></script>
+<script src="/image-tools.js" defer></script>
+<script src="/converter-tools.js" defer></script>
+<script src="/marketing-tools.js" defer></script>
+<script src="/developer-tools.js" defer></script>
+<script src="/features.js" defer></script>
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>
 </html>`;

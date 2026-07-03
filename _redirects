@@ -1,14 +1,3 @@
-# Tarumak Studio — Cloudflare Pages _redirects
-# Updated: 2026-06-28
-#
-# IMPORTANT: Cloudflare Pages Pretty URLs automatically serves
-# every .html file at its clean URL:
-#   /about.html    → /about
-#   /contact.html  → /contact
-#   /blog.html     → /blog
-#   /article-foo.html → /article-foo
-#
-# Adding redirect rules for these paths creates infinite redirect
-# loops. This file is intentionally minimal.
-#
-# No rules needed — Pretty URLs handles all routing.
+# Cloudflare Pages redirects — legacy/orphan URLs to canonical pages
+/article-social-media-image-sizes  /article-social-media-image-sizes-2026  301
+/privacy                           /privacy-policy                          301

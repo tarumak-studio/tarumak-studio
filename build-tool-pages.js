@@ -88,12 +88,6 @@ const TOOL_CSS = `
 .tp-act:hover{color:var(--p1);border-color:rgba(34,211,238,.3)}
 .tp-act.active{color:#f472b6;border-color:rgba(244,114,182,.35);background:rgba(244,114,182,.08)}
 .tp-act svg{width:14px;height:14px}
-.tp-open{margin:26px 0 8px;padding:34px 30px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(34,211,238,.03));border:1.5px solid var(--border2);text-align:center}
-.tp-open h2{font-family:var(--fd);font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px}
-.tp-open p{font-size:14px;color:var(--text-dim);margin-bottom:18px}
-.tp-open-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--fd);font-size:15.5px;font-weight:700;color:#0b0f16;background:var(--grad);padding:14px 32px;border-radius:12px;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 8px 24px -8px rgba(34,211,238,.5)}
-.tp-open-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px -8px rgba(34,211,238,.65)}
-.tp-open-note{font-size:11.5px;color:var(--text-faint);margin-top:14px}
 .tp-panel-frame{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));border:1px solid var(--border-2,rgba(255,255,255,.14));border-radius:20px;padding:26px;margin:26px 0 8px;box-shadow:0 24px 60px -30px rgba(0,0,0,.55)}
 .tp-panel-loading{display:flex;align-items:center;justify-content:center;gap:10px;min-height:170px;color:var(--text-faint);font-size:14px}
 .tp-panel-loading .dot{width:9px;height:9px;border-radius:50%;background:var(--p1);animation:tpPulse 1s ease-in-out infinite}
@@ -144,7 +138,7 @@ const TOOL_CSS = `
 .tp-cta-links a{font-size:13.5px;font-weight:700;text-decoration:none;padding:11px 20px;border-radius:11px}
 .tp-cta-primary{color:#0b0f16;background:var(--grad)}
 .tp-cta-ghost{color:var(--text);background:var(--surface);border:1px solid var(--border2)}
-@media(max-width:640px){.tp-hero{padding-top:26px}.tp-open{padding:26px 18px}.tp-cta-band{flex-direction:column;align-items:flex-start}}
+@media(max-width:640px){.tp-hero{padding-top:26px}.tp-cta-band{flex-direction:column;align-items:flex-start}}
 `;
 
 /* ── 4. Copy logic ported verbatim from app.js buildHowToGuide ──── */
@@ -317,7 +311,7 @@ ${MOBMENU}
     <section class="tp-mount" aria-label="${esc(name)} tool">
       <div id="toolPanel" class="tp-panel-frame">
         <div class="tp-panel-loading"><span class="dot"></span><span class="dot" style="animation-delay:.18s"></span><span class="dot" style="animation-delay:.36s"></span>Loading ${esc(name)}\u2026</div>
-        <noscript><p style="text-align:center;color:var(--text-dim);padding:20px">This tool needs JavaScript. <a href="/#/t/${slug}" style="color:var(--p1)">Open it in the Tarumak Studio app</a>.</p></noscript>
+        <noscript><p style="text-align:center;color:var(--text-dim);padding:20px">This tool runs entirely in your browser and needs JavaScript enabled.</p></noscript>
       </div>
     </section>
 
@@ -374,7 +368,7 @@ ${MOBMENU}
       </div>
       <div class="tp-cta-links">
         <a class="tp-cta-primary" href="${CAT_PAGE[cat]}">More ${esc(CAT[cat])}</a>
-        <a class="tp-cta-ghost" href="/#/all">Browse all tools</a>
+        <a class="tp-cta-ghost" href="/#tools">Browse all tools</a>
       </div>
     </section>
 

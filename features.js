@@ -25,7 +25,7 @@ function toggleFav(slug,e){
   /* update tool-page header heart */
   const th=$('.th-fav');if(th&&th.dataset.slug===slug)th.classList.toggle('active',active);
   /* refresh grid if on saved tab */
-  if(activeCat==='favs'){/* buildTabs/buildGrid called by route() in app.js */}else buildTabs();
+  if(tabsEl&&gridEl){if(activeCat==='favs'){/* buildTabs/buildGrid called by route() in app.js */}else buildTabs();}
 }
 
 /* ══════════════════════════════════════════════════
@@ -61,7 +61,7 @@ function buildGrid(){
     return '<div class="tool cat-'+x[2]+'" onclick="location.href=\'/'+x[0]+'\'">'+arrowSvg+'<button class="fav-btn'+(faved?' active':'')+'" data-slug="'+x[0]+'" onclick="toggleFav(\''+x[0]+'\',event)" aria-label="Save '+x[1]+'">'+heartSvg+'</button><div class="ico">'+ICON[x[2]]+'</div><h3><a href="/'+x[0]+'" style="color:inherit;text-decoration:none">'+x[1]+'</a></h3><p>'+x[3]+'</p><div class="chips">'+x[4].map(c=>'<span class="chip">'+c+'</span>').join('')+'</div></div>';
   }).join('');
 }
-tabsEl.addEventListener('click',e=>{
+if(tabsEl)tabsEl.addEventListener('click',e=>{
   /* The clear (x) button is nested inside the active-category
      chip, so it needs to be checked BEFORE the general .tab
      handler below — otherwise closest('.tab') would just find
@@ -70,7 +70,7 @@ tabsEl.addEventListener('click',e=>{
   if(e.target.closest('[data-clear]')){ activeCat='all'; buildTabs(); buildGrid(); return; }
   const b=e.target.closest('.tab');if(!b)return;activeCat=b.dataset.cat;buildTabs();buildGrid();
 });
-$('#gridSearch').addEventListener('input',e=>{term=e.target.value;buildGrid();});
+var _gs=$('#gridSearch');if(_gs)_gs.addEventListener('input',e=>{term=e.target.value;buildGrid();});
 /* grid initialised by route() boot call in app.js */
 
 /* ---------- nav search ---------- */
@@ -104,7 +104,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search'))navPop.cla
 /* ---------- theme / header / menu ---------- */
 const root=document.documentElement,tIcon=$('#themeIcon');
 const moon='<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',sun='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
-$('#theme').onclick=()=>{const l=root.getAttribute('data-theme')==='light';root.setAttribute('data-theme',l?'dark':'light');tIcon.innerHTML=l?sun:moon;};
+var _th=$('#theme');if(_th)_th.onclick=()=>{const l=root.getAttribute('data-theme')==='light';root.setAttribute('data-theme',l?'dark':'light');tIcon.innerHTML=l?sun:moon;};
 /* scroll handled in quick-win features block above */
 const mm=$('#mobileMenu');$('#burger').onclick=()=>{mm.classList.add('open');$('#burger').setAttribute('aria-expanded','true');};$('#closeMenu').onclick=()=>{mm.classList.remove('open');$('#burger').setAttribute('aria-expanded','false');};
 
@@ -188,9 +188,9 @@ function buildRecent(){
 const topBtn=$('#top-btn');
 addEventListener('scroll',()=>{
   $('#header').classList.toggle('scrolled',scrollY>20);
-  topBtn.classList.toggle('show',scrollY>300);
+  if(topBtn)topBtn.classList.toggle('show',scrollY>300);
 },{ passive:true });
-topBtn.onclick=()=>scrollTo({top:0,behavior:'smooth'});
+if(topBtn)topBtn.onclick=()=>scrollTo({top:0,behavior:'smooth'});
 
 /* 5 ─ Cmd+K / Ctrl+K search shortcut ─────────────── */
 document.addEventListener('keydown',e=>{
@@ -223,6 +223,7 @@ function fadeIn(el){el.classList.remove('fade-in');void el.offsetWidth;el.classL
     localStorage.setItem(CKEY,accepted?'1':'0');
     setTimeout(()=>bar.style.display='none',420);
   }
-  $('#cb-accept').onclick=()=>{dismiss(true);toast('Preferences saved','ok',2000);};
-  $('#cb-decline').onclick=()=>{dismiss(false);};
+  var _ca=$('#cb-accept'),_cd=$('#cb-decline');
+  if(_ca)_ca.onclick=()=>{dismiss(true);toast('Preferences saved','ok',2000);};
+  if(_cd)_cd.onclick=()=>{dismiss(false);};
 })();

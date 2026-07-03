@@ -58,7 +58,7 @@ function buildGrid(){
   }
   gridEl.innerHTML=list.map(x=>{
     const faved=favs.has(x[0]);
-    return '<div class="tool cat-'+x[2]+'" onclick="go(\'t/'+x[0]+'\')">'+arrowSvg+'<button class="fav-btn'+(faved?' active':'')+'" data-slug="'+x[0]+'" onclick="toggleFav(\''+x[0]+'\',event)" aria-label="Save '+x[1]+'">'+heartSvg+'</button><div class="ico">'+ICON[x[2]]+'</div><h3>'+x[1]+'</h3><p>'+x[3]+'</p><div class="chips">'+x[4].map(c=>'<span class="chip">'+c+'</span>').join('')+'</div></div>';
+    return '<div class="tool cat-'+x[2]+'" onclick="location.href=\'/'+x[0]+'\'">'+arrowSvg+'<button class="fav-btn'+(faved?' active':'')+'" data-slug="'+x[0]+'" onclick="toggleFav(\''+x[0]+'\',event)" aria-label="Save '+x[1]+'">'+heartSvg+'</button><div class="ico">'+ICON[x[2]]+'</div><h3><a href="/'+x[0]+'" style="color:inherit;text-decoration:none">'+x[1]+'</a></h3><p>'+x[3]+'</p><div class="chips">'+x[4].map(c=>'<span class="chip">'+c+'</span>').join('')+'</div></div>';
   }).join('');
 }
 tabsEl.addEventListener('click',e=>{
@@ -87,10 +87,10 @@ navSearch.addEventListener('input',()=>{
       .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
     navPop.innerHTML=
       '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(raw)+'&rdquo;</span></div>'+
-      suggestions.map((x,i)=>'<a data-i="'+i+'" onclick="go(\'t/'+x[0]+'\')"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+x[1]+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+      suggestions.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+x[1]+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
   } else {
     const normTerm=normalizeSearchTerm(raw);
-    navPop.innerHTML=list.map((x,i)=>'<a data-i="'+i+'" onclick="go(\'t/'+x[0]+'\')"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+highlightMatch(x[1],normTerm)+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+    navPop.innerHTML=list.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+highlightMatch(x[1],normTerm)+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
   }
   navPop.classList.add('show');});
 navSearch.addEventListener('keydown',e=>{
@@ -180,7 +180,7 @@ function buildRecent(){
     const valid=r.map(s=>bySlug(s)).filter(Boolean);
     if(!valid.length){row.style.display='none';return;}
     row.style.display='';
-    list.innerHTML=valid.map(t=>'<div class="recent-pill" onclick="go(\'t/'+t[0]+'\')"><span class="rp-ico">'+ICON[t[2]]+'</span>'+t[1]+'</div>').join('');
+    list.innerHTML=valid.map(t=>'<div class="recent-pill" onclick="location.href=\'/'+t[0]+'\'"><span class="rp-ico">'+ICON[t[2]]+'</span>'+t[1]+'</div>').join('');
   }catch(e){row.style.display='none';}
 }
 

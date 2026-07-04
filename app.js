@@ -833,17 +833,17 @@ function updateToolMeta(slug,t){
 function restoreHomeMeta(){
   var baseUrl='https://tarumakstudio.com';
   var md=document.querySelector('meta[name="description"]');
-  if(md) md.setAttribute('content','56 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  if(md) md.setAttribute('content','66 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
   var can=document.querySelector('link[rel="canonical"]');
   if(can) can.setAttribute('href',baseUrl+'/');
   var _og=function(prop,val){var el=document.querySelector('meta[property="'+prop+'"]');if(el)el.setAttribute('content',val);};
   _og('og:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
-  _og('og:description','56 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  _og('og:description','66 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
   _og('og:url',baseUrl+'/');
   _og('og:type','website');
   var _tw=function(name,val){var el=document.querySelector('meta[name="'+name+'"]');if(el)el.setAttribute('content',val);};
   _tw('twitter:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
-  _tw('twitter:description','56 free browser-based tools for designers, marketers and developers.');
+  _tw('twitter:description','66 free browser-based tools for designers, marketers and developers.');
   var old=document.getElementById('tool-jsonld');
   if(old) old.remove();
 }

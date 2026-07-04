@@ -1,5 +1,10 @@
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:28px;box-shadow:var(--shadow)}
 .drop{border:2px dashed var(--border-2);border-radius:18px;padding:44px 24px;text-align:center;cursor:pointer;transition:.3s var(--ease);background:var(--surface);position:relative}
+@media (max-width: 640px) {
+  .drop { padding: 28px 16px; border-radius: 14px; }
+  .drop .di { width: 48px; height: 48px; margin-bottom: 10px; }
+  .drop h3 { font-size: 16px; }
+}
 .drop:hover,.drop.drag{border-color:var(--p1);background:rgba(34,211,238,.05)}
 .drop:focus-visible{outline:2px solid var(--p1);outline-offset:3px;border-color:var(--p1)}
 .drop .di{width:62px;height:62px;border-radius:16px;background:var(--grad);display:grid;place-items:center;margin:0 auto 16px;color:#06121a;box-shadow:0 12px 30px -10px var(--p2)}

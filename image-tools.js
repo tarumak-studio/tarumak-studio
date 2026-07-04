@@ -302,16 +302,17 @@ INIT['background-remover'] = function(panel) {
   var CHECKER = 'background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;';
 
   panel.innerHTML =
-    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">' +
+    '<div role="group" aria-label="Background removal mode" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">' +
       '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint)">Mode</span>' +
-      '<button class="btn" id="bgrModeAi" style="padding:7px 16px;font-size:13px">AI &mdash; any photo</button>' +
-      '<button class="btn" id="bgrModeSolid" style="padding:7px 16px;font-size:13px">Solid background &mdash; instant</button>' +
+      '<button class="btn" id="bgrModeAi" aria-pressed="true" style="padding:7px 16px;font-size:13px">AI &mdash; any photo</button>' +
+      '<button class="btn" id="bgrModeSolid" aria-pressed="false" style="padding:7px 16px;font-size:13px">Solid background &mdash; instant</button>' +
     '</div>' +
-    '<p id="bgrAiNote" style="font-size:12px;color:var(--text-faint);margin-bottom:12px">' +
-      'Neural segmentation running entirely on your device. First use downloads the AI model once (~20&ndash;40 MB, cached by your browser) &mdash; your photo never uploads.' +
+    '<p id="bgrAiNote" style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);margin-bottom:12px">' +
+      '<span style="width:5px;height:5px;border-radius:50%;background:var(--ok,#34d399);flex-shrink:0"></span>' +
+      'Runs entirely in your browser \u2014 nothing is uploaded. The AI model downloads once and is cached locally; your photos never leave your device.' +
     '</p>' +
-    '<div class="drop" id="bgrDrop" style="cursor:pointer">' +
-      '<input type="file" id="bgrIn" accept="image/*" hidden>' +
+    '<div class="drop" id="bgrDrop" style="cursor:pointer" tabindex="0" role="button" aria-label="Drop image here or click to browse">' +
+      '<input type="file" id="bgrIn" accept="image/*" hidden aria-hidden="true" tabindex="-1">' +
       '<div class="di">' + UP + '</div>' +
       '<h3>Drop image here or click to browse</h3>' +
       '<p>People, products, animals, logos &middot; JPG, PNG, WebP &middot; Downloads as transparent PNG</p>' +
@@ -368,6 +369,8 @@ INIT['background-remover'] = function(panel) {
     var off = 'padding:7px 16px;font-size:13px;background:rgba(255,255,255,.05);color:var(--text-dim);border:1px solid transparent';
     modeAiBtn.style.cssText    = (mode === 'ai')    ? on : off;
     modeSolidBtn.style.cssText = (mode === 'solid') ? on : off;
+    modeAiBtn.setAttribute('aria-pressed', mode === 'ai' ? 'true' : 'false');
+    modeSolidBtn.setAttribute('aria-pressed', mode === 'solid' ? 'true' : 'false');
     aiNote.style.display = (mode === 'ai') ? '' : 'none';
     opts.style.display = (mode === 'solid' && currentImg) ? 'block' : 'none';
   }

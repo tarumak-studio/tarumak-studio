@@ -153,6 +153,30 @@ console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c
 /* ── 3. Page-specific CSS (tokens only from :root — no new palette) ─ */
 const TOOL_CSS = `
 .tp-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+#cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8500;background:color-mix(in srgb,var(--bg-2) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s var(--ease)}
+#cookie-bar.show{transform:none}
+#cookie-bar p{flex:1;font-size:13.5px;color:var(--text-dim);margin:0;min-width:200px}
+#cookie-bar p a{color:var(--p1);text-decoration:underline}
+.cb-btns{display:flex;gap:10px;align-items:center;flex-shrink:0}
+#cb-accept{height:36px;padding:0 20px;border-radius:10px;background:var(--grad);color:#06121a;font-family:var(--fb);font-weight:600;font-size:13px;border:none;cursor:pointer}
+#cb-accept:hover{opacity:.88}
+.cb-decline{background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;transition:.2s}
+.cb-decline:hover{border-color:var(--border-2);color:var(--text)}
+@media (max-width: 600px) {
+  #cookie-bar { padding: 12px 16px; gap: 10px; flex-direction: column; align-items: stretch; }
+  #cookie-bar p { font-size: 12.5px; min-width: 0; }
+  .cb-btns { width: 100%; }
+  .cb-btns button { flex: 1; }
+  #cb-accept { height: 34px; padding: 0 14px; font-size: 12.5px; } .cb-decline { padding: 7px 12px; font-size: 12.5px; }
+}
+
+.breadcrumb{display:flex;align-items:center;flex-wrap:wrap;font-size:13px;padding-top:22px}
+.breadcrumb a{color:var(--text-dim);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:var(--p1)}
+.breadcrumb a:focus-visible{outline:2px solid var(--p1);outline-offset:3px;border-radius:4px}
+.breadcrumb a+a::before,.breadcrumb a+.crumb-current::before{content:'\u203A';display:inline-block;margin:0 9px;color:var(--text-faint)}
+.crumb-current{color:var(--text);font-weight:600}
+
 .tp-hero{padding:40px 0 8px}
 .tp-hero h1{font-family:var(--fd);font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-1.2px;margin:14px 0 10px}
 .tp-lead{font-size:16.5px;color:var(--text-dim);max-width:720px;line-height:1.65}
@@ -184,7 +208,7 @@ const TOOL_CSS = `
 .tp-step-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(34,211,238,.13);color:var(--p1);font-family:var(--fd);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
 .tp-step h3{font-size:14.5px;font-weight:700;margin-bottom:3px}
 .tp-step p{font-size:13px;color:var(--text-dim);line-height:1.55}
-.tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
 .tp-feature{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:13px;font-weight:600}
 .tp-feature svg{width:15px;height:15px;color:var(--p1);flex-shrink:0}
 .tp-faq details{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden}
@@ -213,6 +237,18 @@ const TOOL_CSS = `
 .tp-cta-primary{color:#0b0f16;background:var(--grad)}
 .tp-cta-ghost{color:var(--text);background:var(--surface);border:1px solid var(--border2)}
 @media(max-width:640px){.tp-hero{padding-top:26px}.tp-cta-band{flex-direction:column;align-items:flex-start}}
+@media (max-width: 640px) {
+  .tp-hero { padding: 26px 0 4px; }
+  .tp-hero h1 { margin: 12px 0 8px; }
+  .tp-badges { gap: 6px; margin-top: 12px; }
+  .tp-chip { font-size: 11px; padding: 3px 9px; }
+  .tp-actions { margin-left: 0; width: 100%; margin-top: 6px; }
+  .tp-panel-frame { margin: 20px 0 6px; }
+  .tp-sec { padding: 26px 0 4px; }
+  .tp-sec .tp-sub { margin-bottom: 16px; }
+  .breadcrumb { font-size: 12px; padding-top: 16px; }
+  .breadcrumb a+a::before, .breadcrumb a+.crumb-current::before { margin: 0 6px; }
+}
 `;
 
 /* ── 4. Copy logic ported verbatim from app.js buildHowToGuide ──── */
@@ -249,8 +285,23 @@ function topicsIn(q) {
    File tools get the concrete "processed locally, never uploaded"
    promise; text/URL/generator tools get input-appropriate wording
    instead of a nonsensical claim about files they don't have. */
+/* Real file-format tokens only \u2014 an explicit whitelist, not a shape
+   heuristic. A shape check like "short + uppercase" was tried first and
+   wrongly passed non-format chips that happen to look format-shaped: HEX,
+   CSS, RESIZE, SOCIAL, CANVAS, BRAND are all short/uppercase but describe
+   a capability, not a file type, and would still have read as nonsense
+   ("works with HEX, CSS"). The actual vocabulary of real formats used
+   across every tool's chips is small and enumerable, so a whitelist is
+   both more accurate and easier to audit than any pattern. */
+const REAL_FORMATS = new Set(['JPG','PNG','WEBP','SVG','PDF','TXT','GIF','ICO','DOCX']);
+function isFormatChip(c) {
+  if (REAL_FORMATS.has(c)) return true;
+  const parts = c.split('\u2192');
+  return parts.length === 2 && REAL_FORMATS.has(parts[0]) && REAL_FORMATS.has(parts[1]);
+}
 function generalFaq(t, cat, isFileTool) {
-  const chips = (t[4] || []).join(', ');
+  const realChips = (t[4] || []).filter(c => isFormatChip(c));
+  const chips = realChips.join(', ');
   const out = [
     ['Is ' + t[1] + ' really free?', 'Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.'],
     ['Do I need to create an account?', 'No. There is no sign-up, no login and no email required. Open the tool and use it immediately.']
@@ -390,9 +441,13 @@ function buildPage(t) {
       ? 'No upload wait, no processing queue, no download-from-server step. The only speed limit is your own device.'
       : 'No round-trip to a server for every keystroke or click. The only speed limit is your own device.'],
     [svg.gem, 'Full quality output', 'You get exactly what the tool produces \u2014 no watermarks, no resolution caps, no premium-only quality tiers.'],
-    [svg.layers, isFileTool ? 'Formats covered' : 'Built for', chips && chips.length
-      ? (isFileTool ? ('Works with ' + chips.join(', ') + '.') : (name + ' covers ' + chips.join(', ').toLowerCase() + '.'))
-      : (isFileTool ? 'Common formats supported out of the box.' : 'Built for real-world marketing and content workflows.')]
+    [svg.layers, isFileTool ? 'Formats covered' : 'Built for', (() => {
+      if (isFileTool) {
+        const realChips = (chips || []).filter(c => isFormatChip(c));
+        return realChips.length ? ('Works with ' + realChips.join(', ') + '.') : 'Common formats supported out of the box.';
+      }
+      return (chips && chips.length) ? (name + ' covers ' + chips.join(', ').toLowerCase() + '.') : 'Built for real-world marketing and content workflows.';
+    })()]
   ];
   const features = ['100% browser-based', 'Free forever', 'No sign-up', 'Privacy safe', 'Instant processing', 'Works on mobile'];
 
@@ -429,10 +484,10 @@ ${CHROME_TOP}
 <main>
   <div class="tp-wrap">
 
-    <nav class="breadcrumb" aria-label="breadcrumb" style="padding-top:22px">
-      <a href="/">Home</a><span>\u203A</span>
-      <a href="${CAT_PAGE[cat]}">${esc(CAT[cat])}</a><span>\u203A</span>
-      <span style="color:var(--text)">${esc(name)}</span>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <a href="${CAT_PAGE[cat]}">${esc(CAT[cat])}</a>
+      <span class="crumb-current" aria-current="page">${esc(name)}</span>
     </nav>
 
     <section class="tp-hero">
@@ -515,6 +570,14 @@ ${CHROME_TOP}
   </div>
 </main>
 ${FOOTER}
+
+<div id="cookie-bar" role="region" aria-label="Cookie consent">
+  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a href="/cookie-policy">Cookie Policy</a> \u00b7 <a href="/privacy-policy">Privacy Policy</a></p>
+  <div class="cb-btns">
+    <button class="cb-decline" id="cb-decline">Decline</button>
+    <button class="cb-accept" id="cb-accept">Accept</button>
+  </div>
+</div>
 <script>
 (function(){
   /* Favourite — shares the SPA's exact localStorage contract (tmk_favs) */

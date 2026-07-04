@@ -30,6 +30,30 @@
   <link rel="stylesheet" href="/tools.css">
   <style>
 .tp-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+#cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8500;background:color-mix(in srgb,var(--bg-2) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s var(--ease)}
+#cookie-bar.show{transform:none}
+#cookie-bar p{flex:1;font-size:13.5px;color:var(--text-dim);margin:0;min-width:200px}
+#cookie-bar p a{color:var(--p1);text-decoration:underline}
+.cb-btns{display:flex;gap:10px;align-items:center;flex-shrink:0}
+#cb-accept{height:36px;padding:0 20px;border-radius:10px;background:var(--grad);color:#06121a;font-family:var(--fb);font-weight:600;font-size:13px;border:none;cursor:pointer}
+#cb-accept:hover{opacity:.88}
+.cb-decline{background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;transition:.2s}
+.cb-decline:hover{border-color:var(--border-2);color:var(--text)}
+@media (max-width: 600px) {
+  #cookie-bar { padding: 12px 16px; gap: 10px; flex-direction: column; align-items: stretch; }
+  #cookie-bar p { font-size: 12.5px; min-width: 0; }
+  .cb-btns { width: 100%; }
+  .cb-btns button { flex: 1; }
+  #cb-accept { height: 34px; padding: 0 14px; font-size: 12.5px; } .cb-decline { padding: 7px 12px; font-size: 12.5px; }
+}
+
+.breadcrumb{display:flex;align-items:center;flex-wrap:wrap;font-size:13px;padding-top:22px}
+.breadcrumb a{color:var(--text-dim);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:var(--p1)}
+.breadcrumb a:focus-visible{outline:2px solid var(--p1);outline-offset:3px;border-radius:4px}
+.breadcrumb a+a::before,.breadcrumb a+.crumb-current::before{content:'›';display:inline-block;margin:0 9px;color:var(--text-faint)}
+.crumb-current{color:var(--text);font-weight:600}
+
 .tp-hero{padding:40px 0 8px}
 .tp-hero h1{font-family:var(--fd);font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-1.2px;margin:14px 0 10px}
 .tp-lead{font-size:16.5px;color:var(--text-dim);max-width:720px;line-height:1.65}
@@ -61,7 +85,7 @@
 .tp-step-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(34,211,238,.13);color:var(--p1);font-family:var(--fd);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
 .tp-step h3{font-size:14.5px;font-weight:700;margin-bottom:3px}
 .tp-step p{font-size:13px;color:var(--text-dim);line-height:1.55}
-.tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
 .tp-feature{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:13px;font-weight:600}
 .tp-feature svg{width:15px;height:15px;color:var(--p1);flex-shrink:0}
 .tp-faq details{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden}
@@ -90,13 +114,25 @@
 .tp-cta-primary{color:#0b0f16;background:var(--grad)}
 .tp-cta-ghost{color:var(--text);background:var(--surface);border:1px solid var(--border2)}
 @media(max-width:640px){.tp-hero{padding-top:26px}.tp-cta-band{flex-direction:column;align-items:flex-start}}
+@media (max-width: 640px) {
+  .tp-hero { padding: 26px 0 4px; }
+  .tp-hero h1 { margin: 12px 0 8px; }
+  .tp-badges { gap: 6px; margin-top: 12px; }
+  .tp-chip { font-size: 11px; padding: 3px 9px; }
+  .tp-actions { margin-left: 0; width: 100%; margin-top: 6px; }
+  .tp-panel-frame { margin: 20px 0 6px; }
+  .tp-sec { padding: 26px 0 4px; }
+  .tp-sec .tp-sub { margin-bottom: 16px; }
+  .breadcrumb { font-size: 12px; padding-top: 16px; }
+  .breadcrumb a+a::before, .breadcrumb a+.crumb-current::before { margin: 0 6px; }
+}
 </style>
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/lorem-ipsum#page","url":"https://tarumakstudio.com/lorem-ipsum","name":"Lorem Ipsum Generator — Free Online Tool | Tarumak Studio","description":"Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-07-04"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/lorem-ipsum#app","name":"Lorem Ipsum Generator","url":"https://tarumakstudio.com/lorem-ipsum","description":"Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Lorem Ipsum Generator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is Lorem Ipsum text for?","acceptedAnswer":{"@type":"Answer","text":"Lorem Ipsum is placeholder text used in design and typesetting to show what a layout looks like with realistic-length content, without distracting readers with real words."}},{"@type":"Question","name":"Can I generate paragraphs, sentences or words?","acceptedAnswer":{"@type":"Answer","text":"Yes — choose from paragraphs, sentences or individual words, and set the quantity you need."}},{"@type":"Question","name":"Is Lorem Ipsum based on real Latin?","acceptedAnswer":{"@type":"Answer","text":"Yes — it derives from a passage in Cicero De Finibus Bonorum et Malorum written in 45 BC, scrambled to be non-readable."}},{"@type":"Question","name":"Is Lorem Ipsum Generator really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Do I need to create an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no sign-up, no login and no email required. Open the tool and use it immediately."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Lorem Ipsum Generator processes everything you type or paste locally in your browser — nothing is ever sent to a server."}},{"@type":"Question","name":"Does it work on mobile?","acceptedAnswer":{"@type":"Answer","text":"Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed."}}]}]}</script>
 </head>
 <body data-tool-slug="lorem-ipsum" data-tool-name="Lorem Ipsum Generator">
 <header id="header"><div class="wrap nav header-wrap">
   <a class="brand" href="/" style="text-decoration:none;color:inherit"><div class="logo">T</div><div><b>Tarumak</b> <span style="font-weight:400;color:#94a3b8">Studio</span></div></a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Main navigation">
     <a data-nav="" href="/">Home</a>
     <div class="nav-tools-drop">
       <a data-nav="all" href="/#tools">Tools<svg class="ntd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
@@ -108,7 +144,7 @@
     <a data-nav="contact" href="/contact.html">Contact</a>
   </nav>
   <div class="nav-spacer"></div>
-  <div class="search">
+  <div class="search" role="search">
     <div class="search-inner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="navSearch" aria-label="Search tools" type="text" placeholder="Search tools…" autocomplete="off" />
@@ -141,10 +177,10 @@
 <main>
   <div class="tp-wrap">
 
-    <nav class="breadcrumb" aria-label="breadcrumb" style="padding-top:22px">
-      <a href="/">Home</a><span>›</span>
-      <a href="/developer-tools">Developer &amp; SEO</a><span>›</span>
-      <span style="color:var(--text)">Lorem Ipsum Generator</span>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <a href="/developer-tools">Developer &amp; SEO</a>
+      <span class="crumb-current" aria-current="page">Lorem Ipsum Generator</span>
     </nav>
 
     <section class="tp-hero">
@@ -264,6 +300,14 @@
   </div>
   <div class="fbar"><span>© 2026 Tarumak Studio. All rights reserved.</span><span>Built for the browser · No files ever leave your device.</span></div>
 </div></footer>
+
+<div id="cookie-bar" role="region" aria-label="Cookie consent">
+  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a href="/cookie-policy">Cookie Policy</a> · <a href="/privacy-policy">Privacy Policy</a></p>
+  <div class="cb-btns">
+    <button class="cb-decline" id="cb-decline">Decline</button>
+    <button class="cb-accept" id="cb-accept">Accept</button>
+  </div>
+</div>
 <script>
 (function(){
   /* Favourite — shares the SPA's exact localStorage contract (tmk_favs) */

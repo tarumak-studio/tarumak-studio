@@ -1,16 +1,26 @@
-/* resync-chrome.js — re-stamps the shared header (and its required CSS/JS
- * links) onto pages that already have it, whenever header-chrome.js's
- * output changes.
+/* resync-chrome.js — re-stamps the shared header AND footer (and their
+ * required CSS/JS links) onto pages that should have them, whenever
+ * header-chrome.js's output changes.
  *
  * Why this exists: build-tool-pages.js fully regenerates its 66 pages
- * from scratch every run, so header changes reach them automatically.
- * index.html and the other static pages (about, contact, blog, articles,
- * category pages, etc.) are NOT regenerated from scratch — their body
- * content is hand-authored and must survive untouched. This script is
- * the permanent, idempotent way to re-sync just the header/mobile-menu
- * block (and head links / script tag) on those pages, including any
- * future page authored the same way — run it after any change to
- * header-chrome.js.
+ * from scratch every run, so header/footer changes reach them
+ * automatically. index.html and the other static pages (about, contact,
+ * blog, articles, category pages, etc.) are NOT regenerated from
+ * scratch — their body content is hand-authored and must survive
+ * untouched. This script is the permanent, idempotent way to re-sync
+ * just the header/mobile-menu block, the footer, and head links/script
+ * tags on those pages — run it after any change to header-chrome.js.
+ *
+ * FOOTER re-sync added in the SEO-recovery round: an audit here found
+ * 8 different hand-copied footer variants across the site (the
+ * header-unification round explicitly deferred this — "a real
+ * inconsistency... a different, larger visual change than 'fix the
+ * header'"). Several of those variants still linked /about.html,
+ * /work-with-me.html, /terms.html, /privacy-policy.html,
+ * /cookie-policy.html, and even /index.html — all of which Google
+ * Search Console's own crawl data flagged as duplicate/non-canonical
+ * URLs. Fixing footer LINKS is explicitly in scope for that reason,
+ * even though a full footer visual redesign still is not.
  *
  * Usage: node resync-chrome.js
  */
@@ -18,7 +28,7 @@
 const fs = require('fs');
 const { getChrome, withActiveNav } = require('./header-chrome.js');
 
-const { CHROME_TOP: BASE, HEAD_LINKS, MEGA_MENU_SCRIPT } = getChrome();
+const { CHROME_TOP: BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT } = getChrome();
 
 /* Same page -> nav-active mapping used by the original migration, plus
    the homepage itself (data-nav=""). */
@@ -38,7 +48,7 @@ const targets = fs.readdirSync('.')
 
 console.log(`Found ${targets.length} pages with the shared header`);
 
-let changed = 0, unchanged = 0, errors = [];
+let changed = 0, unchanged = 0, errors = [], footersReplaced = 0;
 
 for (const file of targets) {
   try {
@@ -52,6 +62,18 @@ for (const file of targets) {
     const key = activeKeyFor(file);
     const chrome = key !== null ? withActiveNav(BASE, key) : BASE;
     html = html.slice(0, headerStart) + chrome + '\n' + html.slice(mainStart).replace(/^\n+/, '');
+
+    /* Footer: swap any legacy footer for the shared one, UNLESS this
+       page already has it (fcol is the rich footer's own marker class —
+       cheaper and more reliable than diffing the whole block) or is
+       404.html (kept deliberately minimal by design, not touched here). */
+    if (file !== '404.html' && !html.includes('class="fcol"')) {
+      const m = html.match(/<footer\b[\s\S]*?<\/footer>/);
+      if (m) {
+        html = html.slice(0, m.index) + FOOTER + html.slice(m.index + m[0].length);
+        footersReplaced++;
+      }
+    }
 
     if (!html.includes('mega-menu.css')) {
       const headClose = html.indexOf('</head>');
@@ -75,5 +97,5 @@ for (const file of targets) {
   }
 }
 
-console.log(`Updated: ${changed} | Already current: ${unchanged} | Errors: ${errors.length}`);
+console.log(`Updated: ${changed} | Already current: ${unchanged} | Errors: ${errors.length} | Footers replaced: ${footersReplaced}`);
 errors.forEach(e => console.log('  ERROR', e));

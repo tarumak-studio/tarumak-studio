@@ -31,7 +31,7 @@ INIT['word-counter']=function(panel){
 /* 2 — Password Generator */
 INIT['password-generator']=function(panel){
   panel.innerHTML='<div class="controls">'
-    +'<label style="font-size:13px;color:var(--text-dim)">Length: <span id="pg-len-v">16</span></label>'
+    +'<label for="pg-len" style="font-size:13px;color:var(--text-dim)">Length: <span id="pg-len-v">16</span></label>'
     +'<input type="range" id="pg-len" min="8" max="64" value="16" style="width:100%;margin:8px 0">'
     +'</div>'
     +'<div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0">'
@@ -66,10 +66,10 @@ INIT['password-generator']=function(panel){
 /* 3 — CSS Gradient Generator */
 INIT['css-gradient-gen']=function(panel){
   panel.innerHTML='<div class="controls" style="grid-template-columns:1fr 1fr">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Color 1</label><input type="color" id="cg-c1" value="#22d3ee" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Color 2</label><input type="color" id="cg-c2" value="#6366f1" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Type</label><select id="cg-type" style="width:100%;margin-top:4px"><option value="linear">Linear</option><option value="radial">Radial</option></select></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Angle (linear)</label><input type="range" id="cg-angle" min="0" max="360" value="135" style="width:100%;margin-top:12px"><span id="cg-angle-v" style="font-size:12px;color:var(--text-faint)">135°</span></div>'
+    +'<div><label for="cg-c1" style="font-size:12px;color:var(--text-dim)">Color 1</label><input type="color" id="cg-c1" value="#22d3ee" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
+    +'<div><label for="cg-c2" style="font-size:12px;color:var(--text-dim)">Color 2</label><input type="color" id="cg-c2" value="#6366f1" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
+    +'<div><label for="cg-type" style="font-size:12px;color:var(--text-dim)">Type</label><select id="cg-type" style="width:100%;margin-top:4px"><option value="linear">Linear</option><option value="radial">Radial</option></select></div>'
+    +'<div><label for="cg-angle" style="font-size:12px;color:var(--text-dim)">Angle (linear)</label><input type="range" id="cg-angle" min="0" max="360" value="135" style="width:100%;margin-top:12px"><span id="cg-angle-v" style="font-size:12px;color:var(--text-faint)">135°</span></div>'
     +'</div>'
     +'<div id="cg-preview" style="height:160px;border-radius:14px;margin:16px 0;border:1px solid var(--border)"></div>'
     +'<div id="cg-css" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--text)"></div>'
@@ -95,10 +95,10 @@ INIT['css-gradient-gen']=function(panel){
 /* 4 — Base64 Encoder/Decoder */
 INIT['base64-encoder']=function(panel){
   panel.innerHTML='<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn active" id="b64-enc-btn">Encode</button><button class="btn" id="b64-dec-btn">Decode</button></div>'
-    +'<label style="font-size:12px;color:var(--text-dim)" id="b64-in-label">Text to encode</label>'
+    +'<label for="b64-in" style="font-size:12px;color:var(--text-dim)" id="b64-in-label">Text to encode</label>'
     +'<textarea id="b64-in" rows="6" placeholder="Enter text to encode..." style="width:100%;margin:6px 0 10px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<button class="btn btn-primary" id="b64-go" style="margin-bottom:10px">Encode →</button>'
-    +'<label style="font-size:12px;color:var(--text-dim)">Result</label>'
+    +'<label for="b64-out" style="font-size:12px;color:var(--text-dim)">Result</label>'
     +'<textarea id="b64-out" rows="6" readonly style="width:100%;margin-top:6px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<div class="controls" style="margin-top:10px"><button class="btn" id="b64-copy">Copy result</button><button class="btn" id="b64-swap">↑↓ Swap</button></div>';
   var mode='encode';
@@ -135,10 +135,10 @@ INIT['json-formatter']=function(panel){
 /* 6 — Meta Tag Generator */
 INIT['meta-tag-gen']=function(panel){
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr;gap:10px">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Page Title (50-60 chars) <span id="mt-title-c" style="color:var(--p1)">0</span></label><input id="mt-title" type="text" placeholder="Free Image Compressor Online — No Uploads" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Meta Description (120-160 chars) <span id="mt-desc-c" style="color:var(--p1)">0</span></label><textarea id="mt-desc" rows="3" placeholder="Compress JPG, PNG and WebP images online for free..." style="width:100%;margin-top:4px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:none"></textarea></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Page URL</label><input id="mt-url" type="url" placeholder="https://yoursite.com/page" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">OG Image URL</label><input id="mt-img" type="url" placeholder="https://yoursite.com/og-image.png" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="mt-title" style="font-size:12px;color:var(--text-dim)">Page Title (50-60 chars) <span id="mt-title-c" style="color:var(--p1)">0</span></label><input id="mt-title" type="text" placeholder="Free Image Compressor Online — No Uploads" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="mt-desc" style="font-size:12px;color:var(--text-dim)">Meta Description (120-160 chars) <span id="mt-desc-c" style="color:var(--p1)">0</span></label><textarea id="mt-desc" rows="3" placeholder="Compress JPG, PNG and WebP images online for free..." style="width:100%;margin-top:4px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:none"></textarea></div>'
+    +'<div><label for="mt-url" style="font-size:12px;color:var(--text-dim)">Page URL</label><input id="mt-url" type="url" placeholder="https://yoursite.com/page" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="mt-img" style="font-size:12px;color:var(--text-dim)">OG Image URL</label><input id="mt-img" type="url" placeholder="https://yoursite.com/og-image.png" style="width:100%;margin-top:4px"></div>'
     +'</div>'
     +'<button class="btn btn-primary" id="mt-gen" style="margin:14px 0 10px;width:100%">Generate Meta Tags</button>'
     +'<textarea id="mt-out" rows="12" readonly style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-family:var(--fm);font-size:12px;resize:vertical;display:none"></textarea>'
@@ -252,9 +252,9 @@ INIT['url-encoder']=function(panel){
 INIT['text-diff']=function(panel){
   panel.innerHTML=''
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-    +'<div><label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">ORIGINAL TEXT</label>'
+    +'<div><label for="diff-a" style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">ORIGINAL TEXT</label>'
     +'<textarea id="diff-a" rows="12" placeholder="Paste original text here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea></div>'
-    +'<div><label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">CHANGED TEXT</label>'
+    +'<div><label for="diff-b" style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">CHANGED TEXT</label>'
     +'<textarea id="diff-b" rows="12" placeholder="Paste changed text here..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea></div>'
     +'</div>'
     +'<div class="controls" style="margin:10px 0"><button class="btn btn-primary" id="diff-go">Compare →</button><button class="btn" id="diff-clear">Clear</button></div>'
@@ -392,7 +392,7 @@ INIT['regex-tester']=function(panel){
 /* 3 ── Slug Generator */
 INIT['slug-generator']=function(panel){
   panel.innerHTML=''
-    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">INPUT TEXT</label>'
+    +'<label for="sg-in" style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">INPUT TEXT</label>'
     +'<input id="sg-in" type="text" placeholder="e.g. How to Create a QR Code for Your Business" style="width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:15px;box-sizing:border-box">'
     +'<div style="display:flex;gap:8px;margin:10px 0">'
     +'<button id="sg-hyp" class="btn active" style="font-size:13px">hyphens</button>'
@@ -443,7 +443,7 @@ INIT['text-case-converter']=function(panel){
     +'<button class="btn" id="tc-ke">kebab-case</button>'
     +'<button class="btn" id="tc-pa">PascalCase</button>'
     +'</div>'
-    +'<label style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">OUTPUT</label>'
+    +'<label for="tc-out" style="font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:5px">OUTPUT</label>'
     +'<textarea id="tc-out" rows="6" readonly style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:14px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea>'
     +'<div class="controls" style="margin-top:10px"><button class="btn btn-primary" id="tc-copy">Copy result</button><button class="btn" id="tc-swap">Use as input ↑</button></div>';
 

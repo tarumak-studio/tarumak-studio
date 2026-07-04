@@ -104,7 +104,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search'))navPop.cla
 /* ---------- theme / header / menu ---------- */
 const root=document.documentElement,tIcon=$('#themeIcon');
 const moon='<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',sun='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
-var _th=$('#theme');if(_th)_th.onclick=()=>{const l=root.getAttribute('data-theme')==='light';root.setAttribute('data-theme',l?'dark':'light');tIcon.innerHTML=l?sun:moon;};
+var _th=$('#theme');if(_th)_th.onclick=()=>{const l=root.getAttribute('data-theme')==='light';root.setAttribute('data-theme',l?'dark':'light');tIcon.innerHTML=l?sun:moon;_th.setAttribute('aria-label',l?'Switch to light theme':'Switch to dark theme');_th.setAttribute('aria-pressed',l?'false':'true');};
 /* scroll handled in quick-win features block above */
 const mm=$('#mobileMenu');$('#burger').onclick=()=>{mm.classList.add('open');$('#burger').setAttribute('aria-expanded','true');};$('#closeMenu').onclick=()=>{mm.classList.remove('open');$('#burger').setAttribute('aria-expanded','false');};
 

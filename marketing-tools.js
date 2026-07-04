@@ -119,7 +119,7 @@ INIT['color-palette-gen']=function(panel){
     +'<button class="btn active" id="cp-t1">From Image</button>'
     +'<button class="btn" id="cp-t2">From Color</button></div>'
     +'<div id="cp-img"><div class="drop" id="cp-drop" style="min-height:140px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="34" height="34"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg><p>Drop image to extract palette</p><input type="file" id="cp-file" accept="image/*" style="display:none"></div><div id="cp-out"></div></div>'
-    +'<div id="cp-col" style="display:none"><div class="controls"><label style="font-size:13px;color:var(--text-dim)">Base color: </label><input type="color" id="cp-base" value="#6366f1" style="margin:0 8px;width:44px;height:36px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer"><button class="btn btn-primary" id="cp-gen">Generate palettes</button></div><div id="cp-pal-out" style="margin-top:16px"></div></div>';
+    +'<div id="cp-col" style="display:none"><div class="controls"><label for="cp-base" style="font-size:13px;color:var(--text-dim)">Base color: </label><input type="color" id="cp-base" value="#6366f1" style="margin:0 8px;width:44px;height:36px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer"><button class="btn btn-primary" id="cp-gen">Generate palettes</button></div><div id="cp-pal-out" style="margin-top:16px"></div></div>';
   document.getElementById('cp-t1').onclick=function(){document.getElementById('cp-img').style.display='';document.getElementById('cp-col').style.display='none';this.classList.add('active');document.getElementById('cp-t2').classList.remove('active');};
   document.getElementById('cp-t2').onclick=function(){document.getElementById('cp-col').style.display='';document.getElementById('cp-img').style.display='none';this.classList.add('active');document.getElementById('cp-t1').classList.remove('active');};
   var dp=document.getElementById('cp-drop'),cpf=document.getElementById('cp-file'),cpout=document.getElementById('cp-out');
@@ -164,10 +164,10 @@ INIT['ad-copy-gen']=function(panel){
   var CTAS=['Try {product} Free','Get Started Now','Claim Your {benefit}','Start for Free','See It in Action','Unlock {benefit}','Get {product} Today','Try It — It\'s Free'];
   function fill(tpl,vals){return tpl.replace(/\{(\w+)\}/g,function(_,k){return vals[k]||'{'+k+'}';});}
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr 1fr;margin-bottom:0">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Product / Service</label><input id="ag-prod" type="text" placeholder="e.g. TARUMAK Tools" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Key Benefit</label><input id="ag-ben" type="text" placeholder="e.g. save 2 hours a day" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Target Audience</label><input id="ag-aud" type="text" placeholder="e.g. designers" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Tone</label><select id="ag-tone" style="width:100%;margin-top:4px"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="urgent">Urgent</option><option value="playful">Playful</option></select></div></div>'
+    +'<div><label for="ag-prod" style="font-size:12px;color:var(--text-dim)">Product / Service</label><input id="ag-prod" type="text" placeholder="e.g. TARUMAK Tools" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ag-ben" style="font-size:12px;color:var(--text-dim)">Key Benefit</label><input id="ag-ben" type="text" placeholder="e.g. save 2 hours a day" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ag-aud" style="font-size:12px;color:var(--text-dim)">Target Audience</label><input id="ag-aud" type="text" placeholder="e.g. designers" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ag-tone" style="font-size:12px;color:var(--text-dim)">Tone</label><select id="ag-tone" style="width:100%;margin-top:4px"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="urgent">Urgent</option><option value="playful">Playful</option></select></div></div>'
     +'<button class="btn btn-primary" id="ag-gen" style="margin:16px 0;width:100%">Generate Ad Copy</button>'
     +'<div id="ag-out"></div>';
   document.getElementById('ag-gen').onclick=function(){
@@ -184,12 +184,12 @@ INIT['ad-copy-gen']=function(panel){
 
 INIT['cta-button-gen']=function(panel){
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr 1fr">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Button Text</label><input id="cb-txt" type="text" value="Get Started Free" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Font Size</label><input id="cb-fs" type="range" min="12" max="24" value="16" style="width:100%;margin-top:12px"><span id="cb-fs-v" style="font-size:12px;color:var(--text-faint)">16px</span></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Background</label><input id="cb-bg" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="cb-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Border Radius</label><input id="cb-br" type="range" min="0" max="50" value="10" style="width:100%;margin-top:12px"><span id="cb-br-v" style="font-size:12px;color:var(--text-faint)">10px</span></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Padding H</label><input id="cb-ph" type="range" min="8" max="48" value="24" style="width:100%;margin-top:12px"><span id="cb-ph-v" style="font-size:12px;color:var(--text-faint)">24px</span></div></div>'
+    +'<div><label for="cb-txt" style="font-size:12px;color:var(--text-dim)">Button Text</label><input id="cb-txt" type="text" value="Get Started Free" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="cb-fs" style="font-size:12px;color:var(--text-dim)">Font Size</label><input id="cb-fs" type="range" min="12" max="24" value="16" style="width:100%;margin-top:12px"><span id="cb-fs-v" style="font-size:12px;color:var(--text-faint)">16px</span></div>'
+    +'<div><label for="cb-bg" style="font-size:12px;color:var(--text-dim)">Background</label><input id="cb-bg" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
+    +'<div><label for="cb-tc" style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="cb-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
+    +'<div><label for="cb-br" style="font-size:12px;color:var(--text-dim)">Border Radius</label><input id="cb-br" type="range" min="0" max="50" value="10" style="width:100%;margin-top:12px"><span id="cb-br-v" style="font-size:12px;color:var(--text-faint)">10px</span></div>'
+    +'<div><label for="cb-ph" style="font-size:12px;color:var(--text-dim)">Padding H</label><input id="cb-ph" type="range" min="8" max="48" value="24" style="width:100%;margin-top:12px"><span id="cb-ph-v" style="font-size:12px;color:var(--text-faint)">24px</span></div></div>'
     +'<div class="cta-pw"><button id="cb-preview" style="cursor:default">Get Started Free</button></div>'
     +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--fm);font-size:12.5px;line-height:1.8" id="cb-css"></div>'
     +'<div class="controls" style="margin-top:12px"><button class="btn" id="cb-copy">Copy CSS</button><button class="btn btn-primary" id="cb-dl">Download PNG</button></div>';
@@ -223,16 +223,16 @@ INIT['cta-button-gen']=function(panel){
 INIT['utm-builder']=function(panel){
   panel.innerHTML='<div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn active" id="ut-t1">Build URL</button><button class="btn" id="ut-t2">Decode URL</button></div>'
     +'<div id="ut-build"><div class="row" style="grid-template-columns:1fr">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Website URL *</label><input id="ut-url" type="url" placeholder="https://yourwebsite.com/page" style="width:100%;margin-top:4px"></div></div>'
+    +'<div><label for="ut-url" style="font-size:12px;color:var(--text-dim)">Website URL *</label><input id="ut-url" type="url" placeholder="https://yourwebsite.com/page" style="width:100%;margin-top:4px"></div></div>'
     +'<div class="row" style="grid-template-columns:1fr 1fr;margin-top:12px">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Source * <span style="opacity:.6">(google, newsletter)</span></label><input id="ut-src" type="text" placeholder="google" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Medium * <span style="opacity:.6">(cpc, email)</span></label><input id="ut-med" type="text" placeholder="cpc" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Campaign * <span style="opacity:.6">(summer_sale)</span></label><input id="ut-cam" type="text" placeholder="campaign_name" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Term <span style="opacity:.6">optional</span></label><input id="ut-term" type="text" placeholder="keyword" style="width:100%;margin-top:4px"></div>'
-    +'<div style="grid-column:1/-1"><label style="font-size:12px;color:var(--text-dim)">Content <span style="opacity:.6">optional — for A/B testing</span></label><input id="ut-con" type="text" placeholder="header-link" style="width:100%;margin-top:4px"></div></div>'
+    +'<div><label for="ut-src" style="font-size:12px;color:var(--text-dim)">Source * <span style="opacity:.6">(google, newsletter)</span></label><input id="ut-src" type="text" placeholder="google" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ut-med" style="font-size:12px;color:var(--text-dim)">Medium * <span style="opacity:.6">(cpc, email)</span></label><input id="ut-med" type="text" placeholder="cpc" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ut-cam" style="font-size:12px;color:var(--text-dim)">Campaign * <span style="opacity:.6">(summer_sale)</span></label><input id="ut-cam" type="text" placeholder="campaign_name" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="ut-term" style="font-size:12px;color:var(--text-dim)">Term <span style="opacity:.6">optional</span></label><input id="ut-term" type="text" placeholder="keyword" style="width:100%;margin-top:4px"></div>'
+    +'<div style="grid-column:1/-1"><label for="ut-con" style="font-size:12px;color:var(--text-dim)">Content <span style="opacity:.6">optional — for A/B testing</span></label><input id="ut-con" type="text" placeholder="header-link" style="width:100%;margin-top:4px"></div></div>'
     +'<div class="utm-out" id="ut-out"><span style="color:var(--text-faint)">Your UTM URL will appear here...</span></div>'
     +'<div class="controls"><button class="btn btn-primary" id="ut-build-btn">Build URL</button><button class="btn" id="ut-copy" style="display:none">Copy URL</button></div></div>'
-    +'<div id="ut-decode" style="display:none"><label style="font-size:12px;color:var(--text-dim)">Paste a UTM URL to decode it</label>'
+    +'<div id="ut-decode" style="display:none"><label for="ut-paste" style="font-size:12px;color:var(--text-dim)">Paste a UTM URL to decode it</label>'
     +'<textarea id="ut-paste" rows="3" placeholder="https://example.com?utm_source=google&utm_medium=cpc&utm_campaign=spring" style="width:100%;margin:8px 0;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<button class="btn btn-primary" id="ut-dec-btn">Decode</button><div id="ut-dec-out"></div></div>';
   document.getElementById('ut-t1').onclick=function(){document.getElementById('ut-build').style.display='';document.getElementById('ut-decode').style.display='none';this.classList.add('active');document.getElementById('ut-t2').classList.remove('active');};
@@ -262,12 +262,12 @@ INIT['utm-builder']=function(panel){
 INIT['og-image-gen']=function(panel){
   var OW=1200,OH=630;
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr 1fr">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Title</label><input id="og-title" type="text" value="Your Page Title" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Subtitle</label><input id="og-sub" type="text" value="tarumak.com" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Background Color</label><input id="og-bg" type="color" value="#0f172a" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="og-ac" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="og-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Logo Text (optional)</label><input id="og-logo" type="text" value="TARUMAK" style="width:100%;margin-top:4px"></div></div>'
+    +'<div><label for="og-title" style="font-size:12px;color:var(--text-dim)">Title</label><input id="og-title" type="text" value="Your Page Title" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="og-sub" style="font-size:12px;color:var(--text-dim)">Subtitle</label><input id="og-sub" type="text" value="tarumak.com" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="og-bg" style="font-size:12px;color:var(--text-dim)">Background Color</label><input id="og-bg" type="color" value="#0f172a" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
+    +'<div><label for="og-ac" style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="og-ac" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
+    +'<div><label for="og-tc" style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="og-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
+    +'<div><label for="og-logo" style="font-size:12px;color:var(--text-dim)">Logo Text (optional)</label><input id="og-logo" type="text" value="TARUMAK" style="width:100%;margin-top:4px"></div></div>'
     +'<canvas id="og-canvas" style="max-width:100%;border-radius:12px;display:block;margin:14px auto;border:1px solid var(--border)"></canvas>'
     +'<div class="controls"><span style="font-size:12px;color:var(--text-faint);flex:1">1200 \u00d7 630 px (OG standard)</span><button class="btn btn-primary" id="og-dl">Download PNG</button></div>';
   var cv=document.getElementById('og-canvas'),ctx=cv.getContext('2d');
@@ -306,11 +306,11 @@ INIT['og-image-gen']=function(panel){
 
 INIT['pdf-lead-magnet']=function(panel){
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr 1fr">'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Template</label><select id="lm-tpl" style="width:100%;margin-top:4px"><option value="checklist">Checklist</option><option value="guide">Step-by-Step Guide</option><option value="cheatsheet">Cheatsheet</option><option value="resources">Resource List</option></select></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="lm-col" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Document Title</label><input id="lm-title" type="text" placeholder="10 Ways to Compress Images" style="width:100%;margin-top:4px"></div>'
-    +'<div><label style="font-size:12px;color:var(--text-dim)">Your Brand / Name</label><input id="lm-brand" type="text" placeholder="TARUMAK Tools" style="width:100%;margin-top:4px"></div></div>'
-    +'<div style="margin:14px 0"><label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:8px">Items (one per line)</label>'
+    +'<div><label for="lm-tpl" style="font-size:12px;color:var(--text-dim)">Template</label><select id="lm-tpl" style="width:100%;margin-top:4px"><option value="checklist">Checklist</option><option value="guide">Step-by-Step Guide</option><option value="cheatsheet">Cheatsheet</option><option value="resources">Resource List</option></select></div>'
+    +'<div><label for="lm-col" style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="lm-col" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
+    +'<div><label for="lm-title" style="font-size:12px;color:var(--text-dim)">Document Title</label><input id="lm-title" type="text" placeholder="10 Ways to Compress Images" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="lm-brand" style="font-size:12px;color:var(--text-dim)">Your Brand / Name</label><input id="lm-brand" type="text" placeholder="TARUMAK Tools" style="width:100%;margin-top:4px"></div></div>'
+    +'<div style="margin:14px 0"><label for="lm-items" style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:8px">Items (one per line)</label>'
     +'<textarea id="lm-items" rows="8" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6" placeholder="Compress images before uploading\nUse WebP format for web images\nRemove EXIF data for privacy\nResize to actual display dimensions"></textarea></div>'
     +'<button class="btn btn-primary" id="lm-gen" style="width:100%">Generate PDF Lead Magnet</button>';
   document.getElementById('lm-gen').onclick=function(){

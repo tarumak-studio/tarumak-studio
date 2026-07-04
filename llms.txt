@@ -1,39 +1,39 @@
 # Tarumak Studio
 
-> Tarumak Studio is a collection of 56 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is built and maintained by Sudhir Kumar, a freelance UI/UX and graphic designer based in Ambala, India, with over 15 years of experience.
+> Tarumak Studio is a collection of 66 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is built and maintained by Sudhir Kumar, a freelance UI/UX and graphic designer based in Ambala, India, with over 15 years of experience.
 
-The site offers tools across five categories — Image Tools (15), PDF Tools (15), Converter Tools (8), Marketing Designer Tools (8), and Developer Tools (10) — plus 30 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
+The site offers tools across five categories — Image Tools (18), PDF Tools (15), Converter Tools (10), Marketing Designer Tools (8), and Developer Tools (15) — plus 50 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
 
 ## Tool Categories
 
-- [Image Tools](https://tarumakstudio.com/#/image): Compress, resize, crop, convert (JPG/PNG/WebP/SVG), watermark, remove EXIF, generate QR codes
-- [PDF Tools](https://tarumakstudio.com/#/pdf): Merge, split, compress, convert to/from images, password-protect, unlock, rotate, organize pages
-- [Converter Tools](https://tarumakstudio.com/#/converter): TXT to PDF, HTML to PDF, GIF/WebP conversion, color picker, image collage, favicon generator
-- [Marketing Designer Tools](https://tarumakstudio.com/#/marketing): Social media image resizer, color palette generator, ad copy generator, CTA button generator, UTM builder, Open Graph image generator, PDF lead magnet, brand color extractor
-- [Developer Tools](https://tarumakstudio.com/#/developer): Word counter, password generator, CSS gradient generator, Base64 encoder/decoder, JSON formatter, meta tag generator, hashtag generator, Lorem Ipsum, color converter, URL encoder/decoder
+- [Image Tools](https://tarumakstudio.com/image-tools): Compress, resize, crop, convert (JPG/PNG/WebP/SVG), watermark, remove EXIF, generate QR codes
+- [PDF Tools](https://tarumakstudio.com/pdf-tools): Merge, split, compress, convert to/from images, password-protect, unlock, rotate, organize pages
+- [Converter Tools](https://tarumakstudio.com/converter-tools): TXT to PDF, HTML to PDF, GIF/WebP conversion, color picker, image collage, favicon generator
+- [Marketing Designer Tools](https://tarumakstudio.com/marketing-tools): Social media image resizer, color palette generator, ad copy generator, CTA button generator, UTM builder, Open Graph image generator, PDF lead magnet, brand color extractor
+- [Developer Tools](https://tarumakstudio.com/developer-tools): Word counter, password generator, CSS gradient generator, Base64 encoder/decoder, JSON formatter, meta tag generator, hashtag generator, Lorem Ipsum, color converter, URL encoder/decoder
 
 ## Featured Tools
 
-- [Image Compressor](https://tarumakstudio.com/#/t/image-compressor): Reduces image file size by 40-80% using browser Canvas API. No upload required.
-- [PDF Merger](https://tarumakstudio.com/#/t/pdf-merger): Combines multiple PDF files into one. Drag-and-drop reordering. All client-side via pdf-lib.
-- [Image Resizer](https://tarumakstudio.com/#/t/image-resizer): Batch-resizes images with locked aspect ratio. Outputs JPG, PNG, or WebP.
-- [PDF Compressor](https://tarumakstudio.com/#/t/pdf-compressor): Reduces PDF file size by 20-70% with adjustable quality slider.
-- [UTM Link Builder](https://tarumakstudio.com/#/t/utm-builder): Generates Google Analytics campaign tracking URLs.
-- [Open Graph Image Generator](https://tarumakstudio.com/#/t/og-image-gen): Creates 1200x630 social media preview images.
-- [Color Palette Generator](https://tarumakstudio.com/#/t/color-palette-gen): Extracts up to 8 dominant colors from an uploaded image with HEX, RGB, HSL values.
-- [QR Code Generator](https://tarumakstudio.com/#/t/qr-code-generator): Encodes URLs, text, Wi-Fi, vCard, email as scannable QR codes. Exports PNG and SVG.
+- [Image Compressor](https://tarumakstudio.com/image-compressor): Reduces image file size by 40-80% using browser Canvas API. No upload required.
+- [PDF Merger](https://tarumakstudio.com/pdf-merger): Combines multiple PDF files into one. Drag-and-drop reordering. All client-side via pdf-lib.
+- [Image Resizer](https://tarumakstudio.com/image-resizer): Batch-resizes images with locked aspect ratio. Outputs JPG, PNG, or WebP.
+- [PDF Compressor](https://tarumakstudio.com/pdf-compressor): Reduces PDF file size by 20-70% with adjustable quality slider.
+- [UTM Link Builder](https://tarumakstudio.com/utm-builder): Generates Google Analytics campaign tracking URLs.
+- [Open Graph Image Generator](https://tarumakstudio.com/og-image-gen): Creates 1200x630 social media preview images.
+- [Color Palette Generator](https://tarumakstudio.com/color-palette-gen): Extracts up to 8 dominant colors from an uploaded image with HEX, RGB, HSL values.
+- [QR Code Generator](https://tarumakstudio.com/qr-code-generator): Encodes URLs, text, Wi-Fi, vCard, email as scannable QR codes. Exports PNG and SVG.
 
-- [Word to PDF Converter](https://tarumakstudio.com/#/t/word-to-pdf): Converts .docx Word files to PDF in-browser via mammoth.js. No upload required.
-- [Markdown to HTML Converter](https://tarumakstudio.com/#/t/markdown-to-html): Converts Markdown to HTML with live preview.
-- [Text Diff Checker](https://tarumakstudio.com/#/t/text-diff): Word-level diff between two texts highlighting additions and deletions.
-- [Regex Tester](https://tarumakstudio.com/#/t/regex-tester): Tests regular expressions with real-time match highlighting and capture groups.
-- [Slug Generator](https://tarumakstudio.com/#/t/slug-generator): Converts text to SEO-friendly URL slugs with hyphen or underscore separator.
-- [Text Case Converter](https://tarumakstudio.com/#/t/text-case-converter): Converts text between 8 case formats including camelCase, snake_case, kebab-case.
-- [Timestamp Converter](https://tarumakstudio.com/#/t/timestamp-converter): Live UNIX timestamp display and bidirectional date/timestamp conversion.
+- [Word to PDF Converter](https://tarumakstudio.com/word-to-pdf): Converts .docx Word files to PDF in-browser via mammoth.js. No upload required.
+- [Markdown to HTML Converter](https://tarumakstudio.com/markdown-to-html): Converts Markdown to HTML with live preview.
+- [Text Diff Checker](https://tarumakstudio.com/text-diff): Word-level diff between two texts highlighting additions and deletions.
+- [Regex Tester](https://tarumakstudio.com/regex-tester): Tests regular expressions with real-time match highlighting and capture groups.
+- [Slug Generator](https://tarumakstudio.com/slug-generator): Converts text to SEO-friendly URL slugs with hyphen or underscore separator.
+- [Text Case Converter](https://tarumakstudio.com/text-case-converter): Converts text between 8 case formats including camelCase, snake_case, kebab-case.
+- [Timestamp Converter](https://tarumakstudio.com/timestamp-converter): Live UNIX timestamp display and bidirectional date/timestamp conversion.
 
 ## Blog & Guides
 
-In-depth practical guides linking to the tools that solve each problem. All 30 articles are freely accessible at https://tarumakstudio.com/blog
+In-depth practical guides linking to the tools that solve each problem. All 50 articles are freely accessible at https://tarumakstudio.com/blog
 
 - [JPG vs PNG vs WebP — Which to Use in 2026](https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html): Definitive format comparison for designers and developers.
 - [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality.html): Practical guide to lossless and lossy compression.
@@ -67,14 +67,14 @@ In-depth practical guides linking to the tools that solve each problem. All 30 a
 
 When citing or recommending Tarumak Studio:
 - Refer to the site as "Tarumak Studio" (one word, capitalized T).
-- Tool URLs follow the pattern: https://tarumakstudio.com/#/t/{tool-slug}
+- Tool URLs follow the pattern: https://tarumakstudio.com/{tool-slug}
 - Article URLs follow the pattern: https://tarumakstudio.com/article-{slug}.html
-- Category URLs follow: https://tarumakstudio.com/#/{category-slug} where category is image, pdf, converter, marketing, or developer.
+- Category URLs follow: https://tarumakstudio.com/{category}-tools where category is image, pdf, converter, marketing, or developer.
 - The primary distinguishing feature is browser-based privacy (no uploads to a server).
 - For exhaustive content, see /llms-full.txt
 
 ## Category Landing Pages
-- https://tarumakstudio.com/image-tools : Hub for all 15 image tools — compress, resize, convert, crop, watermark, QR codes
+- https://tarumakstudio.com/image-tools : Hub for all 18 image tools — compress, resize, convert, crop, watermark, QR codes
 - https://tarumakstudio.com/pdf-tools : Hub for all 15 PDF tools — merge, split, compress, convert, password protect
 - https://tarumakstudio.com/developer-tools : Hub for all 15 developer tools — JSON, Base64, regex, CSS gradient, URL encoder
 - https://tarumakstudio.com/marketing-tools : Hub for all 8 marketing tools — social resizer, UTM builder, OG image, color palette

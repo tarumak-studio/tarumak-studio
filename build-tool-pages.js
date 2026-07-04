@@ -59,6 +59,53 @@ console.log(`Data: ${TOOLS.length} tools, ${Object.keys(FAQ || {}).length} FAQ s
 const CAT_PAGE = { image: '/image-tools', pdf: '/pdf-tools', developer: '/developer-tools', marketing: '/marketing-tools', converter: '/converter-tools' };
 const CAT_JS = { image: 'image-tools.js', pdf: 'pdf-tools.js', converter: 'converter-tools.js', marketing: 'marketing-tools.js', developer: 'developer-tools.js' };
 
+/* ── 1b. FILE-vs-TEXT classification, derived from the actual tool code ──
+   Not guessed from category or chips (both proved unreliable — e.g. the
+   image category includes qr-code-generator, a generator with no upload;
+   marketing includes brand-color-extract, which DOES take a file). Instead
+   this inspects each INIT[slug] registration's real body — resolving
+   factory calls like imgConv()/dz() to the factory's own source — for a
+   genuine file-input signal. Verified against all 66 tools by hand before
+   trusting this in copy generation. Drives privacy-copy and FAQ wording so
+   a text tool is never told "your files are never uploaded" (it has none)
+   and a file tool always gets the concrete privacy promise. */
+const FILE_MARKER = /type=.file.|dropzone\(|\bdz\(|accept\s*[:=]/;
+const CAT_SRC = {};
+for (const cat of Object.keys(CAT_JS)) CAT_SRC[cat] = fs.readFileSync(CAT_JS[cat], 'utf8');
+const ALL_CAT_SRC = Object.values(CAT_SRC).join('\n');
+function factoryBody(fname) {
+  const m = ALL_CAT_SRC.match(new RegExp('function\\s+' + fname + '\\s*\\('));
+  if (!m) return null;
+  const i = ALL_CAT_SRC.indexOf('{', m.index);
+  let depth = 0;
+  for (let j = i; j < ALL_CAT_SRC.length; j++) {
+    if (ALL_CAT_SRC[j] === '{') depth++;
+    else if (ALL_CAT_SRC[j] === '}') { depth--; if (depth === 0) return ALL_CAT_SRC.slice(i, j + 1); }
+  }
+  return null;
+}
+const IS_FILE_TOOL = {};
+for (const cat of Object.keys(CAT_JS)) {
+  const src = CAT_SRC[cat];
+  const re = /INIT\[['"]([\w-]+)['"]\]\s*=\s*(function\s*\(|[\w$]+\()/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const slug = m[1];
+    const isFactory = !m[2].startsWith('function');
+    if (isFactory) {
+      const fname = m[2].match(/([\w$]+)\(/)[1];
+      const body = factoryBody(fname);
+      IS_FILE_TOOL[slug] = body ? FILE_MARKER.test(body) : false;
+    } else {
+      const rest = src.slice(m.index);
+      const next = rest.slice(10).search(/\nINIT\[/);
+      const body = next === -1 ? rest : rest.slice(0, next + 10);
+      IS_FILE_TOOL[slug] = FILE_MARKER.test(body);
+    }
+  }
+}
+
+
 /* ── 2. Harvest chrome from the existing static design ─────────── */
 /* CDN libraries + full category chain: harvested from index.html so the
    tool pages always load the SPA's EXACT dependency stack in its exact
@@ -181,15 +228,70 @@ function howtoSteps(t, cat) {
 }
 
 /* General FAQ — personalized per tool, every claim true site-wide */
-function generalFaq(t, cat) {
+/* Normalize a question to a comparable key: lowercase, strip punctuation,
+   collapse whitespace. Used to dedupe near-identical phrasings, not just
+   byte-identical ones (e.g. "Are my files uploaded to a server?" vs
+   "Do you upload my files?" both key to the same underlying topic below). */
+function faqKey(q) { return q.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); }
+const TOPIC_PATTERNS = {
+  privacy: /upload|server|leave your device|sent (anywhere|to)/,
+  account: /account|sign.?up|log.?in|email required/,
+  formats: /format|support(s|ed)?\b.*(file|type)|file type/
+};
+function topicsIn(q) {
+  const k = faqKey(q);
+  return Object.keys(TOPIC_PATTERNS).filter(t => TOPIC_PATTERNS[t].test(k));
+}
+
+/* General FAQ — personalized per tool, and now CONTEXT-AWARE:
+   isFileTool comes from IS_FILE_TOOL, resolved from each tool's actual
+   code (not guessed from category/chips — see the classifier above).
+   File tools get the concrete "processed locally, never uploaded"
+   promise; text/URL/generator tools get input-appropriate wording
+   instead of a nonsensical claim about files they don't have. */
+function generalFaq(t, cat, isFileTool) {
   const chips = (t[4] || []).join(', ');
-  return [
+  const out = [
     ['Is ' + t[1] + ' really free?', 'Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.'],
-    ['Do I need to create an account?', 'No. There is no sign-up, no login and no email required. Open the tool and use it immediately.'],
-    ['Are my files uploaded to a server?', 'Never. ' + t[1] + ' runs entirely in your browser using local processing — your files never leave your device, which also makes it faster than upload-based alternatives.'],
-    ['What formats does it support?', chips ? (t[1] + ' works with ' + chips + '.') : ('See the tool interface for supported inputs — most common formats are covered.')],
-    ['Does it work on mobile?', 'Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed.']
+    ['Do I need to create an account?', 'No. There is no sign-up, no login and no email required. Open the tool and use it immediately.']
   ];
+  if (isFileTool) {
+    out.push(['Are my files uploaded to a server?', 'No. ' + t[1] + ' runs entirely in your browser — your files are processed locally and never uploaded, which also makes it faster than server-based alternatives.']);
+    if (chips) out.push(['What formats does it support?', t[1] + ' works with ' + chips + '.']);
+  } else {
+    out.push(['Is my input sent to a server?', 'No. ' + t[1] + ' processes everything you type or paste locally in your browser — nothing is ever sent to a server.']);
+  }
+  out.push(['Does it work on mobile?', 'Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed.']);
+  return out;
+}
+
+/* Merge per-tool FAQ with the general bank, deduping by TOPIC (not just
+   exact text) so a per-tool question about uploads/accounts/formats
+   suppresses the generic version of the same question rather than
+   duplicating it. This is the fix for the exact-duplicate bug (identical
+   question appearing twice) and the near-duplicate bug (differently
+   worded but same-topic questions both appearing). */
+function mergeFaq(specificFaq, general) {
+  const seenKeys = new Set();
+  const seenTopics = new Set();
+  const out = [];
+  for (const [q, a] of specificFaq) {
+    const k = faqKey(q);
+    if (seenKeys.has(k)) continue;
+    seenKeys.add(k);
+    topicsIn(q).forEach(t => seenTopics.add(t));
+    out.push([q, a]);
+  }
+  for (const [q, a] of general) {
+    const k = faqKey(q);
+    if (seenKeys.has(k)) continue;
+    const topics = topicsIn(q);
+    if (topics.some(t => seenTopics.has(t))) continue;
+    seenKeys.add(k);
+    topics.forEach(t => seenTopics.add(t));
+    out.push([q, a]);
+  }
+  return out;
 }
 
 const svg = {
@@ -263,7 +365,8 @@ function buildPage(t) {
   const metaDesc = trimDesc(desc, 155);
 
   const specificFaq = (FAQ && FAQ[slug]) ? FAQ[slug] : [];
-  const faqPairs = specificFaq.concat(generalFaq(t, cat)).slice(0, 12);
+  const isFileTool = !!IS_FILE_TOOL[slug];
+  const faqPairs = mergeFaq(specificFaq, generalFaq(t, cat, isFileTool)).slice(0, 12);
 
   const related = TOOLS.filter(x => x[2] === cat && x[0] !== slug)
     .sort((a, b) => (FEAT_SET.has(b[0]) ? 1 : 0) - (FEAT_SET.has(a[0]) ? 1 : 0))
@@ -273,12 +376,23 @@ function buildPage(t) {
   const guides = guideSlugs.map(g => ({ slug: g, meta: ARTICLES[g] })).filter(g => g.meta);
 
   const steps = howtoSteps(t, cat);
+  /* Privacy + formats copy branches on IS_FILE_TOOL (code-derived, not
+     guessed) so a text tool like UTM Builder or JSON Formatter is never
+     told "your files never upload" \u2014 it has no files, only typed
+     or pasted input. */
+  const inputWord = isFileTool ? 'files' : 'input';
   const benefits = [
-    [svg.monitor, '100% in your browser', name + ' runs locally on your device \u2014 there is no server doing the work, so there is nothing to queue for and nothing to trust with your files.'],
-    [svg.shield, 'Private by architecture', 'Your files never upload anywhere. That is not a policy promise \u2014 it is how the tool is built.'],
-    [svg.zap, 'Instant results', 'No upload wait, no processing queue, no download-from-server step. The only speed limit is your own device.'],
+    [svg.monitor, '100% in your browser', name + ' runs locally on your device \u2014 there is no server doing the work, so there is nothing to queue for and nothing to trust with your ' + inputWord + '.'],
+    [svg.shield, 'Private by architecture', isFileTool
+      ? 'Your files are processed locally in your browser and never uploaded. That is not a policy promise \u2014 it is how the tool is built.'
+      : 'Your input is processed locally in your browser and never sent anywhere. That is not a policy promise \u2014 it is how the tool is built.'],
+    [svg.zap, 'Instant results', isFileTool
+      ? 'No upload wait, no processing queue, no download-from-server step. The only speed limit is your own device.'
+      : 'No round-trip to a server for every keystroke or click. The only speed limit is your own device.'],
     [svg.gem, 'Full quality output', 'You get exactly what the tool produces \u2014 no watermarks, no resolution caps, no premium-only quality tiers.'],
-    [svg.layers, 'Formats covered', chips && chips.length ? ('Works with ' + chips.join(', ') + '.') : 'Common formats supported out of the box.']
+    [svg.layers, isFileTool ? 'Formats covered' : 'Built for', chips && chips.length
+      ? (isFileTool ? ('Works with ' + chips.join(', ') + '.') : (name + ' covers ' + chips.join(', ').toLowerCase() + '.'))
+      : (isFileTool ? 'Common formats supported out of the box.' : 'Built for real-world marketing and content workflows.')]
   ];
   const features = ['100% browser-based', 'Free forever', 'No sign-up', 'Privacy safe', 'Instant processing', 'Works on mobile'];
 

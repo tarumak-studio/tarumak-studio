@@ -118,3 +118,17 @@
 .cb-btns{display:flex;gap:10px;align-items:center;flex-shrink:0}
 #cb-accept{height:36px;padding:0 20px;border-radius:10px;background:var(--grad);color:#06121a;font-family:var(--fb);font-weight:600;font-size:13px;border:none;cursor:pointer}
 #cb-accept:hover{opacity:.88}
+
+/* Mobile: the banner was a full-size desktop row (14px/28px padding,
+   13.5px copy) at every width \u2014 intrusive on a phone where it eats
+   a large share of the visible viewport right after landing. Shrink
+   padding/copy/buttons and stack text above the actions so it reads
+   as a slim strip rather than a second header. Colors/blur/animation
+   are untouched \u2014 same visual language, smaller footprint. */
+@media (max-width: 600px) {
+  #cookie-bar { padding: 12px 16px; gap: 10px; flex-direction: column; align-items: stretch; }
+  #cookie-bar p { font-size: 12.5px; min-width: 0; }
+  .cb-btns { width: 100%; }
+  .cb-btns button { flex: 1; }
+  #cb-accept, #cb-decline { height: 34px; padding: 0 14px; font-size: 12.5px; }
+}

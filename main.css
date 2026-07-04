@@ -142,6 +142,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .trust .t .ico{width:40px;height:40px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--p1);margin-bottom:14px}
 .trust .t h4{font-family:var(--fd);font-weight:600;font-size:16px;margin-bottom:6px}
 .trust .t p{font-size:13px;color:var(--text-dim)}
+@media (max-width: 900px) { .trust { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .trust { grid-template-columns: 1fr; gap: 12px; } }
 /* tool view */
 .crumb{padding:24px 0 4px;font-size:13px;color:var(--text-faint);display:flex;gap:8px;align-items:center;font-family:var(--fm);flex-wrap:wrap}
 .crumb a{cursor:pointer}.crumb a:hover{color:var(--p1)}.crumb .sep{opacity:.5}.crumb .here{color:var(--text)}
@@ -1681,6 +1683,29 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .stage { height: 360px; }
   .cluster { width: 220px; height: 220px; }
   .cluster-glow { width: 280px; height: 280px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Mobile first-viewport fix: below 720px the hero was a fixed
+   2-column grid at EVERY width (no stacking breakpoint existed),
+   squeezing the headline and the 3D format-card graphic into two
+   narrow columns, then relying on grid-column:1/-1 to drop the
+   search row underneath \u2014 the graphic still visually separated
+   the promise (headline) from the CTA (search) and ate a large
+   share of the first viewport. Fix: stack to one column AND
+   reorder so copy \u2192 search comes before the decorative
+   graphic, so what the site does + the primary CTA are visible
+   without scrolling past a large illustration first. The graphic
+   itself is kept (not removed) and shrunk further for phones.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 720px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 4px; }
+  .hero-copy { order: 1; }
+  .hero-search-row { order: 2; }
+  .stage { order: 3; height: 200px; margin-top: 4px; }
+  .cluster { width: 150px; height: 150px; }
+  .cluster-glow { width: 200px; height: 200px; }
+  .hero { padding: 28px 0 24px; }
 }
 
 /* ═══════════════════════════════════════════════════════════

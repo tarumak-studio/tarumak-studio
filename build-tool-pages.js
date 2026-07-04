@@ -5,14 +5,26 @@
  *          ./sitemap.xml (index) + sitemap-tools.xml + sitemap-articles.xml + sitemap-pages.xml
  *
  * Design contract:
- *  - Zero new content invention: how-to copy is a direct port of app.js
- *    buildHowToGuide(); FAQ/related/guides come from data.js + blog-data.js.
- *  - Zero new design language: header/mob-menu/footer/styles are harvested
- *    from image-tools.html (the existing static-page chrome) at build time,
- *    so a future design change to category pages flows into tool pages on
- *    the next build.
- *  - Adding tool #67 to data.js and re-running this script is the ENTIRE
- *    process for shipping its SEO page.
+ *  - Zero new content invention for facts: every claim in TOOL_META
+ *    (tool-content.js) was checked against that tool's real INIT[]
+ *    code before being written. Category-level fallback content
+ *    (CAT_DEFAULTS) is generic-but-true, never a specific mechanic
+ *    that isn't verified for every tool in the category.
+ *  - Zero new design language: header/mob-menu/footer/styles are
+ *    harvested from index.html via header-chrome.js at build time.
+ *  - VARIANT SYSTEM (see tool-content.js + TOOL-VARIANT-SYSTEM.md):
+ *    each tool renders one of 6 hero types and one of 4 section-
+ *    composition variants (A/B/C/D), driven by data, not by four
+ *    copy-pasted template functions. TOOL_META overrides the 7
+ *    hand-verified flagship tools; every other tool falls back to
+ *    its category's CAT_DEFAULTS with a deterministic (slug-seeded,
+ *    not random) pick from that category's content pools — so no
+ *    two tools in the same category render the identical benefit
+ *    set in the identical order, without fabricating per-tool specifics
+ *    that haven't been individually verified.
+ *  - Adding tool #67 to data.js and re-running this script is still
+ *    the entire process for shipping its SEO page; optionally adding
+ *    a TOOL_META entry is how it gets the full-fidelity treatment.
  *
  * Dependency-free (node stdlib only).
  */
@@ -23,7 +35,7 @@ const vm = require('vm');
 const SITE = 'https://tarumakstudio.com';
 const TODAY = new Date().toISOString().slice(0, 10);
 
-/* ── 1. Capture data from data.js + blog-data.js (vm absorber) ──── */
+/* ── 1. Capture data from data.js + blog-data.js + tool-content.js ── */
 function makeAbsorber() {
   const fn = function () { return absorber; };
   const absorber = new Proxy(fn, {
@@ -56,19 +68,40 @@ const FEAT_SET = new Set();
 })(D.FEAT);
 console.log(`Data: ${TOOLS.length} tools, ${Object.keys(FAQ || {}).length} FAQ sets, ${Object.keys(TOOL_ARTICLES || {}).length} article maps, ${Object.keys(ARTICLES || {}).length} articles`);
 
+/* Variant-system data — see tool-content.js for the full rationale. */
+const V = capture(['tool-content.js'], ['CAT_DEFAULTS', 'WORKFLOW_NEXT', 'TOOL_META']);
+if (!V.CAT_DEFAULTS || !V.TOOL_META) throw new Error('tool-content.js capture failed');
+const { CAT_DEFAULTS, WORKFLOW_NEXT, TOOL_META } = V;
+console.log(`Variant data: ${Object.keys(TOOL_META).length} flagship tools, ${Object.keys(CAT_DEFAULTS).length} category defaults, ${Object.keys(WORKFLOW_NEXT).length} workflow maps`);
+
+/* Validate WORKFLOW_NEXT the same way header-chrome.js validates
+   CAT_META.popular — throw at build time on a stale slug rather than
+   silently rendering a dead link (the exact bug class that shipped
+   undetected in the old mega-menu bake). */
+const TOOLS_BY_SLUG = {};
+TOOLS.forEach(t => { TOOLS_BY_SLUG[t[0]] = t; });
+Object.entries(WORKFLOW_NEXT).forEach(([slug, list]) => {
+  if (!TOOLS_BY_SLUG[slug]) throw new Error(`WORKFLOW_NEXT: unknown source slug "${slug}"`);
+  list.forEach(s => { if (!TOOLS_BY_SLUG[s]) throw new Error(`WORKFLOW_NEXT["${slug}"]: unknown target slug "${s}"`); });
+});
+Object.entries(TOOL_META).forEach(([slug]) => { if (!TOOLS_BY_SLUG[slug]) throw new Error(`TOOL_META: unknown slug "${slug}"`); });
+
+/* Deterministic (slug-seeded, not random) pool picker — see
+   tool-content.js for why: reproducible builds, real per-tool variety. */
+function slugHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function seededPick(pool, n, seed) {
+  const arr = pool.slice();
+  let s = seed || 1;
+  for (let i = arr.length - 1; i > 0; i--) { s = (s * 1103515245 + 12345) & 0x7fffffff; const j = s % (i + 1); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+  return arr.slice(0, Math.min(n, arr.length));
+}
+
 const CAT_PAGE = { image: '/image-tools', pdf: '/pdf-tools', developer: '/developer-tools', marketing: '/marketing-tools', converter: '/converter-tools' };
 const CAT_JS = { image: 'image-tools.js', pdf: 'pdf-tools.js', converter: 'converter-tools.js', marketing: 'marketing-tools.js', developer: 'developer-tools.js' };
 
 /* ── 1b. FILE-vs-TEXT classification, derived from the actual tool code ──
-   Not guessed from category or chips (both proved unreliable — e.g. the
-   image category includes qr-code-generator, a generator with no upload;
-   marketing includes brand-color-extract, which DOES take a file). Instead
-   this inspects each INIT[slug] registration's real body — resolving
-   factory calls like imgConv()/dz() to the factory's own source — for a
-   genuine file-input signal. Verified against all 66 tools by hand before
-   trusting this in copy generation. Drives privacy-copy and FAQ wording so
-   a text tool is never told "your files are never uploaded" (it has none)
-   and a file tool always gets the concrete privacy promise. */
+   Unchanged from the original build script — see the inline comments
+   below for why this is derived from real code, not guessed. */
 const FILE_MARKER = /type=.file.|dropzone\(|\bdz\(|accept\s*[:=]/;
 const CAT_SRC = {};
 for (const cat of Object.keys(CAT_JS)) CAT_SRC[cat] = fs.readFileSync(CAT_JS[cat], 'utf8');
@@ -105,23 +138,16 @@ for (const cat of Object.keys(CAT_JS)) {
   }
 }
 
-
-/* ── 2. Chrome: from the shared header-chrome module ──────────────
-   Was inline here originally; now a single shared module so a second
-   build script (build-static-pages.js) can use the exact same header,
-   dropdown-bake, and footer without a second implementation. See
-   header-chrome.js for the full rationale. */
+/* ── 2. Chrome: from the shared header-chrome module ──────────────── */
 const { getChrome, withActiveNav } = require('./header-chrome.js');
 const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT } = getChrome();
-/* Every tool/category page is "under Tools" \u2014 mark that nav item
-   active. Real bug found while unifying the header: main.css already
-   styles .nav-active, but nothing was ever setting it on tool pages
-   (or category pages) \u2014 the nav gave no current-page indication
-   at all. Fixed once here, not per-page. */
 const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
 
-/* ── 3. Page-specific CSS (tokens only from :root — no new palette) ─ */
+/* ── 3. Page-specific CSS (tokens only from :root — no new palette) ─
+   Unchanged from the original except for the new .tp-var-* selectors,
+   which live in tool-variants.css (loaded via HEAD_LINKS_TOOL below)
+   rather than duplicated inline on every page. */
 const TOOL_CSS = `
 .tp-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
 #cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8500;background:color-mix(in srgb,var(--bg-2) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s var(--ease)}
@@ -222,7 +248,8 @@ const TOOL_CSS = `
 }
 `;
 
-/* ── 4. Copy logic ported verbatim from app.js buildHowToGuide ──── */
+/* ── 4. Copy logic ported verbatim from app.js buildHowToGuide (kept
+   as the fallback for any tool with no TOOL_META.howTo) ──────────── */
 function howtoSteps(t, cat) {
   const inputNoun = { image: 'your image (JPG, PNG, WebP, or similar)', pdf: 'your PDF file', developer: 'your text, code or data', marketing: 'your details', converter: 'your file' }[cat] || 'your file';
   const actionVerb = { image: 'Drop', pdf: 'Drop', converter: 'Drop', developer: 'Paste or type', marketing: 'Enter' }[cat] || 'Drop';
@@ -234,11 +261,8 @@ function howtoSteps(t, cat) {
   ];
 }
 
-/* General FAQ — personalized per tool, every claim true site-wide */
-/* Normalize a question to a comparable key: lowercase, strip punctuation,
-   collapse whitespace. Used to dedupe near-identical phrasings, not just
-   byte-identical ones (e.g. "Are my files uploaded to a server?" vs
-   "Do you upload my files?" both key to the same underlying topic below). */
+/* General FAQ — personalized per tool, every claim true site-wide.
+   Unchanged from the original. */
 function faqKey(q) { return q.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); }
 const TOPIC_PATTERNS = {
   privacy: /upload|server|leave your device|sent (anywhere|to)/,
@@ -249,22 +273,7 @@ function topicsIn(q) {
   const k = faqKey(q);
   return Object.keys(TOPIC_PATTERNS).filter(t => TOPIC_PATTERNS[t].test(k));
 }
-
-/* General FAQ — personalized per tool, and now CONTEXT-AWARE:
-   isFileTool comes from IS_FILE_TOOL, resolved from each tool's actual
-   code (not guessed from category/chips — see the classifier above).
-   File tools get the concrete "processed locally, never uploaded"
-   promise; text/URL/generator tools get input-appropriate wording
-   instead of a nonsensical claim about files they don't have. */
-/* Real file-format tokens only \u2014 an explicit whitelist, not a shape
-   heuristic. A shape check like "short + uppercase" was tried first and
-   wrongly passed non-format chips that happen to look format-shaped: HEX,
-   CSS, RESIZE, SOCIAL, CANVAS, BRAND are all short/uppercase but describe
-   a capability, not a file type, and would still have read as nonsense
-   ("works with HEX, CSS"). The actual vocabulary of real formats used
-   across every tool's chips is small and enumerable, so a whitelist is
-   both more accurate and easier to audit than any pattern. */
-const REAL_FORMATS = new Set(['JPG','PNG','WEBP','SVG','PDF','TXT','GIF','ICO','DOCX']);
+const REAL_FORMATS = new Set(['JPG', 'PNG', 'WEBP', 'SVG', 'PDF', 'TXT', 'GIF', 'ICO', 'DOCX']);
 function isFormatChip(c) {
   if (REAL_FORMATS.has(c)) return true;
   const parts = c.split('\u2192');
@@ -286,13 +295,6 @@ function generalFaq(t, cat, isFileTool) {
   out.push(['Does it work on mobile?', 'Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed.']);
   return out;
 }
-
-/* Merge per-tool FAQ with the general bank, deduping by TOPIC (not just
-   exact text) so a per-tool question about uploads/accounts/formats
-   suppresses the generic version of the same question rather than
-   duplicating it. This is the fix for the exact-duplicate bug (identical
-   question appearing twice) and the near-duplicate bug (differently
-   worded but same-topic questions both appearing). */
 function mergeFaq(specificFaq, general) {
   const seenKeys = new Set();
   const seenTopics = new Set();
@@ -316,6 +318,10 @@ function mergeFaq(specificFaq, general) {
   return out;
 }
 
+/* ── Icon set — extended from the original with a few new glyphs the
+   variant system needs (arrowRight for the convert hero, bulb/alert
+   for tips vs. common mistakes). Same hand-authored inline-SVG,
+   Lucide-style stroke language as everywhere else on the site. ── */
 const svg = {
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
   zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
@@ -324,8 +330,13 @@ const svg = {
   layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
   heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
-  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>'
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+  bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  compareIcon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3"/></svg>'
 };
+const BENEFIT_ICON = { zap: svg.zap, monitor: svg.monitor, gem: svg.gem, layers: svg.layers, shield: svg.shield, heart: svg.heart };
 
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function trimDesc(s, max) {
@@ -339,90 +350,285 @@ function pageTitle(name) {
   if (t.length > 60) t = name + ' | Tarumak Studio';
   return t;
 }
+function fillTemplate(str, vars) {
+  return str.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+}
 
-/* ── 5. Per-page schema graph (built as objects → guaranteed valid JSON) ─ */
+/* ── 4b. Meta resolution — TOOL_META override, else CAT_DEFAULTS
+   fallback with a deterministic per-tool pick from the category pool. */
+function resolveMeta(t) {
+  const [slug, name, cat, desc, chips] = t;
+  const isFileTool = !!IS_FILE_TOOL[slug];
+  const flagship = TOOL_META[slug];
+  const catDef = CAT_DEFAULTS[cat] || CAT_DEFAULTS.image;
+  const seed = slugHash(slug);
+  const realChips = (chips || []).filter(c => isFormatChip(c));
+  const vars = { name, formats: realChips.length ? realChips.join(', ') : (isFileTool ? 'common formats' : 'real-world input') };
+
+  const benefits = flagship && flagship.benefits
+    ? flagship.benefits.map(([ic, ti, de]) => [BENEFIT_ICON[ic] || svg.zap, ti, de])
+    : seededPick(catDef.benefitPool, 4, seed).map(([ic, ti, de]) => [BENEFIT_ICON[ic] || svg.zap, fillTemplate(ti, vars), fillTemplate(de, vars)]);
+
+  const features = flagship && flagship.features ? flagship.features : seededPick(catDef.featurePool, 6, seed + 7);
+  const useCases = flagship && flagship.useCases ? flagship.useCases : seededPick(catDef.useCasePool, 4, seed + 13);
+  const howTo = flagship && flagship.howTo ? flagship.howTo : howtoSteps(t, cat);
+  const tips = (flagship && flagship.tips) || catDef.tipsPool || [];
+  const mistakes = (flagship && flagship.mistakes) || catDef.mistakePool || [];
+  const comparisonIntro = (flagship && flagship.comparisonIntro) || (catDef.comparisonIntro ? fillTemplate(catDef.comparisonIntro, vars) : null);
+  const ctaVerb = (flagship && flagship.ctaVerb) || catDef.ctaVerb || 'Try another tool';
+  const hero = (flagship && flagship.hero) || catDef.hero || 'compare';
+  const heroVariant = (flagship && flagship.heroVariant) || null;
+  const variant = (flagship && flagship.variant) || catDef.variant || 'A';
+  const accent = (flagship && flagship.accent) || catDef.accent || '#22d3ee';
+  const workflowSteps = flagship && flagship.howTo ? flagship.howTo : (catDef.workflowSteps || []).map(s => [s, '']);
+
+  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, tips, mistakes, comparisonIntro, ctaVerb, hero, heroVariant, variant, accent, workflowSteps };
+}
+
+/* ── 5. Hero renderers — one per hero type. All decorative: the real,
+   functional tool lives in #toolPanel right below; these illustrate
+   what the tool does, they don't have to BE the tool. ── */
+function heroCompare(meta) {
+  const cbClass = meta.heroVariant === 'checkerboard' ? ' tp-compare--checkerboard' : meta.heroVariant === 'meter' ? ' tp-compare--meter' : '';
+  const meterAttrs = meta.heroVariant === 'meter' ? ' data-meter-before="2.4 MB" data-meter="640 KB"' : '';
+  return `<div class="tp-compare${cbClass}"${meterAttrs}>
+    <div class="tp-compare-before"><span class="tp-compare-icon">${svg.compareIcon}</span></div>
+    <div class="tp-compare-after"><span class="tp-compare-icon">${svg.compareIcon}</span></div>
+    <div class="tp-compare-divider"></div>
+    <div class="tp-compare-handle">${svg.arrowRight}</div>
+    <span class="tp-compare-label is-before">Before</span>
+    <span class="tp-compare-label is-after">After</span>
+    <input type="range" class="tp-compare-range" min="0" max="100" value="50" aria-label="Drag to compare before and after">
+  </div>`;
+}
+function heroScan(meta, langs) {
+  const badges = (langs || ['English', 'Hindi', 'French', 'Spanish']).map((l, i) => `<span class="tp-scan-lang${i < 2 ? ' is-live' : ''}">${esc(l)}</span>`).join('');
+  return `<div class="tp-scan">
+    <div class="tp-scan-doc" aria-hidden="true">
+      <div class="tp-scan-beam"></div>
+      <div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div>
+    </div>
+    <div class="tp-scan-langs">${badges}</div>
+  </div>`;
+}
+function heroWorkflow(meta) {
+  const mergeClass = meta.heroVariant === 'stack' ? ' tp-stack--merge' : '';
+  return `<div class="tp-stack${mergeClass}" aria-hidden="true">
+    <div class="tp-stack-page"></div><div class="tp-stack-page"></div><div class="tp-stack-page"></div>
+  </div>`;
+}
+function heroCode(meta) {
+  const lines = [
+    ['<span class="tp-tok-punc">{</span>', ''],
+    [`  <span class="tp-tok-key">"tool"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-str">"${esc(meta.name)}"</span><span class="tp-tok-punc">,</span>`, ''],
+    ['  <span class="tp-tok-key">"processed"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-key">"locally"</span><span class="tp-tok-punc">,</span>', ''],
+    ['  <span class="tp-tok-key">"valid"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-ok">true</span>', ''],
+    ['<span class="tp-tok-punc">}</span>', '']
+  ];
+  return `<div class="tp-code">
+    <div class="tp-code-bar"><span class="tp-code-dot"></span><span class="tp-code-dot"></span><span class="tp-code-dot"></span></div>
+    <div class="tp-code-body">${lines.map(l => `<div class="tp-code-line">${l[0]}</div>`).join('')}</div>
+  </div>`;
+}
+function heroLive(meta) {
+  if (meta.heroVariant === 'social-card') {
+    return `<div class="tp-live" aria-hidden="true">
+      <div class="tp-live-card"><div class="tp-live-title"></div><div class="tp-live-sub"></div><div class="tp-live-badge"></div></div>
+    </div>`;
+  }
+  const cells = Array.from({ length: 25 }, (_, i) => `<span class="${[0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24].indexOf(i) > -1 ? 'on' : ''}"></span>`).join('');
+  return `<div class="tp-live" aria-hidden="true">
+    <div class="tp-live-qr">${cells}</div>
+    <div class="tp-live-card"><div class="tp-live-title"></div><div class="tp-live-sub"></div></div>
+  </div>`;
+}
+/* Hero badges are decorative, not a factual claim requiring the FAQ's
+   strict REAL_FORMATS bar — so this is deliberately a superset (adds
+   HTML/IMG/HEX/RGB/MARKDOWN), checked against every converter-category
+   tool's actual chips rather than guessed. */
+const HERO_FORMATS = new Set([...REAL_FORMATS, 'HTML', 'IMG', 'HEX', 'RGB', 'MARKDOWN']);
+function convertFromTo(chips) {
+  for (const c of (chips || [])) {
+    const parts = c.split(/[\u2192\u21d2]/).map(s => s.trim()).filter(Boolean);
+    if (parts.length === 2 && HERO_FORMATS.has(parts[0]) && HERO_FORMATS.has(parts[1])) return parts;
+  }
+  const realOnly = (chips || []).filter(c => HERO_FORMATS.has(c));
+  if (realOnly.length >= 2) return [realOnly[0], realOnly[1]];
+  return ['INPUT', 'OUTPUT'];
+}
+function heroConvert(meta) {
+  const [from, to] = convertFromTo(meta.chips);
+  return `<div class="tp-convert" aria-hidden="true">
+    <div class="tp-convert-badge">${esc(from)}</div>
+    <svg class="tp-convert-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    <div class="tp-convert-badge is-target">${esc(to)}</div>
+  </div>`;
+}
+const HERO_RENDERERS = { compare: heroCompare, scan: heroScan, workflow: heroWorkflow, code: heroCode, live: heroLive, convert: heroConvert };
+function renderHero(meta) {
+  const fn = HERO_RENDERERS[meta.hero] || heroCompare;
+  const langs = meta.slug === 'ocr-image-to-text' ? ['English', 'Hindi', 'French', 'German', 'Spanish', 'Japanese', 'Chinese (Simplified)', 'Arabic'] : null;
+  const inner = meta.hero === 'scan' ? heroScan(meta, langs) : fn(meta);
+  return `<div class="tp-hero-visual" style="--tp-accent:${meta.accent}">${inner}</div>`;
+}
+
+/* ── 6. New content-block renderers ── */
+function renderUseCases(meta) {
+  return `<section class="tp-sec" aria-labelledby="tp-uc">
+      <h2 id="tp-uc">Where ${esc(meta.name)} actually gets used</h2>
+      <p class="tp-sub">Real situations this tool is built for.</p>
+      <div class="tp-usecases">
+        ${meta.useCases.map(([t, d]) => `<div class="tp-usecase"><h3>${esc(t)}</h3><p>${esc(d)}</p></div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+function renderTips(meta) {
+  if (!meta.tips.length && !meta.mistakes.length) return '';
+  const col = (title, icon, items, cls) => !items.length ? '' : `<div class="tp-tips-col">
+        <h3>${icon}${esc(title)}</h3>
+        <ul class="tp-tip-list">
+          ${items.map(i => `<li class="tp-tip-item ${cls}">${cls === 'is-tip' ? svg.bulb : svg.alert}<span>${esc(i)}</span></li>`).join('\n          ')}
+        </ul>
+      </div>`;
+  return `<section class="tp-sec" aria-labelledby="tp-tips">
+      <h2 id="tp-tips">Get better results</h2>
+      <p class="tp-sub">Tips from how ${esc(meta.name)} actually works, and mistakes worth avoiding.</p>
+      <div class="tp-tips-grid">
+        ${col('Pro tips', svg.bulb, meta.tips, 'is-tip')}
+        ${col('Common mistakes', svg.alert, meta.mistakes, 'is-mistake')}
+      </div>
+    </section>`;
+}
+function renderComparison(meta) {
+  if (!meta.comparisonIntro) return '';
+  return `<div class="tp-comparison">
+      <p>${esc(meta.comparisonIntro)}</p>
+    </div>`;
+}
+function renderWorkflow(meta) {
+  if (!meta.workflowSteps.length) return '';
+  return `<section class="tp-sec" aria-labelledby="tp-wf">
+      <h2 id="tp-wf">How it fits your workflow</h2>
+      <p class="tp-sub">Step by step, using ${esc(meta.name)}.</p>
+      <div class="tp-workflow-timeline">
+        ${meta.workflowSteps.map(([t, d]) => `<div class="tp-workflow-step"><h3>${esc(t)}</h3>${d ? `<p>${esc(d)}</p>` : ''}</div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+function renderBenefits(meta, limit) {
+  const list = limit ? meta.benefits.slice(0, limit) : meta.benefits;
+  return `<section class="tp-sec" aria-labelledby="tp-why">
+      <h2 id="tp-why">Why use ${esc(meta.name)}?</h2>
+      <p class="tp-sub">Built browser-first \u2014 which changes what you can expect from a free tool.</p>
+      <div class="tp-benefits">
+        ${list.map(b => `<div class="tp-benefit">${b[0]}<h3>${esc(b[1])}</h3><p>${esc(b[2])}</p></div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+function renderHowTo(meta) {
+  return `<section class="tp-sec" aria-labelledby="tp-how">
+      <h2 id="tp-how">How to use ${esc(meta.name)}</h2>
+      <p class="tp-sub">${meta.howTo.length} step${meta.howTo.length === 1 ? '' : 's'}, no learning curve.</p>
+      <ol class="tp-steps">
+        ${meta.howTo.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
+      </ol>
+    </section>`;
+}
+function renderFeatures(meta) {
+  return `<section class="tp-sec" aria-labelledby="tp-feat">
+      <h2 id="tp-feat">Features</h2>
+      <p class="tp-sub">Everything included, nothing gated.</p>
+      <div class="tp-features">
+        ${meta.features.map(f => `<div class="tp-feature">${svg.check}${esc(f)}</div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+/* Section-composition variants — the brief's A/B/C/D, implemented as
+   one data-driven dispatcher (not four copy-pasted template
+   functions), so adding a variant E is a data change, not a new
+   function to keep in sync with the other four. */
+const SECTION_COMPOSITION = {
+  A: ['benefits', 'howto', 'usecases'],
+  B: ['comparison', 'benefits3', 'guides'],
+  C: ['tips'],
+  D: ['usecases', 'workflow', 'guides']
+};
+function renderSection(key, meta) {
+  switch (key) {
+    case 'benefits': return renderBenefits(meta);
+    case 'benefits3': return renderBenefits(meta, 3);
+    case 'howto': return renderHowTo(meta);
+    case 'usecases': return renderUseCases(meta);
+    case 'tips': return renderTips(meta);
+    case 'comparison': return meta.comparisonIntro ? `<section class="tp-sec" aria-label="Comparison">${renderComparison(meta)}</section>` : '';
+    case 'workflow': return renderWorkflow(meta);
+    case 'guides': return ''; /* rendered separately below — needs guide data, not just meta */
+    default: return '';
+  }
+}
+
+/* ── 7. Per-page schema graph — unchanged from the original ── */
 function schemaGraph(t, faqPairs) {
   const [slug, name, cat, desc] = t;
   const url = `${SITE}/${slug}`;
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'WebPage', '@id': url + '#page', url, name: pageTitle(name),
-        description: trimDesc(desc, 155), isPartOf: { '@id': SITE + '/#website' },
-        dateModified: TODAY
-      },
-      {
-        '@type': 'Organization', '@id': SITE + '/#org', name: 'Tarumak Studio',
-        url: SITE, logo: SITE + '/og-image.png'
-      },
-      {
-        '@type': 'SoftwareApplication', '@id': url + '#app', name, url,
-        description: desc, applicationCategory: 'WebApplication',
-        applicationSubCategory: CAT[cat], operatingSystem: 'Any',
-        browserRequirements: 'Requires JavaScript', isAccessibleForFree: true,
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-      },
-      {
-        '@type': 'BreadcrumbList', itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' },
-          { '@type': 'ListItem', position: 2, name: CAT[cat], item: SITE + CAT_PAGE[cat] },
-          { '@type': 'ListItem', position: 3, name }
-        ]
-      },
-      {
-        '@type': 'FAQPage', mainEntity: faqPairs.map(([q, a]) => ({
-          '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a }
-        }))
-      }
+      { '@type': 'WebPage', '@id': url + '#page', url, name: pageTitle(name), description: trimDesc(desc, 155), isPartOf: { '@id': SITE + '/#website' }, dateModified: TODAY },
+      { '@type': 'Organization', '@id': SITE + '/#org', name: 'Tarumak Studio', url: SITE, logo: SITE + '/og-image.png' },
+      { '@type': 'SoftwareApplication', '@id': url + '#app', name, url, description: desc, applicationCategory: 'WebApplication', applicationSubCategory: CAT[cat], operatingSystem: 'Any', browserRequirements: 'Requires JavaScript', isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } },
+      { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: CAT[cat], item: SITE + CAT_PAGE[cat] }, { '@type': 'ListItem', position: 3, name }] },
+      { '@type': 'FAQPage', mainEntity: faqPairs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }
     ]
   };
 }
 
-/* ── 6. Page assembly ──────────────────────────────────────────── */
+/* ── 8. Page assembly ──────────────────────────────────────────── */
 function buildPage(t) {
   const [slug, name, cat, desc, chips] = t;
   const url = `${SITE}/${slug}`;
   const title = pageTitle(name);
   const metaDesc = trimDesc(desc, 155);
+  const meta = resolveMeta(t);
 
   const specificFaq = (FAQ && FAQ[slug]) ? FAQ[slug] : [];
-  const isFileTool = !!IS_FILE_TOOL[slug];
-  const faqPairs = mergeFaq(specificFaq, generalFaq(t, cat, isFileTool)).slice(0, 12);
+  const faqPairs = mergeFaq(specificFaq, generalFaq(t, cat, meta.isFileTool)).slice(0, 12);
 
-  const related = TOOLS.filter(x => x[2] === cat && x[0] !== slug)
-    .sort((a, b) => (FEAT_SET.has(b[0]) ? 1 : 0) - (FEAT_SET.has(a[0]) ? 1 : 0))
-    .slice(0, 6);
+  /* Related tools: WORKFLOW_NEXT (cross-category, curated) when this
+     slug has an entry; same-category fallback otherwise — identical
+     fallback logic to the original script. */
+  const related = (WORKFLOW_NEXT[slug] ? WORKFLOW_NEXT[slug].map(s => TOOLS_BY_SLUG[s]).filter(Boolean)
+    : TOOLS.filter(x => x[2] === cat && x[0] !== slug).sort((a, b) => (FEAT_SET.has(b[0]) ? 1 : 0) - (FEAT_SET.has(a[0]) ? 1 : 0))
+  ).slice(0, 6);
 
   const guideSlugs = (TOOL_ARTICLES && TOOL_ARTICLES[slug]) || [];
   const guides = guideSlugs.map(g => ({ slug: g, meta: ARTICLES[g] })).filter(g => g.meta);
 
-  const steps = howtoSteps(t, cat);
-  /* Privacy + formats copy branches on IS_FILE_TOOL (code-derived, not
-     guessed) so a text tool like UTM Builder or JSON Formatter is never
-     told "your files never upload" \u2014 it has no files, only typed
-     or pasted input. */
-  const inputWord = isFileTool ? 'files' : 'input';
-  const benefits = [
-    [svg.monitor, '100% in your browser', name + ' runs locally on your device \u2014 there is no server doing the work, so there is nothing to queue for and nothing to trust with your ' + inputWord + '.'],
-    [svg.shield, 'Private by architecture', isFileTool
-      ? 'Your files are processed locally in your browser and never uploaded. That is not a policy promise \u2014 it is how the tool is built.'
-      : 'Your input is processed locally in your browser and never sent anywhere. That is not a policy promise \u2014 it is how the tool is built.'],
-    [svg.zap, 'Instant results', isFileTool
-      ? 'No upload wait, no processing queue, no download-from-server step. The only speed limit is your own device.'
-      : 'No round-trip to a server for every keystroke or click. The only speed limit is your own device.'],
-    [svg.gem, 'Full quality output', 'You get exactly what the tool produces \u2014 no watermarks, no resolution caps, no premium-only quality tiers.'],
-    [svg.layers, isFileTool ? 'Formats covered' : 'Built for', (() => {
-      if (isFileTool) {
-        const realChips = (chips || []).filter(c => isFormatChip(c));
-        return realChips.length ? ('Works with ' + realChips.join(', ') + '.') : 'Common formats supported out of the box.';
-      }
-      return (chips && chips.length) ? (name + ' covers ' + chips.join(', ').toLowerCase() + '.') : 'Built for real-world marketing and content workflows.';
-    })()]
-  ];
-  const features = ['100% browser-based', 'Free forever', 'No sign-up', 'Privacy safe', 'Instant processing', 'Works on mobile'];
-
   const schema = schemaGraph(t, faqPairs);
+  const composition = SECTION_COMPOSITION[meta.variant] || SECTION_COMPOSITION.A;
+
+  const guidesHTML = guides.length ? `<section class="tp-sec" aria-labelledby="tp-guides">
+      <h2 id="tp-guides">Related guides</h2>
+      <p class="tp-sub">From the Tarumak Studio blog.</p>
+      <div class="tp-guides">
+        ${guides.map(g => `<a class="tp-guide" href="${g.meta.url.replace(SITE, '')}"><span class="tp-g-badge">Guide</span><h3>${esc(g.meta.title)}</h3><span class="tp-g-meta">${esc(g.meta.date)} \u00B7 ${esc(g.meta.read)} read</span></a>`).join('\n        ')}
+      </div>
+    </section>` : '';
+
+  /* 'guides' is the one composition key needing data other than meta
+     (the actual guide objects), so it's substituted here rather than
+     inside renderSection — this is also what makes variant C (which
+     never lists 'guides') correctly show no guides section at all. */
+  const middleHTML = composition.map(k => k === 'guides' ? guidesHTML : renderSection(k, meta)).filter(Boolean).join('\n\n    ');
+
+  const relatedHTML = related.length ? `<section class="tp-sec" aria-labelledby="tp-rel">
+      <h2 id="tp-rel">Related tools</h2>
+      <p class="tp-sub">${WORKFLOW_NEXT[slug] ? 'What people typically reach for next.' : `More free ${esc(CAT[cat]).toLowerCase()} \u2014 same privacy, same price.`}</p>
+      <div class="tp-related">
+        ${related.map(r => `<a class="tp-rel-card" href="/${r[0]}"><h3>${esc(r[1])}</h3><p>${esc(r[3])}</p><span class="tp-rel-cta">Try Tool \u2192</span></a>`).join('\n        ')}
+      </div>
+    </section>` : '';
 
   return `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -447,6 +653,7 @@ function buildPage(t) {
   <meta name="twitter:image" content="${SITE}/og-image.png">
   ${HEAD_LINKS}
   <link rel="stylesheet" href="/tools.css">
+  <link rel="stylesheet" href="/tool-variants.css">
   <style>${TOOL_CSS}</style>
   <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
@@ -472,6 +679,7 @@ ${CHROME_TOP}
           <button class="tp-act" id="tpShare" aria-label="Share ${esc(name)}">${svg.share}<span id="tpShareLabel">Share</span></button>
         </div>
       </div>
+      ${renderHero(meta)}
     </section>
 
     <section class="tp-mount" aria-label="${esc(name)} tool">
@@ -481,29 +689,7 @@ ${CHROME_TOP}
       </div>
     </section>
 
-    <section class="tp-sec" aria-labelledby="tp-why">
-      <h2 id="tp-why">Why use ${esc(name)}?</h2>
-      <p class="tp-sub">Built browser-first \u2014 which changes what you can expect from a free tool.</p>
-      <div class="tp-benefits">
-        ${benefits.map(b => `<div class="tp-benefit">${b[0]}<h3>${esc(b[1])}</h3><p>${esc(b[2])}</p></div>`).join('\n        ')}
-      </div>
-    </section>
-
-    <section class="tp-sec" aria-labelledby="tp-how">
-      <h2 id="tp-how">How to use ${esc(name)}</h2>
-      <p class="tp-sub">Four steps, no learning curve.</p>
-      <ol class="tp-steps">
-        ${steps.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
-      </ol>
-    </section>
-
-    <section class="tp-sec" aria-labelledby="tp-feat">
-      <h2 id="tp-feat">Features</h2>
-      <p class="tp-sub">Everything included, nothing gated.</p>
-      <div class="tp-features">
-        ${features.map(f => `<div class="tp-feature">${svg.check}${esc(f)}</div>`).join('\n        ')}
-      </div>
-    </section>
+    ${middleHTML}
 
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>
@@ -511,25 +697,11 @@ ${CHROME_TOP}
       ${faqPairs.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n      ')}
     </section>
 
-    ${related.length ? `<section class="tp-sec" aria-labelledby="tp-rel">
-      <h2 id="tp-rel">Related tools</h2>
-      <p class="tp-sub">More free ${esc(CAT[cat]).toLowerCase()} \u2014 same privacy, same price.</p>
-      <div class="tp-related">
-        ${related.map(r => `<a class="tp-rel-card" href="/${r[0]}"><h3>${esc(r[1])}</h3><p>${esc(r[3])}</p><span class="tp-rel-cta">Try Tool \u2192</span></a>`).join('\n        ')}
-      </div>
-    </section>` : ''}
-
-    ${guides.length ? `<section class="tp-sec" aria-labelledby="tp-guides">
-      <h2 id="tp-guides">Related guides</h2>
-      <p class="tp-sub">From the Tarumak Studio blog.</p>
-      <div class="tp-guides">
-        ${guides.map(g => `<a class="tp-guide" href="${g.meta.url.replace(SITE, '')}"><span class="tp-g-badge">Guide</span><h3>${esc(g.meta.title)}</h3><span class="tp-g-meta">${esc(g.meta.date)} \u00B7 ${esc(g.meta.read)} read</span></a>`).join('\n        ')}
-      </div>
-    </section>` : ''}
+    ${relatedHTML}
 
     <section class="tp-cta-band" aria-label="Explore more tools">
       <div>
-        <h2>Keep going \u2014 there are ${TOOLS.length} tools here</h2>
+        <h2>${esc(meta.ctaVerb)}</h2>
         <p>All free, all browser-based, none of them ever see your files.</p>
       </div>
       <div class="tp-cta-links">
@@ -551,7 +723,6 @@ ${FOOTER}
 </div>
 <script>
 (function(){
-  /* Favourite — shares the SPA's exact localStorage contract (tmk_favs) */
   var FK='tmk_favs', btn=document.getElementById('tpFav'), lbl=document.getElementById('tpFavLabel');
   function favs(){try{return JSON.parse(localStorage.getItem(FK)||'[]');}catch(e){return [];}}
   function paint(){var on=favs().indexOf(btn.getAttribute('data-slug'))>-1;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',on?'true':'false');lbl.textContent=on?'Saved':'Save';}
@@ -562,7 +733,6 @@ ${FOOTER}
     paint();
   });
   paint();
-  /* Share — native sheet where available, clipboard fallback */
   var sh=document.getElementById('tpShare'), shl=document.getElementById('tpShareLabel');
   sh.addEventListener('click',function(){
     var data={title:document.title,url:location.href};
@@ -583,20 +753,25 @@ ${CDN_TAGS}
 <script src="/developer-tools.js" defer></script>
 <script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
+<script src="/tool-hero.js" defer></script>
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>
 </html>`;
 }
 
-/* ── 7. Generate all pages ─────────────────────────────────────── */
+/* ── 9. Generate all pages ─────────────────────────────────────── */
 let written = 0;
+const variantCounts = {};
 for (const t of TOOLS) {
   fs.writeFileSync(t[0] + '.html', buildPage(t));
+  const m = resolveMeta(t);
+  variantCounts[m.variant] = (variantCounts[m.variant] || 0) + 1;
   written++;
 }
 console.log(`Wrote ${written} tool pages`);
+console.log('Variant distribution:', variantCounts);
 
-/* ── 8. Sitemaps (index + three children) ──────────────────────── */
+/* ── 10. Sitemaps (index + three children) — unchanged ──────────── */
 function urlset(urls) {
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod || TODAY}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`).join('\n') +
@@ -621,9 +796,7 @@ fs.writeFileSync('sitemap.xml',
   '\n</sitemapindex>\n');
 console.log(`Sitemaps: index + tools(${TOOLS.length}) + articles(${articleFiles.length}) + pages(${pages.length})`);
 
-
-/* ── 9. Same-deploy schema fix: homepage ItemList must point at the REAL
-   tool URLs the moment they exist (never before, never after) ─────── */
+/* ── 11. Same-deploy schema fix: homepage ItemList — unchanged ──── */
 let idx = fs.readFileSync('index.html', 'utf8');
 const beforeCount = (idx.match(/#\/t\//g) || []).length;
 idx = idx.replace(/https:\/\/tarumakstudio\.com\/#\/t\//g, 'https://tarumakstudio.com/');

@@ -23,6 +23,7 @@ function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:
    (favourites, which has no other entry point) are the only two
    that do something a category card can't. */
 function buildTabs(){
+  if(!tabsEl)return;
   const c=counts(),fv=getFavs().size;
   const catKeys=['image','pdf','converter','marketing','developer'];
   /* When something sets activeCat to a real category (not
@@ -77,6 +78,7 @@ function bumpCount(){
 /* init counter display */
 (()=>{const el=$('#stat-count');if(el)el.textContent=fmtCount(getCount());})();
 function buildGrid(){
+  if(!gridEl)return;
   const t=term.toLowerCase(),favs=getFavs();
   let list;
   if(activeCat==='favs'){

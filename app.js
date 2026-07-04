@@ -515,59 +515,6 @@ function buildNavToolsDropdown(){
    plain text, not literally ".png"). Also folds a couple of
    very common extension synonyms so "jpeg" also finds "jpg"
    tools and vice versa. */
-var EXT_SYNONYMS={jpeg:'jpg',jpg:'jpeg',yml:'yaml',yaml:'yml',htm:'html'};
-function normalizeSearchTerm(raw){
-  var t=raw.toLowerCase().trim();
-  if(t.charAt(0)==='.')t=t.slice(1);
-  return t;
-}
-
-/* escapeHtml \u2014 minimal, used before wrapping any user-typed
-   substring in <mark> so a search term can never inject HTML. */
-function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-/* highlightMatch \u2014 wraps the first case-insensitive occurrence
-   of `term` inside `text` in <mark>, HTML-escaping everything
-   else. Falls back to plain escaped text if no match is found
-   (e.g. the match came from the description/category, not the
-   visible name). */
-function highlightMatch(text,term){
-  if(!term)return escapeHtml(text);
-  var idx=text.toLowerCase().indexOf(term.toLowerCase());
-  if(idx<0)return escapeHtml(text);
-  return escapeHtml(text.slice(0,idx))+'<mark>'+escapeHtml(text.slice(idx,idx+term.length))+'</mark>'+escapeHtml(text.slice(idx+term.length));
-}
-
-/* matchTools \u2014 the shared ranking/matching logic. Checks name,
-   description, category label AND slug (slugs like "jpg-to-png"
-   catch extension searches that the display name alone might
-   miss), plus a small extension-synonym pass. Name matches are
-   ranked before description/category-only matches. */
-function matchTools(rawTerm,limit){
-  var t=normalizeSearchTerm(rawTerm);
-  if(!t)return [];
-  var syn=EXT_SYNONYMS[t];
-  function hit(x){
-    var name=x[1].toLowerCase(),desc=x[3].toLowerCase(),cat=CAT[x[2]].toLowerCase(),slug=x[0].toLowerCase();
-    var terms=syn?[t,syn]:[t];
-    return terms.some(function(term){
-      return name.indexOf(term)>-1||slug.indexOf(term)>-1||desc.indexOf(term)>-1||cat.indexOf(term)>-1;
-    });
-  }
-  function nameHit(x){
-    var name=x[1].toLowerCase(),slug=x[0].toLowerCase();
-    var terms=syn?[t,syn]:[t];
-    return terms.some(function(term){ return name.indexOf(term)>-1||slug.indexOf(term)>-1; });
-  }
-  var all=TOOLS.filter(hit);
-  all.sort(function(a,b){
-    var an=nameHit(a)?0:1, bn=nameHit(b)?0:1;
-    return an-bn;
-  });
-  return all.slice(0,limit||8);
-}
 
 function wireHeroSearch(){
   const input=document.getElementById('heroSearch');

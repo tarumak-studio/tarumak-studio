@@ -106,48 +106,19 @@ for (const cat of Object.keys(CAT_JS)) {
 }
 
 
-/* ── 2. Harvest chrome from the existing static design ─────────── */
-/* CDN libraries + full category chain: harvested from index.html so the
-   tool pages always load the SPA's EXACT dependency stack in its exact
-   order. Discovered the hard way: category files share functions across
-   files (image-tools needs pdf-tools' imagesToPdfTool; converter needs
-   image-tools' imgConv), and tools need the CDN libs at run time. */
-const indexSrc = fs.readFileSync('index.html', 'utf8');
-const CDN_TAGS = [...indexSrc.matchAll(/<script src="https:\/\/cdnjs\.cloudflare\.com[^>]*><\/script>/g)]
-  .map(m => m[0].includes(' defer') ? m[0] : m[0].replace('><\/script>', ' defer><\/script>'))
-  .join('\n');
-if (!CDN_TAGS) throw new Error('CDN tags not found in index.html');
-/* ── UNIFIED CHROME: harvested from index.html so tool pages share the
-   SPA's exact header (nav search, theme toggle, tools dropdown, Explore
-   button, mobile menu) and footer — one layout system site-wide for the
-   landing pages. The dropdown panel is JS-built on the homepage
-   (buildNavToolsDropdown in app.js); here its output is BAKED at build
-   time from the same data, so no app.js is needed. */
-function mustIdx(re, label) {
-  const m = indexSrc.match(re);
-  if (!m) throw new Error('Index chrome harvest failed: ' + label);
-  return m[0];
-}
-let CHROME_TOP = indexSrc.slice(indexSrc.indexOf('<header id="header">'), indexSrc.indexOf('<main'));
-if (!CHROME_TOP.includes('mobileMenu') || !CHROME_TOP.includes('navToolsPanel')) throw new Error('index header harvest incomplete');
-const FOOTER = mustIdx(/<footer[\s\S]*?<\/footer>/, 'footer');
-/* Bake the tools dropdown (port of app.js buildNavToolsDropdown) */
-const NAV_ORDER = ['image','pdf','developer','marketing','converter'];
-const bakedPanel = NAV_ORDER.map(c => {
-  const meta = CAT_META && CAT_META[c]; if (!meta) return '';
-  const popular = (meta.popular || []).map(sl => {
-    const t = TOOLS.find(x => x[0] === sl);
-    return t ? '<a href="/' + t[0] + '">' + t[1] + '</a>' : '';
-  }).join('');
-  return '<div class="ntp-col">'
-    + '<a class="ntp-cat" href="/' + c + '-tools"><span class="ntp-cat-ico">' + (ICON && ICON[c] || '') + '</span>' + CAT[c] + '</a>'
-    + popular
-    + '<a class="ntp-viewall" href="/' + c + '-tools">View all &rarr;</a>'
-    + '</div>';
-}).join('');
-CHROME_TOP = CHROME_TOP.replace('<!-- buildNavToolsDropdown() -->', bakedPanel);
-const HEAD_LINKS = [...indexSrc.matchAll(/<link[^>]*(?:preconnect|fonts\.googleapis\.com\/css2|icon)[^>]*>/g)].map(m => m[0]).join('\n  ')
-  + '\n  <link rel="stylesheet" href="/main.css">';
+/* ── 2. Chrome: from the shared header-chrome module ──────────────
+   Was inline here originally; now a single shared module so a second
+   build script (build-static-pages.js) can use the exact same header,
+   dropdown-bake, and footer without a second implementation. See
+   header-chrome.js for the full rationale. */
+const { getChrome, withActiveNav } = require('./header-chrome.js');
+const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS } = getChrome();
+/* Every tool/category page is "under Tools" \u2014 mark that nav item
+   active. Real bug found while unifying the header: main.css already
+   styles .nav-active, but nothing was ever setting it on tool pages
+   (or category pages) \u2014 the nav gave no current-page indication
+   at all. Fixed once here, not per-page. */
+const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
 
 /* ── 3. Page-specific CSS (tokens only from :root — no new palette) ─ */

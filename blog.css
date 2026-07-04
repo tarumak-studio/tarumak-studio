@@ -33,13 +33,7 @@
 .aff-info span{font-size:12px;color:var(--text-dim)}
 .aff-cta{font-size:12px;font-weight:600;color:var(--p1);white-space:nowrap;flex-shrink:0}
 /* ─── Cookie consent banner ───────────────────────── */
-#cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:14px 24px;background:color-mix(in srgb,var(--bg-2) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s var(--ease)}
-#cookie-bar.show{transform:none}
-#cookie-bar p{flex:1;font-size:13px;color:var(--text-dim);min-width:220px;line-height:1.5;margin:0}
-#cookie-bar p a{color:var(--p1);text-decoration:underline;cursor:pointer}
-#cookie-bar .cb-btns{display:flex;gap:9px;flex-shrink:0}
-.cb-accept{background:var(--grad);color:#06121a;border:none;border-radius:9px;padding:8px 18px;font-size:13px;font-family:var(--fb);font-weight:600;cursor:pointer;transition:.2s var(--ease)}
-.cb-accept:hover{transform:translateY(-1px)}
+/* Superseded by the corrected #cookie-bar rule further down \u2014 kept removed to avoid two conflicting definitions. */
 .cb-decline{background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;transition:.2s}
 .cb-decline:hover{border-color:var(--border-2);color:var(--text)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -113,7 +107,14 @@
 .aff-info span{font-size:12px;color:var(--text-dim)}
 .aff-cta{font-size:12px;font-weight:600;color:var(--p1);white-space:nowrap;flex-shrink:0}
 /* ─── Cookie consent banner ───────────────────────── */
-#cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8500;background:color-mix(in srgb,var(--bg-2) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;animation:tIn .4s var(--ease) both}
+/* Fixed: this rule referenced an undefined 'tIn' animation and had no
+   hidden-at-rest state, so the JS's intended "wait 1.2s, then slide
+   in" (features.js) never actually happened \u2014 the bar just sat
+   visible immediately. transform+transition, gated by the .show
+   class the JS already toggles, is the same technique already used
+   for the popular-tools search dropdown elsewhere on the site. */
+#cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:8500;background:color-mix(in srgb,var(--bg-2) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s var(--ease)}
+#cookie-bar.show{transform:none}
 #cookie-bar p{flex:1;font-size:13.5px;color:var(--text-dim);margin:0;min-width:200px}
 .cb-btns{display:flex;gap:10px;align-items:center;flex-shrink:0}
 #cb-accept{height:36px;padding:0 20px;border-radius:10px;background:var(--grad);color:#06121a;font-family:var(--fb);font-weight:600;font-size:13px;border:none;cursor:pointer}

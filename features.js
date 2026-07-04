@@ -1,11 +1,41 @@
 /* TARUMAK STUDIO — features.js
    UI helpers loaded before app.js.
-   Contains buildGrid and setActiveNav — DO NOT re-declare in app.js.
-   toggleFav calls buildTabs/buildGrid at RUNTIME only — fine since
-   app.js loads before any user interaction. */
+   Contains buildGrid, buildTabs, counts, and setActiveNav — DO NOT
+   re-declare in app.js. toggleFav calls buildTabs/buildGrid at
+   RUNTIME only — fine since app.js (or the /tools page's own boot
+   script) loads before any user interaction. */
 
 const arrowSvg='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const heartSvg='<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+/* counts() and buildTabs() — moved here from app.js so the /tools
+   directory page (which loads features.js but not the homepage-only
+   app.js) has everything it needs to render the tabs + grid without
+   pulling in unrelated homepage code. */
+function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0,developer:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
+
+/* buildTabs — deliberately reduced to just All + Saved. The
+   5 category tabs that used to live here were functionally
+   redundant with the "Browse by Category" cards on the homepage:
+   clicking a category card already sets activeCat and filters this
+   exact grid — so a visitor arriving via a category card would see
+   the same 5 options twice in a row. "All" (reset) and "Saved"
+   (favourites, which has no other entry point) are the only two
+   that do something a category card can't. */
+function buildTabs(){
+  const c=counts(),fv=getFavs().size;
+  const catKeys=['image','pdf','converter','marketing','developer'];
+  /* When something sets activeCat to a real category (not
+     'all'/'favs'), show a dismissible "currently showing" chip —
+     without this, arriving here already filtered would show no
+     visible confirmation of what's active. */
+  const activeCatChip=catKeys.includes(activeCat)
+    ? '<button class="tab active tab-active-cat" data-cat="'+activeCat+'">'+CAT[activeCat]+' <span class="ct">'+c[activeCat]+'</span><span class="tab-clear" data-clear="1">&times;</span></button>'
+    : '';
+  tabsEl.innerHTML='<button class="tab '+(activeCat==='all'?'active':'')+'" data-cat="all">All <span class="ct">'+c['all']+'</span></button>'
+  +activeCatChip
+  +'<button class="tab t-saved '+(activeCat==='favs'?'active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
+}
 
 /* ══════════════════════════════════════════════════
    FAVOURITES — localStorage-backed saved tools

@@ -148,7 +148,7 @@ function getChrome() {
       + (t.starred ? '<span class="mega-star" aria-hidden="true">\u2605</span>' : '')
       + t.name + '</a>'
     ).join('');
-    const exploreHref = catKey === '__ai__' ? '/#tools' : '/' + catKey + '-tools';
+    const exploreHref = catKey === '__ai__' ? '/tools' : '/' + catKey + '-tools';
     const exploreLabel = catKey === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
     return '<div class="mega-preview-head" style="--accent:' + m.accent + '"><span class="mega-preview-ico">' + m.icon + '</span>'
       + '<div><h3>' + m.name + '</h3><p>' + m.desc + '</p></div></div>'

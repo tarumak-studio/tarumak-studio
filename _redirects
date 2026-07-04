@@ -141,6 +141,7 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /svg-to-jpg.html /svg-to-jpg 301
 /svg-to-png.html /svg-to-png 301
 /terms.html /terms 301
+/tools.html /tools 301
 /text-case-converter.html /text-case-converter 301
 /text-diff.html /text-diff 301
 /timestamp-converter.html /timestamp-converter 301

@@ -475,24 +475,11 @@ function getArticleThumb(slug, key, fallbackIcoSvg){
    its 3 most popular tools (from CAT_META) + a direct
    category link. Pure hover/focus CSS panel, no JS state.
 ────────────────────────────────────────────────── */
-function buildNavToolsDropdown(){
-  const panel=document.getElementById('navToolsPanel');
-  if(!panel||typeof CAT_META==='undefined')return;
-  const order=['image','pdf','developer','marketing','converter'];
-  panel.innerHTML=order.map(cat=>{
-    const meta=CAT_META[cat];if(!meta)return '';
-    const popularLinks=meta.popular.map(slug=>{
-      const t=bySlug(slug);
-      return t?'<a href="/'+t[0]+'">'+t[1]+'</a>':'';
-    }).join('');
-    return ''+
-      '<div class="ntp-col">'+
-        '<a class="ntp-cat" href="/'+cat+'-tools"><span class="ntp-cat-ico">'+ICON[cat]+'</span>'+CAT[cat]+'</a>'+
-        popularLinks+
-        '<a class="ntp-viewall" href="/'+cat+'-tools">View all &rarr;</a>'+
-      '</div>';
-  }).join('');
-}
+/* buildNavToolsDropdown() removed \u2014 the Tools mega menu is now baked once at
+   build time (header-chrome.js), identically for every page including this
+   one, and its own JS wiring (mega-menu.js) runs once on load. Re-running a
+   dynamic rebuild here on every route() call would wipe out the baked mega
+   menu's data script and event listeners on every homepage navigation. */
 
 
 /* ──────────────────────────────────────────────────
@@ -704,9 +691,9 @@ function wireHeroSearch(){
 function showHome(cat){homeEl.hidden=false;toolEl.hidden=true;toolEl.innerHTML='';document.title='Tarumak Studio — Free Design & Marketing Tools';restoreHomeMeta();
   const _cats=['image','pdf','converter','marketing','developer'];
   setActiveNav(_cats.includes(cat)?'all':cat==='all'?'all':'');
-  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();wireFilterPills();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
+  if(_cats.includes(cat)){activeCat=cat;buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();wireFilterPills();setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth'});},30);}
   
-  else{activeCat='all';buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();buildNavToolsDropdown();wireFilterPills();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
+  else{activeCat='all';buildTabs();buildGrid();buildCategoryCards();buildFeaturedTools();buildLatestArticles();wireFilterPills();if(cat==='all'){setTimeout(()=>{const el=$('#tools');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}else{scrollTo(0,0);}}}
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
 
 /* ── SEO: update meta tags + JSON-LD when a tool opens ─────── */
@@ -1055,6 +1042,6 @@ route();
 buildCategoryCards();
 buildFeaturedTools();
 buildLatestArticles();
-buildNavToolsDropdown();
+
 wireHeroSearch();
 wireFilterPills();

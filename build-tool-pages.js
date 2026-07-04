@@ -112,7 +112,7 @@ for (const cat of Object.keys(CAT_JS)) {
    dropdown-bake, and footer without a second implementation. See
    header-chrome.js for the full rationale. */
 const { getChrome, withActiveNav } = require('./header-chrome.js');
-const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS } = getChrome();
+const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT } = getChrome();
 /* Every tool/category page is "under Tools" \u2014 mark that nav item
    active. Real bug found while unifying the header: main.css already
    styles .nav-active, but nothing was ever setting it on tool pages
@@ -582,6 +582,7 @@ ${CDN_TAGS}
 <script src="/marketing-tools.js" defer></script>
 <script src="/developer-tools.js" defer></script>
 <script src="/features.js" defer></script>
+${MEGA_MENU_SCRIPT}
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>
 </html>`;

@@ -1,3 +1,5 @@
 # Cloudflare Pages redirects — legacy/orphan URLs to canonical pages
-/article-social-media-image-sizes  /article-social-media-image-sizes-2026  301
-/privacy                           /privacy-policy                          301
+/article-social-media-image-sizes       /article-social-media-image-sizes-2026  301
+/article-social-media-image-sizes.html  /article-social-media-image-sizes-2026  301
+/privacy                                /privacy-policy                         301
+/privacy.html                           /privacy-policy                         301

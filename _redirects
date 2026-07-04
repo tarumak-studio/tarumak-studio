@@ -1,5 +1,156 @@
-# Cloudflare Pages redirects — legacy/orphan URLs to canonical pages
+# Cloudflare Pages redirects — Tarumak Studio
+# Regenerated during the July 2026 GSC indexing-recovery round.
+# All rules are single-hop 301s — none of these chain into each other.
+
+# ── 1. Domain canonicalization ──────────────────────────────────────
+# https://tarumakstudio.com is canonical. www and http variants must
+# 301 straight to it. NOTE: these rules only take effect once
+# www.tarumakstudio.com is attached as a custom domain on this same
+# Cloudflare Pages project — GSC currently shows both http:// and
+# https://www variants returning 5xx, which means www isn't correctly
+# connected yet at the DNS/Pages level. That's a dashboard action, not
+# a file one — see the report for the exact steps. These rules will
+# start working the moment that connection exists, with no further
+# code change needed.
+https://www.tarumakstudio.com/*  https://tarumakstudio.com/:splat  301
+http://www.tarumakstudio.com/*   https://tarumakstudio.com/:splat  301
+http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
+
+# ── 2. Legacy/orphan pages — deleted files, redirected to their
+#    canonical replacement (both extensionless and .html request forms) ──
 /article-social-media-image-sizes       /article-social-media-image-sizes-2026  301
 /article-social-media-image-sizes.html  /article-social-media-image-sizes-2026  301
 /privacy                                /privacy-policy                         301
 /privacy.html                           /privacy-policy                         301
+
+# ── 3. .html -> clean URL — every page on the site, one hop, 301 ───
+/about.html /about 301
+/ad-copy-gen.html /ad-copy-gen 301
+/article-add-watermark-photos.html /article-add-watermark-photos 301
+/article-base64-encoding-guide.html /article-base64-encoding-guide 301
+/article-best-favicon-size.html /article-best-favicon-size 301
+/article-best-free-marketing-tools.html /article-best-free-marketing-tools 301
+/article-best-free-pdf-tools-2026.html /article-best-free-pdf-tools-2026 301
+/article-best-free-tools-designers-2026.html /article-best-free-tools-designers-2026 301
+/article-brand-color-extraction-guide.html /article-brand-color-extraction-guide 301
+/article-color-palette-brand-guide.html /article-color-palette-brand-guide 301
+/article-compress-images-web.html /article-compress-images-web 301
+/article-compress-images-without-losing-quality.html /article-compress-images-without-losing-quality 301
+/article-convert-jpg-to-pdf.html /article-convert-jpg-to-pdf 301
+/article-create-gif-from-images.html /article-create-gif-from-images 301
+/article-create-pdf-lead-magnet.html /article-create-pdf-lead-magnet 301
+/article-create-qr-code-business.html /article-create-qr-code-business 301
+/article-css-gradient-guide.html /article-css-gradient-guide 301
+/article-exif-data-privacy-guide.html /article-exif-data-privacy-guide 301
+/article-free-favicon-generator.html /article-free-favicon-generator 301
+/article-free-tools-freelancers.html /article-free-tools-freelancers 301
+/article-hashtag-strategy-instagram.html /article-hashtag-strategy-instagram 301
+/article-heic-to-jpg-iphone-photos-guide.html /article-heic-to-jpg-iphone-photos-guide 301
+/article-how-to-compare-two-texts.html /article-how-to-compare-two-texts 301
+/article-how-to-convert-word-to-pdf.html /article-how-to-convert-word-to-pdf 301
+/article-how-to-create-seo-friendly-url-slugs.html /article-how-to-create-seo-friendly-url-slugs 301
+/article-how-to-merge-pdfs.html /article-how-to-merge-pdfs 301
+/article-how-to-password-protect-pdf.html /article-how-to-password-protect-pdf 301
+/article-how-to-remove-image-background-free.html /article-how-to-remove-image-background-free 301
+/article-instagram-story-size-guide.html /article-instagram-story-size-guide 301
+/article-jpg-vs-png-vs-webp.html /article-jpg-vs-png-vs-webp 301
+/article-json-formatting-validation-guide.html /article-json-formatting-validation-guide 301
+/article-markdown-to-html-guide.html /article-markdown-to-html-guide 301
+/article-merge-pdf-online-free.html /article-merge-pdf-online-free 301
+/article-meta-tags-seo-guide.html /article-meta-tags-seo-guide 301
+/article-ocr-image-to-text-guide.html /article-ocr-image-to-text-guide 301
+/article-password-security-guide-2026.html /article-password-security-guide-2026 301
+/article-pdf-guide-2026.html /article-pdf-guide-2026 301
+/article-pdf-to-jpg-convert.html /article-pdf-to-jpg-convert 301
+/article-reduce-pdf-file-size.html /article-reduce-pdf-file-size 301
+/article-regex-guide-for-beginners.html /article-regex-guide-for-beginners 301
+/article-remove-background-image-free.html /article-remove-background-image-free 301
+/article-social-media-image-sizes-2026.html /article-social-media-image-sizes-2026 301
+/article-svg-vs-png-icons-logos.html /article-svg-vs-png-icons-logos 301
+/article-tarumak-studio-vs-ilovepdf.html /article-tarumak-studio-vs-ilovepdf 301
+/article-tarumak-studio-vs-smallpdf.html /article-tarumak-studio-vs-smallpdf 301
+/article-tarumak-studio-vs-tinywow.html /article-tarumak-studio-vs-tinywow 301
+/article-text-case-formats-guide.html /article-text-case-formats-guide 301
+/article-unix-timestamps-explained.html /article-unix-timestamps-explained 301
+/article-url-encoding-complete-guide.html /article-url-encoding-complete-guide 301
+/article-utm-link-builder-guide.html /article-utm-link-builder-guide 301
+/article-web-design-tools-2026.html /article-web-design-tools-2026 301
+/article-what-is-open-graph-image.html /article-what-is-open-graph-image 301
+/background-remover.html /background-remover 301
+/base64-encoder.html /base64-encoder 301
+/blog.html /blog 301
+/brand-color-extract.html /brand-color-extract 301
+/changelog.html /changelog 301
+/color-converter.html /color-converter 301
+/color-palette-gen.html /color-palette-gen 301
+/color-picker.html /color-picker 301
+/contact.html /contact 301
+/converter-tools.html /converter-tools 301
+/cookie-policy.html /cookie-policy 301
+/css-gradient-gen.html /css-gradient-gen 301
+/cta-button-gen.html /cta-button-gen 301
+/developer-tools.html /developer-tools 301
+/exif-remover.html /exif-remover 301
+/favicon-generator.html /favicon-generator 301
+/gif-maker.html /gif-maker 301
+/gif-to-webp.html /gif-to-webp 301
+/hashtag-gen.html /hashtag-gen 301
+/heic-to-jpg.html /heic-to-jpg 301
+/html-to-pdf.html /html-to-pdf 301
+/image-collage.html /image-collage 301
+/image-compressor.html /image-compressor 301
+/image-cropper.html /image-cropper 301
+/image-resizer.html /image-resizer 301
+/image-to-pdf.html /image-to-pdf 301
+/image-tools.html /image-tools 301
+/images-to-pdf.html /images-to-pdf 301
+/index.html / 301
+/jpg-to-pdf.html /jpg-to-pdf 301
+/jpg-to-png.html /jpg-to-png 301
+/jpg-to-webp.html /jpg-to-webp 301
+/json-formatter.html /json-formatter 301
+/lorem-ipsum.html /lorem-ipsum 301
+/markdown-to-html.html /markdown-to-html 301
+/marketing-tools.html /marketing-tools 301
+/meta-tag-gen.html /meta-tag-gen 301
+/ocr-image-to-text.html /ocr-image-to-text 301
+/og-image-gen.html /og-image-gen 301
+/password-generator.html /password-generator 301
+/pdf-compressor.html /pdf-compressor 301
+/pdf-lead-magnet.html /pdf-lead-magnet 301
+/pdf-merger.html /pdf-merger 301
+/pdf-organizer.html /pdf-organizer 301
+/pdf-page-remover.html /pdf-page-remover 301
+/pdf-page-rotator.html /pdf-page-rotator 301
+/pdf-password-protect.html /pdf-password-protect 301
+/pdf-reader.html /pdf-reader 301
+/pdf-splitter.html /pdf-splitter 301
+/pdf-to-jpg.html /pdf-to-jpg 301
+/pdf-to-text.html /pdf-to-text 301
+/pdf-tools.html /pdf-tools 301
+/pdf-unlock.html /pdf-unlock 301
+/png-to-jpg.html /png-to-jpg 301
+/png-to-pdf.html /png-to-pdf 301
+/png-to-webp.html /png-to-webp 301
+/privacy-policy.html /privacy-policy 301
+/qr-code-generator.html /qr-code-generator 301
+/regex-tester.html /regex-tester 301
+/scan-to-pdf.html /scan-to-pdf 301
+/slug-generator.html /slug-generator 301
+/social-image-resizer.html /social-image-resizer 301
+/svg-to-jpg.html /svg-to-jpg 301
+/svg-to-png.html /svg-to-png 301
+/terms.html /terms 301
+/text-case-converter.html /text-case-converter 301
+/text-diff.html /text-diff 301
+/timestamp-converter.html /timestamp-converter 301
+/txt-to-pdf.html /txt-to-pdf 301
+/url-encoder.html /url-encoder 301
+/utm-builder.html /utm-builder 301
+/watermark-image.html /watermark-image 301
+/webp-to-gif.html /webp-to-gif 301
+/webp-to-jpg.html /webp-to-jpg 301
+/webp-to-png.html /webp-to-png 301
+/word-counter.html /word-counter 301
+/word-to-pdf.html /word-to-pdf 301
+/work-with-me.html /work-with-me 301

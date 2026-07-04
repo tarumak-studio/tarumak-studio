@@ -40,7 +40,7 @@
         + (t.starred ? '<span class="mega-star" aria-hidden="true">\u2605</span>' : '')
         + t.name + '</a>';
     }).join('');
-    var exploreHref = key === '__ai__' ? '/#tools' : '/' + key + '-tools';
+    var exploreHref = key === '__ai__' ? '/tools' : '/' + key + '-tools';
     var exploreLabel = key === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
 
     preview.innerHTML =

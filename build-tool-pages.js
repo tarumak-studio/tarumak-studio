@@ -706,7 +706,7 @@ ${CHROME_TOP}
       </div>
       <div class="tp-cta-links">
         <a class="tp-cta-primary" href="${CAT_PAGE[cat]}">More ${esc(CAT[cat])}</a>
-        <a class="tp-cta-ghost" href="/#tools">Browse all tools</a>
+        <a class="tp-cta-ghost" href="/tools">Browse all tools</a>
       </div>
     </section>
 
@@ -784,6 +784,7 @@ fs.writeFileSync('sitemap-articles.xml', urlset(articleFiles.map(f => ({ loc: `$
 
 const pages = [
   { loc: SITE + '/', freq: 'weekly', pri: '1.0' },
+  { loc: SITE + '/tools', freq: 'weekly', pri: '0.9' },
   ...Object.values(CAT_PAGE).map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.8' })),
   ...['/blog', '/about', '/contact', '/work-with-me', '/changelog'].map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.5' })),
   ...['/privacy-policy', '/terms', '/cookie-policy'].map(p => ({ loc: SITE + p, freq: 'yearly', pri: '0.3' }))

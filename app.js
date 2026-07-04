@@ -9,33 +9,8 @@
      buildGrid, setActiveNav → features.js
    ================================================================ */
 
-/* counts() and buildTabs() — gap functions not in any other file */
-function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:0,developer:0};TOOLS.forEach(t=>c[t[2]]++);return c;}
-
-/* buildTabs — deliberately reduced to just All + Saved. The
-   5 category tabs that used to live here were functionally
-   redundant with the "Browse by Category" cards higher up the
-   page: clicking a category card already sets activeCat, filters
-   this exact grid, AND auto-scrolls down to it (see showHome()) —
-   so a visitor arriving here via a category card would have seen
-   the same 5 options twice in a row. "All" (reset) and "Saved"
-   (favourites, which has no other entry point anywhere on the
-   page) are the only two that do something a category card can't. */
-function buildTabs(){
-  const c=counts(),fv=getFavs().size;
-  const catKeys=['image','pdf','converter','marketing','developer'];
-  /* When a category card sets activeCat to a real category (not
-     'all'/'favs'), show a dismissible "currently showing" chip —
-     without this, arriving here via a category card would filter
-     the grid correctly but show no visible confirmation of what's
-     active, since the old per-category tabs were removed. */
-  const activeCatChip=catKeys.includes(activeCat)
-    ? '<button class="tab active tab-active-cat" data-cat="'+activeCat+'">'+CAT[activeCat]+' <span class="ct">'+c[activeCat]+'</span><span class="tab-clear" data-clear="1">&times;</span></button>'
-    : '';
-  tabsEl.innerHTML='<button class="tab '+(activeCat==='all'?'active':'')+'" data-cat="all">All <span class="ct">'+c['all']+'</span></button>'
-  +activeCatChip
-  +'<button class="tab t-saved '+(activeCat==='favs'?'active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
-}
+/* counts(), buildTabs() — moved to features.js (the /tools directory
+   page loads features.js but not app.js, which is homepage-only). */
 
 /* Affiliate banner builder (AFFS is in config.js, not here) */
 function buildAffBanners(cat){
@@ -945,15 +920,15 @@ function route(){
      exists ONLY so old external links — bookmarks, shares, indexed
      fragments — land on the canonical page instead of a dead view:
        #/t/{slug}   -> /{slug}            #/{cat} -> /{cat}-tools
-       #/all        -> /#tools            #/blog  -> /blog
-       #/p/{page}   -> /{page}                                      */
+       #/all        -> /tools             #/blog  -> /blog
+       #/p/{page}   -> /{page}             #tools  -> /tools        */
   var _h=location.hash||'';
   if(_h==='#/blog'||_h==='#/blog/'||_h==='/blog'){window.location.replace('/blog');return;}
   var _t=_h.match(/^#\/t\/([a-z0-9-]+)$/);
   if(_t){window.location.replace('/'+_t[1]);return;}
   var _c=_h.match(/^#\/(image|pdf|converter|marketing|developer)$/);
   if(_c){window.location.replace('/'+_c[1]+'-tools');return;}
-  if(_h==='#/all'){history.replaceState(null,'','/#tools');var _el=document.getElementById('tools');if(_el)_el.scrollIntoView();return;}
+  if(_h==='#/all'||_h==='#tools'){window.location.replace('/tools');return;}
   var _p=_h.match(/^#\/p\/(about|contact|work-with-me|changelog|privacy-policy|terms|cookie-policy)$/);
   if(_p){window.location.replace('/'+_p[1]);return;}const h=location.hash||'';const m=h.match(/^#\/t\/(.+)$/);if(m){openTool(m[1]);return;}
   const pm=h.match(/^#\/p\/(.+)$/);if(pm){openPage(pm[1]);return;}

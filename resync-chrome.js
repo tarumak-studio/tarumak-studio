@@ -34,6 +34,7 @@ const { CHROME_TOP: BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT } = getChrome();
    the homepage itself (data-nav=""). */
 function activeKeyFor(file) {
   if (file === 'index.html') return '';
+  if (file === 'tools.html') return 'all';
   if (/^(image|pdf|developer|marketing|converter)-tools\.html$/.test(file)) return 'all';
   if (file === 'blog.html' || file.startsWith('article-')) return 'blog';
   if (file === 'about.html') return 'about';
@@ -63,13 +64,17 @@ for (const file of targets) {
     const chrome = key !== null ? withActiveNav(BASE, key) : BASE;
     html = html.slice(0, headerStart) + chrome + '\n' + html.slice(mainStart).replace(/^\n+/, '');
 
-    /* Footer: swap any legacy footer for the shared one, UNLESS this
-       page already has it (fcol is the rich footer's own marker class —
-       cheaper and more reliable than diffing the whole block) or is
-       404.html (kept deliberately minimal by design, not touched here). */
-    if (file !== '404.html' && !html.includes('class="fcol"')) {
+    /* Footer: always re-stamp with the current shared FOOTER, except
+       404.html (kept deliberately minimal by design). Earlier this
+       skipped pages that already had the rich footer's marker class —
+       which meant a page migrated once could never pick up a LATER
+       change to FOOTER's content, exactly the bug that let several
+       pages keep a stale link after an update to index.html's own
+       footer. Header re-stamping was never skipped this way; footer
+       re-stamping shouldn't be either. */
+    if (file !== '404.html') {
       const m = html.match(/<footer\b[\s\S]*?<\/footer>/);
-      if (m) {
+      if (m && html.slice(m.index, m.index + m[0].length) !== FOOTER) {
         html = html.slice(0, m.index) + FOOTER + html.slice(m.index + m[0].length);
         footersReplaced++;
       }

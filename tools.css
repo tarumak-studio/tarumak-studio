@@ -1,12 +1,15 @@
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:28px;box-shadow:var(--shadow)}
 .drop{border:2px dashed var(--border-2);border-radius:18px;padding:44px 24px;text-align:center;cursor:pointer;transition:.3s var(--ease);background:var(--surface);position:relative}
 .drop:hover,.drop.drag{border-color:var(--p1);background:rgba(34,211,238,.05)}
+.drop:focus-visible{outline:2px solid var(--p1);outline-offset:3px;border-color:var(--p1)}
 .drop .di{width:62px;height:62px;border-radius:16px;background:var(--grad);display:grid;place-items:center;margin:0 auto 16px;color:#06121a;box-shadow:0 12px 30px -10px var(--p2)}
 .drop.pdf .di{background:var(--grad-accent);color:#1a1206}
 .drop .di svg{width:30px;height:30px}
 .drop h3{font-family:var(--fd);font-weight:600;font-size:19px;margin-bottom:6px}
 .drop p{color:var(--text-dim);font-size:14px}
 .drop .formats{display:flex;gap:6px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.d-trust{color:var(--text-faint);font-size:11.5px;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:5px}
+.d-trust::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ok,#34d399);flex-shrink:0}
 .controls{display:flex;gap:18px;margin-top:22px;align-items:flex-end;flex-wrap:wrap;padding:18px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)}
 .controls:empty{display:none}
 .ctrl{display:flex;flex-direction:column;gap:7px}

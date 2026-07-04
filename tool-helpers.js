@@ -19,10 +19,11 @@ function listRows(box,arr,label){
       d.innerHTML='<div class="thumb" style="display:grid;place-items:center;color:var(--accent)">'+ICON.pdf+'</div>'+
         '<div class="meta"><div class="nm">'+label(it)+'</div><div class="sz">Position '+(i+1)+'</div></div>';
       const g=document.createElement('div');g.style.cssText='display:flex;gap:6px';
-      const mk=(html,fn,dis)=>{const b=document.createElement('button');b.className='btn btn-ghost';b.style.cssText='height:34px;padding:0 11px;font-size:15px';b.innerHTML=html;b.disabled=!!dis;if(dis)b.style.opacity='.35';b.onclick=fn;return b;};
-      g.appendChild(mk('&#8593;',()=>{const t=arr[i-1];arr[i-1]=arr[i];arr[i]=t;paint();},i===0));
-      g.appendChild(mk('&#8595;',()=>{const t=arr[i+1];arr[i+1]=arr[i];arr[i]=t;paint();},i===arr.length-1));
-      g.appendChild(mk('&#10005;',()=>{arr.splice(i,1);paint();}));
+      const itemLabel=label(it);
+      const mk=(html,aria,fn,dis)=>{const b=document.createElement('button');b.className='btn btn-ghost';b.style.cssText='height:34px;padding:0 11px;font-size:15px';b.innerHTML=html;b.setAttribute('aria-label',aria);b.title=aria;b.disabled=!!dis;if(dis)b.style.opacity='.35';b.onclick=fn;return b;};
+      g.appendChild(mk('&#8593;','Move '+itemLabel+' up',()=>{const t=arr[i-1];arr[i-1]=arr[i];arr[i]=t;paint();},i===0));
+      g.appendChild(mk('&#8595;','Move '+itemLabel+' down',()=>{const t=arr[i+1];arr[i+1]=arr[i];arr[i]=t;paint();},i===arr.length-1));
+      g.appendChild(mk('&#10005;','Remove '+itemLabel,()=>{arr.splice(i,1);paint();}));
       d.appendChild(g);box.appendChild(d);});
     if(!arr.length)box.classList.remove('show');}
   paint();
@@ -64,8 +65,10 @@ async function buildImagesPdf(files,mode){
 }
 
 function dz(panel,o){o=o||{};
-  panel.innerHTML='<div class="drop '+(o.pdf?'pdf':'')+'" id="d_drop"><input type="file" id="d_file" accept="'+(o.accept||'*/*')+'" '+(o.multiple?'multiple':'')+' hidden>'+
+  var dropLabel=(o.title||'Drop files here or click to browse')+(o.multiple?'. Multiple files allowed.':'');
+  panel.innerHTML='<div class="drop '+(o.pdf?'pdf':'')+'" id="d_drop" tabindex="0" role="button" aria-label="'+dropLabel.replace(/"/g,'&quot;')+'"><input type="file" id="d_file" accept="'+(o.accept||'*/*')+'" '+(o.multiple?'multiple':'')+' hidden aria-hidden="true" tabindex="-1">'+
     '<div class="di">'+UP+'</div><h3>'+(o.title||'Drop files here or click to browse')+'</h3><p>'+(o.sub||'')+'</p>'+
+    '<p class="d-trust">Runs locally in your browser. Nothing uploads.</p>'+
     '<div class="formats">'+(o.formats||[]).map(f=>'<span class="chip">'+f+'</span>').join('')+'</div></div>'+
     '<div class="controls" id="d_controls"></div><div class="results" id="d_results"></div><div class="actions" id="d_actions"></div><div class="status" id="d_status"></div>';
   const r={drop:$('#d_drop',panel),file:$('#d_file',panel),controls:$('#d_controls',panel),results:$('#d_results',panel),actions:$('#d_actions',panel),status:$('#d_status',panel)};

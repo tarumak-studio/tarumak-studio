@@ -20,7 +20,7 @@ function imagesToPdfTool(opt){opt=opt||{};return function(panel){
     title:opt.title||'Drop images here or click to browse',sub:opt.sub||'Pages appear in the order you add them — reorder below.'});
   let files=[];
   u.controls.className='controls';
-  u.controls.innerHTML='<div class="ctrl"><label>Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button>';
+  u.controls.innerHTML='<div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button>';
   const make=$('#make',panel);
   function refresh(){listRows(u.results,files,f=>f._nm||f.name||'image');make.disabled=!files.length;}
   dropzone(u.drop,u.file,fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
@@ -54,7 +54,7 @@ INIT['pdf-splitter']=function(panel){
     const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
     u.controls.className='controls';
     u.controls.innerHTML='<div class="seg" id="md"><button class="active" data-m="range">Extract range</button><button data-m="each">Split every page</button></div>'+
-      '<div class="ctrl" id="rg"><label>Pages (e.g. 1-3, 5)</label><input type="text" id="rng" value="1-'+count+'" style="width:160px"></div>'+
+      '<div class="ctrl" id="rg"><label for="rng">Pages (e.g. 1-3, 5)</label><input type="text" id="rng" value="1-'+count+'" style="width:160px"></div>'+
       '<div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Split PDF</button>';
     setStatus(u.status,'Loaded '+count+' pages.');
     const seg=$('#md',panel);seg.onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#md button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');$('#rg',panel).style.display=b.dataset.m==='range'?'flex':'none';};
@@ -112,7 +112,7 @@ INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos i
 INIT['scan-to-pdf']=function(panel){
   panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
     '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label>Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
+    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
     '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
   const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
   let files=[],stream=null,video=null;
@@ -141,7 +141,7 @@ INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos i
 INIT['scan-to-pdf']=function(panel){
   panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
     '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label>Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
+    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
     '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
   const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
   let files=[],stream=null,video=null;
@@ -182,7 +182,7 @@ INIT['pdf-password-protect']=function(panel){
   let file=null;
   dropzone(u.drop,u.file,fs=>{file=[...fs][0];if(!file)return;
     u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label>Password</label><input type="password" id="pw" placeholder="Enter a password"></div><div class="ctrl"><label>Confirm</label><input type="password" id="pw2" placeholder="Repeat password"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Protect PDF</button>';
+    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password</label><input type="password" id="pw" placeholder="Enter a password"></div><div class="ctrl"><label for="pw2">Confirm</label><input type="password" id="pw2" placeholder="Repeat password"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Protect PDF</button>';
     setStatus(u.status,'Ready — '+file.name+'.');
     $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value,pw2=$('#pw2',panel).value;
       if(!pw){setStatus(u.status,'Enter a password.',1);return;}if(pw!==pw2){setStatus(u.status,'Passwords do not match.',1);return;}
@@ -202,7 +202,7 @@ INIT['pdf-unlock']=function(panel){
   let file=null;
   dropzone(u.drop,u.file,async fs=>{file=[...fs][0];if(!file)return;
     u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label>Password (if required to open)</label><input type="password" id="pw" placeholder="Leave blank if none" style="width:220px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Unlock PDF</button>';
+    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password (if required to open)</label><input type="password" id="pw" placeholder="Leave blank if none" style="width:220px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Unlock PDF</button>';
     setStatus(u.status,'Ready — '+file.name+'.');
     $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value;setStatus(u.status,'Working…');
       try{const buf=await file.arrayBuffer();
@@ -224,7 +224,7 @@ INIT['pdf-page-rotator']=function(panel){
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
     const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
     u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label>Rotate by</label><div class="seg" id="ang"><button class="active" data-a="90">90&deg;</button><button data-a="180">180&deg;</button><button data-a="270">270&deg;</button></div></div><div class="ctrl"><label>Pages (blank = all)</label><input type="text" id="rng" placeholder="e.g. 1-3, 5" style="width:150px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Rotate PDF</button>';
+    u.controls.innerHTML='<div class="ctrl"><label>Rotate by</label><div class="seg" id="ang"><button class="active" data-a="90">90&deg;</button><button data-a="180">180&deg;</button><button data-a="270">270&deg;</button></div></div><div class="ctrl"><label for="rng">Pages (blank = all)</label><input type="text" id="rng" placeholder="e.g. 1-3, 5" style="width:150px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Rotate PDF</button>';
     $('#ang',panel).onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#ang button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');};
     setStatus(u.status,'Loaded '+count+' pages.');
     $('#go',panel).onclick=async()=>{const ang=parseInt($('#ang button.active',panel).dataset.a,10);
@@ -243,7 +243,7 @@ INIT['pdf-page-remover']=function(panel){
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
     const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
     u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label>Pages to remove (of '+count+')</label><input type="text" id="rng" placeholder="e.g. 2, 4-6" style="width:200px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Remove pages</button>';
+    u.controls.innerHTML='<div class="ctrl"><label for="rng">Pages to remove (of '+count+')</label><input type="text" id="rng" placeholder="e.g. 2, 4-6" style="width:200px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Remove pages</button>';
     setStatus(u.status,'Loaded '+count+' pages.');
     $('#go',panel).onclick=async()=>{const rem=parseRanges($('#rng',panel).value,count);
       if(!rem.length){setStatus(u.status,'Enter which pages to remove.',1);return;}
@@ -275,7 +275,7 @@ INIT['pdf-organizer']=function(panel){
       card.appendChild(cv);
       const pn=document.createElement('div');pn.className='pn';pn.textContent='Page '+it.n;card.appendChild(pn);
       const acts=document.createElement('div');acts.className='acts';
-      acts.innerHTML='<button title="Rotate">&#8635;</button><button title="Delete">&#10005;</button>';
+      acts.innerHTML='<button title="Rotate" aria-label="Rotate page">&#8635;</button><button title="Delete" aria-label="Delete page">&#10005;</button>';
       acts.children[0].onclick=ev=>{ev.stopPropagation();it.rot=(it.rot+90)%360;paint();};
       acts.children[1].onclick=ev=>{ev.stopPropagation();if(order.length>1){order.splice(idx,1);paint();}};
       card.appendChild(acts);
@@ -297,7 +297,7 @@ INIT['pdf-organizer']=function(panel){
 INIT['scan-to-pdf']=function(panel){
   panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
     '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label>Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
+    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
     '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
   const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
   let files=[],stream=null,video=null;
@@ -325,7 +325,7 @@ INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos i
 INIT['scan-to-pdf']=function(panel){
   panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
     '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label>Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
+    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
     '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
   const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
   let files=[],stream=null,video=null;
@@ -352,7 +352,7 @@ INIT['pdf-reader']=function(panel){
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;setStatus(u.status,'Opening…');
     try{const pdf=await pdfjsDoc(f);let cur=1,scale=1.3;
       u.controls.className='controls';
-      u.controls.innerHTML='<button class="btn btn-ghost" id="prev">&#8592; Prev</button><div class="ctrl"><label>Page</label><span class="val" id="pos"></span></div><button class="btn btn-ghost" id="next">Next &#8594;</button><div class="ctrl-spacer"></div><button class="btn btn-ghost" id="zo">&#8722;</button><button class="btn btn-ghost" id="zi">+</button>';
+      u.controls.innerHTML='<button class="btn btn-ghost" id="prev">&#8592; Prev</button><div class="ctrl"><label>Page</label><span class="val" id="pos"></span></div><button class="btn btn-ghost" id="next">Next &#8594;</button><div class="ctrl-spacer"></div><button class="btn btn-ghost" id="zo" aria-label="Zoom out">&#8722;</button><button class="btn btn-ghost" id="zi" aria-label="Zoom in">+</button>';
       const stage=document.createElement('div');stage.className='preview show';u.results.classList.add('show');u.results.innerHTML='';u.results.appendChild(stage);
       async function show(){const r=await renderPage(pdf,cur,scale);stage.innerHTML='';stage.appendChild(r.canvas);$('#pos',panel).textContent=cur+' / '+pdf.numPages;}
       $('#prev',panel).onclick=()=>{if(cur>1){cur--;show();}};

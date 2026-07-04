@@ -1,0 +1,237 @@
+/* mega-menu.css — Tools navigation mega menu.
+ *
+ * Deliberately NOT Tailwind. This site has no build pipeline (no npm,
+ * no bundler, no PostCSS) — every other stylesheet is hand-authored CSS
+ * against the existing custom-property system in main.css. Introducing
+ * Tailwind here would mean either a runtime CDN (no purge, worse
+ * Lighthouse score — the opposite of what was asked for) or bolting on
+ * a whole new build toolchain to redesign one menu. This file extends
+ * the site's own design tokens (--p1, --text-dim, --ease, etc.) instead,
+ * so it's a natural evolution of the existing system, not a second
+ * styling language living next to it.
+ *
+ * Loaded on every page via header-chrome.js's HEAD_LINKS — one file,
+ * one link, no per-page duplication.
+ */
+
+/* ── Container: same trigger/positioning as before, wider + taller to
+   fit two panels. Motion upgraded from a plain fade+slide to fade +
+   scale + slide, matching the "premium SaaS" opening feel of Linear/
+   Vercel-style menus while keeping the exact easing curve (var(--ease))
+   already used for every other transition on the site. ── */
+.nav-tools-panel.mega {
+  width: 640px;
+  padding: 0;
+  display: block;
+  grid-template-columns: none;
+  transform: translateX(-50%) translateY(-8px) scale(.97);
+  transform-origin: top center;
+  overflow: hidden;
+}
+.nav-tools-drop:hover .nav-tools-panel.mega,
+.nav-tools-drop:focus-within .nav-tools-panel.mega {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.mega { display: flex; }
+.mega-rail {
+  width: 264px; flex-shrink: 0; padding: 10px;
+  border-right: 1px solid rgba(255,255,255,.07);
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+/* ── Category card ── */
+.mega-cat {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 10px; border-radius: 10px;
+  text-decoration: none; color: inherit;
+  border: 1px solid transparent;
+  transition: background 180ms var(--ease), border-color 180ms var(--ease), transform 180ms var(--ease);
+  opacity: 0; transform: translateX(-6px);
+  animation: megaCatIn 320ms var(--ease) forwards;
+}
+/* Staggered entrance — each card ~35ms after the last, capped well
+   under the "avoid excessive motion" line (5 cards × 35ms = 175ms). */
+.mega-cat:nth-child(1) { animation-delay: 20ms; }
+.mega-cat:nth-child(2) { animation-delay: 55ms; }
+.mega-cat:nth-child(3) { animation-delay: 90ms; }
+.mega-cat:nth-child(4) { animation-delay: 125ms; }
+.mega-cat:nth-child(5) { animation-delay: 160ms; }
+@keyframes megaCatIn { to { opacity: 1; transform: translateX(0); } }
+
+.mega-cat:hover, .mega-cat:focus-visible, .mega-cat.active {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.mega-cat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.mega-cat-ico {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+}
+.mega-cat-ico svg { width: 18px; height: 18px; }
+.mega-cat:hover .mega-cat-ico, .mega-cat.active .mega-cat-ico {
+  transform: rotate(-6deg) scale(1.08);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.mega-cat-body { flex: 1; min-width: 0; }
+.mega-cat-top {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--fd); font-weight: 600; font-size: 13.5px; color: var(--text);
+}
+.mega-cat-count {
+  font-family: var(--fb); font-size: 10.5px; font-weight: 600;
+  color: var(--text-faint); background: rgba(255,255,255,.06);
+  padding: 1px 6px; border-radius: 100px;
+}
+.mega-cat-desc {
+  display: block; font-size: 11.5px; color: var(--text-dim);
+  margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mega-cat-arrow {
+  width: 14px; height: 14px; color: var(--text-faint); flex-shrink: 0;
+  transition: transform 200ms var(--ease), color 200ms var(--ease);
+}
+.mega-cat:hover .mega-cat-arrow, .mega-cat.active .mega-cat-arrow {
+  transform: translateX(3px); color: var(--accent);
+}
+
+/* ── Featured tabs (Popular / AI-Powered) — real, honest data only.
+   See header-chrome.js for why "New"/"Trending" aren't here. ── */
+.mega-tabs {
+  display: flex; gap: 4px; margin-top: 8px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.mega-tab {
+  flex: 1; padding: 7px 8px; border-radius: 8px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-dim);
+  font-family: var(--fb); font-size: 12px; font-weight: 600;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.mega-tab:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.mega-tab.active { background: rgba(34,211,238,.12); color: var(--p1); }
+.mega-tab:focus-visible { outline: 2px solid var(--p1); outline-offset: 2px; }
+
+/* ── Preview panel (right) ── */
+.mega-preview {
+  flex: 1; padding: 20px 22px; display: flex; flex-direction: column; min-width: 0;
+}
+.mega-preview-head {
+  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;
+  position: relative;
+}
+/* Soft glow blob behind the icon — a restrained nod to the illustration
+   panel the brief asked for, using the same radial-glow technique the
+   homepage hero already uses (--accent set inline per category/tab). */
+.mega-preview-head::before {
+  content: ''; position: absolute; top: -20px; left: -20px; width: 120px; height: 120px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.mega-preview-ico {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.mega-preview-ico svg { width: 24px; height: 24px; }
+.mega-preview-head h3 { font-family: var(--fd); font-size: 17px; font-weight: 700; color: var(--text); position: relative; z-index: 1; }
+.mega-preview-head p { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; position: relative; z-index: 1; }
+
+.mega-preview-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+.mega-tool {
+  display: flex; align-items: center; gap: 6px; padding: 9px 11px; border-radius: 9px;
+  font-size: 12.5px; font-weight: 500; color: var(--text-dim); text-decoration: none;
+  background: rgba(255,255,255,.03); border: 1px solid transparent;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background 150ms var(--ease), color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.mega-tool:hover { background: rgba(255,255,255,.06); color: var(--text); border-color: rgba(255,255,255,.08); }
+.mega-tool.starred { color: var(--text); font-weight: 600; }
+.mega-star { color: #fbbf24; font-size: 11px; flex-shrink: 0; }
+
+.mega-explore {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: auto;
+  font-size: 12.5px; font-weight: 600; color: var(--accent); text-decoration: none;
+  padding: 8px 0;
+}
+.mega-explore svg { width: 13px; height: 13px; transition: transform 200ms var(--ease); }
+.mega-explore:hover svg { transform: translateX(3px); }
+
+/* Cross-fade when the preview content swaps (category or tab change) —
+   handled by mega-menu.js toggling this class briefly, not a hard cut. */
+.mega-preview.swapping { animation: megaSwap 220ms var(--ease); }
+@keyframes megaSwap { 0% { opacity: .3; transform: translateY(2px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* ── AI prompt bar — honest framing: this submits to the REAL tool
+   search (the existing /?q= handler), phrased as a task rather than
+   a keyword search. Not a chat, not a fake assistant. ── */
+.mega-footer {
+  border-top: 1px solid rgba(255,255,255,.07);
+  padding: 12px 16px; grid-column: 1 / -1;
+}
+.mega-ai-prompt {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 8px 10px;
+  transition: border-color 180ms var(--ease), background 180ms var(--ease);
+}
+.mega-ai-prompt:focus-within {
+  border-color: rgba(244,114,182,.4);
+  background: rgba(244,114,182,.05);
+}
+.mega-ai-ico { width: 15px; height: 15px; color: #f472b6; flex-shrink: 0; }
+.mega-ai-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: var(--fb); font-size: 12.5px; color: var(--text);
+}
+.mega-ai-input::placeholder { color: var(--text-faint); }
+.mega-ai-go {
+  width: 24px; height: 24px; border-radius: 7px; border: none; cursor: pointer; flex-shrink: 0;
+  background: rgba(255,255,255,.06); color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.mega-ai-go svg { width: 13px; height: 13px; }
+.mega-ai-prompt:focus-within .mega-ai-go { background: #f472b6; color: #1a0a14; }
+.mega-ai-go:focus-visible { outline: 2px solid #f472b6; outline-offset: 2px; }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   Desktop/laptop (≥1024px): full two-panel mega menu, as above.
+   Tablet (768–1023px): the two-panel hover model doesn't translate to
+   a touch device with no hover state — collapses to a single column
+   of full category cards (still premium, no dead hover-only content).
+   Mobile (<768px): the existing flat mobile-menu drawer already handles
+   small screens well (confirmed working, touch-optimized) — left as
+   the deliberate choice rather than force-fitting a hover mega menu
+   onto a phone. This matches how Linear/Vercel/Stripe themselves
+   simplify mega menus below tablet width, not a shortcut.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+  .nav-tools-panel.mega { width: 320px; }
+  .mega { flex-direction: column; }
+  .mega-rail { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .mega-preview { display: none; } /* no hover target on touch — rail links go straight to category pages */
+  .mega-cat-desc { display: none; }
+}
+@media (max-width: 900px) { .nav-tools-panel.mega { display: none !important; } }
+
+/* ═══════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .nav-tools-panel.mega,
+  .nav-tools-panel.mega .mega-cat,
+  .mega-cat-ico, .mega-cat-arrow, .mega-explore svg, .mega-preview.swapping {
+    animation: none !important; transition-duration: 1ms !important;
+  }
+  .mega-cat { opacity: 1; transform: none; }
+  .nav-tools-drop:hover .nav-tools-panel.mega,
+  .nav-tools-drop:focus-within .nav-tools-panel.mega { transform: translateX(-50%) translateY(0) scale(1); }
+}

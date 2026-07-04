@@ -10,24 +10,37 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
      popular: 3-4 hand-picked tool slugs shown as chips.
   ────────────────────────────────────────────────── */
   const CAT_META={
+    /* popular[] slugs are verified against the real TOOLS array by
+       header-chrome.js at build time (throws if one doesn't resolve) —
+       this caught 5 stale slugs here (merge-pdf, split-pdf, compress-pdf,
+       og-image-generator, color-palette) that had been silently vanishing
+       from the live nav dropdown for who knows how long, since the old
+       bake logic just skipped anything it couldn't find. Fixed to the
+       real slugs. The first TWO entries in each popular[] are treated as
+       the "starred" picks in the mega menu \u2014 order here is meaningful. */
     image:{
       tagline:'Compress, resize, crop and optimize images instantly.',
-      popular:['image-compressor','background-remover','image-resizer','jpg-to-png']
+      desc:'Compress, resize, remove backgrounds and optimize images.',
+      popular:['background-remover','image-compressor','image-resizer','heic-to-jpg']
     },
     pdf:{
       tagline:'Merge, split, rotate and convert PDFs — fully in-browser.',
-      popular:['merge-pdf','pdf-to-jpg','split-pdf','compress-pdf']
+      desc:'Merge, split, compress and convert PDFs, no upload required.',
+      popular:['pdf-merger','pdf-compressor','pdf-splitter','pdf-to-jpg']
     },
     developer:{
       tagline:'JSON, Regex, Base64, color and SEO utilities for builders.',
+      desc:'JSON, Regex, Base64 and color utilities built for developers.',
       popular:['json-formatter','regex-tester','color-converter','base64-encoder']
     },
     marketing:{
       tagline:'UTM builders, OG images, CTAs and campaign tools.',
-      popular:['utm-builder','og-image-generator','qr-code-generator','color-palette']
+      desc:'UTM links, OG images and CTAs for marketers and creators.',
+      popular:['utm-builder','og-image-gen','qr-code-generator','color-palette-gen']
     },
     converter:{
       tagline:'Convert between popular image, document and text formats.',
+      desc:'Convert between image, document and text formats instantly.',
       popular:['word-to-pdf','markdown-to-html','svg-to-png','png-to-jpg']
     }
   };

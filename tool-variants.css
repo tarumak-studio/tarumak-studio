@@ -1,34 +1,35 @@
 /* tool-variants.css — Tarumak Studio tool-page variant system
  *
- * Styles the 6 hero types (compare / scan / workflow / code / live /
- * convert) and the new modular content blocks (use cases, tips, common
- * mistakes, comparison, workflow timeline) introduced to break up the
- * "every tool page looks identical" pattern.
+ * SECTION 1 (below): the Hero Visual system. Every tool's hero is now
+ * chosen by slug from hero-map.js and drawn by hero-render.js at build
+ * time — see those two files for the source of truth. This replaces the
+ * previous 6-type system (compare/scan/workflow/code/live/convert),
+ * which fell back to a single hardcoded type per category whenever a
+ * tool had no bespoke override (CAT_DEFAULTS.<cat>.hero in
+ * tool-content.js) — that one-value fallback was the root cause of every
+ * image tool (and, less visibly, every unbadged developer/marketing/pdf
+ * tool) rendering the same generic illustration.
  *
- * Hero sizing (this round): every hero type's footprint was cut to
- * roughly 55-65% of its original linear dimensions, and the shared
- * shell's own padding/min-height cut by nearly half again on top of
- * that — a real, measured problem, not a guess: the old shell
- * (28px padding + 180px min-height) plus a 220px-tall compare hero
- * added up to ~276px before a single pixel of the actual upload tool
- * was reached, which on a small phone viewport pushed that upload
- * area below the fold entirely. The new numbers put the upload area
- * back in the first viewport on mobile while keeping every
- * illustration recognizable — nothing was hidden, only scaled down.
+ * SECTION 2 (unchanged from the previous round): use-cases grid, tips /
+ * common-mistakes columns, comparison block, workflow timeline, and the
+ * shared section-reveal animation. Nothing here changed.
  *
- * Design contract, matching mega-menu.css:
- *   - Every color/spacing/font value below is an existing :root token
- *     or a category accent already used in the mega menu — no new
- *     palette introduced.
- *   - transform/opacity/color only for animation — no layout-shifting
- *     properties, matching the site's existing performance rule.
- *   - Every animation has a prefers-reduced-motion fallback.
- *   - Decorative only: nothing in a hero is required to understand or
- *     use the page — it degrades to a static illustration with JS off,
- *     same principle as the mega menu's no-JS default preview.
+ * Design contract (unchanged):
+ *   - Every color/spacing/font value below is an existing :root token —
+ *     no new palette introduced.
+ *   - transform / opacity / filter ONLY for animation — no layout-
+ *     shifting properties (a couple of spots in the previous hero CSS
+ *     animated `top`, which is not GPU-safe; every replacement below
+ *     uses translateY instead).
+ *   - Every animation has a prefers-reduced-motion fallback that resolves
+ *     to a meaningful static end-state, not a blank frame.
+ *   - content-visibility:auto on the shared shell means browsers that
+ *     support it skip paint/animation work for any hero currently
+ *     off-screen, with no JS required — same "decorative, degrades
+ *     gracefully" principle as the rest of this file.
  */
 
-/* ============ Shared hero shell ============ */
+/* ============ Shared hero shell (unchanged) ============ */
 .tp-hero-visual {
   margin-top: 14px;
   border-radius: 16px;
@@ -38,6 +39,10 @@
   min-height: 100px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
 }
 .tp-hero-visual::before {
   content: '';
@@ -45,166 +50,285 @@
   background: radial-gradient(480px 220px at 15% 0%, color-mix(in srgb, var(--tp-accent, var(--p1)) 14%, transparent), transparent 70%);
   pointer-events: none;
 }
-@media (max-width: 640px) { .tp-hero-visual { padding: 10px 14px; border-radius: 14px; min-height: 64px; margin-top: 10px; } }
-
-/* ============ 1. COMPARE hero (before/after slider) ============ */
-.tp-compare { position: relative; height: 100px; border-radius: 12px; overflow: hidden; background: var(--surface-2); }
-@media (max-width: 640px) { .tp-compare { height: 64px; } }
-.tp-compare-after, .tp-compare-before {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: var(--fm); font-size: 11px; color: var(--text-faint); letter-spacing: .04em;
-}
-.tp-compare-before {
-  background:
-    linear-gradient(45deg, rgba(255,255,255,.06) 25%, transparent 25%) 0 0/16px 16px,
-    linear-gradient(-45deg, rgba(255,255,255,.06) 25%, transparent 25%) 0 0/16px 16px,
-    linear-gradient(45deg, transparent 75%, rgba(255,255,255,.06) 75%) 0 0/16px 16px,
-    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.06) 75%) 0 0/16px 16px,
-    var(--bg-2);
-}
-.tp-compare--checkerboard .tp-compare-before { background: var(--surface-2); }
-.tp-compare--checkerboard .tp-compare-after {
-  background:
-    linear-gradient(45deg, rgba(255,255,255,.07) 25%, transparent 25%) 0 0/18px 18px,
-    linear-gradient(-45deg, rgba(255,255,255,.07) 25%, transparent 25%) 0 0/18px 18px,
-    linear-gradient(45deg, transparent 75%, rgba(255,255,255,.07) 75%) 0 0/18px 18px,
-    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.07) 75%) 0 0/18px 18px,
-    var(--bg-2);
-}
-.tp-compare-after {
-  clip-path: inset(0 0 0 var(--tp-split, 50%));
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 22%, var(--bg-2)), var(--bg-2));
-}
-.tp-compare-icon { width: 24px; height: 24px; color: var(--tp-accent, var(--p1)); opacity: .85; }
-.tp-compare-icon svg { width: 100%; height: 100%; }
-.tp-compare-divider {
-  position: absolute; top: 0; bottom: 0; left: var(--tp-split, 50%);
-  width: 2px; background: var(--tp-accent, var(--p1)); transform: translateX(-1px);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--tp-accent, var(--p1)) 60%, transparent);
-}
-.tp-compare-handle {
-  position: absolute; top: 50%; left: var(--tp-split, 50%); transform: translate(-50%, -50%);
-  width: 26px; height: 26px; border-radius: 50%; background: var(--tp-accent, var(--p1));
-  display: flex; align-items: center; justify-content: center; color: #06121a;
-  box-shadow: 0 6px 18px -4px rgba(0,0,0,.5); cursor: ew-resize;
-}
-.tp-compare-handle svg { width: 13px; height: 13px; }
-.tp-compare-range {
-  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
-  opacity: 0; cursor: ew-resize; -webkit-appearance: none; appearance: none;
-}
-.tp-compare-label { position: absolute; top: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); background: rgba(10,13,24,.55); padding: 3px 8px; border-radius: 100px; }
-.tp-compare-label.is-before { left: 10px; }
-.tp-compare-label.is-after { right: 10px; }
-.tp-compare--meter .tp-compare-after::after {
-  content: attr(data-meter);
-  font-family: var(--fm); font-size: 12px; font-weight: 700; color: var(--tp-accent, var(--p1));
-}
-.tp-compare--meter .tp-compare-before::after {
-  content: attr(data-meter-before);
-  font-family: var(--fm); font-size: 12px; font-weight: 700; color: var(--text-faint);
-}
-/* Self-animating sweep — the only one of the 6 hero types that had no
-   motion at all. Demonstrates the before/after concept on its own
-   without needing a user to touch the (real, functional) slider.
-   Divider and handle animate in lockstep with the clip-path so the
-   visible split edge and the line/handle graphic never disagree.
-   Freezes the instant a visitor actually drags the real range input
-   (see tool-hero.js's 'input' listener, which adds .tp-compare--active). */
-@keyframes tpCompareSweep { 0%, 100% { clip-path: inset(0 0 0 30%); } 50% { clip-path: inset(0 0 0 70%); } }
-@keyframes tpCompareSweepX { 0%, 100% { left: 30%; } 50% { left: 70%; } }
-.tp-compare:not(.tp-compare--active) .tp-compare-after { animation: tpCompareSweep 6s ease-in-out infinite; }
-.tp-compare:not(.tp-compare--active) .tp-compare-divider,
-.tp-compare:not(.tp-compare--active) .tp-compare-handle { animation: tpCompareSweepX 6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .tp-compare-after, .tp-compare-divider, .tp-compare-handle { animation: none !important; }
+.tp-hero-visual > * { position: relative; width: 100%; }
+@media (max-width: 640px) {
+  .tp-hero-visual { padding: 10px 14px; border-radius: 14px; min-height: 64px; margin-top: 10px; contain-intrinsic-size: auto 64px; }
 }
 
-/* ============ 2. SCAN hero (OCR: document + scan line + language badges) ============ */
-.tp-scan { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.tp-scan-doc { position: relative; width: 62px; height: 80px; flex-shrink: 0; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--border-2); overflow: hidden; }
-.tp-scan-line { position: absolute; left: 5px; right: 5px; height: 4px; border-radius: 2px; background: var(--surface); }
-.tp-scan-line:nth-child(1) { top: 10px; width: 70%; } .tp-scan-line:nth-child(2) { top: 19px; width: 85%; }
-.tp-scan-line:nth-child(3) { top: 28px; width: 60%; } .tp-scan-line:nth-child(4) { top: 37px; width: 78%; }
-.tp-scan-line:nth-child(5) { top: 46px; width: 50%; }
-.tp-scan-beam {
-  position: absolute; left: 0; right: 0; height: 18px; top: -18px;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tp-accent, var(--p1)) 35%, transparent), transparent);
-  animation: tpScanSweep 2.6s ease-in-out infinite;
-}
-@keyframes tpScanSweep { 0% { top: -18px; } 50% { top: 76px; } 100% { top: -18px; } }
-.tp-scan-langs { display: flex; flex-wrap: wrap; gap: 6px; max-width: 300px; }
-.tp-scan-lang { font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); }
-.tp-scan-lang.is-live { color: var(--tp-accent, var(--p1)); border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 35%, var(--border)); }
-@media (prefers-reduced-motion: reduce) { .tp-scan-beam { animation: none; top: 40%; } }
-@media (max-width: 640px) { .tp-scan-doc { width: 52px; height: 68px; } .tp-scan-langs { max-width: 220px; } }
+/* ============ Shared atoms: format tile, badge-flow, page stack ============ */
+.tp-h-tile { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 16px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border-2); }
+.tp-h-tile svg { width: 20px; height: 20px; color: var(--tp-accent, var(--p1)); }
+.tp-h-tile-label { font-family: var(--fm); font-weight: 700; font-size: 12px; color: var(--text); }
+.tp-h-tile-sub { font-size: 10px; color: var(--text-faint); }
 
-/* ============ 3. WORKFLOW hero (stacked/fanning documents) ============ */
-.tp-stack { position: relative; height: 84px; display: flex; align-items: center; justify-content: center; }
-@media (max-width: 640px) { .tp-stack { height: 60px; } }
-.tp-stack-page {
-  position: absolute; width: 54px; height: 68px; border-radius: 6px;
-  background: var(--surface-2); border: 1px solid var(--border-2);
-  box-shadow: 0 8px 18px -12px rgba(0,0,0,.5);
-  transition: transform 220ms var(--ease);
-}
-@media (max-width: 640px) { .tp-stack-page { width: 40px; height: 50px; } }
-.tp-stack-page::before { content: ''; position: absolute; top: 10px; left: 7px; right: 7px; height: 3px; border-radius: 2px; background: var(--surface); }
-.tp-stack-page::after { content: ''; position: absolute; top: 18px; left: 7px; right: 15px; height: 3px; border-radius: 2px; background: var(--surface); }
-.tp-stack-page:nth-child(1) { transform: translateX(-20px) rotate(-8deg); z-index: 1; }
-.tp-stack-page:nth-child(2) { transform: translateX(0) rotate(0deg); z-index: 3; border-color: color-mix(in srgb, var(--tp-accent, var(--p2)) 40%, var(--border-2)); }
-.tp-stack-page:nth-child(3) { transform: translateX(20px) rotate(8deg); z-index: 2; }
-.tp-stack--merge .tp-stack-page:nth-child(1) { animation: tpStackIn1 3.2s ease-in-out infinite; }
-.tp-stack--merge .tp-stack-page:nth-child(3) { animation: tpStackIn3 3.2s ease-in-out infinite; }
-@keyframes tpStackIn1 { 0%, 15% { transform: translateX(-20px) rotate(-8deg); } 45%, 70% { transform: translateX(-3px) rotate(-1deg); } 100% { transform: translateX(-20px) rotate(-8deg); } }
-@keyframes tpStackIn3 { 0%, 15% { transform: translateX(20px) rotate(8deg); } 45%, 70% { transform: translateX(3px) rotate(1deg); } 100% { transform: translateX(20px) rotate(8deg); } }
-.tp-stack-arrow { position: absolute; bottom: 4px; color: var(--text-faint); width: 13px; height: 13px; }
-@media (prefers-reduced-motion: reduce) { .tp-stack--merge .tp-stack-page { animation: none !important; } }
-
-/* ============ 4. CODE hero (console/editor mock) ============ */
-.tp-code { border-radius: 10px; background: #0b0e19; border: 1px solid var(--border-2); overflow: hidden; font-family: var(--fm); font-size: 11px; line-height: 1.5; }
-.tp-code-bar { display: flex; gap: 5px; padding: 7px 10px; background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border); }
-.tp-code-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-2); }
-.tp-code-body { padding: 9px 12px; overflow-x: auto; }
-.tp-code-line { white-space: pre; opacity: 0; animation: tpCodeReveal 420ms var(--ease) forwards; }
-.tp-code-line:nth-child(1) { animation-delay: .05s; } .tp-code-line:nth-child(2) { animation-delay: .16s; }
-.tp-code-line:nth-child(3) { animation-delay: .27s; } .tp-code-line:nth-child(4) { animation-delay: .38s; }
-.tp-code-line:nth-child(5) { animation-delay: .49s; } .tp-code-line:nth-child(6) { animation-delay: .60s; }
-@keyframes tpCodeReveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.tp-tok-key { color: #a78bfa; } .tp-tok-str { color: #34d399; } .tp-tok-punc { color: var(--text-faint); }
-.tp-tok-num { color: #fb923c; } .tp-tok-ok { color: var(--tp-accent, #34d399); font-weight: 700; }
-@media (prefers-reduced-motion: reduce) { .tp-code-line { animation: none; opacity: 1; } }
-
-/* ============ 5. LIVE hero (animated preview card) ============ */
-.tp-live { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.tp-live-card {
-  width: 120px; height: 76px; border-radius: 9px; flex-shrink: 0;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 85%, #000), color-mix(in srgb, var(--tp-accent, var(--p1)) 40%, #000));
-  position: relative; overflow: hidden; box-shadow: 0 12px 24px -14px rgba(0,0,0,.55);
-  animation: tpLivePulse 3.4s ease-in-out infinite;
-}
-@media (max-width: 640px) { .tp-live-card { width: 96px; height: 62px; } }
-.tp-live-card::before { content: ''; position: absolute; left: 9px; top: 9px; width: 4px; bottom: 9px; border-radius: 2px; background: rgba(255,255,255,.55); }
-.tp-live-card .tp-live-title { position: absolute; left: 18px; top: 12px; right: 10px; height: 7px; border-radius: 3px; background: rgba(255,255,255,.85); }
-.tp-live-card .tp-live-sub { position: absolute; left: 18px; top: 24px; width: 60%; height: 5px; border-radius: 3px; background: rgba(255,255,255,.45); }
-.tp-live-card .tp-live-badge { position: absolute; right: 9px; bottom: 9px; width: 19px; height: 19px; border-radius: 5px; background: rgba(255,255,255,.9); }
-@keyframes tpLivePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
-.tp-live-qr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 44px; height: 44px; flex-shrink: 0; }
-.tp-live-qr span { border-radius: 2px; background: var(--tp-accent, var(--p1)); opacity: .18; }
-.tp-live-qr span.on { opacity: .95; }
-@media (prefers-reduced-motion: reduce) { .tp-live-card { animation: none; } }
-
-/* ============ 6. CONVERT hero (format A -> arrow -> format B) ============ */
-.tp-convert { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; padding: 2px 0; }
-.tp-convert-badge {
-  min-width: 60px; padding: 9px 14px; border-radius: 10px; text-align: center;
-  background: var(--surface-2); border: 1px solid var(--border-2);
-  font-family: var(--fm); font-weight: 700; font-size: 13px; color: var(--text);
-}
-.tp-convert-badge.is-target { border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 45%, var(--border-2)); color: var(--tp-accent, var(--p1)); }
-.tp-convert-arrow { width: 22px; height: 22px; color: var(--tp-accent, var(--p1)); flex-shrink: 0; animation: tpArrowNudge 1.8s ease-in-out infinite; }
+.tp-h-flow { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; width: 100%; }
+.tp-h-flow--chain { gap: 10px; }
+.tp-h-badge { min-width: 64px; padding: 9px 14px; border-radius: 10px; text-align: center; background: var(--surface-2); border: 1px solid var(--border-2); font-family: var(--fm); font-weight: 700; font-size: 12.5px; color: var(--text); position: relative; }
+.tp-h-badge--to { border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 45%, var(--border-2)); color: var(--tp-accent, var(--p1)); }
+.tp-h-note { display: block; font-size: 10px; font-weight: 700; color: var(--ok); margin-top: 2px; }
+.tp-h-flow-arrow { width: 20px; height: 20px; color: var(--tp-accent, var(--p1)); flex-shrink: 0; animation: tpArrowNudge 1.8s ease-in-out infinite; }
+.tp-h-flow-arrow svg { width: 100%; height: 100%; }
 @keyframes tpArrowNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
-@media (prefers-reduced-motion: reduce) { .tp-convert-arrow { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-flow-arrow { animation: none; } }
+
+.tp-h-stack { position: relative; height: 72px; width: 72px; margin: 0 auto; flex-shrink: 0; }
+.tp-h-page { position: absolute; inset: 0; width: 48px; height: 62px; margin: auto; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border-2); box-shadow: 0 8px 18px -12px rgba(0,0,0,.5); }
+.tp-h-page:nth-child(1) { transform: translateX(-16px) rotate(-7deg); z-index: 1; }
+.tp-h-page:nth-child(2) { transform: translateX(0) rotate(0deg); z-index: 3; border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 40%, var(--border-2)); }
+.tp-h-page:nth-child(3) { transform: translateX(16px) rotate(7deg); z-index: 2; }
+.tp-h-stack-arrow { width: 18px; height: 18px; color: var(--tp-accent, var(--p1)); margin-left: 10px; }
+.tp-h-stack--merge .tp-h-page:nth-child(1) { animation: tpMergeIn1 3.2s ease-in-out infinite; }
+.tp-h-stack--merge .tp-h-page:nth-child(3) { animation: tpMergeIn3 3.2s ease-in-out infinite; }
+@keyframes tpMergeIn1 { 0%, 15% { transform: translateX(-16px) rotate(-7deg); } 45%, 70% { transform: translateX(-2px) rotate(-1deg); } 100% { transform: translateX(-16px) rotate(-7deg); } }
+@keyframes tpMergeIn3 { 0%, 15% { transform: translateX(16px) rotate(7deg); } 45%, 70% { transform: translateX(2px) rotate(1deg); } 100% { transform: translateX(16px) rotate(7deg); } }
+.tp-h-stack--split .tp-h-page:nth-child(1) { animation: tpSplitOut1 3.2s ease-in-out infinite; }
+.tp-h-stack--split .tp-h-page:nth-child(3) { animation: tpSplitOut3 3.2s ease-in-out infinite; }
+@keyframes tpSplitOut1 { 0%, 15% { transform: translateX(-2px) rotate(-1deg); } 45%, 70% { transform: translateX(-22px) rotate(-9deg); } 100% { transform: translateX(-2px) rotate(-1deg); } }
+@keyframes tpSplitOut3 { 0%, 15% { transform: translateX(2px) rotate(1deg); } 45%, 70% { transform: translateX(22px) rotate(9deg); } 100% { transform: translateX(2px) rotate(1deg); } }
+.tp-h-stack--reorder .tp-h-page:nth-child(1) { animation: tpReorderA 3.4s ease-in-out infinite; }
+.tp-h-stack--reorder .tp-h-page:nth-child(3) { animation: tpReorderB 3.4s ease-in-out infinite; }
+@keyframes tpReorderA { 0%, 20% { transform: translateX(-16px) rotate(-7deg); } 50%, 70% { transform: translateX(16px) rotate(7deg); } 100% { transform: translateX(-16px) rotate(-7deg); } }
+@keyframes tpReorderB { 0%, 20% { transform: translateX(16px) rotate(7deg); } 50%, 70% { transform: translateX(-16px) rotate(-7deg); } 100% { transform: translateX(16px) rotate(7deg); } }
+.tp-h-drag-ico { position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px; color: var(--text-faint); }
+.tp-h-stack--remove .tp-h-page:nth-child(2) { animation: tpRemove 3s ease-in-out infinite; }
+@keyframes tpRemove { 0%, 20% { transform: translateX(0) rotate(0); opacity: 1; } 50% { transform: translateX(38px) rotate(10deg); opacity: 0; } 51% { transform: translateX(-16px) rotate(-7deg); opacity: 0; } 65%,100% { transform: translateX(0) rotate(0); opacity: 1; } }
+.tp-h-trash-ico { position: absolute; bottom: -4px; right: 2px; width: 16px; height: 16px; color: var(--bad); }
+.tp-h-stack--preview .tp-h-page:nth-child(1),
+.tp-h-stack--preview .tp-h-page:nth-child(3) { opacity: .6; }
+@media (prefers-reduced-motion: reduce) {
+  .tp-h-stack--merge .tp-h-page, .tp-h-stack--split .tp-h-page,
+  .tp-h-stack--reorder .tp-h-page, .tp-h-stack--remove .tp-h-page { animation: none !important; }
+}
+@media (max-width: 640px) { .tp-h-stack { height: 56px; width: 56px; } .tp-h-page { width: 38px; height: 48px; } }
+
+/* ============ Comparison (Background Remover only) ============ */
+.tp-h-compare { position: relative; height: 76px; width: 100%; border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+.tp-h-compare-before, .tp-h-compare-after { position: absolute; inset: 0; }
+.tp-h-compare-before {
+  background: linear-gradient(45deg, rgba(255,255,255,.06) 25%, transparent 25%) 0 0/14px 14px,
+    linear-gradient(-45deg, rgba(255,255,255,.06) 25%, transparent 25%) 0 0/14px 14px,
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,.06) 75%) 0 0/14px 14px,
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.06) 75%) 0 0/14px 14px, var(--bg-2);
+}
+.tp-h-compare-after { clip-path: inset(0 0 0 40%); background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 24%, var(--bg-2)), var(--bg-2)); animation: tpCompareSweep 6s ease-in-out infinite; }
+/* The divider stays at a fixed center position — only its opacity
+   breathes (GPU-safe). Earlier drafts animated `left` to track the
+   clip-path sweep, but `left` is a layout-triggering property; this
+   codebase's own convention (see tpCompareSweep below) already treats
+   clip-path as the one non-transform/opacity/filter property that's
+   compositor-safe in modern browsers, but plain position properties
+   like `left`/`top` are not, so the divider no longer tries to track it. */
+.tp-h-compare-edge { position: absolute; top: 0; bottom: 0; left: 40%; width: 2px; background: var(--tp-accent, var(--p1)); box-shadow: 0 0 12px color-mix(in srgb, var(--tp-accent, var(--p1)) 60%, transparent); animation: tpEdgeBreathe 3s ease-in-out infinite; }
+@keyframes tpCompareSweep { 0%, 100% { clip-path: inset(0 0 0 30%); } 50% { clip-path: inset(0 0 0 68%); } }
+@keyframes tpEdgeBreathe { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.tp-h-label { position: absolute; top: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); background: rgba(10,13,24,.55); padding: 3px 8px; border-radius: 100px; }
+.tp-h-label--l { left: 10px; } .tp-h-label--r { right: 10px; }
+@media (prefers-reduced-motion: reduce) { .tp-h-compare-after { animation: none; clip-path: inset(0 0 0 50%); } .tp-h-compare-edge { animation: none; opacity: 1; left: 50%; } }
+
+/* ============ Size reduction (compressors) ============ */
+.tp-h-size { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; width: 100%; }
+.tp-h-size-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tp-h-size-n { font-family: var(--fm); font-weight: 700; font-size: 15px; color: var(--text-dim); }
+.tp-h-size-n--ok { color: var(--ok); }
+.tp-h-size-t { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-faint); }
+.tp-h-size-bar { width: 64px; height: 5px; border-radius: 100px; background: var(--surface-2); overflow: hidden; }
+.tp-h-size-bar span { display: block; height: 100%; width: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--p1), var(--ok)); transform-origin: left; animation: tpSizeFill 2.4s var(--ease) infinite; }
+@keyframes tpSizeFill { 0% { transform: scaleX(1); } 45%, 60% { transform: scaleX(.25); } 100% { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-size-bar span { animation: none; transform: scaleX(.25); } }
+
+/* ============ Capture (scan-to-pdf) ============ */
+.tp-h-capture { display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; }
+.tp-h-cam-ico { width: 32px; height: 32px; color: var(--text-dim); position: relative; }
+.tp-h-cam-flash { position: absolute; width: 34px; height: 34px; border-radius: 8px; background: #fff; opacity: 0; animation: tpFlash 2.4s ease-in-out infinite; }
+@keyframes tpFlash { 0%, 40% { opacity: 0; } 45% { opacity: .8; } 55% { opacity: 0; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-cam-flash { animation: none; opacity: 0; } }
+
+/* ============ Assemble: GIF filmstrip / image collage grid ============ */
+.tp-h-film { display: flex; gap: 4px; align-items: center; justify-content: center; width: 100%; position: relative; }
+.tp-h-film span { width: 28px; height: 36px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border-2); }
+.tp-h-film span:nth-child(1) { animation: tpFrame 2.4s ease-in-out infinite; }
+.tp-h-film span:nth-child(2) { animation: tpFrame 2.4s ease-in-out .3s infinite; }
+.tp-h-film span:nth-child(3) { animation: tpFrame 2.4s ease-in-out .6s infinite; }
+.tp-h-film span:nth-child(4) { animation: tpFrame 2.4s ease-in-out .9s infinite; }
+@keyframes tpFrame { 0%, 100% { opacity: .35; transform: scale(.94); } 50% { opacity: 1; transform: scale(1); } }
+.tp-h-film-play { width: 26px; height: 26px; border-radius: 50%; background: var(--tp-accent, var(--p1)); color: #06121a; display: flex; align-items: center; justify-content: center; margin-left: 6px; }
+.tp-h-film-play svg { width: 13px; height: 13px; }
+@media (prefers-reduced-motion: reduce) { .tp-h-film span { animation: none; opacity: 1; transform: none; } }
+.tp-h-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 64px; height: 64px; margin: 0 auto; }
+.tp-h-grid span { border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border-2); animation: tpGridPop 2.6s var(--ease) infinite; }
+.tp-h-grid span:nth-child(1) { animation-delay: 0s; } .tp-h-grid span:nth-child(2) { animation-delay: .15s; }
+.tp-h-grid span:nth-child(3) { animation-delay: .3s; } .tp-h-grid span:nth-child(4) { animation-delay: .45s; }
+@keyframes tpGridPop { 0%, 100% { transform: scale(1); opacity: .85; } 40% { transform: scale(1.05); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-grid span { animation: none; opacity: 1; } }
+
+/* ============ Crop ============ */
+.tp-h-crop { position: relative; width: 84px; height: 64px; margin: 0 auto; }
+.tp-h-crop-img { position: absolute; inset: 6px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); }
+.tp-h-crop-frame { position: absolute; inset: 0; color: var(--tp-accent, var(--p1)); animation: tpCropIn 2.6s var(--ease) infinite; }
+.tp-h-crop-frame svg { width: 100%; height: 100%; }
+@keyframes tpCropIn { 0%, 100% { transform: scale(1); } 50% { transform: scale(.82); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-crop-frame { animation: none; transform: scale(.82); } }
+
+/* ============ Watermark ============ */
+.tp-h-wm { position: relative; width: 100px; height: 64px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
+.tp-h-wm-img { position: absolute; inset: 0; background: linear-gradient(135deg, var(--surface-2), var(--bg-2)); }
+.tp-h-wm-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--fd); font-weight: 700; font-size: 13px; letter-spacing: .08em; color: rgba(255,255,255,.5); animation: tpWmPulse 2.8s ease-in-out infinite; }
+@keyframes tpWmPulse { 0%, 100% { opacity: .35; } 50% { opacity: .8; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-wm-text { animation: none; opacity: .6; } }
+
+/* ============ Strip metadata (EXIF) ============ */
+.tp-h-exif { position: relative; width: 90px; height: 64px; margin: 0 auto; }
+.tp-h-exif-img { position: absolute; inset: 8px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); }
+.tp-h-exif-tag { position: absolute; width: 16px; height: 16px; color: var(--bad); animation: tpTagOut 2.8s ease-in-out infinite; animation-delay: calc(var(--i) * .3s); }
+.tp-h-exif-tag:nth-child(2) { top: -2px; left: 4px; } .tp-h-exif-tag:nth-child(3) { top: -4px; left: 34px; } .tp-h-exif-tag:nth-child(4) { top: -2px; right: 2px; }
+.tp-h-exif-tag svg { width: 100%; height: 100%; }
+@keyframes tpTagOut { 0%, 30% { opacity: 1; transform: translateY(0); } 60%, 100% { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-exif-tag { animation: none; opacity: 0; } }
+
+/* ============ OCR ============ */
+.tp-h-ocr { display: flex; align-items: center; gap: 14px; width: 100%; }
+.tp-h-ocr-doc { position: relative; width: 54px; height: 68px; flex-shrink: 0; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border-2); overflow: hidden; }
+.tp-h-ocr-doc span { position: absolute; left: 5px; right: 5px; height: 4px; border-radius: 2px; background: var(--surface); }
+.tp-h-ocr-doc span:nth-child(1) { top: 9px; width: 70%; } .tp-h-ocr-doc span:nth-child(2) { top: 17px; width: 85%; }
+.tp-h-ocr-doc span:nth-child(3) { top: 25px; width: 60%; } .tp-h-ocr-doc span:nth-child(4) { top: 33px; width: 78%; } .tp-h-ocr-doc span:nth-child(5) { top: 41px; width: 50%; }
+.tp-h-ocr-beam { position: absolute; left: 0; right: 0; height: 16px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tp-accent, var(--p1)) 40%, transparent), transparent); transform: translateY(-16px); animation: tpOcrSweep 2.6s ease-in-out infinite; }
+@keyframes tpOcrSweep { 0% { transform: translateY(-16px); } 50% { transform: translateY(64px); } 100% { transform: translateY(-16px); } }
+.tp-h-ocr-langs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tp-h-ocr-langs span { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 100px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); }
+.tp-h-ocr-langs span.on { color: var(--tp-accent, var(--p1)); border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 35%, var(--border)); }
+@media (prefers-reduced-motion: reduce) { .tp-h-ocr-beam { animation: none; transform: translateY(40%); } }
+
+/* ============ Eyedropper ============ */
+.tp-h-eye { display: flex; align-items: center; justify-content: center; gap: 18px; width: 100%; }
+.tp-h-eye-ico { width: 26px; height: 26px; color: var(--text-dim); animation: tpEyeMove 2.6s var(--ease) infinite; }
+@keyframes tpEyeMove { 0%, 20% { transform: translate(-14px, 6px) rotate(0deg); } 50%, 70% { transform: translate(0, 0) rotate(-8deg); } 100% { transform: translate(-14px, 6px) rotate(0deg); } }
+.tp-h-eye-swatch { width: 30px; height: 30px; border-radius: 8px; background: var(--tp-accent, var(--p1)); border: 2px solid var(--border-2); animation: tpSwatchPop 2.6s var(--ease) infinite; }
+@keyframes tpSwatchPop { 0%, 55% { transform: scale(.85); opacity: .6; } 70%, 100% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-eye-ico { animation: none; transform: translate(0,0); } .tp-h-eye-swatch { animation: none; transform: scale(1); opacity: 1; } }
+
+/* ============ Palette ============ */
+.tp-h-palette { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.tp-h-logo-src { width: 28px; height: 28px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--border-2); margin-right: 4px; }
+.tp-h-palette span { width: 26px; height: 26px; border-radius: 50%; background: var(--sw); opacity: 0; transform: scale(.5); animation: tpSwatchIn 2.8s var(--ease) infinite; animation-delay: calc(var(--i) * .18s); }
+@keyframes tpSwatchIn { 0%, 8% { opacity: 0; transform: scale(.5); } 22%, 85% { opacity: 1; transform: scale(1); } 100% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-palette span { animation: none; opacity: 1; transform: scale(1); } }
+
+/* ============ Code format (JSON) ============ */
+.tp-h-code { border-radius: 10px; background: #0b0e19; border: 1px solid var(--border-2); padding: 9px 12px; font-family: var(--fm); font-size: 11px; line-height: 1.5; width: 100%; }
+.tp-h-code-line { white-space: pre; color: var(--text-dim); opacity: 0; transform: translateY(4px); animation: tpCodeReveal 420ms var(--ease) forwards; animation-delay: calc(var(--i) * .12s + .1s); }
+@keyframes tpCodeReveal { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-code-line { animation: none; opacity: 1; transform: none; } }
+
+/* ============ Regex ============ */
+.tp-h-regex { font-family: var(--fm); font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%; justify-content: center; }
+.tp-h-regex mark { background: color-mix(in srgb, var(--tp-accent, var(--p1)) 30%, transparent); color: var(--tp-accent, var(--p1)); border-radius: 3px; padding: 0 2px; animation: tpMarkPulse 1.8s ease-in-out infinite; }
+@keyframes tpMarkPulse { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.tp-h-regex-tag { font-family: var(--fb); font-size: 10.5px; font-weight: 700; color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); padding: 3px 9px; border-radius: 100px; }
+@media (prefers-reduced-motion: reduce) { .tp-h-regex mark { animation: none; opacity: 1; } }
+
+/* ============ Text diff ============ */
+.tp-h-diff { display: flex; flex-direction: column; gap: 6px; width: 100%; font-family: var(--fm); font-size: 11.5px; }
+.tp-h-diff-line { padding: 5px 10px; border-radius: 6px; opacity: 0; transform: translateX(-6px); animation: tpDiffIn 480ms var(--ease) forwards; }
+.tp-h-diff-line--rm { background: color-mix(in srgb, var(--bad) 12%, transparent); color: color-mix(in srgb, var(--bad) 80%, var(--text-dim)); text-decoration: line-through; animation-delay: .1s; }
+.tp-h-diff-line--add { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--ok); animation-delay: .45s; }
+@keyframes tpDiffIn { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-diff-line { animation: none; opacity: 1; transform: none; } }
+
+/* ============ Lorem ipsum placeholder lines ============ */
+.tp-h-lines { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 200px; margin: 0 auto; }
+.tp-h-lines span { display: block; height: 8px; border-radius: 4px; background: var(--surface-2); opacity: 0; transform: translateY(4px); animation: tpLineIn 420ms var(--ease) forwards; animation-delay: calc(var(--i) * .15s); }
+.tp-h-lines span:nth-child(1) { width: 100%; } .tp-h-lines span:nth-child(2) { width: 85%; }
+.tp-h-lines span:nth-child(3) { width: 92%; } .tp-h-lines span:nth-child(4) { width: 65%; }
+@keyframes tpLineIn { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-lines span { animation: none; opacity: 1; transform: none; } }
+
+/* ============ Counter (word count) ============ */
+.tp-h-counter { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.tp-h-counter-n { font-family: var(--fm); font-weight: 700; font-size: 22px; color: var(--tp-accent, var(--p1)); }
+.tp-h-counter-t { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); }
+.tp-h-counter-bar { width: 100px; height: 5px; border-radius: 100px; background: var(--surface-2); overflow: hidden; }
+.tp-h-counter-bar span { display: block; height: 100%; width: 100%; border-radius: 100px; background: var(--tp-accent, var(--p1)); transform-origin: left; animation: tpCounterFill 2.4s var(--ease) infinite; }
+@keyframes tpCounterFill { 0% { transform: scaleX(.2); } 50% { transform: scaleX(1); } 100% { transform: scaleX(.2); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-counter-bar span { animation: none; transform: scaleX(.7); } }
+
+/* ============ CSS gradient generator ============ */
+.tp-h-gradient { width: 100%; height: 56px; border-radius: 12px; background: linear-gradient(120deg, var(--p1), var(--p2), var(--accent)); filter: hue-rotate(0deg); animation: tpHueRotate 6s linear infinite; }
+@keyframes tpHueRotate { to { filter: hue-rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-gradient { animation: none; } }
+
+/* ============ Rotate (PDF page rotator) ============ */
+.tp-h-rotate { width: 44px; height: 44px; margin: 0 auto; color: var(--tp-accent, var(--p1)); animation: tpRotate90 3.2s var(--ease) infinite; }
+.tp-h-rotate svg { width: 100%; height: 100%; }
+@keyframes tpRotate90 { 0%, 20% { transform: rotate(0deg); } 50%, 70% { transform: rotate(90deg); } 100% { transform: rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-rotate { animation: none; transform: rotate(90deg); } }
+
+/* ============ Lock (unlock / password protect) ============ */
+.tp-h-lock { width: 40px; height: 40px; margin: 0 auto; color: var(--tp-accent, var(--p1)); }
+.tp-h-lock svg { width: 100%; height: 100%; }
+.tp-h-lock .tp-h-shackle { transform-origin: 8px 11px; animation: tpShackle 2.6s var(--ease) infinite; }
+.tp-h-lock--open .tp-h-shackle { animation-name: tpShackleOpen; }
+@keyframes tpShackle { 0%, 100% { transform: rotate(0deg); } }
+@keyframes tpShackleOpen { 0%, 20% { transform: rotate(0deg) translateX(0); } 50%, 70% { transform: rotate(-25deg) translateX(-2px); } 100% { transform: rotate(0deg) translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-lock .tp-h-shackle { animation: none; } .tp-h-lock--open .tp-h-shackle { transform: rotate(-25deg) translateX(-2px); } }
+
+/* ============ QR code ============ */
+.tp-h-qr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 48px; height: 48px; margin: 0 auto; }
+.tp-h-qr span { border-radius: 2px; background: var(--tp-accent, var(--p1)); opacity: .16; }
+.tp-h-qr span.on { opacity: .95; animation: tpQrBlink 2.4s ease-in-out infinite; }
+@keyframes tpQrBlink { 0%, 100% { opacity: .95; } 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-qr span.on { animation: none; opacity: .95; } }
+
+/* ============ UTM builder ============ */
+.tp-h-utm { font-family: var(--fm); font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; justify-content: center; width: 100%; }
+.tp-h-utm-base { color: var(--text-dim); }
+.tp-h-utm-p { color: var(--tp-accent, var(--p1)); opacity: 0; transform: translateY(4px); animation: tpUtmIn 420ms var(--ease) forwards; animation-delay: calc(var(--i, 0) * .3s + .2s); }
+@keyframes tpUtmIn { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-utm-p { animation: none; opacity: 1; transform: none; } }
+
+/* ============ Preview card (OG / meta / lead magnet) ============ */
+.tp-h-card { width: 130px; margin: 0 auto; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border-2); overflow: hidden; }
+.tp-h-card-img { height: 46px; background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 70%, #000), color-mix(in srgb, var(--tp-accent, var(--p1)) 30%, #000)); animation: tpCardPulse 3.4s ease-in-out infinite; }
+@keyframes tpCardPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
+.tp-h-card-title { height: 7px; width: 70%; margin: 8px 8px 5px; border-radius: 3px; background: var(--surface); }
+.tp-h-card-sub { height: 5px; width: 45%; margin: 0 8px 8px; border-radius: 3px; background: var(--surface); }
+.tp-h-card-tag { display: block; font-size: 9.5px; font-weight: 700; text-align: center; padding: 4px 0 7px; color: var(--text-faint); }
+@media (prefers-reduced-motion: reduce) { .tp-h-card-img { animation: none; } }
+
+/* ============ Favicon generator ============ */
+.tp-h-favicon { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; }
+.tp-h-fav-sizes { display: flex; align-items: flex-end; gap: 5px; }
+.tp-h-fav-sizes span { display: block; border-radius: 3px; background: var(--tp-accent, var(--p1)); opacity: .85; }
+.tp-h-fav-sizes span:nth-child(1) { width: 12px; height: 12px; }
+.tp-h-fav-sizes span:nth-child(2) { width: 18px; height: 18px; }
+.tp-h-fav-sizes span:nth-child(3) { width: 24px; height: 24px; }
+
+/* ============ Ad copy generator (typed lines) ============ */
+.tp-h-typed { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 220px; margin: 0 auto; }
+.tp-h-typed-line { font-size: 12.5px; color: var(--text-dim); opacity: 0; transform: translateY(4px); animation: tpTypedIn 420ms var(--ease) forwards; animation-delay: calc(var(--i) * .35s + .1s); }
+.tp-h-typed-line:first-child { font-weight: 700; color: var(--text); }
+@keyframes tpTypedIn { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-typed-line { animation: none; opacity: 1; transform: none; } }
+
+/* ============ CTA button generator ============ */
+.tp-h-btns { position: relative; height: 40px; display: flex; align-items: center; justify-content: center; }
+.tp-h-btn-demo { position: absolute; padding: 10px 22px; border: none; border-radius: 9px; font-family: var(--fb); font-weight: 700; font-size: 13px; color: #06121a; }
+.tp-h-btn-a { background: var(--tp-accent, var(--p1)); border-radius: 9px; animation: tpBtnCross 3.2s ease-in-out infinite; }
+.tp-h-btn-b { background: var(--grad-accent); border-radius: 100px; opacity: 0; animation: tpBtnCross2 3.2s ease-in-out infinite; }
+@keyframes tpBtnCross { 0%, 45% { opacity: 1; } 55%, 100% { opacity: 0; } }
+@keyframes tpBtnCross2 { 0%, 45% { opacity: 0; } 55%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-btn-a { animation: none; opacity: 1; } .tp-h-btn-b { animation: none; opacity: 0; } }
+
+/* ============ Hashtag generator ============ */
+.tp-h-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.tp-h-tags span { font-family: var(--fm); font-size: 12px; font-weight: 700; color: var(--tp-accent, var(--p1)); background: color-mix(in srgb, var(--tp-accent, var(--p1)) 12%, transparent); padding: 5px 11px; border-radius: 100px; opacity: 0; transform: scale(.7); animation: tpTagPop 420ms var(--ease) forwards; animation-delay: calc(var(--i) * .2s + .1s); }
+@keyframes tpTagPop { to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .tp-h-tags span { animation: none; opacity: 1; transform: none; } }
+
+/* ============ Password generator ============ */
+.tp-h-pass { display: flex; gap: 3px; justify-content: center; width: 100%; font-family: var(--fm); font-size: 16px; font-weight: 700; }
+.tp-h-pass span { color: var(--tp-accent, var(--p1)); opacity: .3; animation: tpCharFlip 2.4s steps(1) infinite; animation-delay: calc(var(--i) * .1s); }
+@keyframes tpCharFlip { 0%, 40% { opacity: .3; } 50%, 90% { opacity: 1; } 100% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .tp-h-pass span { animation: none; opacity: 1; } }
 
 /* ============ Use cases grid ============ */
 .tp-usecases { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }

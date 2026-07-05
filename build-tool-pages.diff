@@ -1,0 +1,142 @@
+--- /mnt/user-data/uploads/build-tool-pages.js	2026-07-05 11:24:44.160705000 +0000
++++ /home/claude/tarumak/tarumak-studio-main/build-tool-pages.js	2026-07-05 15:47:40.902035298 +0000
+@@ -140,6 +140,7 @@
+ 
+ /* ── 2. Chrome: from the shared header-chrome module ──────────────── */
+ const { getChrome, withActiveNav } = require('./header-chrome.js');
++const { renderHero } = require('./hero-render.js');
+ const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
+ const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
+ console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
+@@ -376,101 +377,31 @@
+   const mistakes = (flagship && flagship.mistakes) || catDef.mistakePool || [];
+   const comparisonIntro = (flagship && flagship.comparisonIntro) || (catDef.comparisonIntro ? fillTemplate(catDef.comparisonIntro, vars) : null);
+   const ctaVerb = (flagship && flagship.ctaVerb) || catDef.ctaVerb || 'Try another tool';
+-  const hero = (flagship && flagship.hero) || catDef.hero || 'compare';
+-  const heroVariant = (flagship && flagship.heroVariant) || null;
+   const variant = (flagship && flagship.variant) || catDef.variant || 'A';
+   const accent = (flagship && flagship.accent) || catDef.accent || '#22d3ee';
+   const workflowSteps = flagship && flagship.howTo ? flagship.howTo : (catDef.workflowSteps || []).map(s => [s, '']);
+ 
+-  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, tips, mistakes, comparisonIntro, ctaVerb, hero, heroVariant, variant, accent, workflowSteps };
+-}
+-
+-/* ── 5. Hero renderers — one per hero type. All decorative: the real,
+-   functional tool lives in #toolPanel right below; these illustrate
+-   what the tool does, they don't have to BE the tool. ── */
+-function heroCompare(meta) {
+-  const cbClass = meta.heroVariant === 'checkerboard' ? ' tp-compare--checkerboard' : meta.heroVariant === 'meter' ? ' tp-compare--meter' : '';
+-  const meterAttrs = meta.heroVariant === 'meter' ? ' data-meter-before="2.4 MB" data-meter="640 KB"' : '';
+-  return `<div class="tp-compare${cbClass}"${meterAttrs}>
+-    <div class="tp-compare-before"><span class="tp-compare-icon">${svg.compareIcon}</span></div>
+-    <div class="tp-compare-after"><span class="tp-compare-icon">${svg.compareIcon}</span></div>
+-    <div class="tp-compare-divider"></div>
+-    <div class="tp-compare-handle">${svg.arrowRight}</div>
+-    <span class="tp-compare-label is-before">Before</span>
+-    <span class="tp-compare-label is-after">After</span>
+-    <input type="range" class="tp-compare-range" min="0" max="100" value="50" aria-label="Drag to compare before and after">
+-  </div>`;
+-}
+-function heroScan(meta, langs) {
+-  const badges = (langs || ['English', 'Hindi', 'French', 'Spanish']).map((l, i) => `<span class="tp-scan-lang${i < 2 ? ' is-live' : ''}">${esc(l)}</span>`).join('');
+-  return `<div class="tp-scan">
+-    <div class="tp-scan-doc" aria-hidden="true">
+-      <div class="tp-scan-beam"></div>
+-      <div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div><div class="tp-scan-line"></div>
+-    </div>
+-    <div class="tp-scan-langs">${badges}</div>
+-  </div>`;
+-}
+-function heroWorkflow(meta) {
+-  const mergeClass = meta.heroVariant === 'stack' ? ' tp-stack--merge' : '';
+-  return `<div class="tp-stack${mergeClass}" aria-hidden="true">
+-    <div class="tp-stack-page"></div><div class="tp-stack-page"></div><div class="tp-stack-page"></div>
+-  </div>`;
+-}
+-function heroCode(meta) {
+-  const lines = [
+-    ['<span class="tp-tok-punc">{</span>', ''],
+-    [`  <span class="tp-tok-key">"tool"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-str">"${esc(meta.name)}"</span><span class="tp-tok-punc">,</span>`, ''],
+-    ['  <span class="tp-tok-key">"processed"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-key">"locally"</span><span class="tp-tok-punc">,</span>', ''],
+-    ['  <span class="tp-tok-key">"valid"</span><span class="tp-tok-punc">:</span> <span class="tp-tok-ok">true</span>', ''],
+-    ['<span class="tp-tok-punc">}</span>', '']
+-  ];
+-  return `<div class="tp-code">
+-    <div class="tp-code-bar"><span class="tp-code-dot"></span><span class="tp-code-dot"></span><span class="tp-code-dot"></span></div>
+-    <div class="tp-code-body">${lines.map(l => `<div class="tp-code-line">${l[0]}</div>`).join('')}</div>
+-  </div>`;
+-}
+-function heroLive(meta) {
+-  if (meta.heroVariant === 'social-card') {
+-    return `<div class="tp-live" aria-hidden="true">
+-      <div class="tp-live-card"><div class="tp-live-title"></div><div class="tp-live-sub"></div><div class="tp-live-badge"></div></div>
+-    </div>`;
+-  }
+-  const cells = Array.from({ length: 25 }, (_, i) => `<span class="${[0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24].indexOf(i) > -1 ? 'on' : ''}"></span>`).join('');
+-  return `<div class="tp-live" aria-hidden="true">
+-    <div class="tp-live-qr">${cells}</div>
+-    <div class="tp-live-card"><div class="tp-live-title"></div><div class="tp-live-sub"></div></div>
+-  </div>`;
+-}
+-/* Hero badges are decorative, not a factual claim requiring the FAQ's
+-   strict REAL_FORMATS bar — so this is deliberately a superset (adds
+-   HTML/IMG/HEX/RGB/MARKDOWN), checked against every converter-category
+-   tool's actual chips rather than guessed. */
+-const HERO_FORMATS = new Set([...REAL_FORMATS, 'HTML', 'IMG', 'HEX', 'RGB', 'MARKDOWN']);
+-function convertFromTo(chips) {
+-  for (const c of (chips || [])) {
+-    const parts = c.split(/[\u2192\u21d2]/).map(s => s.trim()).filter(Boolean);
+-    if (parts.length === 2 && HERO_FORMATS.has(parts[0]) && HERO_FORMATS.has(parts[1])) return parts;
+-  }
+-  const realOnly = (chips || []).filter(c => HERO_FORMATS.has(c));
+-  if (realOnly.length >= 2) return [realOnly[0], realOnly[1]];
+-  return ['INPUT', 'OUTPUT'];
+-}
+-function heroConvert(meta) {
+-  const [from, to] = convertFromTo(meta.chips);
+-  return `<div class="tp-convert" aria-hidden="true">
+-    <div class="tp-convert-badge">${esc(from)}</div>
+-    <svg class="tp-convert-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+-    <div class="tp-convert-badge is-target">${esc(to)}</div>
+-  </div>`;
+-}
+-const HERO_RENDERERS = { compare: heroCompare, scan: heroScan, workflow: heroWorkflow, code: heroCode, live: heroLive, convert: heroConvert };
+-function renderHero(meta) {
+-  const fn = HERO_RENDERERS[meta.hero] || heroCompare;
+-  const langs = meta.slug === 'ocr-image-to-text' ? ['English', 'Hindi', 'French', 'German', 'Spanish', 'Japanese', 'Chinese (Simplified)', 'Arabic'] : null;
+-  const inner = meta.hero === 'scan' ? heroScan(meta, langs) : fn(meta);
+-  return `<div class="tp-hero-visual" style="--tp-accent:${meta.accent}">${inner}</div>`;
+-}
++  /* Hero selection no longer comes from here (TOOL_META.hero /
++     CAT_DEFAULTS.hero are now unused for this purpose — the single
++     category-wide fallback in CAT_DEFAULTS.<cat>.hero was the exact
++     root cause of every under-specified tool in a category rendering
++     the same generic illustration). Every tool's hero is now resolved
++     by its own slug directly from hero-map.js — see renderHero() at
++     the call site in buildPage(). Nothing else on this page depends on
++     the removed `hero`/`heroVariant` fields (checked against the whole
++     repo before removing them). */
++  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, tips, mistakes, comparisonIntro, ctaVerb, variant, accent, workflowSteps };
++}
++
++/* ── 5. Hero rendering — now fully delegated to hero-render.js, driven
++   by hero-map.js keyed on the tool's real slug (see the require at the
++   top of this file). Every tool's hero is selected dynamically by slug,
++   never hardcoded per page and never falling back to a single
++   category-wide default — that fallback was the root cause this round
++   fixes. The previous 6-type renderer block (heroCompare/heroScan/
++   heroWorkflow/heroCode/heroLive/heroConvert, HERO_RENDERERS,
++   convertFromTo) lived here and has been removed entirely; its CSS
++   counterpart in tool-variants.css was replaced the same way. ── */
+ 
+ /* ── 6. New content-block renderers ── */
+ function renderUseCases(meta) {
+@@ -680,7 +611,7 @@
+           <button class="tp-act" id="tpShare" aria-label="Share ${esc(name)}">${svg.share}<span id="tpShareLabel">Share</span></button>
+         </div>
+       </div>
+-      ${renderHero(meta)}
++      ${renderHero(slug, meta.accent, name)}
+     </section>
+ 
+     <section class="tp-mount" aria-label="${esc(name)} tool">

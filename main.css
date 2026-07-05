@@ -47,10 +47,10 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .icon-btn{width:40px;height:40px;border-radius:11px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--text-dim);transition:.25s;flex-shrink:0}
 .icon-btn:hover{color:var(--text);border-color:var(--border-2)}.icon-btn svg{width:18px;height:18px}
 .hamburger{display:none}
-.mobile-menu{position:fixed;inset:0;z-index:200;background:var(--bg);padding:24px 22px;display:none;flex-direction:column;gap:6px;overflow:auto}
-.mobile-menu.open{display:flex}
-.mobile-menu a{font-family:var(--fd);font-weight:600;font-size:20px;padding:13px 4px;border-bottom:1px solid var(--border);color:var(--text-dim);cursor:pointer}
-.mm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+/* .mobile-menu, .mm-head and everything else needed for the tablet/
+   mobile navigation now lives in nav-responsive.css — moved there as
+   part of building out the full tablet/mobile nav experience, rather
+   than splitting a single concern across two files. */
 /* hero */
 .hero{position:relative;padding:44px 0 36px}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
@@ -158,7 +158,21 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .skip-link:focus{top:0;outline:2px solid #06121a;outline-offset:2px;}
 
 /* ── At a Glance + Category section ── */
-@media(max-width:760px){}
+/* ── Mobile navigation switch — hamburger + drawer take over ONLY
+   below true mobile width. Tablet (768–1024px) keeps the same visible
+   nav bar as desktop; only its Tools dropdown's trigger mechanism
+   changes (see nav-responsive.css/js) — the nav bar itself doesn't
+   disappear until here. This replaces an old rule that incorrectly
+   triggered at 1160px, which meant every tablet-width visitor got the
+   mobile hamburger experience with no distinct tablet behavior at all. */
+@media (max-width: 767px) {
+  .nav-links, .search { display: none; }
+  .hamburger { display: grid; }
+  /* 44x44 minimum touch target on mobile — desktop's 40px icon
+     buttons (.icon-btn) are left exactly as they are; this only
+     applies inside the mobile breakpoint. */
+  .icon-btn { width: 44px; height: 44px; }
+}
 @media(max-width:560px){}
 
 
@@ -827,7 +841,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   pointer-events: none;
 }
 .nav-tools-drop:hover .nav-tools-panel,
-.nav-tools-drop:focus-within .nav-tools-panel {
+.nav-tools-drop:focus-within .nav-tools-panel,
+.nav-tools-drop.js-open .nav-tools-panel {
   opacity: 1; visibility: visible;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
@@ -2012,3 +2027,50 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 footer .wrap {
   max-width: 1240px;
 }
+
+/* ─── Toast notifications ─────────────────────────── */
+/* Moved here from tools.css (which only 68 of 132 pages load) so the
+   #toast-rack container's positioning/animation is correct everywhere
+   toast() can now actually run — see header-chrome.js's TOAST_RACK
+   export for why the *element* was missing on 131 pages in the first
+   place. */
+#toast-rack{position:fixed;bottom:26px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:340px}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:13px 17px;border-radius:13px;font-size:13.5px;font-weight:500;box-shadow:0 8px 28px -6px rgba(0,0,0,.3);animation:tIn .28s var(--ease) both;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg-2) 90%,transparent)}
+.toast.t-ok{border:1px solid rgba(52,211,153,.45)}.toast.t-err{border:1px solid rgba(248,113,113,.45)}.toast.t-info{border:1px solid var(--border-2)}
+.toast.out{animation:tOut .28s var(--ease) forwards}
+.t-ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-style:normal;font-size:12px;font-weight:700}
+.toast.t-ok .t-ico{background:rgba(52,211,153,.15);color:#34d399}.toast.t-err .t-ico{background:rgba(248,113,113,.15);color:#f87171}.toast.t-info .t-ico{background:rgba(99,102,241,.15);color:var(--p1)}
+.t-msg{flex:1;color:var(--text);line-height:1.4}.t-close{cursor:pointer;color:var(--text-faint);font-size:16px;line-height:1;flex-shrink:0;padding:0 2px}.t-close:hover{color:var(--text)}
+@keyframes tIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes tOut{to{opacity:0;transform:translateX(20px);max-height:0;padding:0;margin:0}}
+
+/* ─── Footer ──────────────────────────────────────── */
+/* Moved here from tools.css (only 68 of 132 pages load that file) —
+   the footer HTML is identical on all 131 non-404 pages, but its
+   styling previously only rendered correctly on the 68 that happened
+   to load tools.css. Found during a regression audit; not a redesign,
+   the values are unchanged from the original tools.css rule. */
+footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg-2) 60%,transparent)}
+.fgrid{display:grid;grid-template-columns:1.3fr .8fr .8fr .7fr 1.1fr;gap:32px;padding:54px 0 30px}
+.fcol h5{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:18px}
+.fcol a{display:block;font-size:14px;color:var(--text-dim);padding:5px 0;cursor:pointer}
+.fcol a:hover{color:var(--p1)}
+.fcol .desc{font-size:13.5px;color:var(--text-dim);margin:14px 0 18px;max-width:260px}
+.socials{display:flex;gap:10px}
+.soc{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--text-dim);transition:.3s var(--ease)}
+.soc svg{width:17px;height:17px}.soc:hover{transform:translateY(-3px) scale(1.05)}
+.soc.fb:hover{background:#1877f2;color:#fff}.soc.ig:hover{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:#fff}.soc.tw:hover{background:#fff;color:#000}[data-theme="light"] .soc.tw:hover{background:#000;color:#fff}.soc.li:hover{background:#0a66c2;color:#fff}
+.news{display:flex;gap:8px;margin-top:14px}
+.news input{flex:1;height:42px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 13px;font-size:13.5px}
+.fbar{border-top:1px solid var(--border);padding:20px 0;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text-faint)}
+@media (max-width: 980px) { .fgrid { grid-template-columns: 1fr 1fr; gap: 30px; } .trust { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .fgrid { grid-template-columns: 1fr; } }
+
+/* ─── Reduced motion (global) ─────────────────────── */
+/* Same reasoning as the footer above: this MUST apply everywhere,
+   not just the 68 tools.css pages — it's an accessibility baseline,
+   not a tool-page-specific concern. */
+@media (prefers-reduced-motion: reduce) { *{animation:none!important;transition-duration:.01ms!important} }
+
+/* ─── Active nav state ────────────────────────────── */
+.nav-links a.nav-active{color:var(--text)}.nav-links a.nav-active::after{transform:scaleX(1)!important}

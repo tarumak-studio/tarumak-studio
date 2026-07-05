@@ -28,6 +28,7 @@
   <link rel="apple-touch-icon" href="/favicon.svg">
   <link rel="stylesheet" href="/main.css">
   <link rel="stylesheet" href="/mega-menu.css">
+  <link rel="stylesheet" href="/nav-responsive.css">
   <link rel="stylesheet" href="/tools.css">
   <link rel="stylesheet" href="/tool-variants.css">
   <style>
@@ -132,6 +133,7 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/url-encoder#page","url":"https://tarumakstudio.com/url-encoder","name":"URL Encoder & Decoder — Free Online Tool | Tarumak Studio","description":"Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-07-04"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/url-encoder#app","name":"URL Encoder & Decoder","url":"https://tarumakstudio.com/url-encoder","description":"Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"URL Encoder & Decoder"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is URL encoding?","acceptedAnswer":{"@type":"Answer","text":"URL encoding converts characters that are not safe in URLs into a percent-encoded format. For example, a space becomes %20 and an ampersand becomes %26."}},{"@type":"Question","name":"When should I use URL encoding?","acceptedAnswer":{"@type":"Answer","text":"When building query strings, passing URLs inside other URLs, constructing API requests, or sending any special characters in URL parameters."}},{"@type":"Question","name":"What is the difference between encode and decode?","acceptedAnswer":{"@type":"Answer","text":"Encoding converts readable text into URL-safe format. Decoding reverses this — converting percent-encoded sequences back into readable characters."}},{"@type":"Question","name":"Is URL Encoder & Decoder really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Do I need to create an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no sign-up, no login and no email required. Open the tool and use it immediately."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. URL Encoder & Decoder processes everything you type or paste locally in your browser — nothing is ever sent to a server."}},{"@type":"Question","name":"Does it work on mobile?","acceptedAnswer":{"@type":"Answer","text":"Yes. The tool runs in any modern browser on desktop, tablet or phone — no app install needed."}}]}]}</script>
 </head>
 <body data-tool-slug="url-encoder" data-tool-name="URL Encoder &amp; Decoder">
+<div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
 <header id="header"><div class="wrap nav header-wrap">
   <a class="brand" href="/" style="text-decoration:none;color:inherit"><div class="logo">T</div><div><b>Tarumak</b> <span style="font-weight:400;color:#94a3b8">Studio</span></div></a>
   <nav class="nav-links" aria-label="Main navigation">
@@ -159,7 +161,8 @@
   <button class="icon-btn hamburger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
 </div></header>
 
-<div class="mobile-menu" id="mobileMenu">
+<div class="mm-backdrop" id="mmBackdrop"></div>
+<div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Site navigation">
   <div class="mm-head">
     <a class="brand" href="/" style="text-decoration:none;color:inherit">
       <div class="logo">T</div>
@@ -167,13 +170,26 @@
     </a>
     <button class="icon-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
-  <a href="/">Home</a>
-  <a href="/tools">Tools</a>
-  <a href="/about">About</a>
-  <a href="/work-with-me">Work With Me</a>
-  <a href="/blog">Blog</a>
-  <a href="/contact">Contact</a>
+  <div class="mm-search" role="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="mmSearch" type="text" placeholder="Search tools…" aria-label="Search tools" autocomplete="off">
+  </div>
+  <div class="mm-search-pop" id="mmPop" aria-live="polite"></div>
+  <nav class="mm-links" aria-label="Mobile navigation">
+    <a href="/">Home</a>
+    <div class="mm-accordion" id="mmAccordion"><!-- built by nav-responsive.js from #megaMenuData --></div>
+    <a href="/about">About</a>
+    <a href="/work-with-me">Work With Me</a>
+    <a href="/blog">Blog</a>
+    <a href="/contact">Contact</a>
+  </nav>
+  <div class="mm-actions">
+    <a class="btn btn-primary mm-explore" href="/tools">Explore Tools</a>
+    <button class="icon-btn" id="mmTheme" aria-label="Switch to light theme" aria-pressed="false"><svg id="mmThemeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  </div>
 </div>
+
+
 
 
 
@@ -342,6 +358,7 @@
 <script src="/developer-tools.js" defer></script>
 <script src="/features.js" defer></script>
 <script src="/mega-menu.js" defer></script>
+<script src="/nav-responsive.js" defer></script>
 <script src="/tool-hero.js" defer></script>
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>

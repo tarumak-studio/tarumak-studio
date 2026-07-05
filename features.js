@@ -138,7 +138,9 @@ const root=document.documentElement,tIcon=$('#themeIcon');
 const moon='<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',sun='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
 var _th=$('#theme');if(_th)_th.onclick=()=>{const l=root.getAttribute('data-theme')==='light';root.setAttribute('data-theme',l?'dark':'light');tIcon.innerHTML=l?sun:moon;_th.setAttribute('aria-label',l?'Switch to light theme':'Switch to dark theme');_th.setAttribute('aria-pressed',l?'false':'true');};
 /* scroll handled in quick-win features block above */
-const mm=$('#mobileMenu');$('#burger').onclick=()=>{mm.classList.add('open');$('#burger').setAttribute('aria-expanded','true');};$('#closeMenu').onclick=()=>{mm.classList.remove('open');$('#burger').setAttribute('aria-expanded','false');};
+/* Mobile drawer open/close, focus trap, backdrop, and the Tools
+   accordion now live in nav-responsive.js — consolidated there as
+   one coherent module rather than split across two files. */
 
 /* ══════════════════════════════════════════════════════
    QUICK-WIN FEATURES
@@ -147,6 +149,7 @@ const mm=$('#mobileMenu');$('#burger').onclick=()=>{mm.classList.add('open');$('
 /* 1 ─ Toast notifications ─────────────────────────── */
 const toastRack=$('#toast-rack');
 function toast(msg,type='ok',dur=3200){
+  if(!toastRack)return;
   const el=document.createElement('div');
   el.className='toast t-'+type;
   const icons={ok:'✓',err:'✕',info:'i'};

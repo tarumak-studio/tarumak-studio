@@ -156,7 +156,6 @@ ${FOOTER}
 <script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
 ${NAV_RESPONSIVE_SCRIPT}
-${NAV_RESPONSIVE_SCRIPT}
 <script>
 /* Re-render on load using the visitor's real saved-tools state —
    the static grid/tabs above are the real, complete, unfiltered

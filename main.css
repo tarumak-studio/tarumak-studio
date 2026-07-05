@@ -3,6 +3,14 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+/* Paragraph baseline — previously unset anywhere on the site, so
+   every <p> (including all 50 articles' actual body prose, which had
+   no font-size rule of its own at all) fell back to the browser's
+   native default of 16px. This is the single rule that fixes the
+   majority of "text feels too large" across the site; classed
+   overrides above 14px are corrected individually elsewhere in this
+   file since a class selector's specificity beats this element one. */
+p{font-size:14px;line-height:1.6}
 body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(60% 50% at 78% 8%,rgba(99,102,241,.20),transparent 60%),radial-gradient(50% 45% at 12% 18%,rgba(34,211,238,.16),transparent 60%),radial-gradient(40% 40% at 50% 100%,rgba(245,176,66,.07),transparent 60%)}
 [data-theme="light"] body::before{opacity:.55}
 a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
@@ -58,7 +66,7 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--p1);box-shadow:0 0 10px var(--p1)}
 h1.headline{font-family:var(--fd);font-weight:700;font-size:clamp(34px,5vw,54px);line-height:1.05;letter-spacing:-1.5px;margin-bottom:20px}
 h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{font-size:17px;color:var(--text-dim);max-width:520px;margin-bottom:20px}
+.sub{font-size:14px;color:var(--text-dim);max-width:520px;margin-bottom:20px}
 .hero-cta{display:flex;gap:13px;flex-wrap:wrap}
 .btn-lg{height:50px;font-size:15px;border-radius:13px;padding:0 24px}
 .hero-stats{display:flex;gap:30px;margin-top:36px;flex-wrap:wrap}
@@ -88,7 +96,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .section-head{text-align:center;max-width:640px;margin:0 auto 38px}
 .section-head .eyebrow{margin-bottom:16px}
 .section-head h2{font-family:var(--fd);font-weight:700;font-size:clamp(28px,3.6vw,40px);letter-spacing:-1px;margin-bottom:12px}
-.section-head p{color:var(--text-dim);font-size:16px}
+.section-head p{color:var(--text-dim);font-size:14px}
 .toolbar{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap}
 .tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);padding:5px;border-radius:14px}
 .tab{border:none;background:transparent;color:var(--text-dim);font-family:var(--fb);font-weight:600;font-size:13.5px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:.25s}
@@ -136,7 +144,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 /* Counter bump animation */
 @keyframes countPop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
 .count-pop{animation:countPop .35s var(--ease)}
-.empty{grid-column:1/-1;text-align:center;padding:50px;color:var(--text-faint);font-size:15px}
+.empty{grid-column:1/-1;text-align:center;padding:50px;color:var(--text-faint);font-size:14px}
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .trust .t{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
 .trust .t .ico{width:40px;height:40px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--p1);margin-bottom:14px}
@@ -152,7 +160,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .tool-head.pdf .badge{color:var(--accent)}.tool-head.converter .badge{color:var(--accent)}
 .tool-head .badge svg{width:27px;height:27px}
 .tool-head h1{font-family:var(--fd);font-weight:700;font-size:clamp(26px,4vw,38px);letter-spacing:-1px;line-height:1.1}
-.tool-head p{color:var(--text-dim);font-size:16px;margin-top:6px;max-width:660px}
+.tool-head p{color:var(--text-dim);font-size:14px;margin-top:6px;max-width:660px}
 /* Skip-to-content link (WCAG 2.4.1 — keyboard navigation) */
 .skip-link{position:absolute;top:-100%;left:0;background:var(--p1);color:#06121a;padding:8px 16px;z-index:10000;font-family:var(--fd);font-size:14px;font-weight:700;text-decoration:none;border-radius:0 0 8px 0;transition:top .15s;}
 .skip-link:focus{top:0;outline:2px solid #06121a;outline-offset:2px;}
@@ -172,6 +180,13 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
      buttons (.icon-btn) are left exactly as they are; this only
      applies inside the mobile breakpoint. */
   .icon-btn { width: 44px; height: 44px; }
+  /* "Explore Tools" stays on tablet (768-1024px, where it's still
+     part of the visible nav bar) and desktop — hidden only below
+     true mobile width, where it's redundant with the drawer's own
+     Explore Tools button and just adds clutter next to the burger. */
+  .nav .btn-primary { display: none; }
+  .nav { height: 64px; }
+  .brand b { font-size: 15px; }
 }
 @media(max-width:560px){}
 
@@ -249,8 +264,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   margin:14px 0 12px;
 }
 .category-head p{
-  color:var(--text-dim);font-size:15.5px;
-  max-width:520px;margin:0 auto;line-height:1.55;
+  color:var(--text-dim);font-size:14px;
+  max-width:520px;margin:0 auto;line-height:1.6;
 }
 
 /* ── Category grid — glass cards, one cyan accent ──────────── */
@@ -430,7 +445,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   margin:14px 0 12px;
 }
 .comp-head p {
-  color:var(--text-dim);font-size:15px;
+  color:var(--text-dim);font-size:14px;
   max-width:560px;margin:0 auto;line-height:1.6;
 }
 .comp-grid {
@@ -732,8 +747,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   margin: 14px 0 10px;
 }
 .featured-head p {
-  color: var(--text-dim); font-size: 15px;
-  max-width: 480px; margin: 0 auto; line-height: 1.55;
+  color: var(--text-dim); font-size: 14px;
+  max-width: 480px; margin: 0 auto; line-height: 1.6;
 }
 
 .feat-grid {

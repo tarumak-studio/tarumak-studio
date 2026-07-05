@@ -187,14 +187,32 @@ function getChrome() {
 
   const HEAD_LINKS = [...indexSrc.matchAll(/<link[^>]*(?:preconnect|fonts\.googleapis\.com\/css2|icon)[^>]*>/g)].map(m => m[0]).join('\n  ')
     + '\n  <link rel="stylesheet" href="/main.css">'
-    + '\n  <link rel="stylesheet" href="/mega-menu.css">';
+    + '\n  <link rel="stylesheet" href="/mega-menu.css">'
+    + '\n  <link rel="stylesheet" href="/nav-responsive.css">';
 
   /* Single definition of the script tag every page with this header
      needs for the mega menu's interactivity — so no build script (or
      future one) hand-types this tag independently. */
   const MEGA_MENU_SCRIPT = '<script src="/mega-menu.js" defer></script>';
+  const NAV_RESPONSIVE_SCRIPT = '<script src="/nav-responsive.js" defer></script>';
 
-  _cache = { CHROME_TOP, FOOTER, HEAD_LINKS, CDN_TAGS, TOOLS, CAT, CAT_META, ICON, MEGA_MENU_SCRIPT };
+  /* toast-rack: the container every toast(...) call across the entire
+     codebase (39 call sites in app.js/features.js/utils.js/every
+     category tool file) writes into via toastRack.appendChild(el) —
+     with NO null guard at any call site, because until this fix the
+     container was assumed to always exist. It sits BEFORE <header> in
+     index.html, so it was never inside the CHROME_TOP harvest
+     boundary (which starts AT <header id="header">) and so was never
+     part of what any build script propagated — index.html was the
+     only page that ever had it. Every other page's toast() call,
+     including the plain success toast after every single file
+     download, has been throwing since the day this site first grew
+     pages beyond the homepage. Exported here as its own constant
+     (not folded into CHROME_TOP) because it sits outside that
+     boundary on purpose — same reasoning as FOOTER being separate. */
+  const TOAST_RACK = '<div id="toast-rack" aria-live="polite" aria-atomic="false"></div>';
+
+  _cache = { CHROME_TOP, FOOTER, HEAD_LINKS, CDN_TAGS, TOOLS, CAT, CAT_META, ICON, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT };
   return _cache;
 }
 

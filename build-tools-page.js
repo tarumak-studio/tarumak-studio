@@ -53,7 +53,7 @@ if (!D.TOOLS || !D.TOOLS.length) throw new Error('build-tools-page: TOOLS captur
 const { TOOLS, CAT, ICON } = D;
 
 const { getChrome, withActiveNav } = require('./header-chrome.js');
-const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT } = getChrome();
+const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
 const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -127,6 +127,7 @@ const html = `<!DOCTYPE html>
   <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body data-page="tools">
+${TOAST_RACK}
 ${CHROME_TOP}
 <main>
   <div class="wrap" style="max-width:1240px;margin:0 auto;padding:0 24px">
@@ -154,6 +155,8 @@ ${FOOTER}
 <script src="/data.js" defer></script>
 <script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
+${NAV_RESPONSIVE_SCRIPT}
+${NAV_RESPONSIVE_SCRIPT}
 <script>
 /* Re-render on load using the visitor's real saved-tools state —
    the static grid/tabs above are the real, complete, unfiltered

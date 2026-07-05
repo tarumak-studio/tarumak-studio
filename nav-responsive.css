@@ -1,0 +1,164 @@
+/* nav-responsive.css — Tarumak Studio tablet + mobile navigation
+ *
+ * Scope contract: every rule in this file is either inside a
+ * @media (max-width: 1024px) block, or targets an element (.mobile-menu,
+ * .mm-backdrop, .mm-accordion) that only ever appears in the mobile
+ * drawer — never the desktop mega menu. Nothing here can affect the
+ * desktop experience above 1024px, by construction, not by convention.
+ *
+ * Loaded on every page via header-chrome.js's HEAD_LINKS, same as
+ * mega-menu.css — one file, one link, no per-page duplication.
+ *
+ * Design tokens: every color/spacing/easing value below is an existing
+ * :root custom property from main.css — no new palette introduced,
+ * matching mega-menu.css's own stated contract.
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   BACKDROP
+   ═══════════════════════════════════════════════════════════ */
+.mm-backdrop {
+  position: fixed; inset: 0; z-index: 199;
+  background: rgba(5, 8, 18, .6);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 280ms var(--ease), visibility 280ms;
+}
+.mm-backdrop.show { opacity: 1; visibility: visible; }
+
+/* ═══════════════════════════════════════════════════════════
+   DRAWER — slide in from the right, matching "Slide in, fade
+   backdrop" from spec. Full-width on very small phones (a 380px
+   drawer on a 340px-wide phone would look worse than full-width).
+   ═══════════════════════════════════════════════════════════ */
+.mobile-menu {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(400px, 100vw);
+  z-index: 200;
+  background: var(--bg-2);
+  border-left: 1px solid var(--border);
+  padding: 20px 20px 24px;
+  display: flex; flex-direction: column; gap: 4px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 320ms var(--ease), visibility 320ms;
+  box-shadow: -24px 0 60px -20px rgba(0,0,0,.5);
+}
+.mobile-menu.open { transform: translateX(0); visibility: visible; }
+
+.mm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-shrink: 0; }
+.mm-head .icon-btn { width: 44px; height: 44px; }
+
+/* ── Search — visible the instant the drawer opens, no extra tap
+   needed to reveal it (spec: "remain accessible without opening
+   multiple menus"). ── */
+.mm-search {
+  display: flex; align-items: center; gap: 10px;
+  height: 48px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 6px; flex-shrink: 0;
+}
+.mm-search svg { width: 17px; height: 17px; color: var(--text-faint); flex-shrink: 0; }
+.mm-search input {
+  flex: 1; height: 100%; border: none; background: none; outline: none;
+  color: var(--text); font-family: var(--fb); font-size: 15px;
+}
+.mm-search input::placeholder { color: var(--text-faint); }
+.mm-search-pop { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+.mm-search-pop:empty { display: none; }
+.mm-search-pop a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 10px;
+  font-family: var(--fb); font-weight: 500; font-size: 14.5px;
+  color: var(--text-dim); text-decoration: none; border: none;
+  min-height: 44px;
+}
+.mm-search-pop a:hover, .mm-search-pop a:focus-visible { background: var(--surface); color: var(--text); }
+.mm-search-pop a mark { background: rgba(34,211,238,.22); color: var(--p1); border-radius: 3px; padding: 0 1px; }
+.mm-search-pop .mm-search-empty { padding: 11px 12px; font-size: 13.5px; color: var(--text-faint); }
+.mm-search-pop .mm-search-chip { font-family: var(--fm); font-size: 10px; padding: 2px 7px; background: rgba(255,255,255,.05); border-radius: 5px; color: var(--text-faint); margin-left: auto; flex-shrink: 0; }
+
+/* ── Flat links (Home, About, Work With Me, Blog, Contact) ── */
+.mm-links { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.mm-links > a {
+  font-family: var(--fd); font-weight: 600; font-size: 17px;
+  padding: 13px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim); text-decoration: none;
+}
+.mm-links > a:hover, .mm-links > a:focus-visible { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════════
+   ACCORDION — Tools section inside the drawer
+   ═══════════════════════════════════════════════════════════ */
+.mm-acc-item { border-bottom: 1px solid var(--border); }
+.mm-acc-trigger {
+  width: 100%; min-height: 44px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 4px; border: none; background: none; cursor: pointer;
+  font-family: var(--fd); font-weight: 600; font-size: 17px; color: var(--text-dim);
+  text-align: left;
+}
+.mm-acc-trigger:hover, .mm-acc-trigger[aria-expanded="true"] { color: var(--text); }
+.mm-acc-ico { width: 20px; height: 20px; flex-shrink: 0; color: var(--acc-color, var(--p1)); display: grid; place-items: center; }
+.mm-acc-ico svg { width: 18px; height: 18px; }
+.mm-acc-name { flex: 1; }
+.mm-acc-count {
+  font-family: var(--fm); font-size: 11px; font-weight: 600; color: var(--text-faint);
+  background: var(--surface); border-radius: 100px; padding: 2px 8px; flex-shrink: 0;
+}
+.mm-acc-chevron { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-faint); transition: transform 240ms var(--ease); }
+.mm-acc-trigger[aria-expanded="true"] .mm-acc-chevron { transform: rotate(180deg); color: var(--p1); }
+
+.mm-acc-panel {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 280ms var(--ease);
+}
+.mm-acc-panel.open { max-height: 340px; } /* generous ceiling: 4 tools + view-all never exceeds this */
+.mm-acc-panel-inner { padding: 2px 4px 12px 30px; display: flex; flex-direction: column; }
+.mm-acc-panel a {
+  min-height: 44px; display: flex; align-items: center;
+  font-family: var(--fb); font-weight: 500; font-size: 14.5px;
+  color: var(--text-dim); text-decoration: none; padding: 2px 0;
+}
+.mm-acc-panel a:hover, .mm-acc-panel a:focus-visible { color: var(--p1); }
+.mm-acc-panel a.mm-acc-viewall { font-weight: 700; color: var(--p1); gap: 5px; }
+.mm-acc-panel a.mm-acc-viewall svg { width: 13px; height: 13px; transition: transform 200ms var(--ease); }
+.mm-acc-panel a.mm-acc-viewall:hover svg { transform: translateX(2px); }
+
+/* ═══════════════════════════════════════════════════════════
+   ACTIONS ROW — Explore Tools + dark mode toggle, pinned at the
+   bottom of the drawer content.
+   ═══════════════════════════════════════════════════════════ */
+.mm-actions {
+  display: flex; align-items: center; gap: 10px;
+  padding-top: 16px; margin-top: 10px; flex-shrink: 0;
+}
+.mm-actions .mm-explore { flex: 1; height: 46px; }
+.mm-actions .icon-btn { width: 44px; height: 44px; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   TABLET (768–1024px): the top nav bar stays visible (unchanged
+   from desktop) — only the Tools trigger's interaction mechanism
+   changes, from nav-responsive.js adding/removing .js-open. The
+   actual open-state visuals reuse main.css/mega-menu.css's existing
+   hover-state rules (see .js-open selectors added there) rather
+   than duplicating them here.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) and (min-width: 768px) {
+  /* Slightly larger tap target on the Tools trigger itself, without
+     touching its desktop padding/typography. */
+  .nav-tools-drop > a { min-height: 44px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REDUCED MOTION — instant, no slide/fade/height animation.
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu, .mm-backdrop, .mm-acc-panel, .mm-acc-chevron {
+    transition: none !important;
+  }
+}

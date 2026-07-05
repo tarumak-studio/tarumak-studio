@@ -5,6 +5,17 @@
  * mistakes, comparison, workflow timeline) introduced to break up the
  * "every tool page looks identical" pattern.
  *
+ * Hero sizing (this round): every hero type's footprint was cut to
+ * roughly 55-65% of its original linear dimensions, and the shared
+ * shell's own padding/min-height cut by nearly half again on top of
+ * that — a real, measured problem, not a guess: the old shell
+ * (28px padding + 180px min-height) plus a 220px-tall compare hero
+ * added up to ~276px before a single pixel of the actual upload tool
+ * was reached, which on a small phone viewport pushed that upload
+ * area below the fold entirely. The new numbers put the upload area
+ * back in the first viewport on mobile while keeping every
+ * illustration recognizable — nothing was hidden, only scaled down.
+ *
  * Design contract, matching mega-menu.css:
  *   - Every color/spacing/font value below is an existing :root token
  *     or a category accent already used in the mega menu — no new
@@ -19,12 +30,12 @@
 
 /* ============ Shared hero shell ============ */
 .tp-hero-visual {
-  margin-top: 22px;
-  border-radius: 20px;
+  margin-top: 14px;
+  border-radius: 16px;
   border: 1px solid var(--border-2, rgba(255,255,255,.14));
   background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
-  padding: 28px;
-  min-height: 180px;
+  padding: 16px 20px;
+  min-height: 100px;
   position: relative;
   overflow: hidden;
 }
@@ -34,13 +45,14 @@
   background: radial-gradient(480px 220px at 15% 0%, color-mix(in srgb, var(--tp-accent, var(--p1)) 14%, transparent), transparent 70%);
   pointer-events: none;
 }
-@media (max-width: 640px) { .tp-hero-visual { padding: 18px; border-radius: 16px; } }
+@media (max-width: 640px) { .tp-hero-visual { padding: 10px 14px; border-radius: 14px; min-height: 64px; margin-top: 10px; } }
 
 /* ============ 1. COMPARE hero (before/after slider) ============ */
-.tp-compare { position: relative; height: 220px; border-radius: 14px; overflow: hidden; background: var(--surface-2); }
+.tp-compare { position: relative; height: 100px; border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+@media (max-width: 640px) { .tp-compare { height: 64px; } }
 .tp-compare-after, .tp-compare-before {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: var(--fm); font-size: 12px; color: var(--text-faint); letter-spacing: .04em;
+  font-family: var(--fm); font-size: 11px; color: var(--text-faint); letter-spacing: .04em;
 }
 .tp-compare-before {
   background:
@@ -63,7 +75,7 @@
   clip-path: inset(0 0 0 var(--tp-split, 50%));
   background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 22%, var(--bg-2)), var(--bg-2));
 }
-.tp-compare-icon { width: 34px; height: 34px; color: var(--tp-accent, var(--p1)); opacity: .85; }
+.tp-compare-icon { width: 24px; height: 24px; color: var(--tp-accent, var(--p1)); opacity: .85; }
 .tp-compare-icon svg { width: 100%; height: 100%; }
 .tp-compare-divider {
   position: absolute; top: 0; bottom: 0; left: var(--tp-split, 50%);
@@ -72,70 +84,88 @@
 }
 .tp-compare-handle {
   position: absolute; top: 50%; left: var(--tp-split, 50%); transform: translate(-50%, -50%);
-  width: 34px; height: 34px; border-radius: 50%; background: var(--tp-accent, var(--p1));
+  width: 26px; height: 26px; border-radius: 50%; background: var(--tp-accent, var(--p1));
   display: flex; align-items: center; justify-content: center; color: #06121a;
   box-shadow: 0 6px 18px -4px rgba(0,0,0,.5); cursor: ew-resize;
 }
-.tp-compare-handle svg { width: 16px; height: 16px; }
+.tp-compare-handle svg { width: 13px; height: 13px; }
 .tp-compare-range {
   position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
   opacity: 0; cursor: ew-resize; -webkit-appearance: none; appearance: none;
 }
-.tp-compare-label { position: absolute; top: 12px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); background: rgba(10,13,24,.55); padding: 4px 9px; border-radius: 100px; }
-.tp-compare-label.is-before { left: 12px; }
-.tp-compare-label.is-after { right: 12px; }
+.tp-compare-label { position: absolute; top: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); background: rgba(10,13,24,.55); padding: 3px 8px; border-radius: 100px; }
+.tp-compare-label.is-before { left: 10px; }
+.tp-compare-label.is-after { right: 10px; }
 .tp-compare--meter .tp-compare-after::after {
   content: attr(data-meter);
-  font-family: var(--fm); font-size: 13px; font-weight: 700; color: var(--tp-accent, var(--p1));
+  font-family: var(--fm); font-size: 12px; font-weight: 700; color: var(--tp-accent, var(--p1));
 }
 .tp-compare--meter .tp-compare-before::after {
   content: attr(data-meter-before);
-  font-family: var(--fm); font-size: 13px; font-weight: 700; color: var(--text-faint);
+  font-family: var(--fm); font-size: 12px; font-weight: 700; color: var(--text-faint);
+}
+/* Self-animating sweep — the only one of the 6 hero types that had no
+   motion at all. Demonstrates the before/after concept on its own
+   without needing a user to touch the (real, functional) slider.
+   Divider and handle animate in lockstep with the clip-path so the
+   visible split edge and the line/handle graphic never disagree.
+   Freezes the instant a visitor actually drags the real range input
+   (see tool-hero.js's 'input' listener, which adds .tp-compare--active). */
+@keyframes tpCompareSweep { 0%, 100% { clip-path: inset(0 0 0 30%); } 50% { clip-path: inset(0 0 0 70%); } }
+@keyframes tpCompareSweepX { 0%, 100% { left: 30%; } 50% { left: 70%; } }
+.tp-compare:not(.tp-compare--active) .tp-compare-after { animation: tpCompareSweep 6s ease-in-out infinite; }
+.tp-compare:not(.tp-compare--active) .tp-compare-divider,
+.tp-compare:not(.tp-compare--active) .tp-compare-handle { animation: tpCompareSweepX 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tp-compare-after, .tp-compare-divider, .tp-compare-handle { animation: none !important; }
 }
 
 /* ============ 2. SCAN hero (OCR: document + scan line + language badges) ============ */
-.tp-scan { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-.tp-scan-doc { position: relative; width: 96px; height: 124px; flex-shrink: 0; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border-2); overflow: hidden; }
-.tp-scan-line { position: absolute; left: 6px; right: 6px; height: 6px; border-radius: 3px; background: var(--surface); }
-.tp-scan-line:nth-child(1) { top: 16px; width: 70%; } .tp-scan-line:nth-child(2) { top: 30px; width: 85%; }
-.tp-scan-line:nth-child(3) { top: 44px; width: 60%; } .tp-scan-line:nth-child(4) { top: 58px; width: 78%; }
-.tp-scan-line:nth-child(5) { top: 72px; width: 50%; }
+.tp-scan { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tp-scan-doc { position: relative; width: 62px; height: 80px; flex-shrink: 0; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--border-2); overflow: hidden; }
+.tp-scan-line { position: absolute; left: 5px; right: 5px; height: 4px; border-radius: 2px; background: var(--surface); }
+.tp-scan-line:nth-child(1) { top: 10px; width: 70%; } .tp-scan-line:nth-child(2) { top: 19px; width: 85%; }
+.tp-scan-line:nth-child(3) { top: 28px; width: 60%; } .tp-scan-line:nth-child(4) { top: 37px; width: 78%; }
+.tp-scan-line:nth-child(5) { top: 46px; width: 50%; }
 .tp-scan-beam {
-  position: absolute; left: 0; right: 0; height: 26px; top: -26px;
+  position: absolute; left: 0; right: 0; height: 18px; top: -18px;
   background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tp-accent, var(--p1)) 35%, transparent), transparent);
   animation: tpScanSweep 2.6s ease-in-out infinite;
 }
-@keyframes tpScanSweep { 0% { top: -26px; } 50% { top: 118px; } 100% { top: -26px; } }
-.tp-scan-langs { display: flex; flex-wrap: wrap; gap: 7px; max-width: 340px; }
-.tp-scan-lang { font-size: 11px; font-weight: 700; padding: 5px 11px; border-radius: 100px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); }
+@keyframes tpScanSweep { 0% { top: -18px; } 50% { top: 76px; } 100% { top: -18px; } }
+.tp-scan-langs { display: flex; flex-wrap: wrap; gap: 6px; max-width: 300px; }
+.tp-scan-lang { font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); }
 .tp-scan-lang.is-live { color: var(--tp-accent, var(--p1)); border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 35%, var(--border)); }
 @media (prefers-reduced-motion: reduce) { .tp-scan-beam { animation: none; top: 40%; } }
+@media (max-width: 640px) { .tp-scan-doc { width: 52px; height: 68px; } .tp-scan-langs { max-width: 220px; } }
 
 /* ============ 3. WORKFLOW hero (stacked/fanning documents) ============ */
-.tp-stack { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; }
+.tp-stack { position: relative; height: 84px; display: flex; align-items: center; justify-content: center; }
+@media (max-width: 640px) { .tp-stack { height: 60px; } }
 .tp-stack-page {
-  position: absolute; width: 78px; height: 100px; border-radius: 7px;
+  position: absolute; width: 54px; height: 68px; border-radius: 6px;
   background: var(--surface-2); border: 1px solid var(--border-2);
-  box-shadow: 0 10px 24px -14px rgba(0,0,0,.5);
+  box-shadow: 0 8px 18px -12px rgba(0,0,0,.5);
   transition: transform 220ms var(--ease);
 }
-.tp-stack-page::before { content: ''; position: absolute; top: 14px; left: 10px; right: 10px; height: 4px; border-radius: 2px; background: var(--surface); }
-.tp-stack-page::after { content: ''; position: absolute; top: 26px; left: 10px; right: 22px; height: 4px; border-radius: 2px; background: var(--surface); }
-.tp-stack-page:nth-child(1) { transform: translateX(-30px) rotate(-8deg); z-index: 1; }
+@media (max-width: 640px) { .tp-stack-page { width: 40px; height: 50px; } }
+.tp-stack-page::before { content: ''; position: absolute; top: 10px; left: 7px; right: 7px; height: 3px; border-radius: 2px; background: var(--surface); }
+.tp-stack-page::after { content: ''; position: absolute; top: 18px; left: 7px; right: 15px; height: 3px; border-radius: 2px; background: var(--surface); }
+.tp-stack-page:nth-child(1) { transform: translateX(-20px) rotate(-8deg); z-index: 1; }
 .tp-stack-page:nth-child(2) { transform: translateX(0) rotate(0deg); z-index: 3; border-color: color-mix(in srgb, var(--tp-accent, var(--p2)) 40%, var(--border-2)); }
-.tp-stack-page:nth-child(3) { transform: translateX(30px) rotate(8deg); z-index: 2; }
+.tp-stack-page:nth-child(3) { transform: translateX(20px) rotate(8deg); z-index: 2; }
 .tp-stack--merge .tp-stack-page:nth-child(1) { animation: tpStackIn1 3.2s ease-in-out infinite; }
 .tp-stack--merge .tp-stack-page:nth-child(3) { animation: tpStackIn3 3.2s ease-in-out infinite; }
-@keyframes tpStackIn1 { 0%, 15% { transform: translateX(-30px) rotate(-8deg); } 45%, 70% { transform: translateX(-4px) rotate(-1deg); } 100% { transform: translateX(-30px) rotate(-8deg); } }
-@keyframes tpStackIn3 { 0%, 15% { transform: translateX(30px) rotate(8deg); } 45%, 70% { transform: translateX(4px) rotate(1deg); } 100% { transform: translateX(30px) rotate(8deg); } }
-.tp-stack-arrow { position: absolute; bottom: 6px; color: var(--text-faint); width: 16px; height: 16px; }
+@keyframes tpStackIn1 { 0%, 15% { transform: translateX(-20px) rotate(-8deg); } 45%, 70% { transform: translateX(-3px) rotate(-1deg); } 100% { transform: translateX(-20px) rotate(-8deg); } }
+@keyframes tpStackIn3 { 0%, 15% { transform: translateX(20px) rotate(8deg); } 45%, 70% { transform: translateX(3px) rotate(1deg); } 100% { transform: translateX(20px) rotate(8deg); } }
+.tp-stack-arrow { position: absolute; bottom: 4px; color: var(--text-faint); width: 13px; height: 13px; }
 @media (prefers-reduced-motion: reduce) { .tp-stack--merge .tp-stack-page { animation: none !important; } }
 
 /* ============ 4. CODE hero (console/editor mock) ============ */
-.tp-code { border-radius: 12px; background: #0b0e19; border: 1px solid var(--border-2); overflow: hidden; font-family: var(--fm); font-size: 12.5px; line-height: 1.7; }
-.tp-code-bar { display: flex; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border); }
-.tp-code-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-2); }
-.tp-code-body { padding: 14px 16px; overflow-x: auto; }
+.tp-code { border-radius: 10px; background: #0b0e19; border: 1px solid var(--border-2); overflow: hidden; font-family: var(--fm); font-size: 11px; line-height: 1.5; }
+.tp-code-bar { display: flex; gap: 5px; padding: 7px 10px; background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border); }
+.tp-code-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-2); }
+.tp-code-body { padding: 9px 12px; overflow-x: auto; }
 .tp-code-line { white-space: pre; opacity: 0; animation: tpCodeReveal 420ms var(--ease) forwards; }
 .tp-code-line:nth-child(1) { animation-delay: .05s; } .tp-code-line:nth-child(2) { animation-delay: .16s; }
 .tp-code-line:nth-child(3) { animation-delay: .27s; } .tp-code-line:nth-child(4) { animation-delay: .38s; }
@@ -146,32 +176,33 @@
 @media (prefers-reduced-motion: reduce) { .tp-code-line { animation: none; opacity: 1; } }
 
 /* ============ 5. LIVE hero (animated preview card) ============ */
-.tp-live { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.tp-live { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .tp-live-card {
-  width: 168px; height: 106px; border-radius: 10px; flex-shrink: 0;
+  width: 120px; height: 76px; border-radius: 9px; flex-shrink: 0;
   background: linear-gradient(135deg, color-mix(in srgb, var(--tp-accent, var(--p1)) 85%, #000), color-mix(in srgb, var(--tp-accent, var(--p1)) 40%, #000));
-  position: relative; overflow: hidden; box-shadow: 0 16px 34px -18px rgba(0,0,0,.55);
+  position: relative; overflow: hidden; box-shadow: 0 12px 24px -14px rgba(0,0,0,.55);
   animation: tpLivePulse 3.4s ease-in-out infinite;
 }
-.tp-live-card::before { content: ''; position: absolute; left: 12px; top: 12px; width: 5px; bottom: 12px; border-radius: 3px; background: rgba(255,255,255,.55); }
-.tp-live-card .tp-live-title { position: absolute; left: 24px; top: 16px; right: 14px; height: 9px; border-radius: 3px; background: rgba(255,255,255,.85); }
-.tp-live-card .tp-live-sub { position: absolute; left: 24px; top: 32px; width: 60%; height: 6px; border-radius: 3px; background: rgba(255,255,255,.45); }
-.tp-live-card .tp-live-badge { position: absolute; right: 12px; bottom: 12px; width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.9); }
+@media (max-width: 640px) { .tp-live-card { width: 96px; height: 62px; } }
+.tp-live-card::before { content: ''; position: absolute; left: 9px; top: 9px; width: 4px; bottom: 9px; border-radius: 2px; background: rgba(255,255,255,.55); }
+.tp-live-card .tp-live-title { position: absolute; left: 18px; top: 12px; right: 10px; height: 7px; border-radius: 3px; background: rgba(255,255,255,.85); }
+.tp-live-card .tp-live-sub { position: absolute; left: 18px; top: 24px; width: 60%; height: 5px; border-radius: 3px; background: rgba(255,255,255,.45); }
+.tp-live-card .tp-live-badge { position: absolute; right: 9px; bottom: 9px; width: 19px; height: 19px; border-radius: 5px; background: rgba(255,255,255,.9); }
 @keyframes tpLivePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
-.tp-live-qr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; width: 60px; height: 60px; flex-shrink: 0; }
+.tp-live-qr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 44px; height: 44px; flex-shrink: 0; }
 .tp-live-qr span { border-radius: 2px; background: var(--tp-accent, var(--p1)); opacity: .18; }
 .tp-live-qr span.on { opacity: .95; }
 @media (prefers-reduced-motion: reduce) { .tp-live-card { animation: none; } }
 
 /* ============ 6. CONVERT hero (format A -> arrow -> format B) ============ */
-.tp-convert { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; padding: 10px 0; }
+.tp-convert { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; padding: 2px 0; }
 .tp-convert-badge {
-  min-width: 76px; padding: 14px 18px; border-radius: 12px; text-align: center;
+  min-width: 60px; padding: 9px 14px; border-radius: 10px; text-align: center;
   background: var(--surface-2); border: 1px solid var(--border-2);
-  font-family: var(--fm); font-weight: 700; font-size: 14px; color: var(--text);
+  font-family: var(--fm); font-weight: 700; font-size: 13px; color: var(--text);
 }
 .tp-convert-badge.is-target { border-color: color-mix(in srgb, var(--tp-accent, var(--p1)) 45%, var(--border-2)); color: var(--tp-accent, var(--p1)); }
-.tp-convert-arrow { width: 30px; height: 30px; color: var(--tp-accent, var(--p1)); flex-shrink: 0; animation: tpArrowNudge 1.8s ease-in-out infinite; }
+.tp-convert-arrow { width: 22px; height: 22px; color: var(--tp-accent, var(--p1)); flex-shrink: 0; animation: tpArrowNudge 1.8s ease-in-out infinite; }
 @keyframes tpArrowNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .tp-convert-arrow { animation: none; } }
 

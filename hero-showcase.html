@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tarumak Studio — Hero Visual System</title>
+<style>
+:root{
+  --surface:#0e1521; --surface-2:#131c2b; --surface-3:#182236;
+  --border:rgba(255,255,255,.09); --border-soft:rgba(255,255,255,.06);
+  --text:#e8eff9; --text-muted:#8b98ac; --text-faint:#5c6a8a;
+  --accent:#5b8cff; --accent-2:#37d3b4;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#0c111a;color:var(--text);font-family:var(--font-sans);
+  background-image:radial-gradient(120% 80% at 50% -10%, #16203400 0%, #0c111a 60%);}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 22px 80px}
+header.page{margin-bottom:8px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(26px,4vw,40px);margin:.3em 0 .2em;letter-spacing:-.02em;font-weight:800}
+.lede{color:var(--text-muted);max-width:64ch;line-height:1.6;font-size:15px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:20px 0 34px;font-size:12.5px;color:var(--text-muted)}
+.legend b{color:var(--text)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:99px;border:1px solid var(--border);background:var(--surface-2)}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot--v{background:var(--accent-2)} .dot--i{background:var(--warn,#f2b45c)}
+.group__title{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);
+  margin:38px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.card{background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:16px;
+  display:flex;flex-direction:column;gap:12px}
+.card__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card__name{font-size:15px;font-weight:700}
+.card__slug{font:600 11.5px/1 var(--font-mono);color:var(--text-muted);margin-top:5px}
+.card__type{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;
+  padding:4px 8px;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,transparent);white-space:nowrap}
+.tag-v,.tag-i{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
+.tag-v{color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 16%,transparent)}
+.tag-i{color:var(--warn,#f2b45c);background:color-mix(in srgb,#f2b45c 15%,transparent)}
+footer.page{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);color:var(--text-faint);font-size:13px;line-height:1.7}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+
+/* ===== Injected hero system CSS ===== */
+/* ============================================================================
+   Tarumak Studio — Hero Visual System
+   ----------------------------------------------------------------------------
+   Reusable, GPU-friendly hero visuals for every tool page.
+   Animates ONLY transform / opacity / filter. No layout-triggering props.
+   Inherits your real site tokens via var(--token, fallback); drops in clean.
+   ========================================================================== */
+
+.hv {
+  /* --- Token bridge: aliases to your site vars, with dark-navy fallbacks --- */
+  --hv-bg:        var(--surface,       #0e1521);
+  --hv-panel:     var(--surface-2,     #131c2b);
+  --hv-panel-2:   var(--surface-3,     #182236);
+  --hv-line:      var(--border,        rgba(255,255,255,.09));
+  --hv-line-soft: var(--border-soft,   rgba(255,255,255,.06));
+  --hv-ink:       var(--text,          #e8eff9);
+  --hv-muted:     var(--text-muted,    #8b98ac);
+  --hv-faint:     var(--text-faint,    #5c6a8a);
+  --hv-accent:    var(--accent,        #5b8cff);
+  --hv-accent-2:  var(--accent-2,      #37d3b4);
+  --hv-warn:      var(--warn,          #f2b45c);
+  --hv-radius:    14px;
+
+  /* Compact by design: supports the tool, never dominates it */
+  --hv-h: 176px;
+
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--hv-h);
+  border-radius: var(--hv-radius);
+  background:
+    radial-gradient(120% 140% at 82% -10%, color-mix(in srgb, var(--hv-accent) 12%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, var(--hv-panel) 0%, var(--hv-bg) 100%);
+  border: 1px solid var(--hv-line);
+  overflow: hidden;
+  contain: layout paint;                 /* isolate for perf */
+  -webkit-font-smoothing: antialiased;
+  color: var(--hv-ink);
+  font: 500 14px/1.4 var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Subtle top sheen so the card reads as premium glass */
+.hv::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), transparent 22%);
+  pointer-events: none;
+}
+
+/* Ambient dotted grid — static, cheap, gives depth without motion noise */
+.hv::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(var(--hv-line-soft) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: .5;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
+}
+
+.hv__stage {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(14px, 4vw, 34px);
+  padding: 18px 22px;
+  z-index: 1;
+}
+
+/* Corner caption: what the animation is showing, in plain words */
+.hv__caption {
+  position: absolute; left: 14px; bottom: 11px;
+  z-index: 2;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  color: var(--hv-muted);
+  text-transform: uppercase;
+}
+.hv__caption b { color: var(--hv-accent); font-weight: 700; }
+
+/* ---- Shared atoms ---------------------------------------------------------- */
+
+/* File / format chip */
+.hv-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--hv-panel-2);
+  border: 1px solid var(--hv-line);
+  box-shadow: 0 6px 20px -12px rgba(0,0,0,.7);
+  will-change: transform, opacity;
+}
+.hv-chip__badge {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: .02em;
+  color: #fff;
+  background: linear-gradient(160deg, var(--hv-accent), color-mix(in srgb, var(--hv-accent) 55%, #000));
+}
+.hv-chip__badge--alt {
+  background: linear-gradient(160deg, var(--hv-accent-2), color-mix(in srgb, var(--hv-accent-2) 55%, #000));
+}
+.hv-chip__meta { display: flex; flex-direction: column; line-height: 1.15; }
+.hv-chip__name { font-size: 12.5px; font-weight: 700; color: var(--hv-ink); }
+.hv-chip__sub  { font-size: 11px; color: var(--hv-muted); }
+
+/* Flow arrow / connector — the shared "transformation" signature */
+.hv-flow {
+  position: relative;
+  display: grid; place-items: center;
+  width: clamp(40px, 9vw, 74px); height: 40px;
+  color: var(--hv-accent);
+  flex: 0 0 auto;
+}
+.hv-flow svg { width: 100%; height: 16px; overflow: visible; }
+.hv-flow__track { stroke: var(--hv-line); stroke-width: 2; fill: none; }
+.hv-flow__dash {
+  stroke: var(--hv-accent); stroke-width: 2.5; fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 10 12;
+  animation: hv-flow-move 1.15s linear infinite;
+}
+.hv-flow__head { fill: var(--hv-accent); }
+@keyframes hv-flow-move { to { stroke-dashoffset: -22; } }
+
+/* Vertical flow variant (for the ↓ layouts) */
+.hv-flow--v { width: 40px; height: clamp(30px, 8vh, 46px); }
+.hv-flow--v svg { width: 16px; height: 100%; }
+
+/* Mini image placeholder (a stylised photo) */
+.hv-photo {
+  position: relative;
+  width: 92px; height: 68px; border-radius: 9px; overflow: hidden;
+  border: 1px solid var(--hv-line);
+  background: linear-gradient(150deg, #2a3a56, #16243c);
+  flex: 0 0 auto;
+}
+.hv-photo__sky { position: absolute; inset: 0; background: linear-gradient(180deg,#3f5f8f,#233a5c); }
+.hv-photo__sun {
+  position: absolute; top: 12px; right: 14px; width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle, #ffd27a, #f7a94b);
+}
+.hv-photo__hill {
+  position: absolute; left: -10%; bottom: -30%; width: 70%; height: 70%; border-radius: 50%;
+  background: #1f6f57;
+}
+.hv-photo__hill2 {
+  position: absolute; right: -14%; bottom: -38%; width: 78%; height: 78%; border-radius: 50%;
+  background: #2c8a67;
+}
+
+/* Progress / size bar */
+.hv-bar { width: 118px; height: 8px; border-radius: 99px; background: var(--hv-panel-2); overflow: hidden; }
+.hv-bar__fill {
+  height: 100%; border-radius: 99px; transform-origin: left center;
+  background: linear-gradient(90deg, var(--hv-accent), var(--hv-accent-2));
+  will-change: transform;
+}
+
+/* ============================================================================
+   Motion controls — pause off-screen + reduced motion
+   ========================================================================== */
+.hv.hv-paused *,
+.hv.hv-paused { animation-play-state: paused !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hv *, .hv { animation: none !important; transition: none !important; }
+
+  /* Force each hero to its MEANINGFUL resolved state (no motion, still legible) */
+  .hv .hv-size__saved,
+  .hv .hv-pal__sw,
+  .hv .hv-wm__mark,
+  .hv .hv-code__clean,
+  .hv .hv-utm__p,
+  .hv .hv-card__img,
+  .hv .hv-card__t,
+  .hv .hv-card__d,
+  .hv .hv-type span,
+  .hv .hv-rx mark { opacity: 1 !important; transform: none !important; filter: none !important; }
+
+  .hv .hv-grid__cell,
+  .hv .hv-qr i,
+  .hv .hv-fav__ic,
+  .hv .hv-film__frame,
+  .hv .hv-crop__ok { transform: scale(1) !important; opacity: 1 !important; }
+  .hv .hv-film__play { transform: translateY(-50%) scale(1) !important; }
+
+  /* Show the OUTPUT of each workflow, hide the "in-progress" duplicates */
+  .hv .hv-code__messy,
+  .hv .hv-merge .m-a, .hv .hv-merge .m-b,
+  .hv .hv-split .s-src { opacity: 0 !important; }
+  .hv .hv-merge .m-c { opacity: 1 !important; transform: translate(66px,-50%) !important; }
+  .hv .hv-split .s-a { opacity: 1 !important; transform: translate(0,-50%) rotate(-8deg) !important; }
+  .hv .hv-split .s-b { opacity: 1 !important; transform: translate(66px,-50%) !important; }
+  .hv .hv-split .s-c { opacity: 1 !important; transform: translate(132px,-50%) rotate(8deg) !important; }
+
+  .hv .hv-blur__img { filter: blur(0) !important; }
+  .hv .hv-lock--open .hv-lock__shackle { transform: translateY(-6px) rotate(28deg) !important; }
+  .hv .hv-morph__spark { opacity: 0 !important; }
+
+  /* A quiet "motion reduced" note the JS reveals */
+  .hv--still .hv__caption::after { content: " · still"; color: var(--hv-faint); }
+}
+
+/* ============================================================================
+   1. COMPARISON HERO  (Background Remover only — teaser, not the full slider)
+   ========================================================================== */
+.hv--comparison .hv-photo { width: 128px; height: 96px; }
+.hv-cmp__cutout {
+  position: absolute; inset: 0;
+  background:
+    conic-gradient(from 45deg, #2b3242 0 25%, #232a38 0 50%, #2b3242 0 75%, #232a38 0) 0 0 / 16px 16px;
+}
+.hv-cmp__subject {
+  position: absolute; left: 50%; bottom: 0; width: 54px; height: 78px;
+  transform: translateX(-50%);
+  background: linear-gradient(160deg, #6f86c9, #3d5390);
+  border-radius: 40% 40% 8px 8px / 55% 55% 8px 8px;
+  clip-path: inset(0 0 0 0);
+  will-change: clip-path, opacity;
+}
+.hv-cmp__wipe {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+  background: var(--hv-accent);
+  box-shadow: 0 0 12px var(--hv-accent);
+  animation: hv-cmp-sweep 3.4s cubic-bezier(.65,0,.35,1) infinite;
+}
+.hv-cmp__reveal {
+  position: absolute; inset: 0;
+  background:
+    conic-gradient(from 45deg, #2b3242 0 25%, #232a38 0 50%, #2b3242 0 75%, #232a38 0) 0 0 / 16px 16px;
+  clip-path: inset(0 0 0 50%);
+  animation: hv-cmp-reveal 3.4s cubic-bezier(.65,0,.35,1) infinite;
+}
+@keyframes hv-cmp-sweep {
+  0%, 8% { transform: translateX(-64px); }
+  46%, 54% { transform: translateX(64px); }
+  92%,100% { transform: translateX(-64px); }
+}
+@keyframes hv-cmp-reveal {
+  0%, 8% { clip-path: inset(0 0 0 0%); }
+  46%,100% { clip-path: inset(0 0 0 100%); }
+}
+.hv-cmp__tag {
+  position: absolute; top: 8px; z-index: 3;
+  font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 6px; color: var(--hv-ink);
+  background: rgba(0,0,0,.45); border: 1px solid var(--hv-line);
+}
+.hv-cmp__tag--before { left: 8px; }
+.hv-cmp__tag--after  { right: 8px; }
+
+/* ============================================================================
+   2. SIZE-REDUCTION HERO  (Image Compressor, PDF Compress, WebP savings)
+   ========================================================================== */
+.hv-size { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 130px; }
+.hv-size__val { font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: var(--hv-ink); font-variant-numeric: tabular-nums; }
+.hv-size__val--to { color: var(--hv-accent-2); }
+.hv-size__lbl { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--hv-muted); }
+.hv-size .hv-bar__fill { animation: hv-shrink 3.2s cubic-bezier(.5,0,.2,1) infinite; }
+@keyframes hv-shrink {
+  0%, 12% { transform: scaleX(1); }
+  55%, 88% { transform: scaleX(.28); }
+  100% { transform: scaleX(1); }
+}
+.hv-size__saved {
+  font-size: 11px; font-weight: 700; color: var(--hv-accent-2);
+  opacity: 0; animation: hv-fade-cycle 3.2s ease-in-out infinite;
+}
+@keyframes hv-fade-cycle { 0%,20%{opacity:0} 55%,90%{opacity:1} 100%{opacity:0} }
+
+/* ============================================================================
+   3. DIMENSION HERO  (Image Resizer)
+   ========================================================================== */
+.hv-dim__frame {
+  position: relative; width: 132px; height: 100px;
+  display: grid; place-items: center;
+}
+.hv-dim__canvas {
+  position: relative; width: 118px; height: 88px; border-radius: 8px;
+  background: linear-gradient(150deg, #2a3a56, #16243c);
+  border: 1px solid var(--hv-line);
+  overflow: hidden;
+  transform-origin: center center;
+  animation: hv-resize 3.4s cubic-bezier(.6,0,.25,1) infinite;
+  will-change: transform;
+}
+.hv-dim__canvas .hv-photo__sun { top: 10px; right: 12px; }
+@keyframes hv-resize {
+  0%,14% { transform: scale(1); }
+  55%,86% { transform: scale(.62); }
+  100% { transform: scale(1); }
+}
+.hv-dim__handle {
+  position: absolute; width: 10px; height: 10px; border-radius: 3px;
+  background: var(--hv-accent); border: 2px solid var(--hv-bg);
+  box-shadow: 0 0 0 1px var(--hv-accent);
+}
+.hv-dim__handle--tl { top: 2px; left: 2px; } .hv-dim__handle--tr { top: 2px; right: 2px; }
+.hv-dim__handle--bl { bottom: 2px; left: 2px; } .hv-dim__handle--br { bottom: 2px; right: 2px; }
+.hv-dim__dims { display:flex; flex-direction:column; gap:8px; }
+
+/* ============================================================================
+   4. FORMAT-CONVERT HERO  (all converters — direction is data-driven)
+   ========================================================================== */
+.hv--format .hv-chip { animation: hv-pop-in 3s ease-in-out infinite; }
+.hv--format .hv-chip.is-to { animation-delay: .5s; }
+@keyframes hv-pop-in {
+  0%,14% { transform: translateY(4px) scale(.96); opacity:.55; }
+  40%,88% { transform: none; opacity:1; }
+  100% { transform: translateY(4px) scale(.96); opacity:.55; }
+}
+.hv-morph {
+  position: relative; width: 44px; height: 44px; flex: 0 0 auto;
+}
+.hv-morph__spark {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--hv-accent) 55%, transparent), transparent 60%);
+  transform: scale(0); opacity: 0;
+  animation: hv-spark 3s ease-in-out infinite;
+}
+@keyframes hv-spark { 0%,32%{transform:scale(0);opacity:0} 44%{transform:scale(1);opacity:.9} 60%,100%{transform:scale(1.4);opacity:0} }
+
+/* Format tile — one label, no duplication */
+.hv-ftile {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 18px; min-width: 78px;
+  border-radius: 12px; background: var(--hv-panel-2);
+  border: 1px solid var(--hv-line);
+  box-shadow: 0 8px 22px -14px rgba(0,0,0,.8);
+  color: var(--hv-accent);
+  will-change: transform, opacity;
+}
+.hv-ftile.is-alt { color: var(--hv-accent-2); }
+.hv-ftile__doc { line-height: 0; opacity: .9; }
+.hv-ftile__fmt {
+  font: 800 15px/1 var(--font-sans, sans-serif); letter-spacing: .02em;
+  color: var(--hv-ink);
+}
+.hv-ftile__sub {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .02em;
+  color: var(--hv-accent-2);
+}
+.hv--format .hv-ftile { animation: hv-pop-in 3s ease-in-out infinite; }
+.hv--format .hv-ftile:last-child { animation-delay: .5s; }
+
+/* Filmstrip (GIF Maker) */
+.hv-film {
+  position: relative; display: flex; gap: 6px; align-items: center;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--hv-panel-2); border: 1px solid var(--hv-line);
+}
+.hv-film__frame {
+  width: 34px; height: 46px; border-radius: 5px;
+  background: linear-gradient(150deg,#2a3a56,#16243c); border: 1px solid var(--hv-line);
+  transform: translateX(-10px) scale(.9); opacity: 0;
+  animation: hv-frame-in 3.2s ease-in-out infinite; will-change: transform, opacity;
+}
+.hv-film__frame.f1 { animation-delay: .0s } .hv-film__frame.f2 { animation-delay: .15s }
+.hv-film__frame.f3 { animation-delay: .30s } .hv-film__frame.f4 { animation-delay: .45s }
+@keyframes hv-frame-in { 0%,6%{opacity:0;transform:translateX(-10px) scale(.9)} 34%,86%{opacity:1;transform:none} 100%{opacity:0;transform:translateX(-10px) scale(.9)} }
+.hv-film__play {
+  position: absolute; right: -12px; top: 50%; width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--hv-accent-2);
+  box-shadow: 0 8px 20px -8px var(--hv-accent-2);
+  transform: translateY(-50%) scale(0); animation: hv-play-in 3.2s ease-in-out infinite;
+}
+@keyframes hv-play-in { 0%,58%{transform:translateY(-50%) scale(0)} 70%,90%{transform:translateY(-50%) scale(1)} 100%{transform:translateY(-50%) scale(0)} }
+
+/* SVG eyedropper sizing */
+.hv-eye__drop { line-height: 0; }
+.hv-eye__drop svg { display: block; }
+
+/* ============================================================================
+   5. COLOR-CHAIN HERO  (Color Converter — HEX → RGB → HSL)
+   ========================================================================== */
+.hv-cchain { display:flex; align-items:center; gap: clamp(10px,3vw,20px); }
+.hv-cnode {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  animation: hv-fade-cycle 3.6s ease-in-out infinite;
+}
+.hv-cnode:nth-child(3){ animation-delay:.5s } .hv-cnode:nth-child(5){ animation-delay:1s }
+.hv-swatch { width: 40px; height: 40px; border-radius: 10px; border:1px solid var(--hv-line);
+  background: var(--hv-accent); box-shadow: 0 8px 20px -10px var(--hv-accent); }
+.hv-cnode__code { font: 700 12px/1 var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); color: var(--hv-ink); }
+.hv-cnode__lbl { font-size:10px; font-weight:700; letter-spacing:.06em; color:var(--hv-muted); text-transform:uppercase; }
+
+/* ============================================================================
+   6. WORKFLOW — MERGE / SPLIT / ASSEMBLE
+   ========================================================================== */
+.hv-doc {
+  position: relative; width: 58px; height: 74px; border-radius: 8px;
+  background: linear-gradient(180deg,#eef3fb,#d8e2f0);
+  border: 1px solid rgba(0,0,0,.15);
+  box-shadow: 0 8px 22px -12px rgba(0,0,0,.8);
+  overflow: hidden; flex: 0 0 auto;
+}
+.hv-doc::before { content:""; position:absolute; top:0; right:0; width:16px; height:16px;
+  background: linear-gradient(225deg, var(--hv-bg) 50%, transparent 0); }
+.hv-doc__line { position:absolute; left:9px; height:3px; border-radius:2px; background:#9fb2ce; }
+.hv-doc__line:nth-child(1){ top:16px; width:60% } .hv-doc__line:nth-child(2){ top:24px; width:70% }
+.hv-doc__line:nth-child(3){ top:32px; width:50% } .hv-doc__line:nth-child(4){ top:40px; width:66% }
+.hv-doc__tag { position:absolute; bottom:6px; left:9px; font:800 9px/1 var(--font-mono,monospace); color:#5b6b86; }
+
+.hv-merge { position:relative; width: 190px; height: 120px; }
+.hv-merge .hv-doc { position:absolute; top:50%; }
+.hv-merge .m-a { left:0;  transform: translateY(-50%) rotate(-8deg); animation: hv-merge-a 3.4s ease-in-out infinite; }
+.hv-merge .m-b { left:34px; transform: translateY(-50%) rotate(4deg);  animation: hv-merge-b 3.4s ease-in-out infinite; }
+.hv-merge .m-c { left:0;  transform: translateY(-50%);                animation: hv-merge-c 3.4s ease-in-out infinite; opacity:0; }
+@keyframes hv-merge-a { 0%,16%{transform:translate(0,-50%) rotate(-8deg);opacity:1} 55%,100%{transform:translate(66px,-50%) rotate(0);opacity:0} }
+@keyframes hv-merge-b { 0%,16%{transform:translate(0,-50%) rotate(4deg);opacity:1}  55%,100%{transform:translate(32px,-50%) rotate(0);opacity:0} }
+@keyframes hv-merge-c { 0%,50%{opacity:0;transform:translate(66px,-50%) scale(.9)} 62%,90%{opacity:1;transform:translate(66px,-50%) scale(1)} 100%{opacity:0} }
+
+.hv-split { position:relative; width: 190px; height: 120px; }
+.hv-split .hv-doc { position:absolute; top:50%; left:0; }
+.hv-split .s-src { transform: translateY(-50%); animation: hv-split-src 3.4s ease-in-out infinite; }
+.hv-split .s-a { transform: translateY(-50%); animation: hv-split-a 3.4s ease-in-out infinite; opacity:0; }
+.hv-split .s-b { transform: translateY(-50%); animation: hv-split-b 3.4s ease-in-out infinite; opacity:0; }
+.hv-split .s-c { transform: translateY(-50%); animation: hv-split-c 3.4s ease-in-out infinite; opacity:0; }
+@keyframes hv-split-src { 0%,30%{opacity:1;transform:translate(66px,-50%)} 48%,100%{opacity:0;transform:translate(66px,-50%)} }
+@keyframes hv-split-a { 0%,40%{opacity:0;transform:translate(66px,-50%) rotate(0)} 60%,90%{opacity:1;transform:translate(0,-50%) rotate(-8deg)} 100%{opacity:0} }
+@keyframes hv-split-b { 0%,40%{opacity:0;transform:translate(66px,-50%) rotate(0)} 60%,90%{opacity:1;transform:translate(66px,-50%)} 100%{opacity:0} }
+@keyframes hv-split-c { 0%,40%{opacity:0;transform:translate(66px,-50%) rotate(0)} 60%,90%{opacity:1;transform:translate(132px,-50%) rotate(8deg)} 100%{opacity:0} }
+
+.hv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; width:104px; height:104px; }
+.hv-grid__cell { border-radius:6px; background:linear-gradient(150deg,#2a3a56,#16243c); border:1px solid var(--hv-line);
+  transform: scale(.4); opacity:0; animation: hv-cell-in 3.2s ease-in-out infinite; }
+.hv-grid__cell:nth-child(1){animation-delay:0s} .hv-grid__cell:nth-child(2){animation-delay:.18s}
+.hv-grid__cell:nth-child(3){animation-delay:.36s} .hv-grid__cell:nth-child(4){animation-delay:.54s}
+@keyframes hv-cell-in { 0%,6%{transform:scale(.4);opacity:0} 34%,86%{transform:scale(1);opacity:1} 100%{transform:scale(.4);opacity:0} }
+
+/* ============================================================================
+   7. VISUALIZATION — blur / watermark / palette / eyedropper / crop
+   ========================================================================== */
+.hv-blur__img {
+  width: 150px; height: 96px; border-radius: 9px; overflow:hidden; position:relative;
+  border:1px solid var(--hv-line); will-change: filter;
+  animation: hv-blur-ramp 3.4s ease-in-out infinite;
+}
+@keyframes hv-blur-ramp { 0%,12%{filter:blur(0)} 50%,74%{filter:blur(6px)} 100%{filter:blur(0)} }
+
+.hv-wm { position:relative; width:150px; height:96px; border-radius:9px; overflow:hidden; border:1px solid var(--hv-line); }
+.hv-wm__mark {
+  position:absolute; inset:0; display:grid; place-items:center;
+  font: 800 15px/1 var(--font-sans,sans-serif); letter-spacing:.12em; color:rgba(255,255,255,.72);
+  transform: rotate(-18deg) scale(.7); opacity:0;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+  animation: hv-wm-in 3.2s ease-in-out infinite;
+}
+@keyframes hv-wm-in { 0%,18%{opacity:0;transform:rotate(-18deg) scale(.7)} 46%,88%{opacity:1;transform:rotate(-18deg) scale(1)} 100%{opacity:0} }
+
+.hv-pal { display:flex; align-items:flex-end; gap:10px; }
+.hv-pal__strip { width:96px; height:72px; border-radius:9px; overflow:hidden; border:1px solid var(--hv-line);
+  background:linear-gradient(135deg,#e8734a,#7b57d8 55%,#3bb6a6); }
+.hv-pal__swatches { display:flex; gap:7px; }
+.hv-pal__sw { width:26px; height:44px; border-radius:7px; border:1px solid var(--hv-line);
+  transform: translateY(10px) scale(.85); opacity:0; animation: hv-sw-rise 3.2s ease-in-out infinite; }
+.hv-pal__sw:nth-child(1){animation-delay:.05s} .hv-pal__sw:nth-child(2){animation-delay:.2s}
+.hv-pal__sw:nth-child(3){animation-delay:.35s} .hv-pal__sw:nth-child(4){animation-delay:.5s}
+@keyframes hv-sw-rise { 0%,10%{opacity:0;transform:translateY(10px) scale(.85)} 40%,88%{opacity:1;transform:none} 100%{opacity:0;transform:translateY(10px) scale(.85)} }
+
+.hv-eye { position:relative; width:150px; height:96px; border-radius:9px; overflow:hidden; border:1px solid var(--hv-line);
+  background:linear-gradient(135deg,#e8734a,#f2b45c 40%,#7b57d8 78%,#3bb6a6); }
+.hv-eye__drop {
+  position:absolute; top:0; left:0; font-size:22px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  animation: hv-eye-move 3.6s cubic-bezier(.5,0,.3,1) infinite;
+  will-change: transform;
+}
+@keyframes hv-eye-move {
+  0%{transform:translate(14px,10px)} 30%{transform:translate(96px,54px)}
+  60%{transform:translate(40px,64px)} 100%{transform:translate(14px,10px)}
+}
+.hv-eye__read {
+  position:absolute; bottom:8px; left:8px; padding:3px 7px; border-radius:6px;
+  font:700 11px/1 var(--font-mono,monospace); color:#fff; background:rgba(0,0,0,.5); border:1px solid var(--hv-line);
+}
+
+.hv-crop { position:relative; width:150px; height:100px; border-radius:9px; overflow:hidden; border:1px solid var(--hv-line);
+  background:linear-gradient(150deg,#2a3a56,#16243c); }
+.hv-crop__dim { position:absolute; inset:0; background:rgba(6,10,18,.6); }
+.hv-crop__frame {
+  position:absolute; border:2px solid var(--hv-accent); border-radius:4px;
+  box-shadow:0 0 0 9999px rgba(6,10,18,.55);
+  animation: hv-crop-tighten 3.6s cubic-bezier(.6,0,.25,1) infinite;
+  will-change: transform;
+  inset:10px; transform-origin:center;
+}
+@keyframes hv-crop-tighten {
+  0%,10%{clip-path:none; transform:scale(1)}
+  50%,84%{transform:scale(.66)} 100%{transform:scale(1)}
+}
+.hv-crop__ok {
+  position:absolute; right:8px; bottom:8px; width:22px; height:22px; border-radius:50%;
+  display:grid; place-items:center; color:#fff; background:var(--hv-accent-2);
+  transform:scale(0); animation: hv-ok-pop 3.6s ease-in-out infinite;
+}
+@keyframes hv-ok-pop { 0%,60%{transform:scale(0)} 70%,90%{transform:scale(1)} 100%{transform:scale(0)} }
+
+/* ============================================================================
+   8. CODE / DATA — json format / base64 / hash / regex / ocr
+   ========================================================================== */
+.hv-code {
+  width: min(320px, 82%); border-radius:10px; overflow:hidden;
+  border:1px solid var(--hv-line); background:var(--hv-bg);
+  font: 600 11.5px/1.7 var(--font-mono, ui-monospace, Menlo, monospace);
+}
+.hv-code__bar { display:flex; gap:6px; padding:8px 10px; background:var(--hv-panel-2); border-bottom:1px solid var(--hv-line); }
+.hv-code__dot { width:9px; height:9px; border-radius:50%; background:var(--hv-line); }
+.hv-code__body { padding:10px 12px; position:relative; min-height:78px; }
+.hv-code__row { white-space:pre; color:var(--hv-muted); }
+.hv-code__row .k { color: var(--hv-accent); } .hv-code__row .v { color: var(--hv-accent-2); }
+/* messy → formatted swap */
+.hv-code__messy, .hv-code__clean { position:absolute; left:12px; right:12px; top:10px; }
+.hv-code__messy { animation: hv-fade-cycle-inv 3.4s ease-in-out infinite; }
+.hv-code__clean { opacity:0; animation: hv-fade-cycle 3.4s ease-in-out infinite; }
+@keyframes hv-fade-cycle-inv { 0%,30%{opacity:1} 48%,100%{opacity:0} }
+/* hash / base64 char reveal */
+.hv-type span { opacity:0; animation: hv-char 3s steps(1) infinite; }
+@keyframes hv-char { 0%{opacity:0} 40%,92%{opacity:1} 100%{opacity:0} }
+/* regex match highlight */
+.hv-rx mark {
+  background: color-mix(in srgb, var(--hv-accent) 40%, transparent);
+  color: var(--hv-ink); border-radius:3px; padding:0 2px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hv-accent) 60%, transparent);
+  opacity:0; animation: hv-fade-cycle 3s ease-in-out infinite;
+}
+.hv-rx mark:nth-of-type(2){ animation-delay:.3s } .hv-rx mark:nth-of-type(3){ animation-delay:.6s }
+/* ocr scan line */
+.hv-ocr { position:relative; width:150px; height:96px; border-radius:9px; overflow:hidden; border:1px solid var(--hv-line);
+  background:linear-gradient(150deg,#233149,#131f33); }
+.hv-ocr__txt { position:absolute; left:10px; top:14px; right:10px; }
+.hv-ocr__txt i { display:block; height:5px; border-radius:2px; margin-bottom:7px;
+  background:linear-gradient(90deg,var(--hv-muted),transparent); opacity:.5; }
+.hv-ocr__scan {
+  position:absolute; left:0; right:0; height:26px; top:-26px;
+  background:linear-gradient(180deg, transparent, color-mix(in srgb,var(--hv-accent) 35%, transparent));
+  border-bottom:2px solid var(--hv-accent);
+  animation: hv-scan 3s cubic-bezier(.5,0,.5,1) infinite;
+  will-change: transform;
+}
+@keyframes hv-scan { 0%{transform:translateY(0)} 60%,100%{transform:translateY(122px)} }
+
+/* ============================================================================
+   9. PREVIEW — rotate / page preview / lock
+   ========================================================================== */
+.hv-rotate .hv-doc { animation: hv-rot 3.2s cubic-bezier(.6,0,.25,1) infinite; }
+@keyframes hv-rot { 0%,16%{transform:rotate(0)} 52%,84%{transform:rotate(90deg)} 100%{transform:rotate(0)} }
+
+.hv-pages { position:relative; width:120px; height:96px; }
+.hv-pages .hv-doc { position:absolute; inset:0; width:70px; height:90px; margin:auto; transform-origin:left center; }
+.hv-pages .p1 { z-index:3; animation: hv-flip 3.4s cubic-bezier(.5,0,.3,1) infinite; }
+.hv-pages .p2 { z-index:2; left:8px; } .hv-pages .p3 { z-index:1; left:16px; }
+@keyframes hv-flip { 0%,20%{transform:rotateY(0)} 55%,80%{transform:rotateY(-155deg)} 100%{transform:rotateY(0)} }
+
+.hv-lock { display:grid; place-items:center; width:90px; height:90px; }
+.hv-lock svg { width:64px; height:64px; overflow:visible; }
+.hv-lock__shackle { fill:none; stroke:var(--hv-accent); stroke-width:6; stroke-linecap:round; transform-origin: 44px 30px; }
+.hv-lock__body { fill: color-mix(in srgb, var(--hv-accent) 22%, var(--hv-panel-2)); stroke:var(--hv-accent); stroke-width:3; }
+.hv-lock--open  .hv-lock__shackle { animation: hv-unlock 3.2s cubic-bezier(.6,0,.25,1) infinite; }
+.hv-lock--close .hv-lock__shackle { animation: hv-dolock 3.2s cubic-bezier(.6,0,.25,1) infinite; }
+@keyframes hv-unlock { 0%,16%{transform:translateY(0) rotate(0)} 52%,84%{transform:translateY(-6px) rotate(28deg)} 100%{transform:translateY(0) rotate(0)} }
+@keyframes hv-dolock { 0%,16%{transform:translateY(-6px) rotate(28deg)} 52%,100%{transform:translateY(0) rotate(0)} }
+
+/* ============================================================================
+   10. GENERATION — qr / utm / preview card / favicon
+   ========================================================================== */
+.hv-qr { width:96px; height:96px; display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:repeat(7,1fr);
+  gap:3px; padding:8px; background:#fff; border-radius:10px; }
+.hv-qr i { border-radius:2px; background:#0d1420; transform:scale(0); animation: hv-qr-in 3.4s ease-in-out infinite; }
+@keyframes hv-qr-in { 0%,4%{transform:scale(0)} 40%,88%{transform:scale(1)} 100%{transform:scale(0)} }
+
+.hv-utm { width:min(330px,86%); font:600 12px/1.5 var(--font-mono,monospace); color:var(--hv-muted); text-align:left; }
+.hv-utm__base { color:var(--hv-ink); }
+.hv-utm__p { color:var(--hv-accent-2); opacity:0; display:inline; animation: hv-utm-in 3.6s ease-in-out infinite; }
+.hv-utm__p:nth-of-type(1){animation-delay:.2s} .hv-utm__p:nth-of-type(2){animation-delay:.55s} .hv-utm__p:nth-of-type(3){animation-delay:.9s}
+@keyframes hv-utm-in { 0%,6%{opacity:0} 40%,90%{opacity:1} 100%{opacity:0} }
+
+.hv-card { width:170px; border-radius:10px; overflow:hidden; border:1px solid var(--hv-line); background:var(--hv-panel-2); }
+.hv-card__img { height:70px; background:linear-gradient(135deg,var(--hv-accent),var(--hv-accent-2)); transform:scale(1.05); opacity:0;
+  animation: hv-card-1 3.4s ease-in-out infinite; }
+.hv-card__body { padding:9px 11px; }
+.hv-card__t { height:8px; width:75%; border-radius:3px; background:var(--hv-ink); opacity:0; animation: hv-card-2 3.4s ease-in-out infinite; }
+.hv-card__d { height:6px; width:92%; border-radius:3px; background:var(--hv-muted); margin-top:7px; opacity:0; animation: hv-card-3 3.4s ease-in-out infinite; }
+@keyframes hv-card-1 { 0%,12%{opacity:0} 34%,90%{opacity:1} 100%{opacity:0} }
+@keyframes hv-card-2 { 0%,24%{opacity:0} 44%,90%{opacity:1} 100%{opacity:0} }
+@keyframes hv-card-3 { 0%,34%{opacity:0} 54%,90%{opacity:1} 100%{opacity:0} }
+
+.hv-fav { display:flex; align-items:center; gap:14px; }
+.hv-fav__src { width:60px; height:60px; border-radius:12px; background:linear-gradient(150deg,var(--hv-accent),var(--hv-accent-2));
+  display:grid; place-items:center; color:#fff; font-weight:800; font-size:20px; }
+.hv-fav__out { display:flex; align-items:flex-end; gap:8px; }
+.hv-fav__ic { border-radius:5px; background:linear-gradient(150deg,var(--hv-accent),var(--hv-accent-2)); border:1px solid var(--hv-line);
+  transform:scale(0); animation: hv-fav-in 3.2s ease-in-out infinite; }
+.hv-fav__ic.i1{width:14px;height:14px;animation-delay:.1s} .hv-fav__ic.i2{width:20px;height:20px;animation-delay:.28s}
+.hv-fav__ic.i3{width:28px;height:28px;animation-delay:.46s} .hv-fav__ic.i4{width:38px;height:38px;animation-delay:.64s}
+@keyframes hv-fav-in { 0%,6%{transform:scale(0)} 40%,88%{transform:scale(1)} 100%{transform:scale(0)} }
+
+/* ============================================================================
+   Shared entrance/pop helpers
+   ========================================================================== */
+@keyframes hv-pop { 0%{transform:scale(.6);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+/* ============================================================================
+   Responsive — keep it short so the upload area stays above the fold
+   ========================================================================== */
+@media (max-width: 640px) {
+  .hv { --hv-h: 138px; border-radius: 12px; }
+  .hv__stage { gap: 14px; padding: 14px; }
+  .hv-code, .hv-utm { width: 90%; }
+  .hv-merge, .hv-split { transform: scale(.82); }
+  .hv-size__val { font-size: 17px; }
+  .hv__caption { font-size: 10px; }
+}
+@media (max-width: 380px) {
+  .hv { --hv-h: 124px; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">Tarumak Studio · Design System</div>
+    <h1>Hero Visual System</h1>
+    <p class="lede">One reusable engine, six template families, a unique functional animation per tool.
+    Each card below renders the <b>exact production output</b> for that tool — same markup, same motion.
+    Compact by design so the upload area stays above the fold.</p>
+    <div class="legend">
+      <span class="pill"><span class="dot dot--v"></span> Slug verified on live site</span>
+      <span class="pill"><span class="dot dot--i"></span> Slug inferred — confirm key in data.js</span>
+      <span class="pill">Hover reduces nothing — motion pauses off-screen &amp; respects reduced-motion</span>
+    </div>
+  </header>
+  <main id="board"></main>
+  <footer class="page">
+    Drop-in: <code style="font-family:var(--font-mono);color:var(--text-muted)">&lt;div class="hv" data-hero-slug="image-compressor"&gt;&lt;/div&gt;</code>
+    then load <code style="font-family:var(--font-mono);color:var(--text-muted)">hero-visuals.css</code> + <code style="font-family:var(--font-mono);color:var(--text-muted)">hero-visuals.js</code>.
+    The build pipeline writes only the slug — <code style="font-family:var(--font-mono);color:var(--text-muted)">HERO_MAP</code> resolves the rest.
+  </footer>
+</div>
+
+<script>
+/* ===== Injected hero engine ===== */
+/* ============================================================================
+   Tarumak Studio — Hero Visual Engine  (vanilla, zero-dependency)
+   ----------------------------------------------------------------------------
+   USAGE (per tool page, between the <h1> block and the tool mount):
+       <div class="hv" data-hero-slug="image-compressor"></div>
+       <script src="/hero-visuals.js" defer></script>
+
+   The build pipeline only needs to write the slug — everything else is
+   resolved from HERO_MAP below, which is the single source of truth.
+
+   Runtime: renders on init, pauses when off-screen, and respects
+   prefers-reduced-motion by rendering the resolved end-state without motion.
+   ========================================================================== */
+(function () {
+  "use strict";
+
+  /* --------------------------------------------------------------------------
+     SINGLE SOURCE OF TRUTH — slug → hero config
+     `verified:true`  = slug confirmed from the live site
+     `verified:false` = tool exists but slug is inferred; confirm the exact
+                        slug against data.js and adjust the KEY only.
+     -------------------------------------------------------------------------- */
+  var HERO_MAP = {
+    /* ---- Image ---------------------------------------------------------- */
+    "background-remover": { type: "comparison", verified: true },
+    "image-compressor":   { type: "sizeReduction", from: "12.4 MB", to: "2.8 MB", saved: "−77%", verified: true },
+    "image-resizer":      { type: "dimension", from: "4000 × 3000", to: "1200 × 900", verified: true },
+    "image-cropper":      { type: "crop", verified: true },
+    "blur-image":         { type: "blur", verified: false },
+    "watermark-image":    { type: "watermark", text: "TARUMAK", verified: false },
+    "palette-generator":  { type: "palette", verified: false },
+    "image-to-text":      { type: "ocr", verified: false }, // OCR
+
+    /* ---- Converters (direction verified via slug) ----------------------- */
+    "jpg-to-png":  { type: "formatConvert", from: "JPG",  to: "PNG",  verified: true },
+    "png-to-jpg":  { type: "formatConvert", from: "PNG",  to: "JPG",  note: "smaller", verified: true },
+    "jpg-to-webp": { type: "formatConvert", from: "JPG",  to: "WebP", note: "−30%", verified: true },
+    "webp-to-jpg": { type: "formatConvert", from: "WebP", to: "JPG",  verified: true },
+    "heic-to-jpg": { type: "formatConvert", from: "HEIC", to: "JPG",  verified: true },
+    "svg-to-png":  { type: "formatConvert", from: "SVG",  to: "PNG",  verified: true },
+    "pdf-to-jpg":  { type: "formatConvert", from: "PDF",  to: "JPG",  verified: true },
+    "word-to-pdf": { type: "formatConvert", from: "DOCX", to: "PDF",  verified: true },
+    "txt-to-pdf":  { type: "formatConvert", from: "TXT",  to: "PDF",  verified: true },
+    "html-to-pdf": { type: "formatConvert", from: "HTML", to: "PDF",  verified: true },
+    "markdown-to-html": { type: "formatConvert", from: "MD", to: "HTML", verified: true },
+    "gif-to-webp": { type: "formatConvert", from: "GIF",  to: "WebP", note: "−60%", verified: true },
+    "webp-to-gif": { type: "formatConvert", from: "WebP", to: "GIF",  verified: true },
+    "png-to-ico":  { type: "formatConvert", from: "PNG",  to: "ICO",  verified: false },
+    "csv-to-json": { type: "formatConvert", from: "CSV",  to: "JSON", verified: false, alt: true },
+    "json-to-csv": { type: "formatConvert", from: "JSON", to: "CSV",  verified: false, alt: true },
+
+    /* ---- Workflow / assembly -------------------------------------------- */
+    "favicon-generator": { type: "favicon", from: "PNG", to: "ICO", verified: true },
+    "gif-maker":         { type: "assemble", mode: "gif", verified: true },
+    "image-collage":     { type: "assemble", mode: "grid", verified: true },
+    "merge-pdf":         { type: "mergeDocs", verified: false },
+    "split-pdf":         { type: "splitDocs", verified: false },
+
+    /* ---- PDF ------------------------------------------------------------ */
+    "compress-pdf": { type: "sizeReduction", from: "8.6 MB", to: "2.1 MB", saved: "−76%", verified: false },
+    "rotate-pdf":   { type: "rotate", verified: false },
+    "pdf-reader":   { type: "pagePreview", verified: false },
+    "unlock-pdf":   { type: "lock", dir: "open",  verified: false },
+    "protect-pdf":  { type: "lock", dir: "close", verified: false },
+
+    /* ---- Developer / data ----------------------------------------------- */
+    "json-formatter": { type: "codeFormat", verified: true },
+    "base64-encoder": { type: "encode", verified: true },
+    "hash-generator": { type: "hash", verified: false },
+    "regex-tester":   { type: "regex", verified: true },
+    "color-converter":{ type: "colorChain", verified: true },
+    "color-picker":   { type: "eyedropper", verified: true },
+
+    /* ---- Marketing ------------------------------------------------------ */
+    "qr-code-generator":  { type: "qr", verified: true },
+    "utm-builder":        { type: "utm", verified: true },
+    "meta-tag-generator": { type: "previewCard", kind: "meta", verified: false },
+    "og-image-generator": { type: "previewCard", kind: "og", verified: false }
+  };
+
+  /* Human-readable family label shown in the corner caption */
+  var CAPTION = {
+    comparison: "Before <b>·</b> After",
+    sizeReduction: "Size reduced",
+    dimension: "Resized",
+    formatConvert: "Converted",
+    colorChain: "HEX <b>→</b> RGB <b>→</b> HSL",
+    crop: "Cropped",
+    blur: "Blur applied",
+    watermark: "Watermarked",
+    palette: "Palette extracted",
+    eyedropper: "Color picked",
+    codeFormat: "Formatted",
+    encode: "Encoded",
+    hash: "Hashed",
+    regex: "Matches found",
+    ocr: "Text extracted",
+    mergeDocs: "Merged",
+    splitDocs: "Split",
+    assemble: "Assembled",
+    rotate: "Rotated",
+    pagePreview: "Preview",
+    lock: "Secured",
+    qr: "Generated",
+    utm: "Link built",
+    previewCard: "Preview built",
+    favicon: "Icons generated"
+  };
+
+  /* small helpers */
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  }); }
+  function chip(name, sub, alt) {
+    return '<div class="hv-chip' + (sub ? " is-to" : "") + '">' +
+      '<span class="hv-chip__badge' + (alt ? " hv-chip__badge--alt" : "") + '">' + esc(name) + "</span>" +
+      '<span class="hv-chip__meta"><span class="hv-chip__name">' + esc(name) + "</span>" +
+      (sub ? '<span class="hv-chip__sub">' + esc(sub) + "</span>" : "") + "</span></div>";
+  }
+  function flow(vertical) {
+    if (vertical) {
+      return '<div class="hv-flow hv-flow--v"><svg viewBox="0 0 16 40" preserveAspectRatio="none">' +
+        '<path class="hv-flow__track" d="M8 2 V34"/><path class="hv-flow__dash" d="M8 2 V34"/>' +
+        '<path class="hv-flow__head" d="M8 40 L3 32 H13 Z"/></svg></div>';
+    }
+    return '<div class="hv-flow"><svg viewBox="0 0 74 16" preserveAspectRatio="none">' +
+      '<path class="hv-flow__track" d="M2 8 H66"/><path class="hv-flow__dash" d="M2 8 H66"/>' +
+      '<path class="hv-flow__head" d="M74 8 L64 3 V13 Z"/></svg></div>';
+  }
+  var photo = '<span class="hv-photo__sky"></span><span class="hv-photo__hill"></span>' +
+              '<span class="hv-photo__hill2"></span><span class="hv-photo__sun"></span>';
+
+  /* --------------------------------------------------------------------------
+     RENDERERS — each returns { cls, html }
+     -------------------------------------------------------------------------- */
+  var R = {
+    comparison: function () {
+      return { cls: "hv--comparison", html:
+        '<div class="hv-photo hv--comparison" style="width:132px;height:98px">' +
+          '<div class="hv-cmp__cutout"></div>' +
+          '<div class="hv-cmp__subject"></div>' +
+          '<div class="hv-cmp__reveal"></div>' +
+          '<div class="hv-cmp__wipe"></div>' +
+          '<span class="hv-cmp__tag hv-cmp__tag--before">Original</span>' +
+          '<span class="hv-cmp__tag hv-cmp__tag--after">Removed</span>' +
+        "</div>" };
+    },
+
+    sizeReduction: function (c) {
+      return { cls: "hv--size", html:
+        '<div class="hv-size"><span class="hv-size__val">' + esc(c.from) + "</span>" +
+          '<span class="hv-size__lbl">Original</span></div>' +
+        flow(false) +
+        '<div class="hv-size">' +
+          '<span class="hv-size__val hv-size__val--to">' + esc(c.to) + "</span>" +
+          '<div class="hv-bar"><div class="hv-bar__fill"></div></div>' +
+          '<span class="hv-size__saved">' + esc(c.saved || "") + " saved</span>" +
+        "</div>" };
+    },
+
+    dimension: function (c) {
+      var p = String(c.from).split("×"), q = String(c.to).split("×");
+      return { cls: "hv--dim", html:
+        '<div class="hv-dim__dims"><div class="hv-size"><span class="hv-size__val">' + esc(p[0]) +
+          '</span><span class="hv-size__lbl">width px</span></div></div>' +
+        '<div class="hv-dim__frame"><div class="hv-dim__canvas">' + photo +
+          '<span class="hv-dim__handle hv-dim__handle--tl"></span><span class="hv-dim__handle hv-dim__handle--tr"></span>' +
+          '<span class="hv-dim__handle hv-dim__handle--bl"></span><span class="hv-dim__handle hv-dim__handle--br"></span>' +
+        "</div></div>" +
+        '<div class="hv-dim__dims"><div class="hv-size"><span class="hv-size__val hv-size__val--to">' + esc(q[0]) +
+          '</span><span class="hv-size__lbl">width px</span></div></div>' };
+    },
+
+    formatConvert: function (c) {
+      return { cls: "hv--format", html:
+        ftile(c.from) +
+        '<div class="hv-morph">' + flow(false) + '<span class="hv-morph__spark"></span></div>' +
+        ftile(c.to, c.note, c.alt) };
+    },
+
+    colorChain: function () {
+      function node(color, code, lbl) {
+        return '<div class="hv-cnode"><span class="hv-swatch" style="background:' + color + '"></span>' +
+          '<span class="hv-cnode__code">' + esc(code) + "</span>" +
+          '<span class="hv-cnode__lbl">' + esc(lbl) + "</span></div>";
+      }
+      return { cls: "hv--cchain", html:
+        '<div class="hv-cchain">' + node("#5b8cff", "#5B8CFF", "HEX") +
+        flow(false) + node("#5b8cff", "91,140,255", "RGB") +
+        flow(false) + node("#5b8cff", "222 100 65", "HSL") + "</div>" };
+    },
+
+    crop: function () {
+      return { cls: "hv--crop", html:
+        '<div class="hv-crop">' + '<div class="hv-crop__frame"></div>' +
+        '<div class="hv-crop__ok">' + check() + "</div></div>" };
+    },
+
+    blur: function () {
+      return { cls: "hv--blur", html:
+        '<div class="hv-blur__img hv-photo" style="width:150px;height:96px">' + photo + "</div>" };
+    },
+
+    watermark: function (c) {
+      return { cls: "hv--wm", html:
+        '<div class="hv-wm hv-photo" style="width:150px;height:96px">' + photo +
+        '<span class="hv-wm__mark">' + esc(c.text || "TARUMAK") + "</span></div>" };
+    },
+
+    palette: function () {
+      var cols = ["#e8734a", "#f2b45c", "#7b57d8", "#3bb6a6"];
+      var sw = cols.map(function (c) { return '<span class="hv-pal__sw" style="background:' + c + '"></span>'; }).join("");
+      return { cls: "hv--pal", html:
+        '<div class="hv-pal"><div class="hv-pal__strip"></div>' +
+        '<div class="hv-pal__swatches">' + sw + "</div></div>" };
+    },
+
+    eyedropper: function () {
+      return { cls: "hv--eye", html:
+        '<div class="hv-eye"><span class="hv-eye__drop">' +
+          '<svg width="26" height="26" viewBox="0 0 26 26">' +
+            '<path d="M17.5 3.2a3 3 0 0 1 4.3 4.2l-7.1 7.1-1.4 3.4-2.8-2.8 3.4-1.4 7.1-7.1" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>' +
+            '<path d="M13.3 12.7 5.4 20.6a2 2 0 0 0 0 2.8h0a2 2 0 0 0 2.8 0l7.9-7.9" fill="#0d1420" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>' +
+            '<circle cx="9" cy="19" r="1.6" fill="var(--hv-accent)"/>' +
+          "</svg></span>" +
+        '<span class="hv-eye__read">#7B57D8</span></div>' };
+    },
+
+    codeFormat: function () {
+      return { cls: "hv--code", html:
+        '<div class="hv-code"><div class="hv-code__bar"><span class="hv-code__dot"></span>' +
+          '<span class="hv-code__dot"></span><span class="hv-code__dot"></span></div>' +
+        '<div class="hv-code__body">' +
+          '<div class="hv-code__messy"><div class="hv-code__row">{<span class="k">"id"</span>:7,<span class="k">"ok"</span>:true}</div></div>' +
+          '<div class="hv-code__clean">' +
+            '<div class="hv-code__row">{</div>' +
+            '<div class="hv-code__row">  <span class="k">"id"</span>: <span class="v">7</span>,</div>' +
+            '<div class="hv-code__row">  <span class="k">"ok"</span>: <span class="v">true</span></div>' +
+            '<div class="hv-code__row">}</div>' +
+          "</div>" +
+        "</div></div>" };
+    },
+
+    encode: function () {
+      return { cls: "hv--code", html:
+        '<div class="hv-code"><div class="hv-code__bar"><span class="hv-code__dot"></span>' +
+          '<span class="hv-code__dot"></span><span class="hv-code__dot"></span></div>' +
+        '<div class="hv-code__body">' +
+          '<div class="hv-code__row" style="color:var(--hv-ink)">Tarumak</div>' +
+          flow(true) +
+          '<div class="hv-code__row hv-type" style="color:var(--hv-accent-2)">' +
+            typed("VGFydW1haw==") + "</div>" +
+        "</div></div>" };
+    },
+
+    hash: function () {
+      return { cls: "hv--code", html:
+        '<div class="hv-code"><div class="hv-code__bar"><span class="hv-code__dot"></span>' +
+          '<span class="hv-code__dot"></span><span class="hv-code__dot"></span></div>' +
+        '<div class="hv-code__body">' +
+          '<div class="hv-code__row" style="color:var(--hv-ink)">tarumak · SHA-256</div>' +
+          '<div class="hv-code__row hv-type" style="color:var(--hv-accent);word-break:break-all;white-space:normal">' +
+            typed("9f2c1e7a4b8d0c63") + "</div>" +
+        "</div></div>" };
+    },
+
+    regex: function () {
+      return { cls: "hv--code", html:
+        '<div class="hv-code"><div class="hv-code__bar"><span class="hv-code__dot"></span>' +
+          '<span class="hv-code__dot"></span><span class="hv-code__dot"></span></div>' +
+        '<div class="hv-code__body hv-rx"><div class="hv-code__row" style="color:var(--hv-muted);white-space:normal">' +
+          'ping <mark>tarumak</mark>, ship <mark>tarumak</mark>, love <mark>tarumak</mark></div>' +
+          '<div class="hv-code__row" style="color:var(--hv-accent-2);margin-top:8px">/tarumak/g → 3 matches</div>' +
+        "</div></div>" };
+    },
+
+    ocr: function () {
+      return { cls: "hv--ocr", html:
+        '<div class="hv-ocr"><div class="hv-ocr__txt"><i></i><i style="width:80%"></i><i style="width:60%"></i>' +
+        '<i style="width:88%"></i><i style="width:45%"></i></div><div class="hv-ocr__scan"></div></div>' };
+    },
+
+    mergeDocs: function () {
+      return { cls: "hv--merge", html:
+        '<div class="hv-merge">' + doc("m-a") + doc("m-b") + doc("m-c") + "</div>" };
+    },
+    splitDocs: function () {
+      return { cls: "hv--split", html:
+        '<div class="hv-split">' + doc("s-src") + doc("s-a") + doc("s-b") + doc("s-c") + "</div>" };
+    },
+
+    assemble: function (c) {
+      if (c.mode === "gif") {
+        return { cls: "hv--film", html:
+          '<div class="hv-film">' +
+            '<span class="hv-film__frame f1"></span><span class="hv-film__frame f2"></span>' +
+            '<span class="hv-film__frame f3"></span><span class="hv-film__frame f4"></span>' +
+            '<span class="hv-film__play">' +
+              '<svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 4 L16 10 L6 16 Z" fill="#0d1420"/></svg>' +
+            '</span>' +
+          "</div>" };
+      }
+      return { cls: "hv--assemble", html:
+        '<div class="hv-grid"><span class="hv-grid__cell"></span><span class="hv-grid__cell"></span>' +
+        '<span class="hv-grid__cell"></span><span class="hv-grid__cell"></span></div>' };
+    },
+
+    rotate: function () {
+      return { cls: "hv--rotate", html: doc("", "width:70px;height:88px") };
+    },
+
+    pagePreview: function () {
+      return { cls: "hv--pages", html:
+        '<div class="hv-pages">' + doc("p3") + doc("p2") + doc("p1") + "</div>" };
+    },
+
+    lock: function (c) {
+      var open = c.dir === "open";
+      return { cls: "hv--lock", html:
+        '<div class="hv-lock ' + (open ? "hv-lock--open" : "hv-lock--close") + '">' +
+        '<svg viewBox="0 0 88 88">' +
+          '<path class="hv-lock__shackle" d="M28 44 V30 a16 16 0 0 1 32 0 V44"/>' +
+          '<rect class="hv-lock__body" x="22" y="42" width="44" height="34" rx="7"/>' +
+        "</svg></div>" };
+    },
+
+    qr: function () {
+      var cells = "";
+      // deterministic pseudo-QR pattern (49 cells)
+      var pat = "1101011 1001101 1110010 0101110 1011001 0110101 1010111";
+      pat.replace(/ /g, "").split("").forEach(function (b, i) {
+        cells += '<i style="' + (b === "1" ? "" : "background:transparent;") +
+          "animation-delay:" + (i * 0.02).toFixed(2) + 's"></i>';
+      });
+      return { cls: "hv--qr", html: '<div class="hv-qr">' + cells + "</div>" };
+    },
+
+    utm: function () {
+      return { cls: "hv--utm", html:
+        '<div class="hv-utm"><span class="hv-utm__base">tarumak.studio/?</span>' +
+        '<span class="hv-utm__p">utm_source=news</span>' +
+        '<span class="hv-utm__p">&amp;utm_medium=email</span>' +
+        '<span class="hv-utm__p">&amp;utm_campaign=launch</span></div>' };
+    },
+
+    previewCard: function () {
+      return { cls: "hv--card", html:
+        '<div class="hv-card"><div class="hv-card__img"></div>' +
+        '<div class="hv-card__body"><div class="hv-card__t"></div><div class="hv-card__d"></div></div></div>' };
+    },
+
+    favicon: function (c) {
+      return { cls: "hv--fav", html:
+        '<div class="hv-fav"><div class="hv-fav__src">' + esc(String(c.from).charAt(0)) + "</div>" +
+        flow(false) +
+        '<div class="hv-fav__out"><span class="hv-fav__ic i1"></span><span class="hv-fav__ic i2"></span>' +
+        '<span class="hv-fav__ic i3"></span><span class="hv-fav__ic i4"></span></div></div>' };
+    }
+  };
+
+  function ftile(fmt, sub, alt) {
+    return '<div class="hv-ftile' + (alt ? " is-alt" : "") + '">' +
+      '<span class="hv-ftile__doc">' +
+        '<svg width="26" height="30" viewBox="0 0 26 30"><path d="M3 1 h14 l6 6 v22 a1 1 0 0 1-1 1 H3 a1 1 0 0 1-1-1 V2 a1 1 0 0 1 1-1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M17 1 v6 h6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>' +
+      "</span>" +
+      '<span class="hv-ftile__fmt">' + esc(fmt) + "</span>" +
+      (sub ? '<span class="hv-ftile__sub">' + esc(sub) + "</span>" : "") +
+      "</div>";
+  }
+  function check() {
+    return '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6 L5 9 L10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  function doc(cls, style) {
+    return '<div class="hv-doc ' + (cls || "") + '"' + (style ? ' style="' + style + '"' : "") + '>' +
+      '<span class="hv-doc__line"></span><span class="hv-doc__line"></span>' +
+      '<span class="hv-doc__line"></span><span class="hv-doc__line"></span>' +
+      '<span class="hv-doc__tag">PDF</span></div>';
+  }
+  function typed(str) {
+    return str.split("").map(function (ch, i) {
+      return '<span style="animation-delay:' + (i * 0.06).toFixed(2) + 's">' + esc(ch) + "</span>";
+    }).join("");
+  }
+
+  /* --------------------------------------------------------------------------
+     RUNTIME
+     -------------------------------------------------------------------------- */
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function render(host) {
+    var slug = host.getAttribute("data-hero-slug");
+    var cfg = HERO_MAP[slug];
+    if (!cfg) { host.setAttribute("data-hero-missing", "1"); return; }
+    var fn = R[cfg.type];
+    if (!fn) return;
+
+    var out = fn(cfg);
+    host.className = "hv " + out.cls + (REDUCED ? " hv--still" : "");
+    var cap = CAPTION[cfg.type] || "";
+    host.innerHTML =
+      '<div class="hv__stage">' + out.html + "</div>" +
+      (cap ? '<span class="hv__caption">' + cap + "</span>" : "");
+    host.setAttribute("role", "img");
+    host.setAttribute("aria-label", host.getAttribute("data-hero-label") || (cap.replace(/<[^>]+>/g, "") + " preview"));
+  }
+
+  var io = ("IntersectionObserver" in window)
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          e.target.classList.toggle("hv-paused", !e.isIntersecting);
+        });
+      }, { rootMargin: "120px" })
+    : null;
+
+  function init(root) {
+    (root || document).querySelectorAll(".hv[data-hero-slug], [data-hero-slug]").forEach(function (host) {
+      if (host.__hvDone) return;
+      host.__hvDone = true;
+      if (!host.classList.contains("hv")) host.classList.add("hv");
+      render(host);
+      if (io) io.observe(host);
+    });
+  }
+
+  // Expose for build-time / manual use
+  window.TarumakHero = { init: init, map: HERO_MAP, render: render };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { init(document); });
+  } else {
+    init(document);
+  }
+})();
+
+</script>
+
+<script>
+/* ---- Showcase generator: build one card per mapped tool ---- */
+(function(){
+  var MAP = window.TarumakHero.map;
+  var NAME = {
+    "background-remover":"Background Remover","image-compressor":"Image Compressor","image-resizer":"Image Resizer",
+    "image-cropper":"Crop Image","blur-image":"Blur Image","watermark-image":"Watermark","palette-generator":"Palette Generator",
+    "image-to-text":"OCR (Image to Text)","jpg-to-png":"JPG to PNG","png-to-jpg":"PNG to JPG","jpg-to-webp":"JPG to WebP",
+    "webp-to-jpg":"WebP to JPG","heic-to-jpg":"HEIC to JPG","svg-to-png":"SVG to PNG","pdf-to-jpg":"PDF to JPG",
+    "word-to-pdf":"Word to PDF","txt-to-pdf":"TXT to PDF","html-to-pdf":"HTML to PDF","markdown-to-html":"Markdown to HTML",
+    "gif-to-webp":"GIF to WebP","webp-to-gif":"WebP to GIF","png-to-ico":"PNG to ICO","csv-to-json":"CSV to JSON",
+    "json-to-csv":"JSON to CSV","favicon-generator":"Favicon Generator","gif-maker":"GIF Maker","image-collage":"Image Collage",
+    "merge-pdf":"Merge PDF","split-pdf":"Split PDF","compress-pdf":"Compress PDF","rotate-pdf":"Rotate PDF",
+    "pdf-reader":"PDF Reader","unlock-pdf":"Unlock PDF","protect-pdf":"Password Protect","json-formatter":"JSON Formatter",
+    "base64-encoder":"Base64 Encoder","hash-generator":"Hash Generator","regex-tester":"Regex Tester",
+    "color-converter":"Color Converter","color-picker":"Color Picker","qr-code-generator":"QR Generator",
+    "utm-builder":"UTM Builder","meta-tag-generator":"Meta Generator","og-image-generator":"Open Graph Generator"
+  };
+  var GROUPS = [
+    ["Image Tools",["background-remover","image-compressor","image-resizer","image-cropper","blur-image","watermark-image","palette-generator","image-to-text"]],
+    ["Converters — direction verified",["jpg-to-png","png-to-jpg","jpg-to-webp","webp-to-jpg","heic-to-jpg","svg-to-png","pdf-to-jpg","word-to-pdf","txt-to-pdf","html-to-pdf","markdown-to-html","gif-to-webp","webp-to-gif","png-to-ico","csv-to-json","json-to-csv"]],
+    ["PDF Tools",["merge-pdf","split-pdf","compress-pdf","rotate-pdf","pdf-reader","unlock-pdf","protect-pdf"]],
+    ["Developer & Data",["json-formatter","base64-encoder","hash-generator","regex-tester","color-converter","color-picker"]],
+    ["Marketing & Generation",["qr-code-generator","utm-builder","meta-tag-generator","og-image-generator","favicon-generator","gif-maker","image-collage"]]
+  ];
+  var board = document.getElementById("board");
+  GROUPS.forEach(function(g){
+    var h = document.createElement("div"); h.className="group__title"; h.textContent=g[0]; board.appendChild(h);
+    var grid = document.createElement("div"); grid.className="grid"; board.appendChild(grid);
+    g[1].forEach(function(slug){
+      var cfg = MAP[slug]; if(!cfg) return;
+      var card = document.createElement("div"); card.className="card";
+      card.innerHTML =
+        '<div class="card__top"><div><div class="card__name">'+(NAME[slug]||slug)+'</div>'+
+        '<div class="card__slug">/'+slug+'</div></div>'+
+        '<span class="card__type">'+cfg.type+'</span></div>'+
+        '<div class="hv" data-hero-slug="'+slug+'"></div>'+
+        '<div><span class="'+(cfg.verified?'tag-v':'tag-i')+'">'+(cfg.verified?'slug verified':'slug inferred')+'</span></div>';
+      grid.appendChild(card);
+    });
+  });
+  window.TarumakHero.init(document);
+})();
+</script>
+</body>
+</html>

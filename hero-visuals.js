@@ -3,7 +3,8 @@
    ----------------------------------------------------------------------------
    USAGE (per tool page, between the <h1> block and the tool mount):
        <div class="hv" data-hero-slug="image-compressor"></div>
-       <script src="/hero-visuals.js" defer></script>
+       Load hero-visuals.js with the "defer" attribute (as an external file,
+       not inlined) right before this file's matching stylesheet import.
 
    The build pipeline only needs to write the slug — everything else is
    resolved from HERO_MAP below, which is the single source of truth.

@@ -2,47 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tarumak Studio — Hero Visual System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarumak Studio — Hero Visual System Showcase</title>
 <style>
-:root{
-  --surface:#0e1521; --surface-2:#131c2b; --surface-3:#182236;
-  --border:rgba(255,255,255,.09); --border-soft:rgba(255,255,255,.06);
-  --text:#e8eff9; --text-muted:#8b98ac; --text-faint:#5c6a8a;
-  --accent:#5b8cff; --accent-2:#37d3b4;
-  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --font-mono:ui-monospace,"SF Mono",Menlo,monospace;
-}
+:root{--surface:#0e1521;--surface-2:#131c2b;--surface-3:#182236;--border:rgba(255,255,255,.09);
+--border-soft:rgba(255,255,255,.06);--text:#e8eff9;--text-muted:#8b98ac;--text-faint:#5c6a8a;
+--accent:#5b8cff;--accent-2:#37d3b4;--font-sans:ui-sans-serif,system-ui,sans-serif;--font-mono:ui-monospace,Menlo,monospace;}
 *{box-sizing:border-box}
-body{margin:0;background:#0c111a;color:var(--text);font-family:var(--font-sans);
-  background-image:radial-gradient(120% 80% at 50% -10%, #16203400 0%, #0c111a 60%);}
-.wrap{max-width:1180px;margin:0 auto;padding:40px 22px 80px}
-header.page{margin-bottom:8px}
-.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-h1{font-size:clamp(26px,4vw,40px);margin:.3em 0 .2em;letter-spacing:-.02em;font-weight:800}
-.lede{color:var(--text-muted);max-width:64ch;line-height:1.6;font-size:15px}
-.legend{display:flex;gap:18px;flex-wrap:wrap;margin:20px 0 34px;font-size:12.5px;color:var(--text-muted)}
-.legend b{color:var(--text)}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:99px;border:1px solid var(--border);background:var(--surface-2)}
-.dot{width:8px;height:8px;border-radius:50%}
-.dot--v{background:var(--accent-2)} .dot--i{background:var(--warn,#f2b45c)}
-.group__title{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);
-  margin:38px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-.card{background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:16px;
-  display:flex;flex-direction:column;gap:12px}
-.card__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.card__name{font-size:15px;font-weight:700}
-.card__slug{font:600 11.5px/1 var(--font-mono);color:var(--text-muted);margin-top:5px}
-.card__type{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;
-  padding:4px 8px;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,transparent);white-space:nowrap}
-.tag-v,.tag-i{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
-.tag-v{color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 16%,transparent)}
-.tag-i{color:var(--warn,#f2b45c);background:color-mix(in srgb,#f2b45c 15%,transparent)}
-footer.page{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);color:var(--text-faint);font-size:13px;line-height:1.7}
-@media(max-width:560px){.grid{grid-template-columns:1fr}}
-
-/* ===== Injected hero system CSS ===== */
+body{margin:0;background:#0c111a;color:var(--text);font-family:var(--font-sans);padding:32px 20px 80px}
+h1{font-size:28px;margin:0 0 6px}
+.sub{color:var(--text-muted);font-size:14px;margin:0 0 36px}
+.showcase-section{margin-bottom:40px}
+.showcase-section h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);
+  border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:18px}
+.showcase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.showcase-card{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.showcase-card__meta{padding:12px 14px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.showcase-card__meta strong{font-size:13.5px;text-transform:capitalize;width:100%}
+.showcase-card__meta code{font-family:var(--font-mono);font-size:11px;color:var(--text-faint)}
+.showcase-card__meta .type{font-size:10.5px;color:var(--accent-2);background:rgba(55,211,180,.1);
+  padding:2px 7px;border-radius:99px}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
+.badge--ok{background:rgba(55,211,180,.14);color:var(--accent-2)}
+.badge--warn{background:rgba(242,180,92,.14);color:#f2b45c}
 /* ============================================================================
    Tarumak Studio — Hero Visual System
    ----------------------------------------------------------------------------
@@ -664,35 +646,17 @@ footer.page{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-s
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="page">
-    <div class="eyebrow">Tarumak Studio · Design System</div>
-    <h1>Hero Visual System</h1>
-    <p class="lede">One reusable engine, six template families, a unique functional animation per tool.
-    Each card below renders the <b>exact production output</b> for that tool — same markup, same motion.
-    Compact by design so the upload area stays above the fold.</p>
-    <div class="legend">
-      <span class="pill"><span class="dot dot--v"></span> Slug verified on live site</span>
-      <span class="pill"><span class="dot dot--i"></span> Slug inferred — confirm key in data.js</span>
-      <span class="pill">Hover reduces nothing — motion pauses off-screen &amp; respects reduced-motion</span>
-    </div>
-  </header>
-  <main id="board"></main>
-  <footer class="page">
-    Drop-in: <code style="font-family:var(--font-mono);color:var(--text-muted)">&lt;div class="hv" data-hero-slug="image-compressor"&gt;&lt;/div&gt;</code>
-    then load <code style="font-family:var(--font-mono);color:var(--text-muted)">hero-visuals.css</code> + <code style="font-family:var(--font-mono);color:var(--text-muted)">hero-visuals.js</code>.
-    The build pipeline writes only the slug — <code style="font-family:var(--font-mono);color:var(--text-muted)">HERO_MAP</code> resolves the rest.
-  </footer>
-</div>
-
+<h1>Tarumak Studio — Hero Visual System</h1>
+<p class="sub">Auto-generated from HERO_MAP. Green badge = slug verified live · amber = slug inferred, confirm against data.js.</p>
+<div id="showcase-root"></div>
 <script>
-/* ===== Injected hero engine ===== */
 /* ============================================================================
    Tarumak Studio — Hero Visual Engine  (vanilla, zero-dependency)
    ----------------------------------------------------------------------------
    USAGE (per tool page, between the <h1> block and the tool mount):
        <div class="hv" data-hero-slug="image-compressor"></div>
-       <script src="/hero-visuals.js" defer></script>
+       Load hero-visuals.js with the "defer" attribute (as an external file,
+       not inlined) right before this file's matching stylesheet import.
 
    The build pipeline only needs to write the slug — everything else is
    resolved from HERO_MAP below, which is the single source of truth.
@@ -1122,50 +1086,66 @@ footer.page{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-s
 })();
 
 </script>
-
 <script>
-/* ---- Showcase generator: build one card per mapped tool ---- */
-(function(){
-  var MAP = window.TarumakHero.map;
-  var NAME = {
-    "background-remover":"Background Remover","image-compressor":"Image Compressor","image-resizer":"Image Resizer",
-    "image-cropper":"Crop Image","blur-image":"Blur Image","watermark-image":"Watermark","palette-generator":"Palette Generator",
-    "image-to-text":"OCR (Image to Text)","jpg-to-png":"JPG to PNG","png-to-jpg":"PNG to JPG","jpg-to-webp":"JPG to WebP",
-    "webp-to-jpg":"WebP to JPG","heic-to-jpg":"HEIC to JPG","svg-to-png":"SVG to PNG","pdf-to-jpg":"PDF to JPG",
-    "word-to-pdf":"Word to PDF","txt-to-pdf":"TXT to PDF","html-to-pdf":"HTML to PDF","markdown-to-html":"Markdown to HTML",
-    "gif-to-webp":"GIF to WebP","webp-to-gif":"WebP to GIF","png-to-ico":"PNG to ICO","csv-to-json":"CSV to JSON",
-    "json-to-csv":"JSON to CSV","favicon-generator":"Favicon Generator","gif-maker":"GIF Maker","image-collage":"Image Collage",
-    "merge-pdf":"Merge PDF","split-pdf":"Split PDF","compress-pdf":"Compress PDF","rotate-pdf":"Rotate PDF",
-    "pdf-reader":"PDF Reader","unlock-pdf":"Unlock PDF","protect-pdf":"Password Protect","json-formatter":"JSON Formatter",
-    "base64-encoder":"Base64 Encoder","hash-generator":"Hash Generator","regex-tester":"Regex Tester",
-    "color-converter":"Color Converter","color-picker":"Color Picker","qr-code-generator":"QR Generator",
-    "utm-builder":"UTM Builder","meta-tag-generator":"Meta Generator","og-image-generator":"Open Graph Generator"
-  };
-  var GROUPS = [
-    ["Image Tools",["background-remover","image-compressor","image-resizer","image-cropper","blur-image","watermark-image","palette-generator","image-to-text"]],
-    ["Converters — direction verified",["jpg-to-png","png-to-jpg","jpg-to-webp","webp-to-jpg","heic-to-jpg","svg-to-png","pdf-to-jpg","word-to-pdf","txt-to-pdf","html-to-pdf","markdown-to-html","gif-to-webp","webp-to-gif","png-to-ico","csv-to-json","json-to-csv"]],
-    ["PDF Tools",["merge-pdf","split-pdf","compress-pdf","rotate-pdf","pdf-reader","unlock-pdf","protect-pdf"]],
-    ["Developer & Data",["json-formatter","base64-encoder","hash-generator","regex-tester","color-converter","color-picker"]],
-    ["Marketing & Generation",["qr-code-generator","utm-builder","meta-tag-generator","og-image-generator","favicon-generator","gif-maker","image-collage"]]
-  ];
-  var board = document.getElementById("board");
-  GROUPS.forEach(function(g){
-    var h = document.createElement("div"); h.className="group__title"; h.textContent=g[0]; board.appendChild(h);
-    var grid = document.createElement("div"); grid.className="grid"; board.appendChild(grid);
-    g[1].forEach(function(slug){
-      var cfg = MAP[slug]; if(!cfg) return;
-      var card = document.createElement("div"); card.className="card";
+
+(function () {
+  function section(title, slugs) {
+    var wrap = document.createElement('div');
+    wrap.className = 'showcase-section';
+    var h = document.createElement('h2');
+    h.textContent = title;
+    wrap.appendChild(h);
+    var grid = document.createElement('div');
+    grid.className = 'showcase-grid';
+    slugs.forEach(function (slug) {
+      var cfg = window.TarumakHero.map[slug];
+      if (!cfg) return;
+      var card = document.createElement('div');
+      card.className = 'showcase-card';
+      var badge = cfg.verified
+        ? '<span class="badge badge--ok">slug verified</span>'
+        : '<span class="badge badge--warn">slug inferred</span>';
       card.innerHTML =
-        '<div class="card__top"><div><div class="card__name">'+(NAME[slug]||slug)+'</div>'+
-        '<div class="card__slug">/'+slug+'</div></div>'+
-        '<span class="card__type">'+cfg.type+'</span></div>'+
-        '<div class="hv" data-hero-slug="'+slug+'"></div>'+
-        '<div><span class="'+(cfg.verified?'tag-v':'tag-i')+'">'+(cfg.verified?'slug verified':'slug inferred')+'</span></div>';
+        '<div class="showcase-card__meta">' +
+          '<strong>' + slug.replace(/-/g, ' ') + '</strong>' +
+          '<code>/' + slug + '</code>' +
+          '<span class="type">' + cfg.type + '</span>' +
+          badge +
+        '</div>' +
+        '<div class="hv" data-hero-slug="' + slug + '"></div>';
       grid.appendChild(card);
     });
-  });
-  window.TarumakHero.init(document);
+    wrap.appendChild(grid);
+    document.getElementById('showcase-root').appendChild(wrap);
+  }
+
+  var SECTIONS = {
+    "Image Tools": ["background-remover","image-compressor","image-resizer","image-cropper","blur-image","watermark-image","palette-generator","image-to-text","color-picker"],
+    "Converters": ["jpg-to-png","png-to-jpg","jpg-to-webp","webp-to-jpg","heic-to-jpg","svg-to-png","pdf-to-jpg","word-to-pdf","txt-to-pdf","html-to-pdf","markdown-to-html","gif-to-webp","webp-to-gif","png-to-ico","csv-to-json","json-to-csv"],
+    "PDF Tools": ["merge-pdf","split-pdf","compress-pdf","rotate-pdf","pdf-reader","unlock-pdf","protect-pdf"],
+    "Developer Tools": ["json-formatter","base64-encoder","hash-generator","regex-tester","color-converter"],
+    "Marketing & Generation": ["qr-code-generator","utm-builder","meta-tag-generator","og-image-generator","favicon-generator","gif-maker","image-collage"]
+  };
+
+  function boot() {
+    if (!window.TarumakHero || !window.TarumakHero.map) {
+      document.getElementById('showcase-root').innerHTML =
+        '<p style="color:#ff7a7a">Hero engine failed to load.</p>';
+      return;
+    }
+    Object.keys(SECTIONS).forEach(function (title) {
+      section(title, SECTIONS[title]);
+    });
+    window.TarumakHero.init(document);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
+
 </script>
 </body>
 </html>

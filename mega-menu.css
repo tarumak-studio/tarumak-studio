@@ -29,7 +29,8 @@
   overflow: hidden;
 }
 .nav-tools-drop:hover .nav-tools-panel.mega,
-.nav-tools-drop:focus-within .nav-tools-panel.mega {
+.nav-tools-drop:focus-within .nav-tools-panel.mega,
+.nav-tools-drop.js-open .nav-tools-panel.mega {
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
@@ -220,7 +221,13 @@
   .mega-preview { display: none; } /* no hover target on touch — rail links go straight to category pages */
   .mega-cat-desc { display: none; }
 }
-@media (max-width: 900px) { .nav-tools-panel.mega { display: none !important; } }
+/* Below 767px, .nav-links (the parent of .nav-tools-drop) is hidden
+   by main.css's mobile breakpoint — that alone takes this panel out
+   of the visible/focusable tree for true mobile, so no separate
+   force-hide rule is needed here. Removing that old rule is what
+   makes the 768-1024px tablet range able to show this panel at all
+   (it previously force-hid everything below 900px, leaving no way
+   to open the menu on an 800px-wide tablet no matter the trigger). */
 
 /* ═══════════════════════════════════════════════════════════
    ACCESSIBILITY
@@ -233,5 +240,6 @@
   }
   .mega-cat { opacity: 1; transform: none; }
   .nav-tools-drop:hover .nav-tools-panel.mega,
-  .nav-tools-drop:focus-within .nav-tools-panel.mega { transform: translateX(-50%) translateY(0) scale(1); }
+  .nav-tools-drop:focus-within .nav-tools-panel.mega,
+  .nav-tools-drop.js-open .nav-tools-panel.mega { transform: translateX(-50%) translateY(0) scale(1); }
 }

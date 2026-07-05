@@ -140,7 +140,7 @@ for (const cat of Object.keys(CAT_JS)) {
 
 /* ── 2. Chrome: from the shared header-chrome module ──────────────── */
 const { getChrome, withActiveNav } = require('./header-chrome.js');
-const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT } = getChrome();
+const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
 const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
 
@@ -658,6 +658,7 @@ function buildPage(t) {
   <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body data-tool-slug="${slug}" data-tool-name="${esc(name)}">
+${TOAST_RACK}
 ${CHROME_TOP}
 <main>
   <div class="tp-wrap">
@@ -753,6 +754,7 @@ ${CDN_TAGS}
 <script src="/developer-tools.js" defer></script>
 <script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
+${NAV_RESPONSIVE_SCRIPT}
 <script src="/tool-hero.js" defer></script>
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>

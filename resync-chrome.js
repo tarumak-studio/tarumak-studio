@@ -28,7 +28,7 @@
 const fs = require('fs');
 const { getChrome, withActiveNav } = require('./header-chrome.js');
 
-const { CHROME_TOP: BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT } = getChrome();
+const { CHROME_TOP: BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
 
 /* Same page -> nav-active mapping used by the original migration, plus
    the homepage itself (data-nav=""). */
@@ -62,7 +62,8 @@ for (const file of targets) {
 
     const key = activeKeyFor(file);
     const chrome = key !== null ? withActiveNav(BASE, key) : BASE;
-    html = html.slice(0, headerStart) + chrome + '\n' + html.slice(mainStart).replace(/^\n+/, '');
+    const toastPrefix = html.includes('id="toast-rack"') ? '' : TOAST_RACK + '\n';
+    html = html.slice(0, headerStart) + toastPrefix + chrome + '\n' + html.slice(mainStart).replace(/^\n+/, '');
 
     /* Footer: always re-stamp with the current shared FOOTER, except
        404.html (kept deliberately minimal by design). Earlier this
@@ -84,6 +85,10 @@ for (const file of targets) {
       const headClose = html.indexOf('</head>');
       html = html.slice(0, headClose) + '  <link rel="stylesheet" href="/mega-menu.css">\n' + html.slice(headClose);
     }
+    if (!html.includes('nav-responsive.css')) {
+      const headClose = html.indexOf('</head>');
+      html = html.slice(0, headClose) + '  <link rel="stylesheet" href="/nav-responsive.css">\n' + html.slice(headClose);
+    }
     if (!html.includes('mega-menu.js')) {
       /* Insert right before </body> — same relative position as every
          other page's script chain (features.js always loads just before
@@ -92,6 +97,11 @@ for (const file of targets) {
       const bodyClose = html.lastIndexOf('</body>');
       if (bodyClose === -1) throw new Error('no </body> found');
       html = html.slice(0, bodyClose) + MEGA_MENU_SCRIPT + '\n' + html.slice(bodyClose);
+    }
+    if (!html.includes('nav-responsive.js')) {
+      const bodyClose = html.lastIndexOf('</body>');
+      if (bodyClose === -1) throw new Error('no </body> found');
+      html = html.slice(0, bodyClose) + NAV_RESPONSIVE_SCRIPT + '\n' + html.slice(bodyClose);
     }
 
     if (html === before) { unchanged++; continue; }

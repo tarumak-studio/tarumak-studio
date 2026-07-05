@@ -176,7 +176,7 @@ const TOOL_CSS = `
 
 .tp-hero{padding:40px 0 8px}
 .tp-hero h1{font-family:var(--fd);font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-1.2px;margin:14px 0 10px}
-.tp-lead{font-size:16.5px;color:var(--text-dim);max-width:720px;line-height:1.65}
+.tp-lead{font-size:14px;color:var(--text-dim);max-width:720px;line-height:1.65}
 .tp-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .tp-cat-badge{font-size:12px;font-weight:700;color:var(--p1);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);padding:5px 12px;border-radius:100px;text-decoration:none}
 .tp-chip{font-size:11.5px;font-weight:600;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:100px}

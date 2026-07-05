@@ -7,6 +7,12 @@
  * (scan/workflow/code/live/convert) is pure CSS animation and needs no
  * JS at all, so this file does nothing on pages that don't use the
  * compare hero.
+ *
+ * The compare hero also auto-animates a slow sweep by default (see
+ * tool-variants.css) so it isn't a static image before anyone touches
+ * it — the moment a visitor actually drags this real slider, this file
+ * adds .tp-compare--active, which stops the auto-sweep and hands full,
+ * permanent control to their input for the rest of the page view.
  */
 (function () {
   'use strict';
@@ -24,7 +30,9 @@
       if (handle) handle.style.left = pct;
     }
 
-    input.addEventListener('input', apply);
-    apply();
+    input.addEventListener('input', function () {
+      compare.classList.add('tp-compare--active');
+      apply();
+    });
   });
 })();

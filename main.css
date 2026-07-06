@@ -1,5 +1,5 @@
-:root{--bg:#0a0d18;--bg-2:#0e1226;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.06);--border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);--text:#eef1fb;--text-dim:#9aa3c4;--text-faint:#69708f;--p1:#22d3ee;--p2:#6366f1;--accent:#f5b042;--accent-2:#ff8a3c;--ok:#34d399;--bad:#ff6b6b;--grad:linear-gradient(120deg,var(--p1),var(--p2));--grad-accent:linear-gradient(120deg,var(--accent),var(--accent-2));--shadow:0 24px 60px -24px rgba(0,0,0,.7);--r:18px;--fd:"Space Grotesk",system-ui,sans-serif;--fb:"Inter",system-ui,sans-serif;--fm:"JetBrains Mono",monospace;--ease:cubic-bezier(.22,.61,.36,1)}
-[data-theme="light"]{--bg:#f5f6fc;--bg-2:#eceefa;--surface:rgba(20,24,54,.035);--surface-2:rgba(20,24,54,.05);--border:rgba(20,24,54,.1);--border-2:rgba(20,24,54,.16);--text:#161a31;--text-dim:#515877;--text-faint:#777e9c;--shadow:0 24px 60px -28px rgba(40,46,90,.28)}
+:root{--bg:#0a0d18;--bg-2:#0e1226;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.06);--border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);--text:#eef1fb;--text-dim:#9aa3c4;--text-faint:#69708f;--p1:#22d3ee;--p2:#6366f1;--accent:#f5b042;--accent-2:#ff8a3c;--ok:#34d399;--bad:#ff6b6b;--grad:linear-gradient(120deg,var(--p1),var(--p2));--grad-accent:linear-gradient(120deg,var(--accent),var(--accent-2));--shadow:0 1px 2px rgba(0,0,0,.32),0 8px 20px -8px rgba(0,0,0,.42),0 24px 48px -24px rgba(0,0,0,.5);--shadow-lift:0 2px 4px rgba(0,0,0,.3),0 12px 28px -10px rgba(0,0,0,.5);--ring:0 0 0 3px color-mix(in srgb,var(--p1) 24%,transparent);--r:18px;--fd:"Space Grotesk",system-ui,sans-serif;--fb:"Inter",system-ui,sans-serif;--fm:"JetBrains Mono",monospace;--ease:cubic-bezier(.22,.61,.36,1)}
+[data-theme="light"]{--bg:#f6f7fc;--bg-2:#eceefa;--surface:rgba(22,26,49,.05);--surface-2:rgba(22,26,49,.075);--border:rgba(22,26,49,.12);--border-2:rgba(22,26,49,.19);--text:#161a31;--text-dim:#4c5372;--text-faint:#6a7190;--shadow:0 1px 2px rgba(40,46,90,.1),0 8px 20px -8px rgba(40,46,90,.16),0 24px 48px -24px rgba(40,46,90,.2);--shadow-lift:0 2px 4px rgba(40,46,90,.1),0 12px 28px -10px rgba(40,46,90,.22)}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -11,10 +11,23 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.
    overrides above 14px are corrected individually elsewhere in this
    file since a class selector's specificity beats this element one. */
 p{font-size:14px;line-height:1.6}
-body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(60% 50% at 78% 8%,rgba(99,102,241,.20),transparent 60%),radial-gradient(50% 45% at 12% 18%,rgba(34,211,238,.16),transparent 60%),radial-gradient(40% 40% at 50% 100%,rgba(245,176,66,.07),transparent 60%)}
-[data-theme="light"] body::before{opacity:.55}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(60% 50% at 78% 8%,rgba(99,102,241,.13),transparent 60%),radial-gradient(50% 45% at 12% 18%,rgba(34,211,238,.10),transparent 60%),radial-gradient(40% 40% at 50% 100%,rgba(245,176,66,.045),transparent 60%)}
+[data-theme="light"] body::before{opacity:.45}
 a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
 ::selection{background:var(--p2);color:#fff}
+/* ── Keyboard focus system — one rule, site-wide. :focus-visible only
+   fires for keyboard/AT navigation, so mouse users never see it, and
+   the inherited outline:none-by-default problem (no visible focus
+   anywhere on the site) is closed with a single token-driven ring. ── */
+:focus-visible{outline:2px solid var(--p1);outline-offset:2px;border-radius:4px}
+.btn:focus-visible,.icon-btn:focus-visible,.tab:focus-visible{outline:none;box-shadow:var(--ring)}
+/* ── Scrollbar — thin, token-colored, matches the app-like feel of
+   premium products instead of the OS default gutter. ── */
+*{scrollbar-width:thin;scrollbar-color:var(--border-2) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:100px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--text-faint);border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
 .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
 /* header */
 header{position:sticky;top:0;z-index:100;transition:.4s var(--ease);border-bottom:1px solid transparent}
@@ -44,13 +57,16 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .search-pop a{display:flex;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:9px;font-size:13.5px;color:var(--text-dim);cursor:pointer}
 .search-pop a:hover{background:var(--surface-2);color:var(--text)}
 .search-pop .chip{font-family:var(--fm);font-size:10px}
-.btn{font-family:var(--fb);font-weight:600;font-size:13.5px;border:none;cursor:pointer;border-radius:11px;padding:0 18px;height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.28s var(--ease);white-space:nowrap;text-decoration:none}
-.btn-primary{background:var(--grad);color:#06121a;box-shadow:0 10px 26px -10px var(--p2)}
-.btn-primary:hover{transform:translateY(-2px)}
+.btn{font-family:var(--fb);font-weight:600;font-size:13.5px;border:none;cursor:pointer;border-radius:11px;padding:0 18px;height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.22s var(--ease);white-space:nowrap;text-decoration:none}
+.btn-primary{background:var(--grad);color:#06121a;box-shadow:0 8px 20px -10px var(--p2),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px -10px var(--p2),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn-primary:active{transform:translateY(0);box-shadow:0 4px 12px -8px var(--p2),inset 0 1px 2px rgba(0,0,0,.12)}
 .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
 .btn-ghost:hover{border-color:var(--border-2);background:var(--surface-2)}
-.btn-convert{background:var(--grad-accent);color:#1a1206;box-shadow:0 12px 30px -10px var(--accent)}
-.btn-convert:hover{transform:translateY(-2px)}
+.btn-ghost:active{background:var(--surface)}
+.btn-convert{background:var(--grad-accent);color:#1a1206;box-shadow:0 8px 20px -10px var(--accent),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn-convert:hover{transform:translateY(-1px)}
+.btn-convert:active{transform:translateY(0);box-shadow:0 4px 12px -8px var(--accent)}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .icon-btn{width:40px;height:40px;border-radius:11px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--text-dim);transition:.25s;flex-shrink:0}
 .icon-btn:hover{color:var(--text);border-color:var(--border-2)}.icon-btn svg{width:18px;height:18px}
@@ -75,22 +91,35 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .stage{perspective:1200px;height:400px;position:relative;display:grid;place-items:center}
 /* Outer wrapper floats; inner cluster spins — two separate animations, no override */
 .float-wrap{animation:float 7s ease-in-out infinite;transform-style:preserve-3d}
-.cluster{transform-style:preserve-3d;animation:spin 30s linear infinite;position:relative;width:240px;height:240px}
+.cluster{transform-style:preserve-3d;animation:spin 48s linear infinite;position:relative;width:240px;height:240px}
 @keyframes spin{to{transform:rotateY(360deg)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
-/* 6 glass format cards — 60-deg intervals, 3 always face viewer simultaneously */
+/* 6 glass format cards — 60-deg intervals, 3 always face viewer simultaneously.
+   Color discipline: glyphs are set in the text color; exactly ONE card (the
+   front-facing PDF card) carries the brand gradient. The previous version
+   gave every card its own loud two-stop gradient — six competing accents on
+   the first thing a visitor sees. Premium brands spend color deliberately:
+   category accents stay (they're wayfinding), but the hero now has one. */
 .card3d{position:absolute;inset:0;margin:auto;width:128px;height:160px;border-radius:20px;display:grid;place-items:center;backface-visibility:hidden;background:linear-gradient(155deg,var(--surface-2),var(--surface));border:1px solid var(--border-2);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.22);backdrop-filter:blur(14px)}
 .card3d::before{content:"";position:absolute;inset:0;border-radius:20px;background:linear-gradient(148deg,rgba(255,255,255,.30),transparent 44%);pointer-events:none}
-.card3d .glyph{font-family:var(--fd);font-weight:700;font-size:32px;letter-spacing:-1px;position:relative}
+.card3d .glyph{font-family:var(--fd);font-weight:700;font-size:32px;letter-spacing:-1px;position:relative;color:var(--text)}
 .card3d .fmt{position:absolute;bottom:13px;font-family:var(--fm);font-size:10px;color:var(--text-dim);letter-spacing:.5px}
-.c1{transform:rotateY(0deg)   translateZ(120px)}.c1 .glyph{background:linear-gradient(125deg,#ff6b6b,#ff4500);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c2{transform:rotateY(60deg)  translateZ(120px)}.c2 .glyph{background:linear-gradient(125deg,#22d3ee,#0ea5e9);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c3{transform:rotateY(120deg) translateZ(120px)}.c3 .glyph{background:linear-gradient(125deg,#34d399,#059669);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c4{transform:rotateY(180deg) translateZ(120px)}.c4 .glyph{background:linear-gradient(125deg,#a78bfa,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c5{transform:rotateY(240deg) translateZ(120px)}.c5 .glyph{background:linear-gradient(125deg,#fb923c,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c6{transform:rotateY(300deg) translateZ(120px)}.c6 .glyph{background:linear-gradient(125deg,#f472b6,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
-.cluster-glow{position:absolute;width:310px;height:310px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.38),transparent 64%);filter:blur(34px);animation:pulse 6s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16);opacity:.65}}
+.c1{transform:rotateY(0deg)   translateZ(120px);border-color:color-mix(in srgb,var(--p1) 40%,var(--border-2))}
+.c1 .glyph{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.c2{transform:rotateY(60deg)  translateZ(120px)}
+.c3{transform:rotateY(120deg) translateZ(120px)}
+.c4{transform:rotateY(180deg) translateZ(120px)}
+.c5{transform:rotateY(240deg) translateZ(120px)}
+.c6{transform:rotateY(300deg) translateZ(120px)}
+.cluster-glow{position:absolute;width:310px;height:310px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.24),transparent 64%);filter:blur(34px);animation:pulse 7s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12);opacity:.7}}
+/* Reduced motion: the homepage hero previously had NO reduce guard — the
+   only animated surface on the site that ignored the user's setting. */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .cluster,.float-wrap,.cluster-glow,.eyebrow .dot{animation:none}
+  .cluster{transform:rotateY(-18deg)}
+}
 /* sections */
 .section{padding:60px 0}
 .section-head{text-align:center;max-width:640px;margin:0 auto 38px}
@@ -110,7 +139,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .tool{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:transform .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease),box-shadow .3s var(--ease);overflow:hidden;display:flex;flex-direction:column;gap:11px;cursor:pointer}
 .tool::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .3s var(--ease)}
-.tool:hover{transform:translateY(-5px);background:var(--surface-2);border-color:rgba(34,211,238,.28);box-shadow:var(--shadow),0 0 0 1px rgba(34,211,238,.08),0 8px 28px -10px rgba(34,211,238,.22)}
+.tool:hover{transform:translateY(-3px);background:var(--surface-2);border-color:rgba(34,211,238,.28);box-shadow:var(--shadow-lift),0 0 0 1px rgba(34,211,238,.08)}
 .tool:hover::before{opacity:1}
 .tool .ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--border);color:var(--p1);transition:transform .32s var(--ease),background .3s var(--ease),border-color .3s var(--ease)}
 .tool:hover .ico{transform:rotate(-6deg) scale(1.07);background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.3)}

@@ -590,7 +590,7 @@ function wireHeroSearch(){
       /* No-results suggestions instead of a bare message: a few
          genuinely popular tools, so the visitor still has a next
          action instead of a dead end. */
-      var suggestions=['background-remover','image-compressor','merge-pdf','json-formatter']
+      var suggestions=['background-remover','image-compressor','pdf-merger','json-formatter']
         .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
       results.innerHTML=
         '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(rawTerm||'')+'&rdquo;</span></div>'+

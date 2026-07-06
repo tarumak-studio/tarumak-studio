@@ -115,7 +115,7 @@ navSearch.addEventListener('input',()=>{
   if(!t){navPop.classList.remove('show');return;}
   const list=matchTools(raw,8);
   if(!list.length){
-    const suggestions=['background-remover','image-compressor','merge-pdf','json-formatter']
+    const suggestions=['background-remover','image-compressor','pdf-merger','json-formatter']
       .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
     navPop.innerHTML=
       '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(raw)+'&rdquo;</span></div>'+

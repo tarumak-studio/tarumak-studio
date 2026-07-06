@@ -1341,6 +1341,60 @@ details.level-details{margin-top:28px;background:var(--soft);border:2px solid va
   #fa-shell{padding:0 10px;margin-top:14px}
   #fa-shell .sidebar{border-radius:0;top:0;max-height:100vh;height:100vh}
 }
+
+/* ══ REFINEMENT PASS — dashboard elevation, CSS-only ═══════════════════
+   No new palette, no redesign: hierarchy, spacing, and palette ALIGNMENT
+   (the one off-system gradient joins the Tarumak brand gradient).
+   Declared after everything above so it wins the cascade. */
+
+/* ── 1. Openness: remove the shell box, let the workspace sit on the
+   Tarumak canvas (matching how tool pages sit). The sidebar becomes a
+   floating panel with its own hairline + elevation. ── */
+#fa-shell{max-width:1360px}
+#fa-shell .app{background:transparent;border:none;box-shadow:none;border-radius:0;gap:30px}
+#fa-shell .sidebar{border:1px solid var(--line);border-right-width:1px;border-radius:18px;top:88px;max-height:calc(100vh - 112px);box-shadow:var(--sh2)}
+#fa-shell .main{max-width:980px;margin:0 auto;padding:34px clamp(18px,4vw,48px) 120px}
+
+/* ── 2. Hero hierarchy: eyebrow → headline → support → proof → action.
+   The badge stops competing with the headline (it's an eyebrow, not a
+   button); the H1 tightens to Tarumak display discipline; the duplicate
+   English translation line — pure redundancy — goes quiet. ── */
+#fa-shell .hero-badge{background:transparent;border:1px solid var(--line2);color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 13px;margin-bottom:18px}
+#fa-shell .hero-h{font-size:clamp(38px,6vw,56px);letter-spacing:-1.5px;line-height:1.04;margin-bottom:12px}
+#fa-shell .hero-h .hi{font-size:.68em;vertical-align:.06em}
+#fa-shell .hero-sub{font-size:15px;font-weight:600;color:var(--muted);max-width:56ch;margin-bottom:26px;letter-spacing:.01em}
+#fa-shell .hero-sub > span{display:none !important} /* the parenthetical English duplicate (inline display:block needs !important) */
+[data-theme="dark"] #fa-shell .hero-badge{background:transparent} /* dark-theme override otherwise outranks the eyebrow restyle */
+
+/* ── 3. Word of the day: proof, not poster — calmer container, clearer
+   type scale inside. ── */
+#fa-shell .mdj-card{margin-bottom:18px}
+
+/* ── 4. Progress card joins the brand: the purple→pink gradient was the
+   prototype's palette; on Tarumak it reads off-system and louder than
+   everything else. Brand gradient + brand elevation + brand button ink. ── */
+#fa-shell .xp-card{background:var(--grad);box-shadow:var(--sh);margin-bottom:34px}
+#fa-shell .xp-card .btn[style]{color:var(--accent) !important}
+
+/* ── 5. Section rhythm: consistent vertical beats guide the eye down
+   the page — continue → tools → path → curriculum. ── */
+#fa-shell .home-sec-h{font-size:19px;letter-spacing:-.3px;margin:38px 0 14px}
+#fa-shell .grid-head{margin-top:34px}
+
+/* ── 6. Card tactility, one standard: 2px lift + shared elevation token
+   on hover for every interactive card (was a mix of jumps/glows). ── */
+#fa-shell .continue-card:hover,#fa-shell .tool-card:hover,#fa-shell .lcard:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+#fa-shell .continue-card:active,#fa-shell .tool-card:active,#fa-shell .lcard:active{transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){
+  #fa-shell .continue-card:hover,#fa-shell .tool-card:hover,#fa-shell .lcard:hover{transform:none}
+}
+
+/* ── 7. Mobile breathing ── */
+@media (max-width:900px){
+  #fa-shell .app{gap:0}
+  #fa-shell .main{padding-top:22px}
+  #fa-shell .hero-h{font-size:clamp(32px,9vw,42px)}
+}
 </style>
 </head>
 <body><div id="toast-rack" aria-live="polite" aria-atomic="false"></div>

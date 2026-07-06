@@ -929,7 +929,7 @@ function route(){
   var _c=_h.match(/^#\/(image|pdf|converter|marketing|developer)$/);
   if(_c){window.location.replace('/'+_c[1]+'-tools');return;}
   if(_h==='#/all'||_h==='#tools'){window.location.replace('/tools');return;}
-  var _p=_h.match(/^#\/p\/(about|contact|work-with-me|changelog|privacy-policy|terms|cookie-policy)$/);
+  var _p=_h.match(/^#\/p\/(about|contact|changelog|privacy-policy|terms|cookie-policy)$/);
   if(_p){window.location.replace('/'+_p[1]);return;}const h=location.hash||'';const m=h.match(/^#\/t\/(.+)$/);if(m){openTool(m[1]);return;}
   const pm=h.match(/^#\/p\/(.+)$/);if(pm){openPage(pm[1]);return;}
   const bm=h.match(/^#\/blog(?:\/(.+))?$/);if(bm){openBlog(bm[1]);return;}

@@ -80,7 +80,7 @@
 .mm-search-pop .mm-search-empty { padding: 11px 12px; font-size: 13.5px; color: var(--text-faint); }
 .mm-search-pop .mm-search-chip { font-family: var(--fm); font-size: 10px; padding: 2px 7px; background: rgba(255,255,255,.05); border-radius: 5px; color: var(--text-faint); margin-left: auto; flex-shrink: 0; }
 
-/* ── Flat links (Home, About, Work With Me, Blog, Contact) ── */
+/* ── Flat links (Home, About, French Academy, Blog, Contact) ── */
 .mm-links { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .mm-links > a {
   font-family: var(--fd); font-weight: 600; font-size: 17px;

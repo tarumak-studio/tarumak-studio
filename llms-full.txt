@@ -131,8 +131,8 @@
 
 - [Homepage](https://tarumakstudio.com/): Full tool grid and category navigation
 - [Blog Index](https://tarumakstudio.com/blog): All 30 articles, organized by category
-- [About](https://tarumakstudio.com/about.html): About Sudhir Kumar, founder
-- [Work With Me](https://tarumakstudio.com/work-with-me.html): Freelance services
+- [About](https://tarumakstudio.com/about.html): Tarumak Studio's story as a browser-first, privacy-first tools and learning platform
+- [French Academy](https://tarumakstudio.com/french-academy.html): Upcoming French learning platform (A0–C2) — currently a Coming Soon page
 - [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
 - [Privacy Policy](https://tarumakstudio.com/privacy-policy.html)
 - [Terms of Service](https://tarumakstudio.com/terms.html)

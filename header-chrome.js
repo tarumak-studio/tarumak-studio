@@ -10,7 +10,7 @@
  * Used by:
  *   - build-tool-pages.js       (66 tool pages)
  *   - build-static-pages.js     (63 other pages: category, blog, articles,
- *                                 about/contact/work-with-me/etc.)
+ *                                 about/contact/french-academy/etc.)
  *
  * To change the header for the ENTIRE site: edit index.html's header once,
  * re-run whichever build script(s) touch pages that need it. Nothing else
@@ -225,7 +225,7 @@ function getChrome() {
  * stamp cheaply per call.
  *
  * key must match one of the real data-nav values in the header:
- *   ''  Home | 'all'  Tools | 'about' | 'work-with-me' | 'blog' | 'contact'
+ *   ''  Home | 'all'  Tools | 'about' | 'french-academy' | 'blog' | 'contact'
  */
 function withActiveNav(chromeTop, key) {
   const re = new RegExp('<a data-nav="' + key + '"([^>]*)>');

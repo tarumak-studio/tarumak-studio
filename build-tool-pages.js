@@ -719,7 +719,7 @@ const pages = [
   { loc: SITE + '/', freq: 'weekly', pri: '1.0' },
   { loc: SITE + '/tools', freq: 'weekly', pri: '0.9' },
   ...Object.values(CAT_PAGE).map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.8' })),
-  ...['/blog', '/about', '/contact', '/work-with-me', '/changelog'].map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.5' })),
+  ...['/blog', '/about', '/contact', '/french-academy', '/changelog'].map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.5' })),
   ...['/privacy-policy', '/terms', '/cookie-policy'].map(p => ({ loc: SITE + p, freq: 'yearly', pri: '0.3' }))
 ];
 fs.writeFileSync('sitemap-pages.xml', urlset(pages));

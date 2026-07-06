@@ -1,6 +1,6 @@
 # Tarumak Studio
 
-> Tarumak Studio is a collection of 66 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is built and maintained by Sudhir Kumar, a freelance UI/UX and graphic designer based in Ambala, India, with over 15 years of experience.
+> Tarumak Studio is a collection of 66 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is independently built and maintained, with new tools added continuously and a French learning platform (French Academy) currently in development.
 
 The site offers tools across five categories — Image Tools (18), PDF Tools (15), Converter Tools (10), Marketing Designer Tools (8), and Developer Tools (15) — plus 50 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
 
@@ -51,8 +51,8 @@ In-depth practical guides linking to the tools that solve each problem. All 50 a
 
 ## About
 
-- [About Sudhir Kumar](https://tarumakstudio.com/about.html): Freelance UI/UX & Graphic Designer, 15+ years experience. Clients include BookVIP, Marketing Boost, TrustByReviews, MarcoTing Systems.
-- [Work With Me](https://tarumakstudio.com/work-with-me.html): Hire for UI/UX design, graphic design, marketing assets, landing pages, brand design.
+- [About](https://tarumakstudio.com/about.html): Tarumak Studio's story — browser-first, privacy-first free tools and learning resources.
+- [French Academy](https://tarumakstudio.com/french-academy.html): Upcoming comprehensive French learning platform (A0–C2), currently in development.
 - [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
 
 ## Site Properties

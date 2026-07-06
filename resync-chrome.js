@@ -38,7 +38,7 @@ function activeKeyFor(file) {
   if (/^(image|pdf|developer|marketing|converter)-tools\.html$/.test(file)) return 'all';
   if (file === 'blog.html' || file.startsWith('article-')) return 'blog';
   if (file === 'about.html') return 'about';
-  if (file === 'work-with-me.html') return 'work-with-me';
+  if (file === 'french-academy.html') return 'french-academy';
   if (file === 'contact.html') return 'contact';
   return null;
 }

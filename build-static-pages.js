@@ -2,7 +2,7 @@
  * no theme toggle, no Tools mega-menu, no dropdown arrow) with the SAME
  * shared header used on the homepage and all 66 tool pages, on every
  * remaining static page: category pages, blog, articles, about, contact,
- * work-with-me, changelog, and the legal pages.
+ * french-academy, changelog, and the legal pages.
  *
  * Source of truth: header-chrome.js (shared with build-tool-pages.js —
  * this script does not re-implement the harvest or the dropdown bake).
@@ -34,7 +34,7 @@ function activeKeyFor(file) {
   if (/^(image|pdf|developer|marketing|converter)-tools\.html$/.test(file)) return 'all';
   if (file === 'blog.html' || file.startsWith('article-')) return 'blog';
   if (file === 'about.html') return 'about';
-  if (file === 'work-with-me.html') return 'work-with-me';
+  if (file === 'french-academy.html') return 'french-academy';
   if (file === 'contact.html') return 'contact';
   return null; // changelog.html, privacy-policy.html, terms.html, cookie-policy.html, etc.
 }
@@ -90,7 +90,7 @@ for (const file of targets) {
        exist after step 1: #burgerBtn, #mobMenu). Two formatting variants
        exist across page templates (a plain-onclick one on articles/
        category pages, and a fuller addEventListener+closeMenuBtn one on
-       about/contact/work-with-me/etc) \\u2014 matched by CONTENT (mentions
+       about/contact/french-academy/etc) \\u2014 matched by CONTENT (mentions
        both burgerBtn and mobMenu) rather than exact whitespace, so both
        are caught, and any third variant with the same two markers would
        be too. */

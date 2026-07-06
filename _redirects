@@ -22,6 +22,8 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /article-social-media-image-sizes.html  /article-social-media-image-sizes-2026  301
 /privacy                                /privacy-policy                         301
 /privacy.html                           /privacy-policy                         301
+/work-with-me                           /about                                  301
+/work-with-me.html                      /about                                  301
 
 # ── 3. .html -> clean URL — every page on the site, one hop, 301 ───
 /about.html /about 301
@@ -92,6 +94,7 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /developer-tools.html /developer-tools 301
 /exif-remover.html /exif-remover 301
 /favicon-generator.html /favicon-generator 301
+/french-academy.html /french-academy 301
 /gif-maker.html /gif-maker 301
 /gif-to-webp.html /gif-to-webp 301
 /hashtag-gen.html /hashtag-gen 301
@@ -154,4 +157,3 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /webp-to-png.html /webp-to-png 301
 /word-counter.html /word-counter 301
 /word-to-pdf.html /word-to-pdf 301
-/work-with-me.html /work-with-me 301

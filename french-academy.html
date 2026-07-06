@@ -2852,6 +2852,9 @@ function srsAllDue(){/* collect all vocab due for review */
 /* ════════════ HELPERS ════════════ */
 function el(html){var t=document.createElement("template");t.innerHTML=html.trim();return t.content.childNodes.length===1?t.content.firstChild:t.content;}
 var main=document.getElementById("main");
+if(!main||!main.style){
+  console.error('[French Academy] #main was not a real element at script start ('+(main===null?'null: element not found in DOM yet':'found but has no .style — wrong node type')+'). Re-querying defensively.');
+}
 var navEl=document.getElementById("nav");
 var appEl=document.getElementById("app");
 function closeDrawer(){appEl.classList.remove("open");}
@@ -2860,7 +2863,14 @@ function scrollTop(){window.scrollTo(0,0);}
 /* ════════════ PALETTE & EMOJI ════════════ */
 var PAL=["#6C47FF","#06B6D4","#FF6B4A","#EC4899","#22C55E","#F59E0B","#3B82F6","#A855F7","#14B8A6","#F43F5E","#8B5CF6","#10B981","#F97316","#0EA5E9","#D946EF"];
 function acc(L){var i=COURSE.indexOf(L);return PAL[(i<0?0:i)%PAL.length];}
-function setAcc(node,a){node.style.setProperty("--accent",a);node.style.setProperty("--accent-s",a+"1A");if(node===main){main.classList.remove("page-enter");void main.offsetWidth;main.classList.add("page-enter");}}
+function setAcc(node,a){
+  if(!node||!node.style){
+    var live=document.getElementById("main");
+    if(live){ main=live; node=live; }
+    else { console.error('[French Academy] setAcc: #main is missing from the DOM entirely — cannot apply accent color.'); return; }
+  }
+  node.style.setProperty("--accent",a);node.style.setProperty("--accent-s",a+"1A");if(node===main){main.classList.remove("page-enter");void main.offsetWidth;main.classList.add("page-enter");}
+}
 var LEM={a0l1:"👋",a0l2:"🔤",a0l3:"🔢",a0l4:"📅",a0l5:"🎨",a0l6:"👨‍👩‍👧",a1l1:"🏠",a1l2:"🍽️",a1l3:"💼",a1l4:"⏰",a1l5:"🎮",a1l6:"🌦️",a1l7:"🕐",a1l8:"🛒",a2l1:"✈️",a2l2:"🚌",a2l3:"🍴",a2l4:"🩺",a2l5:"🧭",a2l6:"📞",a2l7:"🎉",b1l1:"🕰️",b1l2:"😊",b1l3:"🔮",b1l4:"📖",b1l5:"🏢",b1l6:"💻",b1l7:"🎓"};
 function lem(L){return LEM[L.id]||"🇫🇷";}
 var VEM={bonjour:"👋",bonsoir:"🌙",salut:"👋",merci:"🙏","merci beaucoup":"🙏",oui:"✅",non:"❌","au revoir":"👋",pardon:"🙇",cafe:"☕",eau:"💧",lait:"🥛",pomme:"🍎",poulet:"🍗",riz:"🍚",legumes:"🥦",fromage:"🧀",pain:"🍞","appartement":"🏢",maison:"🏠",cuisine:"🍳",chambre:"🛏️",salon:"🛋️",jardin:"🌳",lit:"🛏️",voiture:"🚗",telephone:"📱",fenetre:"🪟",livre:"📖",stylo:"🖊️",famille:"👨‍👩‍👧",pere:"👨",mere:"👩",frere:"🧒",soeur:"👧",musique:"🎵",sport:"⚽",jardinage:"🌱",cricket:"🏏",film:"🎬",travail:"💼",bureau:"🖥️",ordinateur:"💻",reunion:"📅",designer:"🎨",client:"🤝",projet:"📋",temps:"🌦️",pluie:"🌧️",neige:"❄️",soleil:"☀️",nuage:"☁️",orage:"⛈️",heure:"⏰",midi:"🕛",magasin:"🏪",marche:"🛒",prix:"🏷️",euro:"💶",carte:"💳",train:"🚆",bus:"🚌",taxi:"🚕",valise:"🧳",billet:"🎫",restaurant:"🍴",menu:"📋",medecin:"👨‍⚕️",pharmacie:"💊",malade:"🤒",gauche:"⬅️",droite:"➡️",rue:"🛣️",fete:"🎉",cadeau:"🎁",anniversaire:"🎂",ami:"🧑‍🤝‍🧑"};
@@ -8130,9 +8140,9 @@ wireBookmarkStars(document);
 /* ── HOST-PROOF GLOBAL EXPORTS ─────────────────────────────────────
    Every interaction in this app is wired through inline on*-attribute
    handlers, which resolve against window at click time. In a plain
-   inline <script> top-level function declarations are window globals
-   automatically — but hosting optimizers (Cloudflare Rocket Loader,
-   script-deferral / minify-and-wrap features) re-execute inline
+   inline script block, top-level function declarations are window
+   globals automatically — but hosting optimizers (Cloudflare Rocket
+   Loader, script-deferral / minify-and-wrap features) re-execute inline
    scripts inside a wrapper scope, silently breaking every handler:
    the page still renders, and nothing is clickable. These explicit
    exports make the app immune to how the host executes the script. */

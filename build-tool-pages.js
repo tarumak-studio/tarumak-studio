@@ -141,6 +141,7 @@ for (const cat of Object.keys(CAT_JS)) {
 /* ── 2. Chrome: from the shared header-chrome module ──────────────── */
 const { getChrome, withActiveNav } = require('./header-chrome.js');
 const { renderHero } = require('./hero-render.js');
+const { trustLine } = require('./trust-blocks.js');
 const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
 const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
@@ -619,6 +620,7 @@ ${CHROME_TOP}
         <div class="tp-panel-loading"><span class="dot"></span><span class="dot" style="animation-delay:.18s"></span><span class="dot" style="animation-delay:.36s"></span>Loading ${esc(name)}\u2026</div>
         <noscript><p style="text-align:center;color:var(--text-dim);padding:20px">This tool runs entirely in your browser and needs JavaScript enabled.</p></noscript>
       </div>
+      ${trustLine(slug, cat, meta.isFileTool)}
     </section>
 
     ${middleHTML}

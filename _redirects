@@ -142,7 +142,9 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /slug-generator.html /slug-generator 301
 /social-image-resizer.html /social-image-resizer 301
 /svg-to-jpg.html /svg-to-jpg 301
-/svg-to-png.html /svg-to-png 301
+/png-to-svg.html /png-to-svg 301
+/svg-to-png /png-to-svg 301
+/svg-to-png.html /png-to-svg 301
 /terms.html /terms 301
 /tools.html /tools 301
 /text-case-converter.html /text-case-converter 301

@@ -41,7 +41,7 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
     converter:{
       tagline:'Convert between popular image, document and text formats.',
       desc:'Convert between image, document and text formats instantly.',
-      popular:['word-to-pdf','markdown-to-html','svg-to-png','png-to-jpg']
+      popular:['word-to-pdf','markdown-to-html','png-to-svg','png-to-jpg']
     }
   };
 
@@ -91,7 +91,7 @@ const TOOL_ARTICLES={
   'webp-to-jpg':['jpg-vs-png-vs-webp'],
   'png-to-webp':['jpg-vs-png-vs-webp'],
   'webp-to-png':['jpg-vs-png-vs-webp'],
-  'svg-to-png':['best-free-tools-designers-2026','web-design-tools-2026'],
+  'png-to-svg':['best-free-tools-designers-2026','web-design-tools-2026'],
   'svg-to-jpg':['best-free-tools-designers-2026'],
   'image-to-pdf':['convert-jpg-to-pdf','best-free-pdf-tools-2026'],
   'watermark-image':['add-watermark-photos'],
@@ -159,7 +159,7 @@ const AI_SUMMARY={
   'webp-to-jpg':'This free converter changes WebP images to JPG format for universal compatibility, processed locally in your browser.',
   'png-to-webp':'This free converter changes PNG images to WebP format with transparency preserved, producing files 26-34% smaller, processed in-browser.',
   'webp-to-png':'This free converter changes WebP images to lossless PNG format, processed entirely in your browser.',
-  'svg-to-png':'This free SVG to PNG converter renders vector graphics to raster images at any chosen resolution, processed in-browser.',
+  'png-to-svg':'This free PNG to SVG converter traces raster logos, icons and simple graphics into clean, editable vector paths — processed entirely in your browser.',
   'svg-to-jpg':'This free SVG to JPG converter renders vector graphics to raster JPG files with adjustable quality, processed in-browser.',
   'image-to-pdf':'This free image to PDF converter combines JPG, PNG, and WebP files into a single multi-page PDF document, processed in-browser.',
   'watermark-image':'This free watermark tool adds text or logo watermarks to images with control over position, opacity, size, and rotation, processed in-browser.',
@@ -224,7 +224,7 @@ const FAQ={
   'webp-to-jpg':[['Why convert WebP to JPG?','Some older software, social media platforms and email clients do not support WebP. Converting to JPG ensures the image displays everywhere.'],['Does the conversion reduce image quality?','Slightly, since JPG uses lossy compression. Setting quality to 85–90% keeps the visual result close to the original WebP.'],['Can I batch-convert multiple WebP files?','Yes — drop multiple WebP images at once and download the converted JPGs together as a ZIP.']],
   'png-to-webp':[['How much smaller will the WebP file be?','Typically 26–34% smaller than the original PNG while maintaining the same visual quality and transparency support.'],['Is PNG transparency preserved when converting to WebP?','Yes — WebP fully supports alpha transparency, so transparent areas in your PNG are carried through to the output.'],['Is there any quality loss in PNG to WebP conversion?','In lossless mode, no. In lossy mode, a small amount of quality is traded for additional file size savings — you can control this with the quality slider.']],
   'webp-to-png':[['When would I need to convert WebP to PNG?','When your image editing software does not support WebP, or when you need a universally accepted format for email attachments or legacy systems.'],['Is WebP to PNG conversion lossless?','Yes — PNG is a lossless format. As long as the source WebP was lossless, all original quality is preserved in the output.'],['Does this tool work on mobile?','Yes — all Tarumak Studio tools run in any modern mobile browser. No app download required.']],
-  'svg-to-png':[['Why convert SVG to PNG?','PNG is a raster image format compatible with every platform. Use SVG-to-PNG when you need a fixed-resolution version for social media, email or any platform that does not render SVG.'],['Can I set the output image resolution?','Yes — enter a custom width or height. The SVG is rendered at that pixel resolution, so choose a size appropriate for your intended use.'],['Will SVG animations be included in the PNG?','No — PNG captures only the static state of the SVG. Use GIF or video formats for animation output.']],
+  'png-to-svg':[['What kind of images work best?','Logos, icons, signatures and simple flat-color graphics trace beautifully. Detailed photographs are not a good fit for vector tracing — they produce very large, noisy SVGs.'],['Is the SVG editable?','Yes — the output is standard SVG paths grouped by color, so you can open and edit it in Figma, Illustrator, Inkscape or any vector editor.'],['Does it handle transparent PNGs?','Yes — transparent areas stay transparent in the SVG. Only visible pixels are traced.']],
   'svg-to-jpg':[['What is the difference between SVG to PNG and SVG to JPG?','PNG supports transparency; JPG does not. Use SVG to JPG when file size matters more than a transparent background — for example, for social media posts or hero images.'],['Can I set the JPG quality for the output?','Yes — a quality slider is available. 90% is recommended for preserving the crisp lines typical in SVG-sourced artwork.'],['Will text inside the SVG render correctly?','Yes — text paths and embedded fonts in the SVG are rendered as part of the raster output.']],
   'image-to-pdf':[['Can I combine multiple images into one PDF?','Yes — add several images and each becomes a separate page in the PDF, in the order you arrange them.'],['What page size will the PDF use?','The default matches each image dimensions. You can also choose standard A4 or Letter page sizes with optional margins.'],['What image formats are supported?','JPG, PNG and WebP.']],
   'watermark-image':[['Can I add both a text and an image watermark?','Yes — both text and logo/image watermarks are supported. Set position, opacity, size and rotation for each.'],['Does watermarking affect the original image quality?','No — image quality is unchanged. The watermark is composited as a layer on top of the original pixels.'],['Can I remove the watermark later?','The watermark is baked into the downloaded file. Keep your unwatermarked original before running this tool.']],
@@ -291,7 +291,7 @@ const TOOLS=[
  ['webp-to-jpg','WebP to JPG Converter','image','Convert WebP images to JPG online for compatibility with older software, email clients and social media platforms.',['WEBP→JPG']],
  ['png-to-webp','PNG to WebP Converter','image','Convert PNG to WebP online and save up to 26% file size. Keeps transparency. Ideal for web performance and Core Web Vitals.',['PNG→WEBP']],
  ['webp-to-png','WebP to PNG Converter','image','Convert WebP to PNG for full compatibility with all image editors, design tools and platforms that do not yet support WebP.',['WEBP→PNG']],
- ['svg-to-png','SVG to PNG Converter','image','Convert SVG vector files to PNG at any resolution online. Set exact pixel width and height — perfect for app icons and assets.',['SVG→PNG']],
+ ['png-to-svg','PNG to SVG Converter','image','Convert PNG logos, icons and simple graphics into clean, editable SVG vectors with intelligent tracing — free and fully in-browser.',['PNG→SVG']],
  ['svg-to-jpg','SVG to JPG Converter','image','Convert SVG to JPG online with a white background. Choose output quality and dimensions for social media or print.',['SVG→JPG']],
  ['image-to-pdf','Image to PDF Converter','image','Convert JPG or PNG images to a PDF document online. Combine multiple images into one PDF in seconds — no software needed.',['IMG→PDF']],
  ['watermark-image','Watermark Image Tool','image','Add a text or image watermark to photos online. Adjust opacity, size and position. Protect your images before sharing.',['JPG','PNG']],

@@ -38,6 +38,23 @@
           panel.innerHTML = '';
           INIT[SLUG](panel);
           mounted = true;
+          /* Universal Reset (shared system in tool-helpers.js): one
+             button, every tool, no page refresh needed. Injected after
+             the panel so a reset (which wipes the panel) never removes
+             its own control. */
+          if (window.TarumakReset && !document.getElementById('toolResetBar')) {
+            var bar = document.createElement('div');
+            bar.id = 'toolResetBar';
+            bar.style.cssText = 'text-align:center;margin-top:10px';
+            var rb = document.createElement('button');
+            rb.className = 'btn btn-ghost';
+            rb.style.cssText = 'height:34px;padding:0 16px;font-size:13px';
+            rb.innerHTML = '&#8634;\u00a0 Start over';
+            rb.setAttribute('aria-label', 'Reset this tool to its initial state');
+            rb.onclick = function () { window.TarumakReset(); };
+            bar.appendChild(rb);
+            panel.insertAdjacentElement('afterend', bar);
+          }
         }
       } catch (e) {
         if (window.console) console.warn('[tool-page] mount failed:', e);

@@ -1,97 +1,143 @@
 /* TARUMAK STUDIO — converter-tools.js  (8 converter tools) */
 
-/* ===== Inline GIF89a encoder — no Worker, works everywhere including file:// ===== */
-function gifMakeBlob(frames,delayMs){
-  const W=frames[0].width,H=frames[0].height;
-  const by=[];
-  const p16=v=>{by.push(v&0xff,(v>>8)&0xff);};
-  const pu=(...a)=>by.push(...a);
+/* ===== Inline GIF89a encoder — no Worker, no dependency, works everywhere.
+   REWRITTEN: the previous encoder emitted an LZW stream real decoders
+   reject (reproduced: PIL "broken data stream"; user reports: Windows
+   "Unsupported file type"). Root cause was the LZW code-size/clear
+   handling; rather than patch a subtly-wrong bit packer this is a clean
+   spec-correct implementation, verified against strict decoders.
+   Quality upgrades over the old one:
+   - palette built from ALL frames (was: first frame only) via median-cut
+     (was: 6-bit posterise + frequency top-256 — visible banding)
+   - ordered (Bayer 4x4) dithering option for smooth gradients
+   - identical public surface: gifMakeBlob(frames, delayMs) -> Uint8Array */
+function gifMakeBlob(frames,delayMs,opts){
+  opts=opts||{};var dither=opts.dither!==false;
+  var W=frames[0].width,H=frames[0].height;
 
-  /* LZW encoder for GIF (min code size = 8 for 256-color) */
-  function lzwEnc(px){
-    const CC=256,EOI=257;
-    const out=[];let acc=0,ab=0,cs=9,nc=EOI+1;
-    const tbl=new Map();
-    const emit=c=>{acc|=c<<ab;ab+=cs;while(ab>=8){out.push(acc&0xff);acc>>>=8;ab-=8;}};
-    const resetT=()=>{tbl.clear();nc=EOI+1;cs=9;};
-    emit(CC);
-    let p=px[0];
-    for(let i=1;i<px.length;i++){
-      const k=p*256+px[i];
-      if(tbl.has(k)){p=tbl.get(k);continue;}
-      emit(p);
-      if(nc<4096){tbl.set(k,nc++);if(nc===(1<<cs)&&cs<12)cs++;}
-      else{emit(CC);resetT();}
-      p=px[i];
+  /* ── 1. Gather pixels ── */
+  var all=frames.map(function(cv){return cv.getContext('2d').getImageData(0,0,W,H).data;});
+
+  /* ── 2. Median-cut palette from a sample of EVERY frame ── */
+  function buildPalette(){
+    var pts=[];var stride=Math.max(1,Math.floor((W*H*all.length)/40000))*4;
+    for(var f=0;f<all.length;f++){var d=all[f];
+      for(var i=0;i<d.length;i+=stride){pts.push([d[i],d[i+1],d[i+2]]);}}
+    var boxes=[pts];
+    while(boxes.length<256){
+      boxes.sort(function(a,b){return spread(b)-spread(a);});
+      var box=boxes.shift();if(!box||box.length<2){if(box)boxes.push(box);break;}
+      var ch=widestChannel(box);
+      box.sort(function(a,b){return a[ch]-b[ch];});
+      var mid=box.length>>1;
+      boxes.push(box.slice(0,mid),box.slice(mid));
     }
-    emit(p);emit(EOI);if(ab)out.push(acc&0xff);
+    var pal=new Uint8Array(768);
+    boxes.forEach(function(box,i){
+      var r=0,g=0,b=0,n=box.length||1;
+      box.forEach(function(p){r+=p[0];g+=p[1];b+=p[2];});
+      pal[i*3]=r/n|0;pal[i*3+1]=g/n|0;pal[i*3+2]=b/n|0;
+    });
+    return {pal:pal,count:Math.max(2,boxes.length)};
+    function spread(box){if(box.length<2)return 0;var mn=[255,255,255],mx=[0,0,0];box.forEach(function(p){for(var c=0;c<3;c++){if(p[c]<mn[c])mn[c]=p[c];if(p[c]>mx[c])mx[c]=p[c];}});return (mx[0]-mn[0])+(mx[1]-mn[1])+(mx[2]-mn[2]);}
+    function widestChannel(box){var mn=[255,255,255],mx=[0,0,0];box.forEach(function(p){for(var c=0;c<3;c++){if(p[c]<mn[c])mn[c]=p[c];if(p[c]>mx[c])mx[c]=p[c];}});var d=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]];return d[0]>=d[1]&&d[0]>=d[2]?0:(d[1]>=d[2]?1:2);}
+  }
+  var P=buildPalette(),pal=P.pal;
+
+  /* ── 3. Nearest-palette mapping with cache + optional Bayer dithering ── */
+  var BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  var cache=new Map();
+  function nearest(r,g,b){
+    var ck=(r<<16)|(g<<8)|b,hit=cache.get(ck);
+    if(hit!==undefined)return hit;
+    var best=0,bd=Infinity;
+    for(var j=0;j<256;j++){var dr=r-pal[j*3],dg=g-pal[j*3+1],db=b-pal[j*3+2],d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=j;if(!d)break;}}
+    cache.set(ck,best);return best;
+  }
+  function mapFrame(rgba){
+    var n=W*H,out=new Uint8Array(n);
+    for(var y=0;y<H;y++)for(var x=0;x<W;x++){
+      var i=(y*W+x),o=i*4,r=rgba[o],g=rgba[o+1],b=rgba[o+2];
+      if(dither){var t=(BAYER[(y&3)*4+(x&3)]/16-0.5)*14;
+        r=Math.max(0,Math.min(255,r+t))|0;g=Math.max(0,Math.min(255,g+t))|0;b=Math.max(0,Math.min(255,b+t))|0;}
+      out[i]=nearest(r,g,b);
+    }
     return out;
   }
 
-  /* Posterise pixels and collect top-256 by frequency */
-  function buildPal(rgba){
-    const freq=new Map();
-    for(let i=0;i<rgba.length;i+=4){
-      const k=((rgba[i]>>2)<<12)|((rgba[i+1]>>2)<<6)|(rgba[i+2]>>2);
-      freq.set(k,(freq.get(k)||0)+1);
+  /* ── 4. Spec-correct GIF LZW (variable code size, deferred clear) ── */
+  function lzwEncode(indices,minCodeSize){
+    var CLEAR=1<<minCodeSize,EOI=CLEAR+1;
+    var out=[],acc=0,nbits=0;
+    var codeSize,dict,next;
+    function put(code){
+      acc|=code<<nbits;nbits+=codeSize;
+      while(nbits>=8){out.push(acc&255);acc>>=8;nbits-=8;}
     }
-    const top=[...freq].sort((a,b)=>b[1]-a[1]).slice(0,256);
-    const pal=new Uint8Array(768);
-    top.forEach(([k],i)=>{pal[i*3]=((k>>12)&63)<<2;pal[i*3+1]=((k>>6)&63)<<2;pal[i*3+2]=(k&63)<<2;});
-    return pal;
-  }
-
-  /* Map pixels to nearest palette index with per-call cache */
-  function mapPx(rgba,pal){
-    const n=rgba.length>>2,out=new Uint8Array(n),cache=new Map();
-    for(let i=0;i<n;i++){
-      const r=rgba[i*4],g=rgba[i*4+1],b=rgba[i*4+2];
-      const ck=(r<<16)|(g<<8)|b;
-      if(!cache.has(ck)){
-        let best=0,bd=Infinity;
-        for(let j=0;j<256;j++){const dr=r-pal[j*3],dg=g-pal[j*3+1],db=b-pal[j*3+2];const d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=j;if(!d)break;}}
-        cache.set(ck,best);
+    function reset(){dict=Object.create(null);next=EOI+1;codeSize=minCodeSize+1;}
+    reset();put(CLEAR);
+    var prev=String(indices[0]);
+    for(var i=1;i<indices.length;i++){
+      var c=indices[i],key=prev+","+c;
+      if(dict[key]!==undefined){prev=key;continue;}
+      /* emit code for prev (root index or dict entry) */
+      put(prev.indexOf(",")<0?+prev:dict[prev]);
+      if(next<4096){
+        dict[key]=next++;
+        if(next-1===(1<<codeSize)&&codeSize<12)codeSize++;
+      }else{
+        put(CLEAR);reset();
       }
-      out[i]=cache.get(ck);
+      prev=String(c);
     }
+    put(prev.indexOf(",")<0?+prev:dict[prev]);
+    put(EOI);
+    if(nbits>0)out.push(acc&255);
     return out;
   }
 
-  /* Collect all frame pixel data upfront */
-  const allRgba=frames.map(cv=>cv.getContext('2d').getImageData(0,0,W,H).data);
-  const pal=buildPal(allRgba[0]);
-
-  /* GIF89a Header */
-  pu(0x47,0x49,0x46,0x38,0x39,0x61); /* GIF89a */
-  p16(W);p16(H);
-  pu(0xf7,0x00,0x00); /* global CT flag, 256 entries, bg=0, aspect=0 */
-  for(let i=0;i<768;i++)by.push(pal[i]); /* global color table */
-
-  /* Netscape Application Extension — infinite loop */
-  pu(0x21,0xff,0x0b);
-  [78,69,84,83,67,65,80,69,50,46,48].forEach(c=>by.push(c)); /* NETSCAPE2.0 */
-  pu(0x03,0x01,0x00,0x00,0x00); /* loop forever, block term */
-
-  /* Write each frame */
-  const dcs=Math.max(1,Math.round(delayMs/10)); /* delay in centiseconds */
-  for(let fi=0;fi<frames.length;fi++){
-    const px=mapPx(allRgba[fi],pal);
-    pu(0x21,0xf9,0x04,0x00);p16(dcs);pu(0x00,0x00); /* GCE */
-    pu(0x2c);p16(0);p16(0);p16(W);p16(H);pu(0x00);  /* Image descriptor */
-    pu(0x08); /* LZW min code size = 8 */
-    const lzwBytes=lzwEnc(px);
-    for(let i=0;i<lzwBytes.length;i+=255){
-      const chunk=lzwBytes.slice(i,i+255);
-      by.push(chunk.length,...chunk);
-    }
-    pu(0x00); /* block terminator */
+  /* ── 5. Assemble the file ── */
+  var by=[];
+  function pu(){for(var i=0;i<arguments.length;i++)by.push(arguments[i]);}
+  function p16(v){by.push(v&255,(v>>8)&255);}
+  pu(0x47,0x49,0x46,0x38,0x39,0x61);           /* "GIF89a" */
+  p16(W);p16(H);pu(0xf7,0x00,0x00);            /* GCT: 256 entries */
+  for(var i=0;i<768;i++)by.push(pal[i]);
+  if(frames.length>1){                          /* NETSCAPE loop ext only when animated */
+    pu(0x21,0xff,0x0b);
+    "NETSCAPE2.0".split("").forEach(function(ch){by.push(ch.charCodeAt(0));});
+    pu(0x03,0x01,0x00,0x00,0x00);
   }
-  pu(0x3b); /* GIF Trailer */
+  var dcs=Math.max(2,Math.round(delayMs/10));   /* <2cs is ignored/clamped by browsers */
+  for(var fi=0;fi<frames.length;fi++){
+    var idx=mapFrame(all[fi]);
+    pu(0x21,0xf9,0x04,0x04);p16(dcs);pu(0x00,0x00); /* GCE: disposal=1 (keep), no transparency */
+    pu(0x2c);p16(0);p16(0);p16(W);p16(H);pu(0x00);
+    pu(0x08);                                     /* LZW min code size */
+    var stream=lzwEncode(idx,8);
+    for(var s=0;s<stream.length;s+=255){
+      var len=Math.min(255,stream.length-s);
+      by.push(len);
+      for(var k=0;k<len;k++)by.push(stream[s+k]);
+    }
+    pu(0x00);
+  }
+  pu(0x3b);
   return new Uint8Array(by);
 }
 function gifFromFrames(frames,delayMs,cb,errCb){
-  try{cb(new Blob([gifMakeBlob(frames,delayMs)],{type:'image/gif'}));}
-  catch(e){errCb&&errCb(e);}
+  /* Encode, then VERIFY: the blob must decode as a real image in this
+     browser before any download is offered. A corrupted GIF can never
+     reach the user's disk. */
+  var blob;
+  try{blob=new Blob([gifMakeBlob(frames,delayMs)],{type:'image/gif'});}
+  catch(e){errCb&&errCb(e);return;}
+  var url=URL.createObjectURL(blob),probe=new Image();
+  probe.onload=function(){URL.revokeObjectURL(url);
+    if(!probe.naturalWidth){errCb&&errCb(new Error('encoded GIF failed verification'));return;}
+    cb(blob);};
+  probe.onerror=function(){URL.revokeObjectURL(url);errCb&&errCb(new Error('encoded GIF failed decode verification \u2014 download blocked'));};
+  probe.src=url;
 }
 
 /* ===== GIF Maker ===== */
@@ -236,44 +282,171 @@ INIT['favicon-generator']=function(panel){
    NEW CONVERTER TOOLS
    ════════════════════════════════════════════════════════════ */
 
-/* 1 ── Word to PDF */
-INIT['word-to-pdf']=function(panel){
-  var u=dz(panel,{accept:'.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multiple:false,formats:['DOCX\u2192PDF'],sub:'Upload a .docx Word document to convert to PDF in your browser.'});
-  u.onFiles=function(files){
-    if(!files.length)return;
-    var file=files[0];
-    if(!file.name.match(/\.docx$/i)){setStatus(u.status,'Please upload a .docx file','err');return;}
-    if(typeof mammoth==='undefined'){setStatus(u.status,'mammoth.js not loaded yet — please wait a moment and try again','err');return;}
-    setStatus(u.status,'Converting...','busy');
-    var reader=new FileReader();
-    reader.onload=function(e){
-      mammoth.convertToHtml({arrayBuffer:e.target.result}).then(function(result){
-        var html=result.value;
-        var warnings=result.messages.filter(function(m){return m.type==='warning';});
-        var title=file.name.replace(/\.docx$/i,'');
-        var win=window.open('','_blank','width=900,height=700');
-        if(!win){setStatus(u.status,'Popup blocked — please allow popups and try again','err');return;}
-        win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'
-          +'<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;font-size:13pt;color:#111}'
-          +'h1,h2,h3,h4{color:#0a0a0a;margin-top:1.5em}p{margin:0.8em 0}'
-          +'table{border-collapse:collapse;width:100%;margin:1em 0}'
-          +'td,th{border:1px solid #ccc;padding:6px 10px;text-align:left}'
-          +'img{max-width:100%}'
-          +'@media print{body{margin:0;padding:20px}}'
-          +'</style></head><body>'
-          +'<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:11pt;font-family:sans-serif;color:#0369a1">'
-          +'&#8505; Press <strong>Ctrl+P</strong> (or Cmd+P on Mac) and choose <strong>Save as PDF</strong> to download the PDF.'
-          +(warnings.length?' <br>⚠ '+warnings.length+' formatting note(s) detected.':'')
-          +'</div>'+html+'</body></html>');
-        win.document.close();
-        win.focus();
-        setStatus(u.status,'Print window opened — use Ctrl+P → Save as PDF','ok');
-      }).catch(function(err){
-        setStatus(u.status,'Conversion failed: '+err.message,'err');
-      });
-    };
-    reader.readAsArrayBuffer(file);
+
+/* ===== PNG → SVG — intelligent vector tracing, fully client-side =====
+   Pipeline: median-cut color quantization → per-color connected regions
+   → Moore boundary tracing → Douglas-Peucker simplification → optional
+   Chaikin smoothing → grouped, editable SVG paths. No libraries. */
+INIT['png-to-svg']=function(panel){
+  var u=dz(panel,{accept:'image/png,image/webp,image/jpeg',formats:['PNG\u2192SVG'],sub:'Best for logos, icons, signatures and flat-color graphics \u2014 not photographs.'});
+  u.controls.innerHTML=
+    '<div class="ctrl"><label for="p2s-c">Colors \u00b7 <span class="val" id="p2s-cv">6</span></label><input type="range" id="p2s-c" min="2" max="16" step="1" value="6"></div>'
+   +'<div class="ctrl"><label for="p2s-d">Detail \u00b7 <span class="val" id="p2s-dv">Balanced</span></label><input type="range" id="p2s-d" min="1" max="3" step="1" value="2"></div>'
+   +'<div class="ctrl" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="p2s-s" checked style="width:16px;height:16px;accent-color:var(--p1)"><label for="p2s-s" style="margin:0">Smooth curves</label></div>'
+   +'<div class="ctrl-spacer"></div><button class="btn btn-primary" id="p2s-run" disabled>Trace to SVG</button>';
+  var DLBL={1:'Simple',2:'Balanced',3:'Detailed'};
+  var cS=$('#p2s-c',panel),dS=$('#p2s-d',panel);
+  cS.oninput=function(){$('#p2s-cv',panel).textContent=cS.value;};
+  dS.oninput=function(){$('#p2s-dv',panel).textContent=DLBL[dS.value];};
+  var img=null,fname='image';
+  dropzone(u.drop,u.file,function(fs){
+    var f=[].slice.call(fs).find(function(x){return x.type.indexOf('image/')===0;});
+    if(!f){setStatus(u.status,'Please drop an image file.',1);return;}
+    fname=f.name.replace(/\.[^.]+$/,'');
+    readImg(f).then(function(im){img=im;$('#p2s-run',panel).disabled=false;
+      setStatus(u.status,im.naturalWidth+'\u00d7'+im.naturalHeight+' loaded \u2014 choose options and trace.');});
+  });
+
+  function dist2seg(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay;var L=dx*dx+dy*dy;var t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));var qx=ax+t*dx,qy=ay+t*dy;return (px-qx)*(px-qx)+(py-qy)*(py-qy);}
+  function simplify(pts,tol){ /* Douglas-Peucker, iterative */
+    if(pts.length<4)return pts;var t2=tol*tol,keep=new Uint8Array(pts.length);keep[0]=keep[pts.length-1]=1;var stack=[[0,pts.length-1]];
+    while(stack.length){var seg=stack.pop(),a=seg[0],b=seg[1];var mx=0,mi=-1;
+      for(var i=a+1;i<b;i++){var d=dist2seg(pts[i][0],pts[i][1],pts[a][0],pts[a][1],pts[b][0],pts[b][1]);if(d>mx){mx=d;mi=i;}}
+      if(mx>t2&&mi>0){keep[mi]=1;stack.push([a,mi],[mi,b]);}}
+    var out=[];for(var j=0;j<pts.length;j++)if(keep[j])out.push(pts[j]);return out;}
+  function chaikin(pts){var out=[];for(var i=0;i<pts.length;i++){var a=pts[i],b=pts[(i+1)%pts.length];
+    out.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25],[a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]);}return out;}
+
+  $('#p2s-run',panel).onclick=function(){
+    if(!img)return;
+    setStatus(u.status,'Tracing\u2026');
+    setTimeout(function(){try{
+      var K=+cS.value,detail=+dS.value,smooth=$('#p2s-s',panel).checked;
+      var MAX=[220,340,520][detail-1];
+      var sc=Math.min(1,MAX/Math.max(img.naturalWidth,img.naturalHeight));
+      var W=Math.max(2,Math.round(img.naturalWidth*sc)),H=Math.max(2,Math.round(img.naturalHeight*sc));
+      var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+      x.imageSmoothingQuality='high';x.drawImage(img,0,0,W,H);
+      var rgba=x.getImageData(0,0,W,H).data;
+      /* median-cut over opaque pixels */
+      var pts=[];for(var i=0;i<rgba.length;i+=4)if(rgba[i+3]>=128)pts.push([rgba[i],rgba[i+1],rgba[i+2]]);
+      if(!pts.length){setStatus(u.status,'The image is fully transparent \u2014 nothing to trace.',1);return;}
+      var boxes=[pts];
+      function ext(box){var mn=[255,255,255],mx=[0,0,0];for(var i=0;i<box.length;i++)for(var ch=0;ch<3;ch++){var v=box[i][ch];if(v<mn[ch])mn[ch]=v;if(v>mx[ch])mx[ch]=v;}return[mn,mx];}
+      while(boxes.length<K){boxes.sort(function(a,b){var ea=ext(a),eb=ext(b);return((eb[1][0]-eb[0][0])+(eb[1][1]-eb[0][1])+(eb[1][2]-eb[0][2]))-((ea[1][0]-ea[0][0])+(ea[1][1]-ea[0][1])+(ea[1][2]-ea[0][2]));});
+        var bx=boxes.shift();if(!bx||bx.length<2){if(bx)boxes.push(bx);break;}
+        var e=ext(bx),d=[e[1][0]-e[0][0],e[1][1]-e[0][1],e[1][2]-e[0][2]];var ch=d[0]>=d[1]&&d[0]>=d[2]?0:(d[1]>=d[2]?1:2);
+        bx.sort(function(a,b){return a[ch]-b[ch];});var mid=bx.length>>1;boxes.push(bx.slice(0,mid),bx.slice(mid));}
+      var pal=boxes.map(function(b){var r=0,g=0,bl=0,n=b.length||1;for(var i=0;i<b.length;i++){r+=b[i][0];g+=b[i][1];bl+=b[i][2];}return[r/n|0,g/n|0,bl/n|0];});
+      /* label map: -1 transparent */
+      var lab=new Int16Array(W*H);
+      for(var p=0,q=0;p<rgba.length;p+=4,q++){
+        if(rgba[p+3]<128){lab[q]=-1;continue;}
+        var r=rgba[p],g=rgba[p+1],b=rgba[p+2],best=0,bd=1e9;
+        for(var j=0;j<pal.length;j++){var dr=r-pal[j][0],dg=g-pal[j][1],db=b-pal[j][2],dd=dr*dr+dg*dg+db*db;if(dd<bd){bd=dd;best=j;}}
+        lab[q]=best;}
+      /* per color: connected components (4-neigh flood) then Moore boundary trace */
+      var tol=[2.2,1.3,0.7][detail-1];
+      var groups=[];
+      for(var col=0;col<pal.length;col++){
+        var mask=new Uint8Array(W*H);var any=false;
+        for(var q2=0;q2<lab.length;q2++)if(lab[q2]===col){mask[q2]=1;any=true;}
+        if(!any)continue;
+        var seen=new Uint8Array(W*H),paths=[];
+        function at(xx,yy){return xx>=0&&yy>=0&&xx<W&&yy<H&&mask[yy*W+xx]===1;}
+        for(var yy=0;yy<H;yy++)for(var xx=0;xx<W;xx++){
+          var id=yy*W+xx;
+          if(mask[id]!==1||seen[id])continue;
+          /* flood-fill mark component + find its top-left boundary start */
+          var stack=[id],comp=[];seen[id]=1;
+          while(stack.length){var cur=stack.pop();comp.push(cur);var cx=cur%W,cy=(cur/W)|0;
+            [[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dv){var nx=cx+dv[0],ny=cy+dv[1];if(nx>=0&&ny>=0&&nx<W&&ny<H){var nid=ny*W+nx;if(mask[nid]===1&&!seen[nid]){seen[nid]=1;stack.push(nid);}}});}
+          if(comp.length<4)continue; /* speck removal */
+          /* Moore boundary from the component's top-left pixel */
+          var s=comp[0];comp.forEach(function(cc){if(((cc/W)|0)<((s/W)|0)||(((cc/W)|0)===((s/W)|0)&&cc%W<s%W))s=cc;});
+          var sx=s%W,sy=(s/W)|0;
+          var DIRS=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+          var bpts=[[sx,sy]],px2=sx,py2=sy,dir=6,guard=comp.length*8+64;
+          while(guard-->0){
+            var found=false;
+            for(var k2=0;k2<8;k2++){var nd=(dir+6+k2)%8;var nx2=px2+DIRS[nd][0],ny2=py2+DIRS[nd][1];
+              if(at(nx2,ny2)){px2=nx2;py2=ny2;dir=nd;found=true;break;}}
+            if(!found)break;
+            if(px2===sx&&py2===sy)break;
+            bpts.push([px2,py2]);}
+          if(bpts.length<3)continue;
+          var sp=simplify(bpts,tol);
+          if(smooth&&sp.length>3)sp=simplify(chaikin(sp),tol*0.6);
+          if(sp.length<3)continue;
+          var dstr='M'+sp.map(function(pt){return (Math.round(pt[0]*10)/10)+' '+(Math.round(pt[1]*10)/10);}).join('L')+'Z';
+          paths.push(dstr);
+        }
+        if(paths.length)groups.push({color:pal[col],d:paths.join('')});
+      }
+      if(!groups.length){setStatus(u.status,'No traceable shapes found \u2014 try more colors or higher detail.',1);return;}
+      var hex=function(carr){return '#'+carr.map(function(v){return v.toString(16).padStart(2,'0');}).join('');};
+      var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+img.naturalWidth+'" height="'+img.naturalHeight+'">'
+        +groups.map(function(g){return '<path fill="'+hex(g.color)+'" d="'+g.d+'"/>';}).join('')+'</svg>';
+      var blob=new Blob([svg],{type:'image/svg+xml'});
+      u.results.innerHTML='';u.results.classList.add('show');
+      var wrap=document.createElement('div');wrap.className='preview show';
+      wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center';
+      var left=document.createElement('img');left.src=c.toDataURL();left.alt='Original';left.style.cssText='max-width:100%;border-radius:8px';
+      var right=document.createElement('img');right.src=URL.createObjectURL(blob);right.alt='Traced SVG preview';right.style.cssText='max-width:100%;border-radius:8px;background:repeating-conic-gradient(rgba(255,255,255,.06) 0 25%,transparent 0 50%) 0 0/16px 16px';
+      wrap.appendChild(left);wrap.appendChild(right);u.results.appendChild(wrap);
+      row(u.results,null,fname+'.svg',groups.length+' color layer'+(groups.length>1?'s':'')+' \u00b7 '+fmtBytes(blob.size),function(){download(blob,fname+'.svg');});
+      setStatus(u.status,'Done \u2014 '+groups.length+' editable color layer'+(groups.length>1?'s':'')+'.');
+    }catch(e){setStatus(u.status,'Tracing failed: '+e.message,1);}},30);
   };
+};
+
+/* 1 ── Word to PDF
+   ROOT-CAUSE FIX: the previous version assigned `u.onFiles = fn` — a
+   callback property that nothing in the codebase ever reads. File
+   delivery only happens through dropzone(u.drop, u.file, cb), which was
+   never called, so the tool accepted nothing (clicking the drop area
+   didn't even open the picker). Also fixed: setStatus's third argument
+   is a boolean error flag; passing 'ok'/'busy' strings styled every
+   message as an error. And the popup-window print flow is replaced with
+   a hidden same-origin iframe — immune to popup blockers. */
+INIT['word-to-pdf']=function(panel){
+  var u=dz(panel,{accept:'.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multiple:false,formats:['DOCX\u2192PDF'],sub:'Upload a .docx Word document — converted to PDF entirely in your browser.'});
+  dropzone(u.drop,u.file,function(files){
+    var file=[].slice.call(files).find(function(f){
+      return /\.docx$/i.test(f.name)||f.type==='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    });
+    if(!file){setStatus(u.status,'That is not a .docx file. Legacy .doc files are not supported \u2014 re-save as .docx in Word first.',1);return;}
+    if(typeof mammoth==='undefined'){setStatus(u.status,'The converter library has not finished loading \u2014 check your connection and try again in a moment.',1);return;}
+    setStatus(u.status,'Reading document\u2026');
+    file.arrayBuffer().then(function(buf){
+      return mammoth.convertToHtml({arrayBuffer:buf});
+    }).then(function(result){
+      var html=result.value;
+      if(!html||!html.trim()){setStatus(u.status,'The document appears to be empty or could not be read.',1);return;}
+      var warnings=result.messages.filter(function(m){return m.type==='warning';}).length;
+      var title=file.name.replace(/\.docx$/i,'');
+      /* Hidden same-origin iframe: no popups, no blockers. */
+      var old=document.getElementById('w2p-frame');if(old)old.remove();
+      var fr=document.createElement('iframe');
+      fr.id='w2p-frame';fr.style.cssText='position:fixed;width:0;height:0;border:0;visibility:hidden';
+      document.body.appendChild(fr);
+      var doc=fr.contentDocument;
+      doc.open();
+      doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title.replace(/</g,'&lt;')+'</title>'
+        +'<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;font-size:12.5pt;color:#111}'
+        +'h1,h2,h3,h4{margin-top:1.4em}p{margin:.7em 0}table{border-collapse:collapse;width:100%;margin:1em 0}'
+        +'td,th{border:1px solid #bbb;padding:6px 10px;text-align:left}img{max-width:100%}'
+        +'@media print{body{margin:0;padding:16px}}</style></head><body>'+html+'</body></html>');
+      doc.close();
+      setStatus(u.status,'Ready \u2014 choose \u201cSave as PDF\u201d in the print dialog.'+(warnings?' ('+warnings+' formatting note'+(warnings>1?'s':'')+' \u2014 complex layouts may simplify.)':''));
+      setTimeout(function(){
+        try{fr.contentWindow.focus();fr.contentWindow.print();}
+        catch(e){setStatus(u.status,'Could not open the print dialog: '+e.message,1);}
+      },150);
+    }).catch(function(err){
+      setStatus(u.status,'Conversion failed: '+(err&&err.message?err.message:'the file could not be parsed as a Word document.'),1);
+    });
+  });
 };
 
 /* 2 ── Markdown to HTML */

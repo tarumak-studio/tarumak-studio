@@ -36,7 +36,7 @@ const HERO_MAP = {
   'webp-to-jpg':        { type: 'formatConvert', from: 'WebP', to: 'JPG' },
   'png-to-webp':        { type: 'formatConvert', from: 'PNG', to: 'WebP', note: '\u221226%' },
   'webp-to-png':        { type: 'formatConvert', from: 'WebP', to: 'PNG' },
-  'svg-to-png':         { type: 'formatConvert', from: 'SVG', to: 'PNG' },
+  'png-to-svg':         { type: 'formatConvert', from: 'PNG', to: 'SVG' },
   'svg-to-jpg':         { type: 'formatConvert', from: 'SVG', to: 'JPG' },
   'image-to-pdf':       { type: 'formatConvert', from: 'IMG', to: 'PDF' },
   'watermark-image':    { type: 'watermark', text: 'TARUMAK' },

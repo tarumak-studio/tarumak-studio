@@ -81,3 +81,28 @@ async function renderPage(pdf,num,scale){const page=await pdf.getPage(num);const
   const v1=page.getViewport({scale:1});return {canvas:c,w:v1.width,h:v1.height};}
 
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}
+/* ════ Universal Reset system ════════════════════════════════════════
+   One shared mechanism instead of per-tool implementations. Every tool
+   is a self-contained INIT[slug](panel) render — so a true reset is:
+   revoke every object URL the tool created, wipe the panel, re-run the
+   same INIT. That returns uploads, previews, results, drag state,
+   status, progress and all closure state to first-load — while theme,
+   language and preferences (stored outside the panel) are untouched.
+   Object URLs are tracked by wrapping URL.createObjectURL once, here,
+   so every tool participates automatically with zero changes. */
+(function(){
+  var registry=[];
+  var orig=URL.createObjectURL.bind(URL);
+  URL.createObjectURL=function(obj){var url=orig(obj);registry.push(url);return url;};
+  function revokeAll(){registry.splice(0).forEach(function(u2){try{URL.revokeObjectURL(u2);}catch(e){}});}
+  window.addEventListener('pagehide',revokeAll);
+  window.TarumakReset=function(){
+    var slug=document.body.getAttribute('data-tool-slug');
+    var panel=document.getElementById('toolPanel');
+    if(!slug||!panel||typeof INIT==='undefined'||typeof INIT[slug]!=='function')return false;
+    revokeAll();
+    panel.innerHTML='';
+    try{INIT[slug](panel);}catch(e){if(window.console)console.warn('[reset] remount failed:',e);return false;}
+    return true;
+  };
+})();

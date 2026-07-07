@@ -2088,3 +2088,28 @@ footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(i
 
 /* ─── Active nav state ────────────────────────────── */
 .nav-links a.nav-active{color:var(--text)}.nav-links a.nav-active::after{transform:scaleX(1)!important}
+
+/* ══ Category-page design layer — same system, quieter, less repetitive.
+   Featured tools become editorial (accent rail + arrow that answers
+   hover); grid cards adopt the site-wide card standard (hairline, 2px
+   lift, lift-shadow token, accent on hover); the stat row becomes a
+   divided metric strip; FAQ rows gain a hover surface. Token-only. ══ */
+.cat-stat-row{border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.cat-stat{position:relative}
+.cat-stat+.cat-stat::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:var(--border)}
+.cat-featured-card,.cat-feature{position:relative}
+.cat-featured-card{border-left:2.5px solid var(--p1)}
+.cat-featured-card:hover{background:var(--surface-2)}
+.cat-featured-card:hover svg,.cat-tool-card:hover .cat-arrow{transform:translateX(3px)}
+.cat-featured-card svg,.cat-tool-card .cat-arrow{transition:transform .22s var(--ease)}
+.cat-tool-card{transition:transform .22s var(--ease),border-color .22s var(--ease),box-shadow .22s var(--ease)}
+.cat-tool-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--p1) 32%,var(--border));box-shadow:var(--shadow-lift)}
+.cat-tool-card:active{transform:translateY(0)}
+.cat-article-card:hover{border-color:var(--border-2);transform:translateY(-2px);box-shadow:var(--shadow-lift)}
+.cat-faq details{transition:background .2s var(--ease)}
+.cat-faq details:hover,.cat-faq details[open]{background:var(--surface-2)}
+.cat-section-title{letter-spacing:-.6px}
+@media (prefers-reduced-motion:reduce){
+  .cat-tool-card:hover,.cat-article-card:hover{transform:none}
+  .cat-featured-card:hover svg,.cat-tool-card:hover .cat-arrow{transform:none}
+}

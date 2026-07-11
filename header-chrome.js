@@ -113,7 +113,7 @@ function getChrome() {
      yet, and fabricating activity numbers would be exactly the kind of
      thing the trust-copy work elsewhere in this project has been
      fixing, not adding. */
-  const AI_POWERED = ['background-remover', 'ocr-image-to-text'].map(sl => TOOLS.find(t => t[0] === sl)).filter(Boolean);
+  const AI_POWERED = ['background-remover', 'ai-image-upscaler', 'ocr-image-to-text'].map(sl => TOOLS.find(t => t[0] === sl)).filter(Boolean);
 
   const previewData = {};
   NAV_ORDER.forEach(c => {
@@ -171,7 +171,26 @@ function getChrome() {
     + '<button type="submit" class="mega-ai-go" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>'
     + '</form></div>' + dataScript;
 
-  CHROME_TOP = CHROME_TOP.replace('<!-- buildNavToolsDropdown() -->', bakedPanel);
+  /* Splice the freshly-generated panel into the harvested header.
+     Two possible states of index.html:
+       (a) it still carries the original placeholder comment
+           (bakedPanel is the wrapper's INNER html, so the comment sits
+           inside the <div id="navToolsPanel"> wrapper), or
+       (b) a previous round baked a rendered panel into it — in which
+           case the old .replace() was a SILENT NO-OP and every page
+           kept shipping the stale panel (frozen tool counts, missing
+           new tools). Same bug class as the script-src existence
+           checks: a replacement must match what's actually in the
+           file. Handle both — preserving the wrapper div, swapping
+           only its interior — and throw loudly if neither matches. */
+  const BAKED_PANEL_RE = /(<div class="nav-tools-panel[^"]*" id="navToolsPanel"[^>]*>)[\s\S]*?id="megaMenuData">[\s\S]*?<\/script>(<\/div>)/;
+  if (CHROME_TOP.includes('<!-- buildNavToolsDropdown() -->')) {
+    CHROME_TOP = CHROME_TOP.replace('<!-- buildNavToolsDropdown() -->', bakedPanel);
+  } else if (BAKED_PANEL_RE.test(CHROME_TOP)) {
+    CHROME_TOP = CHROME_TOP.replace(BAKED_PANEL_RE, '$1' + bakedPanel.replace(/\$/g, '$$$$') + '$2');
+  } else {
+    throw new Error('header-chrome: nav panel splice point not found — neither placeholder comment nor baked panel matched');
+  }
   if (CHROME_TOP.includes('buildNavToolsDropdown')) throw new Error('header-chrome: dropdown bake failed to replace placeholder');
   CHROME_TOP = CHROME_TOP.replace('class="nav-tools-panel"', 'class="nav-tools-panel mega"');
 

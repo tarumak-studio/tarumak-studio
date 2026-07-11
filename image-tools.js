@@ -1208,3 +1208,191 @@ INIT['heic-to-jpg'] = function(panel) {
     next();
   }
 };
+
+/* ===== AI Image Upscaler ============================================
+   Provider-abstracted engine lives in /upscaler-engine.js and is loaded
+   lazily on first run (code-splitting: zero payload for other pages).
+   Browser AI is the default engine with an always-available high-quality
+   resampling fallback; remote providers are pre-wired but off. The UI
+   always states honestly which engine produced the result. */
+INIT['ai-image-upscaler']=function(panel){
+  var CHK='background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;';
+  var MAX_IN_PX=25000000;      /* 25MP input guard */
+  var MAX_OUT_PX=64000000;     /* 64MP output guard (memory) */
+  var u=dz(panel,{accept:'image/jpeg,image/png,image/webp,image/avif',formats:['JPG','PNG','WEBP','AVIF'],title:'Drop an image, click to browse, or paste (Ctrl+V)',sub:'Enlarge photos 2\u00d7 or 4\u00d7 with AI \u2014 processed on your device, nothing uploads.'});
+  var srcCanvas=null,outCanvas=null,srcName='image',running=null,zoom=1;
+
+  /* ── Controls ─────────────────────────────────────────────────── */
+  u.controls.className='controls';
+  u.controls.innerHTML=
+    '<div class="seg" role="group" aria-label="Upscale factor">'+
+      '<button id="upx2" class="active" aria-pressed="true">2\u00d7</button>'+
+      '<button id="upx4" aria-pressed="false">4\u00d7</button>'+
+      '<button id="upauto" aria-pressed="false">Auto</button>'+
+    '</div>'+
+    '<div class="ctrl"><label for="upfmt">Output</label><select id="upfmt" aria-label="Output format"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>'+
+    '<div class="ctrl-spacer"></div>'+
+    '<button class="btn btn-primary" id="uprun" disabled>Upscale</button>';
+  var scaleMode='2';
+  function paintSeg(){['upx2','upx4','upauto'].forEach(function(id){var b=$('#'+id,panel);var on=(id==='upx2'&&scaleMode==='2')||(id==='upx4'&&scaleMode==='4')||(id==='upauto'&&scaleMode==='auto');b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');});}
+  $('#upx2',panel).onclick=function(){scaleMode='2';paintSeg();};
+  $('#upx4',panel).onclick=function(){scaleMode='4';paintSeg();};
+  $('#upauto',panel).onclick=function(){scaleMode='auto';paintSeg();};
+
+  /* ── Input: drop / click / paste ──────────────────────────────── */
+  function accept(f){
+    if(!f)return;
+    var okType=/^image\/(jpeg|png|webp|avif)$/.test(f.type)||/\.(jpe?g|png|webp|avif)$/i.test(f.name||'');
+    if(!okType){setStatus(u.status,'That file type isn\u2019t supported \u2014 use JPG, PNG, WEBP or AVIF.',1);return;}
+    if(f.size>80*1024*1024){setStatus(u.status,'File too large (over 80 MB).',1);return;}
+    readImg(f).then(function(img){
+      var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+      if(!w||!h){setStatus(u.status,'This image appears to be corrupted or empty.',1);return;}
+      if(w*h>MAX_IN_PX){setStatus(u.status,'Image is too large ('+Math.round(w*h/1e6)+' MP). Maximum input is 25 MP \u2014 resize it first with the Image Resizer.',1);return;}
+      srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
+      srcCanvas.getContext('2d').drawImage(img,0,0);
+      srcName=(f.name||'image').replace(/\.[^.]+$/,'');
+      $('#uprun',panel).disabled=false;
+      u.results.classList.add('show');
+      /* Preview from a downsized copy — a full-res data URL of a 25MP
+         image is tens of MB of string; the preview never needs that. */
+      var pv=srcCanvas;
+      if(w>900||h>900){var s=900/Math.max(w,h);pv=document.createElement('canvas');pv.width=Math.round(w*s);pv.height=Math.round(h*s);var px=pv.getContext('2d');px.imageSmoothingQuality='high';px.drawImage(srcCanvas,0,0,pv.width,pv.height);}
+      u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 12px">'+w+' \u00d7 '+h+' px \u00b7 '+fmtBytes(f.size)+' \u2014 ready. Choose a factor and press <strong>Upscale</strong>.</p>'+
+        '<div style="max-width:420px;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--border-2);'+CHK+'"><img src="'+pv.toDataURL('image/png')+'" style="display:block;width:100%" alt="Preview of uploaded image"></div>';
+      setStatus(u.status,'');
+    }).catch(function(){setStatus(u.status,'Could not read this image \u2014 the file may be corrupted, or your browser can\u2019t decode this format.',1);});
+  }
+  dropzone(u.drop,u.file,function(fs){accept([].slice.call(fs)[0]);});
+  function onPaste(e){
+    if(!document.body.contains(panel))return document.removeEventListener('paste',onPaste);
+    var items=(e.clipboardData&&e.clipboardData.items)||[];
+    for(var i=0;i<items.length;i++){if(items[i].kind==='file'){var f=items[i].getAsFile();if(f){accept(f);e.preventDefault();return;}}}
+  }
+  document.addEventListener('paste',onPaste);
+
+  /* ── Run ──────────────────────────────────────────────────────── */
+  $('#uprun',panel).onclick=function(){
+    if(!srcCanvas||running)return;
+    var factor=scaleMode==='auto'?(Math.max(srcCanvas.width,srcCanvas.height)<1100?4:2):parseInt(scaleMode,10);
+    if(srcCanvas.width*srcCanvas.height*factor*factor>MAX_OUT_PX){
+      setStatus(u.status,'Result would exceed 64 MP \u2014 choose 2\u00d7 for this image.',1);return;
+    }
+    var signal={cancelled:false};running=signal;
+    $('#uprun',panel).disabled=true;
+    u.results.innerHTML=
+      '<div style="max-width:460px;margin:0 auto;text-align:center">'+
+        '<div role="status" aria-live="polite" id="upphase" style="font-size:13.5px;color:var(--text-dim);margin-bottom:10px">Preparing\u2026</div>'+
+        '<div style="height:8px;border-radius:99px;background:var(--bg-3,rgba(255,255,255,.08));overflow:hidden" aria-hidden="true"><div id="upbar" style="height:100%;width:2%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#a78bfa);transition:width .25s"></div></div>'+
+        '<button class="btn btn-ghost" id="upcancel" style="margin-top:14px">Cancel</button>'+
+      '</div>';
+    $('#upcancel',panel).onclick=function(){signal.cancelled=true;};
+    var phase=$('#upphase',panel),bar=$('#upbar',panel);
+
+    _loadScript('/upscaler-engine.js','UpscaleEngine').then(function(){
+      return window.UpscaleEngine.run({
+        canvas:srcCanvas,scale:factor,signal:signal,
+        onEngine:function(label){phase.textContent='Engine: '+label;},
+        onProgress:function(p,msg){bar.style.width=Math.max(2,Math.round(p*100))+'%';if(msg)phase.textContent=msg;}
+      });
+    }).then(function(res){
+      running=null;
+      if(signal.cancelled){reset(false);setStatus(u.status,'Cancelled.');return;}
+      outCanvas=res.canvas;
+      showResult(res.engine,factor);
+      if(window._ga)window._ga('upscale_complete',{tool_name:'ai-image-upscaler',scale:factor+'x',engine:res.engine});
+    }).catch(function(e){
+      running=null;
+      if(e&&e.message==='cancelled'){reset(false);setStatus(u.status,'Cancelled.');return;}
+      reset(false);
+      var msg=(e&&/memory|allocation/i.test(e.message||''))?'Ran out of memory \u2014 try 2\u00d7, or a smaller image.':'Processing failed: '+(e&&e.message||'unknown error');
+      setStatus(u.status,msg,1);
+    });
+  };
+
+  /* ── Result: before/after slider + zoom + downloads ───────────── */
+  var _urls=[],_resizeH=null;
+  function freeUrls(){_urls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(e){}});_urls=[];}
+  function showResult(engineLabel,factor){
+    /* Object URLs, never data URLs: a 64MP PNG data URL is a 100MB+
+       string held in the DOM — toBlob keeps the pixels in native
+       memory and the DOM only holds a short blob: reference. */
+    Promise.all([
+      new Promise(function(r){srcCanvas.toBlob(function(b){r(b);},'image/png');}),
+      new Promise(function(r){outCanvas.toBlob(function(b){r(b);},'image/png');})
+    ]).then(function(blobs){
+      if(!blobs[0]||!blobs[1]){setStatus(u.status,'Preview failed \u2014 you can still download the result.',1);}
+      freeUrls();
+      var beforeUrl=blobs[0]?URL.createObjectURL(blobs[0]):'';
+      var afterUrl=blobs[1]?URL.createObjectURL(blobs[1]):'';
+      _urls.push(beforeUrl,afterUrl);
+      zoom=1;
+      u.results.innerHTML=
+      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+'</p>'+
+      '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'">'+
+        '<div id="upcmp" style="position:relative;width:100%;transform-origin:top left">'+
+          '<img src="'+afterUrl+'" style="display:block;width:100%" alt="Upscaled result" draggable="false">'+
+          '<div id="upbefwrap" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden">'+
+            '<img id="upbef" src="'+beforeUrl+'" style="display:block;height:100%;image-rendering:pixelated" alt="Original for comparison" draggable="false">'+
+          '</div>'+
+          '<div id="uphandle" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8)"></div>'+
+          '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
+          '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="max-width:620px;margin:10px auto 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center">'+
+        '<input type="range" id="upslide" min="0" max="100" value="50" style="flex:1;min-width:160px" aria-label="Before / after comparison position">'+
+        '<div class="seg" role="group" aria-label="Zoom">'+
+          '<button id="upzo" aria-label="Zoom out">\u2212</button>'+
+          '<button id="upzfit" aria-pressed="true">Fit</button>'+
+          '<button id="upzi" aria-label="Zoom in">+</button>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
+        '<button class="btn btn-primary" id="updl">Download</button>'+
+        '<button class="btn btn-ghost" id="upreset">Start over</button>'+
+      '</div>';
+      var cmp=$('#upcmp',panel),befw=$('#upbefwrap',panel),bef=$('#upbef',panel),hand=$('#uphandle',panel),wrap=$('#upzoomwrap',panel);
+      function syncBef(){bef.style.width=cmp.clientWidth+'px';}
+      syncBef();
+      if(_resizeH)window.removeEventListener('resize',_resizeH);
+      _resizeH=syncBef;window.addEventListener('resize',_resizeH);
+      $('#upslide',panel).oninput=function(){befw.style.width=this.value+'%';hand.style.left=this.value+'%';};
+      function setZoom(z){zoom=Math.max(.5,Math.min(6,z));cmp.style.width=(zoom*100)+'%';syncBef();}
+      $('#upzi',panel).onclick=function(){setZoom(zoom*1.4);};
+      $('#upzo',panel).onclick=function(){setZoom(zoom/1.4);};
+      $('#upzfit',panel).onclick=function(){setZoom(1);};
+      wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15));}},{passive:false});
+      $('#updl',panel).onclick=function(){
+        var fmt=$('#upfmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
+        var c=outCanvas;
+        if(fmt==='image/jpeg'){var f2=document.createElement('canvas');f2.width=c.width;f2.height=c.height;var fx=f2.getContext('2d');fx.fillStyle='#fff';fx.fillRect(0,0,f2.width,f2.height);fx.drawImage(c,0,0);c=f2;}
+        c.toBlob(function(b){
+          if(!b){setStatus(u.status,'Export failed \u2014 try PNG.',1);return;}
+          var nm=srcName+'-upscaled-'+factor+'x.'+ext;
+          download(b,nm);
+          if(window._ga)window._ga('file_download',{file_name:nm,tool_name:'ai-image-upscaler'});
+        },fmt,fmt==='image/png'?undefined:.92);
+      };
+      $('#upreset',panel).onclick=function(){reset(true);};
+      /* Re-enable so the same image can be re-run at a different factor */
+      $('#uprun',panel).disabled=false;
+      setStatus(u.status,'Done \u2014 drag the slider to compare, Ctrl+scroll to zoom.');
+    });
+  }
+  function reset(full){
+    if(running)running.cancelled=true;running=null;
+    freeUrls();
+    if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
+    outCanvas=null;$('#uprun',panel).disabled=!srcCanvas;
+    if(full){srcCanvas=null;$('#uprun',panel).disabled=true;u.results.innerHTML='';u.results.classList.remove('show');u.drop.style.display='';}
+    else{u.results.innerHTML='';}
+  }
+};
+FAQ['ai-image-upscaler']=[
+ ['How does the AI upscaling work?','The default engine runs an ESRGAN super-resolution model directly in your browser (downloaded once from a CDN, then cached). If your browser can\u2019t run the model, the tool automatically falls back to high-quality progressive resampling with edge-aware sharpening \u2014 and always tells you which engine produced your result.'],
+ ['Is my image uploaded anywhere?','No. Both engines process your image entirely on your device. The only network activity is downloading the AI model file itself \u2014 your image never leaves your browser.'],
+ ['Does it preserve transparency?','Yes \u2014 PNG and WEBP output keep the alpha channel intact. JPG doesn\u2019t support transparency, so transparent areas are flattened onto white for that format only.'],
+ ['What\u2019s the maximum image size?','Input is capped at 25 megapixels and output at 64 megapixels to keep processing stable in browser memory. For very large photos, use 2\u00d7 rather than 4\u00d7.'],
+ ['Which formats are supported?','JPG, PNG and WEBP everywhere; AVIF works in browsers that can decode it natively (all recent Chrome, Edge and Firefox versions).']
+];

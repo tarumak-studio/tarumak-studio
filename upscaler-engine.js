@@ -34,72 +34,109 @@
     endpoint: null           /* your proxy Worker URL; keys live server-side */
   };
 
+  /* Verified against the official UpscalerJS docs (script-tag usage):
+     TF.js loads FIRST, then the model UMD (exposes a global like
+     ESRGANMedium2x), then the upscaler UMD (exposes global Upscaler).
+     esrgan-medium = the quality/speed balance tier; native 4x model
+     exists, so 4x is ONE real model pass, not two stacked 2x passes. */
   var NEURAL_CDN = {
-    upscaler: 'https://cdn.jsdelivr.net/npm/upscaler@1.0.0-beta.19/+esm',
-    model2x:  'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0-beta.12/+esm'
+    tf:      'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4/dist/tf.min.js',
+    model2x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1/dist/umd/2x.min.js',
+    model4x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1/dist/umd/4x.min.js',
+    lib:     'https://cdn.jsdelivr.net/npm/upscaler@1/dist/browser/umd/upscaler.min.js'
   };
+  /* Neural input cap: patch-based inference cost grows with input area.
+     Above ~4MP the wait becomes minutes — fall through to classical with
+     an honest message instead of freezing someone's phone. */
+  var NEURAL_MAX_INPUT_PX = 4000000;
 
-  var neuralPromise = null;
+  function loadScriptOnce(src, globName) {
+    return new Promise(function (res, rej) {
+      if (globName && window[globName]) { res(); return; }
+      if (document.querySelector('script[src="' + src + '"]')) {
+        var n = 0, iv = setInterval(function () {
+          if (!globName || window[globName]) { clearInterval(iv); res(); }
+          else if (++n > 200) { clearInterval(iv); rej(new Error('timeout ' + src)); }
+        }, 150);
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function () { res(); };
+      s.onerror = function () { rej(new Error('failed ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  var neuralInstances = {};   /* one Upscaler per scale, cached */
 
   /* ── Provider: browser-neural ──────────────────────────────────── */
   var BrowserNeural = {
     id: 'browser-neural',
-    label: 'AI model (in your browser)',
+    label: 'AI super-resolution (ESRGAN, in your browser)',
     available: function () {
-      /* WebGL or WASM needed for TF.js; feature-detect cheaply */
       try {
         var c = document.createElement('canvas');
         return !!(window.WebAssembly && (c.getContext('webgl2') || c.getContext('webgl')));
       } catch (e) { return false; }
     },
-    load: function () {
-      if (neuralPromise) return neuralPromise;
-      neuralPromise = Promise.all([
-        import(NEURAL_CDN.upscaler),
-        import(NEURAL_CDN.model2x)
-      ]).then(function (mods) {
-        var Upscaler = mods[0].default || mods[0].Upscaler || mods[0];
-        var modelPkg = mods[1];
-        var model = modelPkg.default || modelPkg.x2 || modelPkg;
-        if (typeof Upscaler !== 'function') throw new Error('upscaler module shape unexpected');
-        return new Upscaler({ model: model });
-      }).catch(function (e) {
-        neuralPromise = null;      /* allow retry next run */
-        throw e;
-      });
-      return neuralPromise;
+    load: function (factor) {
+      var key = factor >= 4 ? '4' : '2';
+      if (neuralInstances[key]) return Promise.resolve(neuralInstances[key]);
+      var modelSrc  = key === '4' ? NEURAL_CDN.model4x : NEURAL_CDN.model2x;
+      var modelGlob = key === '4' ? 'ESRGANMedium4x'   : 'ESRGANMedium2x';
+      /* Order matters and is sequential by design: tf → model → lib */
+      return loadScriptOnce(NEURAL_CDN.tf, 'tf')
+        .then(function () { return loadScriptOnce(modelSrc, modelGlob); })
+        .then(function () { return loadScriptOnce(NEURAL_CDN.lib, 'Upscaler'); })
+        .then(function () {
+          /* Tolerate both UMD global shapes the model packages have used:
+             a direct global (ESRGANMedium2x) or a namespace object
+             (ESRGANMedium['2x'] / .x2). */
+          var model = window[modelGlob]
+            || (window.ESRGANMedium && (window.ESRGANMedium[key + 'x'] || window.ESRGANMedium['x' + key]));
+          if (typeof window.Upscaler !== 'function') throw new Error('Upscaler library global missing after load');
+          if (!model) throw new Error('model global missing after load (' + modelGlob + ')');
+          neuralInstances[key] = new window.Upscaler({ model: model });
+          return neuralInstances[key];
+        });
     },
     run: function (opts) {
       var factor = opts.scale, canvas = opts.canvas;
-      return BrowserNeural.load().then(function (upscaler) {
-        /* ESRGAN-slim is a 2x model: run once for 2x, twice for 4x. */
-        function pass(srcCanvas, passIdx, passes) {
-          if (opts.signal && opts.signal.cancelled) throw new Error('cancelled');
-          return upscaler.upscale(srcCanvas, {
-            output: 'base64',            /* broadest support across the beta API */
-            patchSize: 64, padding: 2,
-            progress: function (p) {
-              if (opts.signal && opts.signal.cancelled) return;
-              if (opts.onProgress) opts.onProgress((passIdx + p) / passes, 'AI pass ' + (passIdx + 1) + ' of ' + passes);
-            }
-          }).then(function (b64) {
-            return new Promise(function (res, rej) {
-              var img = new Image();
-              img.onload = function () {
-                var c = document.createElement('canvas');
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                c.getContext('2d').drawImage(img, 0, 0);
-                res(c);
-              };
-              img.onerror = function () { rej(new Error('neural output decode failed')); };
-              img.src = b64;
-            });
-          });
-        }
-        var passes = factor >= 4 ? 2 : 1;
-        var p = pass(canvas, 0, passes);
-        if (passes === 2) p = p.then(function (c1) { return pass(c1, 1, 2); });
-        return p.then(function (out) { return { canvas: out, engine: BrowserNeural.label }; });
+      if (canvas.width * canvas.height > NEURAL_MAX_INPUT_PX) {
+        /* Too large for in-browser inference at usable speed: signal a
+           clean fallback (not an error dialog). */
+        return Promise.reject(new Error('input too large for in-browser AI (' + Math.round(canvas.width * canvas.height / 1e6) + ' MP > 4 MP)'));
+      }
+      if (opts.onProgress) opts.onProgress(0.02, 'Loading AI model (one-time, cached)\u2026');
+      return BrowserNeural.load(factor).then(function (upscaler) {
+        if (opts.signal && opts.signal.cancelled) throw new Error('cancelled');
+        if (opts.onProgress) opts.onProgress(0.05, 'AI reconstructing detail\u2026');
+        /* UpscalerJS renamed upscale() to execute() around 1.0 — accept
+           whichever this build exposes instead of crashing on the rename. */
+        var call = upscaler.execute || upscaler.upscale;
+        if (typeof call !== 'function') throw new Error('Upscaler instance has neither execute() nor upscale()');
+        return call.call(upscaler, canvas, {
+          output: 'base64',
+          patchSize: 64, padding: 2,
+          progress: function (p) {
+            if (opts.signal && opts.signal.cancelled) return;
+            if (opts.onProgress) opts.onProgress(0.05 + p * 0.9, 'AI reconstructing detail \u2014 ' + Math.round(p * 100) + '%');
+          }
+        });
+      }).then(function (b64) {
+        if (opts.signal && opts.signal.cancelled) throw new Error('cancelled');
+        return new Promise(function (res, rej) {
+          var img = new Image();
+          img.onload = function () {
+            var c = document.createElement('canvas');
+            c.width = img.naturalWidth; c.height = img.naturalHeight;
+            c.getContext('2d').drawImage(img, 0, 0);
+            res({ canvas: c, engine: BrowserNeural.label });
+          };
+          img.onerror = function () { rej(new Error('neural output decode failed')); };
+          img.src = b64;
+        });
       });
     }
   };
@@ -224,6 +261,7 @@
             var fd = new FormData();
             fd.append('image', blob, 'input.png');
             fd.append('scale', String(opts.scale));
+            fd.append('face', '1');   /* GFPGAN face enhancement on the server */
             fetch(REMOTE.endpoint, { method: 'POST', body: fd })
               .then(function (r) { if (!r.ok) throw new Error('server ' + r.status); return r.blob(); })
               .then(function (out) {
@@ -257,7 +295,10 @@
   window.UpscaleEngine = {
     providers: PROVIDERS,
     remoteConfig: REMOTE,
+    lastErrors: {},            /* provider id -> why it fell through (diagnostics) */
     run: function (opts) {
+      var self = window.UpscaleEngine;
+      self.lastErrors = {};
       var chain = PROVIDER_ORDER.filter(function (id) { return PROVIDERS[id].available(); });
       function attempt(idx) {
         if (idx >= chain.length) return Promise.reject(new Error('no provider available'));
@@ -265,8 +306,14 @@
         if (opts.onEngine) opts.onEngine(prov.label);
         return prov.run(opts).catch(function (e) {
           if (e && e.message === 'cancelled') throw e;      /* user cancel: stop */
-          if (idx + 1 < chain.length && opts.onProgress) opts.onProgress(0, 'Switching engine\u2026');
+          /* NEVER swallow the reason: record it and say it out loud. This is
+             what makes "why didn't the AI run?" answerable from DevTools. */
+          self.lastErrors[prov.id] = (e && e.message) || String(e);
+          try { console.warn('[upscaler] ' + prov.id + ' unavailable \u2192 falling back:', e); } catch (_) {}
           if (idx + 1 >= chain.length) throw e;
+          if (opts.onProgress) opts.onProgress(0, prov.id === 'browser-neural'
+            ? 'AI engine unavailable on this device \u2014 using high-quality resampling instead'
+            : 'Switching engine\u2026');
           return attempt(idx + 1);                           /* graceful fallback */
         });
       }

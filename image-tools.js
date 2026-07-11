@@ -1271,12 +1271,44 @@ INIT['ai-image-upscaler']=function(panel){
   }
   document.addEventListener('paste',onPaste);
 
+  /* Preflight: can THIS browser actually hold a canvas of the target size?
+     Safari caps canvas area around 16.7MP and silently renders blank beyond
+     it (no exception) — the classic "checkerboard result" failure. Draw one
+     red pixel at the far corner and read it back: if it doesn't survive,
+     the size is unusable here. */
+  function canvasSupports(w,h){
+    try{
+      var t=document.createElement('canvas');t.width=w;t.height=h;
+      var x=t.getContext('2d');if(!x)return false;
+      x.fillStyle='#f00';x.fillRect(w-1,h-1,1,1);
+      var p=x.getImageData(w-1,h-1,1,1).data;
+      t.width=1;t.height=1; /* release memory promptly */
+      return p[0]>200&&p[3]>200;
+    }catch(e){return false;}
+  }
+  /* Post-check: a non-blank source must never produce an all-transparent
+     result. Sample the output downscaled to 8x8 — cheap at any size. */
+  function isBlank(c){
+    try{
+      var t=document.createElement('canvas');t.width=8;t.height=8;
+      var x=t.getContext('2d');x.drawImage(c,0,0,8,8);
+      var d=x.getImageData(0,0,8,8).data;
+      for(var i=3;i<d.length;i+=4)if(d[i]>0)return false;
+      return true;
+    }catch(e){return false;}
+  }
+
   /* ── Run ──────────────────────────────────────────────────────── */
   $('#uprun',panel).onclick=function(){
     if(!srcCanvas||running)return;
     var factor=scaleMode==='auto'?(Math.max(srcCanvas.width,srcCanvas.height)<1100?4:2):parseInt(scaleMode,10);
-    if(srcCanvas.width*srcCanvas.height*factor*factor>MAX_OUT_PX){
+    var outW=srcCanvas.width*factor,outH=srcCanvas.height*factor;
+    if(outW*outH>MAX_OUT_PX){
       setStatus(u.status,'Result would exceed 64 MP \u2014 choose 2\u00d7 for this image.',1);return;
+    }
+    /* Large targets: verify the browser can hold them BEFORE spending time */
+    if(outW*outH>15000000&&!canvasSupports(outW,outH)){
+      setStatus(u.status,'Your browser can\u2019t create a '+outW+'\u00d7'+outH+' px image ('+Math.round(outW*outH/1e6)+' MP) \u2014 this is a browser memory limit, common in Safari. Try 2\u00d7 instead.',1);return;
     }
     var signal={cancelled:false};running=signal;
     $('#uprun',panel).disabled=true;
@@ -1304,6 +1336,14 @@ INIT['ai-image-upscaler']=function(panel){
     }).then(function(res){
       running=null;
       if(signal.cancelled){reset(false);setStatus(u.status,'Cancelled.');return;}
+      /* Never present a silently-blank result: if the source had pixels but
+         the output is fully transparent, the browser dropped the canvas
+         (memory/area limit) somewhere mid-pipeline. Say so honestly. */
+      if(isBlank(res.canvas)&&!isBlank(srcCanvas)){
+        reset(false);
+        setStatus(u.status,'The result came back empty \u2014 your browser ran out of canvas memory at this size. Try 2\u00d7, or a smaller source image.',1);
+        return;
+      }
       outCanvas=res.canvas;
       showResult(res.engine,factor);
       if(window._ga)window._ga('upscale_complete',{tool_name:'ai-image-upscaler',scale:factor+'x',engine:res.engine});
@@ -1327,12 +1367,28 @@ INIT['ai-image-upscaler']=function(panel){
   var _urls=[],_resizeH=null;
   function freeUrls(){_urls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(e){}});_urls=[];}
   function showResult(engineLabel,factor){
+    /* Preview at display resolution: encoding + decoding a 25MP+ PNG just
+       to LOOK at it costs seconds of frozen UI. The compare view gets a
+       ≤2400px copy (still far beyond screen size at Fit); the download
+       always uses the untouched full-resolution outCanvas. */
+    setStatus(u.status,'Preparing preview\u2026');
+    function previewOf(c,maxEdge){
+      if(Math.max(c.width,c.height)<=maxEdge)return c;
+      var s=maxEdge/Math.max(c.width,c.height);
+      var p=document.createElement('canvas');
+      p.width=Math.round(c.width*s);p.height=Math.round(c.height*s);
+      var px=p.getContext('2d');px.imageSmoothingQuality='high';
+      px.drawImage(c,0,0,p.width,p.height);
+      return p;
+    }
+    var outPrev=previewOf(outCanvas,2400);
+    var prevCapped=outPrev!==outCanvas;
     /* Object URLs, never data URLs: a 64MP PNG data URL is a 100MB+
        string held in the DOM — toBlob keeps the pixels in native
        memory and the DOM only holds a short blob: reference. */
     Promise.all([
       new Promise(function(r){srcCanvas.toBlob(function(b){r(b);},'image/png');}),
-      new Promise(function(r){outCanvas.toBlob(function(b){r(b);},'image/png');})
+      new Promise(function(r){outPrev.toBlob(function(b){r(b);},'image/png');})
     ]).then(function(blobs){
       if(!blobs[0]||!blobs[1]){setStatus(u.status,'Preview failed \u2014 you can still download the result.',1);}
       freeUrls();
@@ -1341,7 +1397,7 @@ INIT['ai-image-upscaler']=function(panel){
       _urls.push(beforeUrl,afterUrl);
       zoom=1;
       u.results.innerHTML=
-      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+'</p>'+
+      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+(prevCapped?'<br><span style="font-size:11px;color:var(--text-faint)">Preview shown at reduced resolution \u2014 the download contains the full '+outCanvas.width+'\u00d7'+outCanvas.height+' px detail.</span>':'')+'</p>'+
       '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'">'+
         '<div id="upcmp" style="position:relative;width:100%;transform-origin:top left">'+
           '<img src="'+afterUrl+'" style="display:block;width:100%" alt="Upscaled result" draggable="false">'+

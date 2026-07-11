@@ -131,9 +131,24 @@
           }
           function sharpen() {
             if (opts.signal && opts.signal.cancelled) { reject(new Error('cancelled')); return; }
-            try { unsharpMask(cur, 0.55, 2); } catch (e) { /* sharpening optional */ }
-            if (opts.onProgress) opts.onProgress(1, 'Finishing');
-            resolve({ canvas: cur, engine: BrowserClassical.label });
+            var px = cur.width * cur.height;
+            /* Above ~24MP the sharpen pass costs many seconds of main-thread
+               work for detail nobody can see at fit zoom — skip it honestly. */
+            if (px > 24000000) {
+              if (opts.onProgress) opts.onProgress(1, 'Done (sharpen skipped on very large image)');
+              resolve({ canvas: cur, engine: BrowserClassical.label });
+              return;
+            }
+            unsharpAsync(cur, 0.55, 2, function (p, label) {
+              if (opts.onProgress) opts.onProgress(0.66 + p * 0.34, label);
+            }, opts.signal).then(function () {
+              if (opts.onProgress) opts.onProgress(1, 'Finishing');
+              resolve({ canvas: cur, engine: BrowserClassical.label });
+            }).catch(function (e) {
+              if (e && e.message === 'cancelled') { reject(e); return; }
+              /* sharpening is optional — never fail the whole job over it */
+              resolve({ canvas: cur, engine: BrowserClassical.label });
+            });
           }
           step();
         } catch (e) { reject(e); }
@@ -141,40 +156,60 @@
     }
   };
 
-  /* Gated unsharp mask: sharpen RGB only (alpha untouched → transparency
-     preserved), skip pixels whose local contrast is below `threshold`
-     (suppresses halo/ringing on smooth gradients — the classic halo bug). */
-  function unsharpMask(canvas, amount, threshold) {
-    var w = canvas.width, h = canvas.height;
-    if (w * h > 36000000) return;                    /* memory guard */
-    var ctx = canvas.getContext('2d');
-    var id = ctx.getImageData(0, 0, w, h), d = id.data;
-    var blur = boxBlur3(d, w, h);
-    for (var i = 0; i < d.length; i += 4) {
-      for (var k = 0; k < 3; k++) {
-        var diff = d[i + k] - blur[i + k];
-        if (diff > threshold || diff < -threshold) {
-          var v = d[i + k] + diff * amount;
-          d[i + k] = v < 0 ? 0 : v > 255 ? 255 : v;
+  /* Gated unsharp mask — ASYNC, processed in row bands so the main thread
+     yields between bands (UI stays responsive, Cancel works, progress is
+     real). Sharpen RGB only (alpha untouched → transparency preserved);
+     skip pixels whose local contrast is below `threshold` (suppresses
+     halo/ringing on smooth gradients). */
+  function unsharpAsync(canvas, amount, threshold, onP, signal) {
+    return new Promise(function (res, rej) {
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var id, d, blur;
+      try {
+        id = ctx.getImageData(0, 0, w, h); d = id.data;
+        blur = new Uint8ClampedArray(d.length);
+      } catch (e) { res(); return; }              /* readback blocked/OOM: skip */
+      var BAND = Math.max(64, Math.round(2000000 / w));  /* ~2M px per slice */
+      var phase = 0, y = 0;                        /* 0 = blur, 1 = apply */
+      function blurBand(y0, y1) {
+        for (var yy = y0; yy < y1; yy++) for (var x = 0; x < w; x++) {
+          var i = (yy * w + x) * 4, r = 0, g = 0, b = 0, n = 0;
+          for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+            var nx = x + dx, ny = yy + dy;
+            if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+            var j = (ny * w + nx) * 4;
+            r += d[j]; g += d[j + 1]; b += d[j + 2]; n++;
+          }
+          blur[i] = r / n; blur[i + 1] = g / n; blur[i + 2] = b / n; blur[i + 3] = d[i + 3];
         }
       }
-      /* d[i+3] (alpha) intentionally untouched */
-    }
-    ctx.putImageData(id, 0, 0);
-  }
-  function boxBlur3(src, w, h) {                     /* one 3x3 box pass */
-    var out = new Uint8ClampedArray(src.length);
-    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
-      var i = (y * w + x) * 4, r = 0, g = 0, b = 0, n = 0;
-      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-        var nx = x + dx, ny = y + dy;
-        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-        var j = (ny * w + nx) * 4;
-        r += src[j]; g += src[j + 1]; b += src[j + 2]; n++;
+      function applyBand(y0, y1) {
+        for (var i = y0 * w * 4, end = y1 * w * 4; i < end; i += 4) {
+          for (var k = 0; k < 3; k++) {
+            var diff = d[i + k] - blur[i + k];
+            if (diff > threshold || diff < -threshold) {
+              var v = d[i + k] + diff * amount;
+              d[i + k] = v < 0 ? 0 : v > 255 ? 255 : v;
+            }
+          }
+          /* d[i+3] (alpha) intentionally untouched */
+        }
       }
-      out[i] = r / n; out[i + 1] = g / n; out[i + 2] = b / n; out[i + 3] = src[i + 3];
-    }
-    return out;
+      function tick() {
+        if (signal && signal.cancelled) { rej(new Error('cancelled')); return; }
+        var end = Math.min(h, y + BAND);
+        if (phase === 0) blurBand(y, end); else applyBand(y, end);
+        y = end;
+        var frac = phase === 0 ? (y / h) * 0.6 : 0.6 + (y / h) * 0.4;
+        if (onP) onP(frac, 'Sharpening ' + Math.round(frac * 100) + '%');
+        if (y >= h) {
+          if (phase === 0) { phase = 1; y = 0; }
+          else { ctx.putImageData(id, 0, 0); res(); return; }
+        }
+        setTimeout(tick, 0);                       /* yield to the UI thread */
+      }
+      tick();
+    });
   }
 
   /* ── Remote provider template (cloudflare-ai / replicate / fal) ── */

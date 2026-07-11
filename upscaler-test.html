@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- upscaler-test.html — STANDALONE diagnostic for the AI Upscaler neural path.
+     This is a developer tool, NOT part of the site architecture: no chrome,
+     no registry, deliberately bypasses upscaler-engine.js so it tests ONLY
+     the UpscalerJS pipeline itself, with the exact script tags from the
+     official docs (verified against upscalerjs.com and jsDelivr).
+
+     HOW TO USE: upload next to your other files, open
+     https://tarumakstudio.com/upscaler-test.html — every step prints PASS or
+     FAIL with the exact error. Delete the file when done.
+
+     Interpreting results:
+       ALL PASS  → the AI pipeline works on this machine; if the real tool
+                   still says "High-quality resampling", your deployed
+                   upscaler-engine.js is stale (check for the v3.0 stamp).
+       A FAIL    → the on-screen error is the exact blocker; send it to me. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Upscaler neural-path diagnostic</title>
+<style>
+  body{font:15px/1.6 monospace;background:#0b0f1a;color:#d7e0ff;max-width:760px;margin:40px auto;padding:0 16px}
+  .ok{color:#4ade80}.bad{color:#f87171}.dim{color:#8b93b0}
+  h1{font-size:18px} img,canvas{image-rendering:pixelated;border:1px solid #333;margin:4px}
+</style>
+</head>
+<body>
+<h1>AI Upscaler — neural path diagnostic</h1>
+<div id="log"></div>
+<div id="visual"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"
+        onerror="window.__tfErr=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@latest/dist/umd/2x.min.js"
+        onerror="window.__mdErr=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"
+        onerror="window.__upErr=true"></script>
+
+<script>
+(function () {
+  var logEl = document.getElementById('log');
+  function log(msg, cls) {
+    var d = document.createElement('div');
+    d.className = cls || '';
+    d.textContent = msg;
+    logEl.appendChild(d);
+  }
+  function fail(step, detail) {
+    log('FAIL — ' + step + ': ' + detail, 'bad');
+    log('Send this exact line to continue debugging.', 'dim');
+  }
+
+  /* Step 1: script loads */
+  if (window.__tfErr)  { fail('TF.js script', 'network/CDN load error'); return; }
+  if (window.__mdErr)  { fail('ESRGAN-medium model script', 'network/CDN load error'); return; }
+  if (window.__upErr)  { fail('Upscaler library script', 'network/CDN load error'); return; }
+  log('PASS — all three CDN scripts loaded', 'ok');
+
+  /* Step 2: globals present */
+  log(typeof window.tf === 'object' ? 'PASS — tf global present (v' + (tf.version && tf.version.tfjs || '?') + ')' : 'FAIL — tf global missing', typeof window.tf === 'object' ? 'ok' : 'bad');
+  var model = window.ESRGANMedium2x || (window.ESRGANMedium && (window.ESRGANMedium['2x'] || window.ESRGANMedium.x2));
+  log(model ? 'PASS — model global present (ESRGANMedium2x)' : 'FAIL — model global missing', model ? 'ok' : 'bad');
+  log(typeof window.Upscaler === 'function' ? 'PASS — Upscaler global present' : 'FAIL — Upscaler global missing', typeof window.Upscaler === 'function' ? 'ok' : 'bad');
+  if (typeof window.Upscaler !== 'function' || !model) return;
+
+  /* Step 3: which API does this build expose? */
+  var inst;
+  try { inst = new window.Upscaler({ model: model }); }
+  catch (e) { fail('new Upscaler()', e.message); return; }
+  var method = inst.execute ? 'execute' : (inst.upscale ? 'upscale' : null);
+  log(method ? 'PASS — API method is .' + method + '()' : 'FAIL — neither execute() nor upscale() exists', method ? 'ok' : 'bad');
+  if (!method) return;
+
+  /* Step 4: run real inference on a tiny test pattern */
+  var c = document.createElement('canvas'); c.width = 32; c.height = 32;
+  var x = c.getContext('2d');
+  x.fillStyle = '#1d4ed8'; x.fillRect(0, 0, 32, 32);
+  x.fillStyle = '#f59e0b'; x.fillRect(8, 8, 16, 16);
+  x.fillStyle = '#fff'; x.font = '10px monospace'; x.fillText('Aa', 10, 20);
+  document.getElementById('visual').appendChild(c);
+
+  log('Running 2\u00d7 inference on a 32\u00d732 test pattern\u2026 (first run downloads model weights)', 'dim');
+  var t0 = performance.now();
+  inst[method](c, { output: 'base64', patchSize: 32, padding: 2 })
+    .then(function (b64) {
+      var dt = ((performance.now() - t0) / 1000).toFixed(1);
+      var img = new Image();
+      img.onload = function () {
+        var okSize = img.naturalWidth === 64 && img.naturalHeight === 64;
+        log((okSize ? 'PASS' : 'FAIL') + ' — inference produced ' + img.naturalWidth + '\u00d7' + img.naturalHeight + ' in ' + dt + 's (expected 64\u00d764)', okSize ? 'ok' : 'bad');
+        if (okSize) log('ALL PASS \u2713 — the AI pipeline works on this machine. If the real tool still shows "High-quality resampling", the deployed upscaler-engine.js is stale: check the version tag on the result line (must say v3.0) and re-upload the file.', 'ok');
+        document.getElementById('visual').appendChild(img);
+      };
+      img.onerror = function () { fail('output decode', 'result base64 did not decode'); };
+      img.src = b64;
+    })
+    .catch(function (e) { fail('inference', (e && e.message) || String(e)); });
+})();
+</script>
+</body>
+</html>

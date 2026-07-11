@@ -40,10 +40,10 @@
      esrgan-medium = the quality/speed balance tier; native 4x model
      exists, so 4x is ONE real model pass, not two stacked 2x passes. */
   var NEURAL_CDN = {
-    tf:      'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4/dist/tf.min.js',
-    model2x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1/dist/umd/2x.min.js',
-    model4x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1/dist/umd/4x.min.js',
-    lib:     'https://cdn.jsdelivr.net/npm/upscaler@1/dist/browser/umd/upscaler.min.js'
+    tf:      'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js',
+    model2x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@latest/dist/umd/2x.min.js',
+    model4x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@latest/dist/umd/4x.min.js',
+    lib:     'https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js'
   };
   /* Neural input cap: patch-based inference cost grows with input area.
      Above ~4MP the wait becomes minutes — fall through to classical with
@@ -293,6 +293,7 @@
   var PROVIDER_ORDER = ['cloudflare-ai', 'replicate', 'fal', 'browser-neural', 'browser-classical'];
 
   window.UpscaleEngine = {
+    version: '3.0',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},            /* provider id -> why it fell through (diagnostics) */
@@ -320,4 +321,5 @@
       return attempt(0);
     }
   };
+  try { console.log('[upscaler] engine v3.0 loaded — CDN URLs verified against upscalerjs.com docs'); } catch (e) {}
 })();

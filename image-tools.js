@@ -1408,7 +1408,7 @@ INIT['ai-image-upscaler']=function(panel){
       _urls.push(beforeUrl,afterUrl);
       zoom=1;
       u.results.innerHTML=
-      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+(prevCapped?'<br><span style="font-size:11px;color:var(--text-faint)">Preview shown at reduced resolution \u2014 the download contains the full '+outCanvas.width+'\u00d7'+outCanvas.height+' px detail.</span>':'')+'</p>'+
+      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+' \u00b7 v'+(window.UpscaleEngine&&window.UpscaleEngine.version||'?')+(prevCapped?'<br><span style="font-size:11px;color:var(--text-faint)">Preview shown at reduced resolution \u2014 the download contains the full '+outCanvas.width+'\u00d7'+outCanvas.height+' px detail.</span>':'')+'</p>'+
       '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'">'+
         '<div id="upcmp" style="position:relative;width:100%;transform-origin:top left">'+
           '<img src="'+afterUrl+'" style="display:block;width:100%" alt="Upscaled result" draggable="false">'+

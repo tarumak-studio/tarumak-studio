@@ -726,10 +726,27 @@ INIT['background-remover'] = function(panel) {
           '<span style="position:absolute;top:8px;right:10px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.75);background:rgba(0,0,0,.45);padding:3px 8px;border-radius:100px;pointer-events:none">Original</span>' +
           '<span style="position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.75);background:rgba(0,0,0,.45);padding:3px 8px;border-radius:100px;pointer-events:none">Removed</span>' +
         '</div>' +
-        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:14px">Drag the divider to compare</p>' +
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:14px">Drag the divider to compare &middot; If the AI removed a logo or badge, use <strong>Touch up</strong> to paint it back.</p>' +
         '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">' +
           '<button class="btn btn-primary" id="bgrDl">Download PNG</button>' +
+          '<button class="btn" id="bgrEdit" style="background:rgba(167,139,250,.15);color:#a78bfa">&#9998; Touch up</button>' +
           '<button class="btn" id="bgrAnother" style="background:rgba(255,255,255,.06)">Remove another</button>' +
+        '</div>' +
+        '<div id="bgrEditor" style="display:none;margin-top:16px">' +
+          '<div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:10px">' +
+            '<div class="seg" role="group" aria-label="Brush mode">' +
+              '<button id="bgrBrRestore" class="active" aria-pressed="true">Restore</button>' +
+              '<button id="bgrBrErase" aria-pressed="false">Erase</button>' +
+            '</div>' +
+            '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600">Brush <input type="range" id="bgrBrSize" min="6" max="120" value="34" style="width:110px"> <span id="bgrBrSizeV" style="min-width:34px;font-variant-numeric:tabular-nums">34px</span></label>' +
+            '<button class="btn btn-ghost" id="bgrUndo" style="padding:6px 14px;font-size:12.5px" disabled>&#8630; Undo</button>' +
+          '</div>' +
+          '<p style="text-align:center;font-size:11.5px;color:var(--text-faint);margin-bottom:10px"><strong>Restore</strong> paints original pixels back (logos, badges, cut-off hair). <strong>Erase</strong> removes leftover background.</p>' +
+          '<div id="bgrEditStage" style="position:relative;max-width:560px;margin:0 auto 12px;border-radius:12px;overflow:hidden;border:1px solid var(--border-2);touch-action:none;cursor:crosshair;' + CHECKER + '"></div>' +
+          '<div style="display:flex;gap:10px;justify-content:center">' +
+            '<button class="btn btn-primary" id="bgrEditApply">Apply changes</button>' +
+            '<button class="btn btn-ghost" id="bgrEditCancel">Cancel</button>' +
+          '</div>' +
         '</div>';
 
       var cmp     = $('#bgrCmp',     res),
@@ -794,6 +811,130 @@ INIT['background-remover'] = function(panel) {
       }
       $('#bgrBgPick', res).oninput = function() { bgChoice = this.value; applyBgPreview(); };
       paintBgBtns();
+
+      /* ── TOUCH-UP: Restore / Erase brush ─────────────────────────
+         The AI does salient-subject segmentation, so floating graphics
+         (badges, stickers, watermark logos) can be misread as background.
+         No automatic pass can safely fix that — solidifying every
+         semi-transparent region would destroy real soft edges like hair.
+         So, like Remove.bg's own editor, we give a brush:
+           · Restore — paints ORIGINAL pixels back at full alpha
+           · Erase   — clears leftover background to transparent
+         Works with mouse and touch (pointer events). */
+      var editor    = $('#bgrEditor',     res),
+          editStage = $('#bgrEditStage',  res),
+          brSizeEl  = $('#bgrBrSize',     res),
+          brSizeV   = $('#bgrBrSizeV',    res),
+          brRestore = $('#bgrBrRestore',  res),
+          brErase   = $('#bgrBrErase',    res),
+          undoBtn   = $('#bgrUndo',       res);
+      var brushMode = 'restore', editCv = null, editCx = null, srcCv = null;
+      var undoStack = [], UNDO_MAX = (canvas.width * canvas.height > 6000000) ? 1 : 4;
+
+      brSizeEl.oninput = function() { brSizeV.textContent = brSizeEl.value + 'px'; };
+      function paintBrushBtns() {
+        brRestore.classList.toggle('active', brushMode === 'restore');
+        brErase.classList.toggle('active', brushMode === 'erase');
+        brRestore.setAttribute('aria-pressed', brushMode === 'restore' ? 'true' : 'false');
+        brErase.setAttribute('aria-pressed', brushMode === 'erase' ? 'true' : 'false');
+      }
+      brRestore.onclick = function() { brushMode = 'restore'; paintBrushBtns(); };
+      brErase.onclick   = function() { brushMode = 'erase';   paintBrushBtns(); };
+
+      $('#bgrEdit', res).onclick = function() {
+        function openEditor() {
+          /* Full-res source canvas with the ORIGINAL image (restore source) */
+          srcCv = document.createElement('canvas');
+          srcCv.width = canvas.width; srcCv.height = canvas.height;
+          srcCv.getContext('2d').drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+          /* Full-res edit canvas seeded with the current result */
+          editCv = document.createElement('canvas');
+          editCv.width = canvas.width; editCv.height = canvas.height;
+          editCx = editCv.getContext('2d');
+          editCx.drawImage(canvas, 0, 0);
+          editCv.style.cssText = 'display:block;width:100%;height:auto';
+          editStage.innerHTML = ''; editStage.appendChild(editCv);
+          undoStack = []; undoBtn.disabled = true;
+          cmp.style.display = 'none'; editor.style.display = '';
+        }
+        if (currentImg) openEditor();
+        else ensureImgThen(openEditor);
+      };
+
+      function pushUndo() {
+        try {
+          undoStack.push(editCx.getImageData(0, 0, editCv.width, editCv.height));
+          if (undoStack.length > UNDO_MAX) undoStack.shift();
+          undoBtn.disabled = false;
+        } catch (e) { /* memory-constrained device: stroke still works, just no undo */ }
+      }
+      undoBtn.onclick = function() {
+        var snap = undoStack.pop();
+        if (snap) editCx.putImageData(snap, 0, 0);
+        undoBtn.disabled = !undoStack.length;
+      };
+
+      /* Map a pointer event to full-res canvas pixels */
+      function toPx(e) {
+        var r = editCv.getBoundingClientRect();
+        return {
+          x: (e.clientX - r.left) * (editCv.width  / r.width),
+          y: (e.clientY - r.top)  * (editCv.height / r.height)
+        };
+      }
+      function dab(x, y, rad) {
+        if (brushMode === 'erase') {
+          editCx.save();
+          editCx.globalCompositeOperation = 'destination-out';
+          editCx.beginPath(); editCx.arc(x, y, rad, 0, Math.PI * 2); editCx.fill();
+          editCx.restore();
+        } else {
+          /* Restore: clip to the brush circle and stamp original pixels */
+          editCx.save();
+          editCx.beginPath(); editCx.arc(x, y, rad, 0, Math.PI * 2); editCx.clip();
+          editCx.clearRect(x - rad, y - rad, rad * 2, rad * 2);
+          editCx.drawImage(srcCv, 0, 0);
+          editCx.restore();
+        }
+      }
+      var painting = false, lastPt = null;
+      editStage.addEventListener('pointerdown', function(e) {
+        if (!editCv) return;
+        e.preventDefault();
+        editStage.setPointerCapture(e.pointerId);
+        painting = true; pushUndo();
+        var p = toPx(e), rad = parseInt(brSizeEl.value, 10) * (editCv.width / editCv.getBoundingClientRect().width) / 2;
+        dab(p.x, p.y, rad); lastPt = p;
+      });
+      editStage.addEventListener('pointermove', function(e) {
+        if (!painting || !editCv) return;
+        var p = toPx(e), rad = parseInt(brSizeEl.value, 10) * (editCv.width / editCv.getBoundingClientRect().width) / 2;
+        /* Interpolate between events so fast strokes don't leave gaps */
+        if (lastPt) {
+          var dx = p.x - lastPt.x, dy = p.y - lastPt.y, dist = Math.sqrt(dx * dx + dy * dy);
+          var steps = Math.max(1, Math.ceil(dist / (rad * 0.4)));
+          for (var s = 1; s <= steps; s++) dab(lastPt.x + dx * s / steps, lastPt.y + dy * s / steps, rad);
+        } else dab(p.x, p.y, rad);
+        lastPt = p;
+      });
+      function endStroke() { painting = false; lastPt = null; }
+      editStage.addEventListener('pointerup', endStroke);
+      editStage.addEventListener('pointercancel', endStroke);
+
+      $('#bgrEditApply', res).onclick = function() {
+        if (!editCv) return;
+        /* Write edits back to the shared full-res canvas and rebuild the
+           result stage (blob, compare slider, download) from it. */
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(editCv, 0, 0);
+        editCv = srcCv = editCx = null; undoStack = [];
+        window.removeEventListener('resize', syncWidths);
+        finalizeResult(file);
+      };
+      $('#bgrEditCancel', res).onclick = function() {
+        editCv = srcCv = editCx = null; undoStack = [];
+        editor.style.display = 'none'; cmp.style.display = '';
+      };
 
       $('#bgrDl', res).onclick = function() {
         if (bgChoice === null) { download(cutBlob, base + '-no-bg.png'); return; }

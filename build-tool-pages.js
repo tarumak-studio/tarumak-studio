@@ -676,6 +676,7 @@ ${FOOTER}
 })();
 </script>
 ${CDN_TAGS}
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ER0G4HSYQV"></script>
 <script src="/config.js" defer></script>
 <script src="/utils.js" defer></script>
 <script src="/tool-helpers.js" defer></script>

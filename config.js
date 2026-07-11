@@ -4,10 +4,27 @@ const SITE = {
   tagline: 'Free tools for designers, marketers and developers',
   domain: 'tarumakstudio.com',
 };
+/* ── Google Analytics 4 ─────────────────────────────────────────────
+   config.js is the ONE analytics entry point for the whole site.
+   Every page loads config.js, but only index.html ever loaded the
+   gtag.js library itself — so on 133 other pages, events were pushed
+   into a dataLayer that nothing ever read or transmitted. Injecting
+   the loader from here gives every page real collection with a single
+   deployed file. The existence check matches the actual script src
+   (never a bare substring — HTML comments cause false positives). */
 window.dataLayer = window.dataLayer || [];
 function gtag(){ dataLayer.push(arguments); }
-gtag('js', new Date());
-gtag('config', 'G-XXXXXXXXXX');
+(function(){
+  var GA_ID = 'G-ER0G4HSYQV';
+  if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+  }
+  gtag('js', new Date());
+  gtag('config', GA_ID);
+})();
 window._ga = function(e,p){ if(window.gtag) gtag('event',e,p||{}); };
 
 /* Affiliate links — AFFS declared ONLY in this file */

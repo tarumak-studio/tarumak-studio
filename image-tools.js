@@ -1251,6 +1251,16 @@ INIT['ai-image-upscaler']=function(panel){
       if(w*h>MAX_IN_PX){setStatus(u.status,'Image is too large ('+Math.round(w*h/1e6)+' MP). Maximum input is 25 MP \u2014 resize it first with the Image Resizer.',1);return;}
       srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
       srcCanvas.getContext('2d').drawImage(img,0,0);
+      /* A fully-transparent input has nothing to upscale. The most common
+         way this happens in practice: re-uploading a failed (blank) download
+         from an earlier run. Catch it here, say so plainly, don't proceed. */
+      if(isBlank(srcCanvas)){
+        srcCanvas=null;
+        $('#uprun',panel).disabled=true;
+        u.results.classList.remove('show');u.results.innerHTML='';
+        setStatus(u.status,'This image is completely transparent (empty) \u2014 there\u2019s nothing to upscale. If this file was downloaded from this tool earlier, that was a failed result: please upload your original photo instead.',1);
+        return;
+      }
       srcName=(f.name||'image').replace(/\.[^.]+$/,'');
       $('#uprun',panel).disabled=false;
       u.results.classList.add('show');
@@ -1301,6 +1311,7 @@ INIT['ai-image-upscaler']=function(panel){
   /* ── Run ──────────────────────────────────────────────────────── */
   $('#uprun',panel).onclick=function(){
     if(!srcCanvas||running)return;
+    if(isBlank(srcCanvas)){setStatus(u.status,'This image is completely transparent \u2014 nothing to upscale. Please upload your original photo.',1);return;}
     var factor=scaleMode==='auto'?(Math.max(srcCanvas.width,srcCanvas.height)<1100?4:2):parseInt(scaleMode,10);
     var outW=srcCanvas.width*factor,outH=srcCanvas.height*factor;
     if(outW*outH>MAX_OUT_PX){

@@ -737,6 +737,10 @@ console.log(`Sitemaps: index + tools(${TOOLS.length}) + articles(${articleFiles.
 let idx = fs.readFileSync('index.html', 'utf8');
 const beforeCount = (idx.match(/#\/t\//g) || []).length;
 idx = idx.replace(/https:\/\/tarumakstudio\.com\/#\/t\//g, 'https://tarumakstudio.com/');
-idx = idx.replace('"numberOfItems": 63', '"numberOfItems": ' + TOOLS.length);
+/* Match ANY current value — the old literal '"numberOfItems": 63' stopped
+   matching the moment the count moved past 63, silently freezing the JSON-LD
+   at whatever number was last hand-written (the log printed intent, not
+   result). Same silent-no-op class as the nav-panel splice. */
+idx = idx.replace(/"numberOfItems":\s*\d+/, '"numberOfItems": ' + TOOLS.length);
 fs.writeFileSync('index.html', idx);
 console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}`);

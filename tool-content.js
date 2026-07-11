@@ -202,7 +202,8 @@ const CAT_DEFAULTS = {
    itself still a reasonable default.
 ──────────────────────────────────────────────────────────────── */
 const WORKFLOW_NEXT = {
-  'background-remover': ['image-compressor', 'image-resizer', 'png-to-jpg', 'watermark-image'],
+  'background-remover': ['ai-image-upscaler', 'image-compressor', 'image-resizer', 'watermark-image'],
+  'ai-image-upscaler': ['image-compressor', 'image-resizer', 'background-remover', 'png-to-webp'],
   'image-compressor': ['background-remover', 'image-resizer', 'png-to-webp', 'social-image-resizer'],
   'ocr-image-to-text': ['pdf-to-text', 'text-diff', 'word-counter', 'markdown-to-html'],
   'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-organizer'],

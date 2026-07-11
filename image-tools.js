@@ -1,15 +1,56 @@
 /* TARUMAK STUDIO — image-tools.js  (15 image tools) */
 
-function imgConv(outType,ext,opt){opt=opt||{};return function(panel){
+function imgConv(outType,ext,opt){opt=opt||{};
+  var lossy=(outType==='image/jpeg'||outType==='image/webp');
+  return function(panel){
   const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||[ext.toUpperCase()],sub:'Convert as many images as you like — all processed locally.'});
-  dropzone(u.drop,u.file,async fs=>{const list=[...fs].filter(f=>f.type.startsWith('image/'));if(!list.length)return;u.results.innerHTML='';u.results.classList.add('show');
-    for(const f of list){try{const img=await readImg(f);const c=document.createElement('canvas');c.width=img.naturalWidth||512;c.height=img.naturalHeight||512;const x=c.getContext('2d');if(opt.bg){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0);
-      const blob=await new Promise(r=>c.toBlob(r,outType,opt.quality||.92));const nm=f.name.replace(/\.[^.]+$/,'')+'.'+ext;
-      row(u.results,c.toDataURL('image/jpeg',.4),f.name,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' · '+ext.toUpperCase(),()=>download(blob,nm));}catch(e){}}});
+  /* Quality control for lossy outputs; PNG stays lossless (no slider). */
+  if(lossy){
+    u.controls.className='controls';
+    u.controls.innerHTML='<div class="ctrl"><label for="cq">Quality · <span class="val" id="cqv">92%</span></label><input type="range" id="cq" min="50" max="100" value="92" style="width:150px"></div>';
+    var qEl=$('#cq',panel),qvEl=$('#cqv',panel);qEl.oninput=function(){qvEl.textContent=qEl.value+'%';};
+  }
+  var made=[]; /* {blob,name} for Download-all */
+  function refreshActions(){
+    u.actions.innerHTML='';
+    if(made.length>1){
+      var b=document.createElement('button');b.className='btn btn-primary';b.style.cssText='margin-top:6px';
+      b.textContent='Download all ('+made.length+')';
+      b.onclick=function(){made.forEach(function(m,i){setTimeout(function(){download(m.blob,m.name);},i*250);});};
+      u.actions.appendChild(b);
+    }
+  }
+  dropzone(u.drop,u.file,async fs=>{
+    const list=[...fs].filter(f=>(f.type||'').startsWith('image/')||/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name||''));
+    if(!list.length){setStatus(u.status,'No images found — drop PNG, JPG or WebP files.',1);return;}
+    u.results.innerHTML='';u.results.classList.add('show');made=[];u.actions.innerHTML='';
+    var q=lossy?(parseInt($('#cq',panel).value,10)/100):undefined;
+    var ok=0,fail=0;
+    for(let idx=0;idx<list.length;idx++){
+      const f=list[idx];
+      setStatus(u.status,'Converting '+(idx+1)+' / '+list.length+' — '+f.name);
+      try{
+        const img=await readImg(f);
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth||img.width||512;c.height=img.naturalHeight||img.height||512;
+        const x=c.getContext('2d');
+        /* Only paint a background for formats that can't hold alpha (JPG).
+           PNG/WebP outputs preserve the source's transparency. */
+        if(opt.bg){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}
+        x.imageSmoothingQuality='high';x.drawImage(img,0,0);
+        const blob=await new Promise((res,rej)=>{c.toBlob(b=>b?res(b):rej(new Error('encode failed')),outType,q);});
+        const nm=f.name.replace(/\.[^.]+$/,'')+'.'+ext;
+        made.push({blob:blob,name:nm});ok++;
+        row(u.results,c.toDataURL('image/jpeg',.4),nm,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' · '+ext.toUpperCase(),()=>download(blob,nm));
+      }catch(e){
+        fail++;
+        row(u.results,'',f.name,'Could not convert this file · '+(e.message||'unknown error'),function(){});
+      }
+    }
+    refreshActions();
+    setStatus(u.status,'Done — '+ok+' converted'+(fail?', '+fail+' failed':'')+'.');
+  });
 };}
-
-
-
 
 INIT['image-compressor']=function(panel){
   const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',multiple:true,formats:['JPG','PNG','WEBP'],sub:'Compress one image or many at once.'});
@@ -68,91 +109,15 @@ INIT['jpg-to-webp']=imgConv('image/webp','webp',{accept:'image/jpeg'});
 INIT['webp-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/webp',bg:'#fff'});
 INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
 INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
+INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg,image/png,image/webp',bg:'#fff',formats:['JPG']});
 INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
-
-/* ===== SVG rasterizer factory ===== */
-
-INIT['png-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/png',bg:'#fff'});
-INIT['jpg-to-webp']=imgConv('image/webp','webp',{accept:'image/jpeg'});
-INIT['webp-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/webp',bg:'#fff'});
-INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
-INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
-
-/* ===== SVG rasterizer factory ===== */
-
-INIT['jpg-to-webp']=imgConv('image/webp','webp',{accept:'image/jpeg'});
-INIT['webp-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/webp',bg:'#fff'});
-INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
-INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
-
-/* ===== SVG rasterizer factory ===== */
-
-INIT['webp-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/webp',bg:'#fff'});
-INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
-INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
-
-/* ===== SVG rasterizer factory ===== */
-
-INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
-INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
-
-/* ===== SVG rasterizer factory ===== */
-
-INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards all EXIF metadata (GPS location, camera model, timestamps, copyright), then re-exports a clean file.'],['Are my files uploaded?','No — it all happens in your browser.']];
+FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
 
 /* ===== SVG rasterizer factory ===== */
 
 INIT['svg-to-png']=svgConv('image/png','png',null);
 INIT['svg-to-jpg']=svgConv('image/jpeg','jpg','#fff');
-
-/* ===== Image Compressor ===== */
-INIT['image-compressor']=function(panel){
-  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',multiple:true,formats:['JPG','PNG','WEBP'],sub:'Compress one image or many at once.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="q">Quality · <span class="val" id="qv">75%</span></label><input type="range" id="q" min="10" max="100" value="75"></div><div class="ctrl"><label for="of">Output</label><select id="of"><option value="image/jpeg">JPG (smallest)</option><option value="image/webp">WebP</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Compress images</button>';
-  let imgs=[];const q=$('#q',panel),qv=$('#qv',panel);q.oninput=()=>qv.textContent=q.value+'%';
-  dropzone(u.drop,u.file,fs=>{imgs=[...fs].filter(f=>/image\/(png|jpeg|webp)/.test(f.type));if(imgs.length)setStatus(u.status,imgs.length+' image(s) ready — set quality and compress.');});
-  $('#run',panel).onclick=async()=>{if(!imgs.length){setStatus(u.status,'Drop some images first.',1);return;}u.results.innerHTML='';u.results.classList.add('show');
-    const type=$('#of',panel).value,ql=q.value/100,ext=type==='image/webp'?'webp':'jpg';
-    for(const f of imgs){const img=await readImg(f);const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0);const blob=await new Promise(r=>c.toBlob(r,type,ql));const saved=Math.max(0,Math.round((1-blob.size/f.size)*100));row(u.results,c.toDataURL('image/jpeg',.4),f.name,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' <span class="save">−'+saved+'%</span>',()=>download(blob,f.name.replace(/\.[^.]+$/,'')+'-min.'+ext));}
-    setStatus(u.status,'Done — '+imgs.length+' image(s) compressed.');};
-};
-
-INIT['svg-to-jpg']=svgConv('image/jpeg','jpg','#fff');
-
-/* ===== Image Compressor ===== */
-INIT['image-compressor']=function(panel){
-  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',multiple:true,formats:['JPG','PNG','WEBP'],sub:'Compress one image or many at once.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="q">Quality · <span class="val" id="qv">75%</span></label><input type="range" id="q" min="10" max="100" value="75"></div><div class="ctrl"><label for="of">Output</label><select id="of"><option value="image/jpeg">JPG (smallest)</option><option value="image/webp">WebP</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Compress images</button>';
-  let imgs=[];const q=$('#q',panel),qv=$('#qv',panel);q.oninput=()=>qv.textContent=q.value+'%';
-  dropzone(u.drop,u.file,fs=>{imgs=[...fs].filter(f=>/image\/(png|jpeg|webp)/.test(f.type));if(imgs.length)setStatus(u.status,imgs.length+' image(s) ready — set quality and compress.');});
-  $('#run',panel).onclick=async()=>{if(!imgs.length){setStatus(u.status,'Drop some images first.',1);return;}u.results.innerHTML='';u.results.classList.add('show');
-    const type=$('#of',panel).value,ql=q.value/100,ext=type==='image/webp'?'webp':'jpg';
-    for(const f of imgs){const img=await readImg(f);const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0);const blob=await new Promise(r=>c.toBlob(r,type,ql));const saved=Math.max(0,Math.round((1-blob.size/f.size)*100));row(u.results,c.toDataURL('image/jpeg',.4),f.name,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' <span class="save">−'+saved+'%</span>',()=>download(blob,f.name.replace(/\.[^.]+$/,'')+'-min.'+ext));}
-    setStatus(u.status,'Done — '+imgs.length+' image(s) compressed.');};
-};
 
 INIT['image-to-pdf']=imagesToPdfTool({outName:'image'});
 INIT['jpg-to-pdf']=imagesToPdfTool({accept:'image/jpeg',formats:['JPG&#8594;PDF'],outName:'jpg'});
@@ -199,11 +164,6 @@ INIT['watermark-image']=function(panel){
   [tx,ps,sz,op,cl].forEach(el=>el.addEventListener('input',paint));
   $('#run',panel).onclick=()=>{const c=u.results._c;if(!c){setStatus(u.status,'Drop an image first.',1);return;}c.toBlob(b=>download(b,'watermarked.png'),'image/png');};
 };
-
-INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
 
 /* ===== SVG rasterizer factory ===== */
 function svgConv(outType,ext,bg){return function(panel){
@@ -446,6 +406,11 @@ INIT['background-remover'] = function(panel) {
 
     loadAIModule().then(function(removeBg) {
       return removeBg(file, {
+        /* isnet = the full-precision ISNet model. Noticeably better on hair,
+           soft edges and colour fidelity than the default fp16 build — the
+           quality the "professional" brief is asking for. Costs a larger
+           one-time download, which the browser caches. */
+        model: 'isnet',
         progress: function(key, current, total) {
           if (key && String(key).indexOf('fetch') === 0 && total) {
             var pct = Math.min(100, Math.round((current / total) * 100));
@@ -465,6 +430,7 @@ INIT['background-remover'] = function(panel) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         URL.revokeObjectURL(img.src);
+        decontaminateEdges(); /* kill white/colour halos on soft edges */
         finalizeResult(currentFile);
       };
       img.onerror = function() { setStatus(st, 'AI produced an unreadable result \u2014 try Solid mode.', true); drop.style.display = ''; };
@@ -521,8 +487,6 @@ INIT['background-remover'] = function(panel) {
           return a[Math.floor(a.length / 2)];
         }
         var bgR = median(rs), bgG = median(gs), bgB = median(bs);
-
-
 
         /* Defensive: rs/gs/bs should never be empty for a valid image,
            and bgR/bgG/bgB/pdist should never yield NaN — but if anything
@@ -678,7 +642,6 @@ INIT['background-remover'] = function(panel) {
           }
         }
 
-
         ctx.putImageData(imageData, 0, 0);
         opts.style.display = 'block';
         finalizeResult(file);
@@ -688,6 +651,44 @@ INIT['background-remover'] = function(panel) {
         drop.style.display = '';
       }
     }, 20);
+  }
+
+  /* ── EDGE DECONTAMINATION ───────────────────────────────────────
+     Neural masks leave a thin rim of semi-transparent pixels that still
+     carry the ORIGINAL background colour (the classic white/grey "halo").
+     For every partially-transparent edge pixel we replace only its RGB
+     with the colour of the nearest fully-opaque neighbour — the alpha
+     value is preserved (soft edges & shadows stay soft), and fully-opaque
+     interior pixels (logos, badges, text) are never touched. */
+  function decontaminateEdges() {
+    try {
+      var w = canvas.width, h = canvas.height;
+      if (!w || !h || w * h > 40000000) return; /* skip huge images (memory) */
+      var id = ctx.getImageData(0, 0, w, h), d = id.data;
+      var OFF = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+      /* 3 passes lets object colour propagate across a multi-pixel soft rim.
+         Each pass reads a stable snapshot; only RGB is copied from the
+         highest-alpha neighbour, so alpha (soft edges/shadows) is preserved
+         and fully-opaque interior pixels are never modified. */
+      for (var pass = 0; pass < 3; pass++) {
+        var src = d.slice(0);
+        for (var y = 0; y < h; y++) {
+          for (var x = 0; x < w; x++) {
+            var i = (y * w + x) * 4, a = src[i + 3];
+            if (a === 0 || a >= 250) continue;
+            var bestA = a, br = -1, bg = 0, bb = 0;
+            for (var k = 0; k < 8; k++) {
+              var nx = x + OFF[k][0], ny = y + OFF[k][1];
+              if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+              var j = (ny * w + nx) * 4, na = src[j + 3];
+              if (na > bestA) { bestA = na; br = src[j]; bg = src[j + 1]; bb = src[j + 2]; }
+            }
+            if (br >= 0) { d[i] = br; d[i + 1] = bg; d[i + 2] = bb; }
+          }
+        }
+      }
+      ctx.putImageData(id, 0, 0);
+    } catch (e) { /* non-fatal: fall back to the raw AI output */ }
   }
 
   /* ── SHARED RESULT PIPELINE — compare slider + bg replace ───── */
@@ -819,7 +820,6 @@ INIT['background-remover'] = function(panel) {
     }, 'image/png');
   }
 };
-
 
 INIT['ocr-image-to-text'] = function(panel) {
 
@@ -965,47 +965,105 @@ INIT['heic-to-jpg'] = function(panel) {
 
   dropzone(drop, inp, function(files) { convert([].slice.call(files)); });
 
+  var cancelled = false;
+
+  /* Fast path: some browsers (Safari, and Chrome/Edge on macOS/iOS) can decode
+     HEIC natively. If they can, we skip the ~1.5 MB heic2any/libheif download
+     entirely — instant and higher fidelity. Returns a canvas or null. */
+  function nativeDecode(file) {
+    if (!('createImageBitmap' in window)) return Promise.resolve(null);
+    return createImageBitmap(file).then(function(bmp) {
+      var c = document.createElement('canvas');
+      c.width = bmp.width; c.height = bmp.height;
+      c.getContext('2d').drawImage(bmp, 0, 0);
+      if (bmp.close) bmp.close();
+      return c;
+    }).catch(function() { return null; });
+  }
+
   function convert(files) {
-    /* Accept by extension first, fall back to all files if none match */
     var heicFiles = files.filter(function(f) {
       return /\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type);
     });
     var toProcess = heicFiles.length ? heicFiles : files;
-    if (!toProcess.length) { setStatus(st, 'No files selected', true); return; }
+    if (!toProcess.length) { setStatus(st, 'No HEIC/HEIF files selected.', true); return; }
 
+    cancelled = false;
     drop.style.display = 'none';
     res.innerHTML = ''; res.classList.add('show');
-    setStatus(st, '\u23F3 Loading HEIC converter\u2026');
 
-    _loadScript(CDN, 'heic2any').then(function(lib) {
-      var fn = (typeof lib === 'function') ? lib : window.heic2any;
-      if (typeof fn !== 'function') throw new Error('heic2any did not load');
+    var outFmt = fmt.value,
+        q      = parseInt(qual.value, 10) / 100,
+        ext    = (outFmt === 'image/jpeg') ? 'jpg' : 'png',
+        done   = 0, ok = 0, fail = 0,
+        libFn  = null, triedLib = false;
 
-      var outFmt = fmt.value,
-          q      = parseInt(qual.value) / 100,
-          ext    = (outFmt === 'image/jpeg') ? 'jpg' : 'png',
-          done   = 0;
+    /* Cancel control */
+    var bar = document.createElement('div');
+    bar.style.cssText = 'text-align:center;margin:8px 0';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-ghost';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function(){ cancelled = true; cancelBtn.disabled = true; };
+    bar.appendChild(cancelBtn);
+    res.parentNode.insertBefore(bar, res);
 
-      st.className = 'status show';
+    function finish() {
+      bar.remove();
+      setStatus(st, 'Done — ' + ok + ' converted' + (fail ? ', ' + fail + ' failed' : '') + '.');
+      if (ok === 0) drop.style.display = '';
+    }
 
-      function next() {
-        if (done >= toProcess.length) { st.className = 'status'; return; }
-        var f = toProcess[done];
-        st.textContent = 'Converting ' + f.name + ' (' + (done + 1) + '/' + toProcess.length + ')';
-        fn({ blob: f, toType: outFmt, quality: q }).then(function(result) {
-          var blob = Array.isArray(result) ? result[0] : result;
-          var base = f.name.replace(/\.(heic|heif)$/i, '').replace(/\.[^.]+$/, '');
-          var url  = URL.createObjectURL(blob);
-          row(res, url, base + '.' + ext, fmtBytes(blob.size) + ' \u00B7 ' + ext.toUpperCase(), function() {
-            download(blob, base + '.' + ext);
+    function encodeCanvas(canvas, f) {
+      return new Promise(function(resolve, reject){
+        if (outFmt === 'image/jpeg') { var g = canvas.getContext('2d'); /* flatten alpha onto white for JPG */
+          var flat = document.createElement('canvas'); flat.width = canvas.width; flat.height = canvas.height;
+          var fx = flat.getContext('2d'); fx.fillStyle = '#fff'; fx.fillRect(0,0,flat.width,flat.height); fx.drawImage(canvas,0,0); canvas = flat;
+        }
+        canvas.toBlob(function(b){ b ? resolve(b) : reject(new Error('encode failed')); }, outFmt, q);
+      });
+    }
+
+    function emit(blob, f) {
+      var base = f.name.replace(/\.(heic|heif)$/i, '').replace(/\.[^.]+$/, '') || 'image';
+      var url = URL.createObjectURL(blob);
+      row(res, url, base + '.' + ext, fmtBytes(blob.size) + ' \u00B7 ' + ext.toUpperCase(), function(){ download(blob, base + '.' + ext); });
+      ok++;
+    }
+
+    function ensureLib() {
+      if (libFn) return Promise.resolve(libFn);
+      if (triedLib) return Promise.reject(new Error('converter unavailable'));
+      triedLib = true;
+      setStatus(st, '\u23F3 Loading HEIC decoder (one-time)\u2026');
+      return _loadScript(CDN, 'heic2any').then(function(lib){
+        libFn = (typeof lib === 'function') ? lib : window.heic2any;
+        if (typeof libFn !== 'function') throw new Error('decoder failed to load');
+        return libFn;
+      });
+    }
+
+    function next() {
+      if (cancelled) { finish(); return; }
+      if (done >= toProcess.length) { finish(); return; }
+      var f = toProcess[done];
+      setStatus(st, 'Converting ' + f.name + ' (' + (done + 1) + '/' + toProcess.length + ')');
+
+      nativeDecode(f).then(function(canvas){
+        if (canvas) return encodeCanvas(canvas, f).then(function(b){ emit(b, f); });
+        /* Fall back to heic2any */
+        return ensureLib().then(function(fn){
+          return fn({ blob: f, toType: outFmt, quality: q }).then(function(result){
+            var blob = Array.isArray(result) ? result[0] : result;
+            if (!blob) throw new Error('empty result');
+            emit(blob, f);
           });
-          done++; next();
-        }).catch(function() { done++; next(); }); /* skip non-HEIC files silently */
-      }
-      next();
-    }).catch(function(e) {
-      setStatus(st, '\u26A0\uFE0F ' + (e.message || 'Failed to load converter'), true);
-      drop.style.display = '';
-    });
+        });
+      }).catch(function(e){
+        fail++;
+        row(res, '', f.name, 'Could not convert \u2014 ' + (e && e.message || 'unsupported/corrupt HEIC'), function(){});
+      }).then(function(){ done++; next(); });
+    }
+    next();
   }
 };

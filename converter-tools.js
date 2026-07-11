@@ -141,57 +141,12 @@ function gifFromFrames(frames,delayMs,cb,errCb){
 }
 
 /* ===== GIF Maker ===== */
-INIT['gif-maker']=function(panel){
-  const u=dz(panel,{accept:'image/*',multiple:true,formats:['IMG&#8594;GIF'],sub:'Add images in order; they become animation frames.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="d">Frame delay · <span class="val" id="dv">300ms</span></label><input type="range" id="d" min="80" max="1000" step="20" value="300"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Make GIF</button>';
-  let files=[];const d=$('#d',panel);d.oninput=()=>$('#dv',panel).textContent=d.value+'ms';
-  dropzone(u.drop,u.file,fs=>{files=files.concat([...fs].filter(f=>f.type.startsWith('image/')));if(files.length)setStatus(u.status,files.length+' frame(s) ready.');});
-  $('#run',panel).onclick=async()=>{if(files.length<1){setStatus(u.status,'Add at least one image.',1);return;}setStatus(u.status,'Building GIF…');
-    const imgs=await Promise.all(files.map(readImg));const W=imgs[0].naturalWidth,H=imgs[0].naturalHeight;
-    const frames=imgs.map(im=>{const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const s=Math.min(W/im.naturalWidth,H/im.naturalHeight);const w=im.naturalWidth*s,h=im.naturalHeight*s;x.drawImage(im,(W-w)/2,(H-h)/2,w,h);return c;});
-    gifFromFrames(frames,+d.value,blob=>{u.results.innerHTML='';row(u.results,frames[0].toDataURL('image/png'),'animation.gif',imgs.length+' frames · '+fmtBytes(blob.size),()=>download(blob,'animation.gif'));setStatus(u.status,'Done.');},e=>setStatus(u.status,'Failed: '+e,1));};
-};
-
 /* ===== WebP to GIF ===== */
-INIT['webp-to-gif']=function(panel){
-  const u=dz(panel,{accept:'image/*',formats:['GIF'],sub:'Convert a WebP image to GIF.'});
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs].find(x=>x.type.startsWith('image/'));if(!f)return;const img=await readImg(f);const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);setStatus(u.status,'Encoding GIF…');
-    gifFromFrames([c],200,blob=>{u.results.innerHTML='';row(u.results,c.toDataURL('image/png'),f.name,fmtBytes(blob.size)+' · GIF',()=>download(blob,f.name.replace(/\.[^.]+$/,'')+'.gif'));setStatus(u.status,'Done.');},e=>setStatus(u.status,'Failed: '+e,1));});
-};
 FAQ['webp-to-gif']=[['Does it keep animation?','This converts a still WebP into a single-frame GIF. Decoding animated WebP frames is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
 
 /* ===== Color Picker ===== */
-INIT['color-picker']=function(panel){
-  const u=dz(panel,{accept:'image/*',formats:['HEX','RGB'],sub:'Then hover or click the image to sample a color.'});
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs].find(x=>x.type.startsWith('image/'));if(!f)return;const img=await readImg(f);
-    u.results.classList.add('show');u.results.innerHTML='<div style="display:grid;grid-template-columns:1fr 220px;gap:20px;align-items:start"><div class="preview show" id="cpw"></div><div id="cpi"></div></div>';
-    const maxW=Math.min(580,u.results.clientWidth-260||580);const scl=Math.min(1,maxW/img.naturalWidth);const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scl);c.height=Math.round(img.naturalHeight*scl);const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);c.style.cursor='crosshair';$('#cpw',panel).appendChild(c);
-    const info=$('#cpi',panel);let locked=false;
-    function show(px,py){const d=x.getImageData(px,py,1,1).data;const hex='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('');const rgb='rgb('+d[0]+', '+d[1]+', '+d[2]+')';info.innerHTML='<div style="height:84px;border-radius:12px;border:1px solid var(--border);background:'+hex+'"></div><div class="ctrl" style="margin-top:12px"><label>HEX</label><input type="text" readonly value="'+hex+'"></div><div class="ctrl" style="margin-top:10px"><label>RGB</label><input type="text" readonly value="'+rgb+'"></div><div class="note">'+(locked?'Locked — click image to resume sampling.':'Click to lock a color.')+'</div>';}
-    c.addEventListener('mousemove',e=>{if(locked)return;const r=c.getBoundingClientRect();show((e.clientX-r.left)*c.width/r.width|0,(e.clientY-r.top)*c.height/r.height|0);});
-    c.addEventListener('click',e=>{locked=!locked;const r=c.getBoundingClientRect();show((e.clientX-r.left)*c.width/r.width|0,(e.clientY-r.top)*c.height/r.height|0);});
-    show(0,0);});
-};
-
 /* ===== Image Collage ===== */
-INIT['image-collage']=function(panel){
-  const u=dz(panel,{accept:'image/*',multiple:true,formats:['JPG','PNG'],sub:'Add photos; they tile into a grid.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="cols">Columns</label><select id="cols"><option>2</option><option selected>3</option><option>4</option></select></div><div class="ctrl"><label for="gap">Gap · <span class="val" id="gv">10px</span></label><input type="range" id="gap" min="0" max="40" value="10"></div><div class="ctrl"><label for="cell">Cell</label><select id="cell"><option value="220">Medium</option><option value="160">Small</option><option value="320">Large</option></select></div><div class="ctrl"><label>Background</label><div class="color-field"><input type="color" id="bg" value="#ffffff"><span id="bgh">#ffffff</span></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Build collage</button>';
-  let files=[];const gap=$('#gap',panel);gap.oninput=()=>$('#gv',panel).textContent=gap.value+'px';$('#bg',panel).oninput=e=>$('#bgh',panel).textContent=e.target.value;
-  dropzone(u.drop,u.file,fs=>{files=files.concat([...fs].filter(f=>f.type.startsWith('image/')));if(files.length)setStatus(u.status,files.length+' photo(s) ready.');});
-  $('#run',panel).onclick=async()=>{if(!files.length){setStatus(u.status,'Add some photos first.',1);return;}const imgs=await Promise.all(files.map(readImg));const cols=+$('#cols',panel).value,g=+gap.value,cell=+$('#cell',panel).value,bg=$('#bg',panel).value;const rows=Math.ceil(imgs.length/cols);const W=cols*cell+(cols+1)*g,H=rows*cell+(rows+1)*g;const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,W,H);
-    imgs.forEach((im,i)=>{const cx=i%cols,cy=(i/cols)|0,dx=g+cx*(cell+g),dy=g+cy*(cell+g),s=Math.max(cell/im.naturalWidth,cell/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s;x.save();x.beginPath();x.rect(dx,dy,cell,cell);x.clip();x.drawImage(im,dx+(cell-w)/2,dy+(cell-h)/2,w,h);x.restore();});
-    u.results.innerHTML='';u.results.classList.add('show');const wp=document.createElement('div');wp.className='preview show';wp.appendChild(c);u.results.appendChild(wp);c.toBlob(b=>{u.actions.className='actions show';u.actions.innerHTML='';const db=document.createElement('button');db.className='btn btn-primary';db.textContent='Download collage';db.onclick=()=>download(b,'collage.png');u.actions.appendChild(db);},'image/png');};
-};
-
 /* ===== Favicon Generator ===== */
-INIT['favicon-generator']=function(panel){
-  const u=dz(panel,{accept:'image/*',formats:['ICO','PNG'],sub:'Drop a square image — a logo works best.'});
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs].find(x=>x.type.startsWith('image/'));if(!f)return;const img=await readImg(f);const sizes=[16,32,48,64,128,180,192,512];u.results.innerHTML='';u.results.classList.add('show');const cv={};
-    sizes.forEach(s=>{const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,0,0,s,s);cv[s]=c;c.toBlob(b=>row(u.results,c.toDataURL(),'favicon-'+s+'.png',s+'×'+s+' PNG',()=>download(b,'favicon-'+s+'x'+s+'.png')),'image/png');});
-    setTimeout(()=>{try{const ico=buildIco([cv[16],cv[32],cv[48]]);u.actions.className='actions show';u.actions.innerHTML='';const b=document.createElement('button');b.className='btn btn-primary';b.textContent='Download favicon.ico';b.onclick=()=>download(ico,'favicon.ico');u.actions.appendChild(b);}catch(e){}},250);});
-};
-
 /* ===== TXT to PDF ===== */
 
 function buildIco(canvases){const imgs=canvases.map(c=>{const bin=atob(c.toDataURL('image/png').split(',')[1]);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return{size:c.width,data:arr};});
@@ -200,8 +155,6 @@ function buildIco(canvases){const imgs=canvases.map(c=>{const bin=atob(c.toDataU
   imgs.forEach((im,i)=>{const e=6+i*16;u8[e]=im.size>=256?0:im.size;u8[e+1]=im.size>=256?0:im.size;dv.setUint16(e+4,1,true);dv.setUint16(e+6,32,true);dv.setUint32(e+8,im.data.length,true);dv.setUint32(e+12,off,true);u8.set(im.data,off);off+=im.data.length;});
   return new Blob([buf],{type:'image/x-icon'});}
 
-
-
 INIT['txt-to-pdf']=function(panel){
   panel.innerHTML='<div class="ctrl"><label for="ta">Paste text, or load a .txt file</label><textarea id="ta" placeholder="Type or paste your text here…"></textarea></div><div class="controls"><label class="btn btn-ghost" style="cursor:pointer">Load .txt<input type="file" id="f" accept=".txt,text/plain" hidden></label><div class="ctrl"><label for="pg">Page</label><select id="pg"><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Create PDF</button></div><div class="status" id="st"></div>';
   const ta=$('#ta',panel),st=$('#st',panel);
@@ -209,12 +162,99 @@ INIT['txt-to-pdf']=function(panel){
   $('#run',panel).onclick=()=>{const txt=ta.value;if(!txt.trim()){setStatus(st,'Enter some text first.',1);return;}const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'pt',format:$('#pg',panel).value});const M=48,W=doc.internal.pageSize.getWidth()-M*2,PH=doc.internal.pageSize.getHeight()-M;doc.setFont('helvetica');doc.setFontSize(12);const lines=doc.splitTextToSize(txt,W);let y=M;lines.forEach(ln=>{if(y>PH){doc.addPage();y=M;}doc.text(ln,M,y);y+=16;});doc.save('document.pdf');setStatus(st,'PDF created.');};
 };
 
+/* Convert any modern CSS colour function html2canvas 1.4.1 can't parse
+   (oklch / oklab / lab / lch / color() / color-mix) into a plain rgb()
+   string, by letting the browser itself resolve it. This is the root-cause
+   fix for "Attempting to parse an unsupported color function oklch". */
+function _cssColorToRgb(val){
+  if(!val)return val;
+  if(!/oklch|oklab|\blab\(|\blch\(|color\(|color-mix/i.test(val))return val;
+  try{
+    var probe=document.createElement('span');
+    probe.style.color='rgb(0,0,0)';probe.style.color=val; /* invalid → stays black; valid modern → set */
+    probe.style.position='fixed';probe.style.left='-99999px';
+    document.body.appendChild(probe);
+    var out=getComputedStyle(probe).color; /* browsers serialise to rgb()/rgba() */
+    document.body.removeChild(probe);
+    return /oklch|oklab|lab|lch|color/i.test(out)?'rgb(0,0,0)':out;
+  }catch(e){return 'rgb(0,0,0)';}
+}
+/* Walk the live render box and inline every colour-bearing property as a
+   resolved rgb value, so html2canvas never meets an oklch token — whether it
+   came from the pasted HTML or from inherited page CSS variables. */
+function _sanitizeColors(root){
+  var PROPS=['color','backgroundColor','borderTopColor','borderRightColor','borderBottomColor','borderLeftColor','outlineColor','textDecorationColor','columnRuleColor','caretColor','fill','stroke'];
+  var els=[root].concat([].slice.call(root.querySelectorAll('*')));
+  els.forEach(function(el){
+    if(el.nodeType!==1)return;
+    var cs=getComputedStyle(el);
+    PROPS.forEach(function(p){
+      var v=cs[p];
+      if(v&&/oklch|oklab|\blab\(|\blch\(|color\(|color-mix/i.test(v)){
+        try{el.style[p]=_cssColorToRgb(v);}catch(e){}
+      }else if(v){
+        /* already rgb — but pin it inline so inherited-var resolution can't
+           re-introduce a modern function inside html2canvas's own walker */
+        try{el.style[p]=v;}catch(e){}
+      }
+    });
+    /* box-shadow / background gradients can also carry modern colours */
+    var sh=cs.boxShadow;
+    if(sh&&/oklch|oklab|\blab\(|\blch\(|color\(|color-mix/i.test(sh))el.style.boxShadow='none';
+    var bg=cs.backgroundImage;
+    if(bg&&bg!=='none'&&/oklch|oklab|\blab\(|\blch\(|color\(|color-mix/i.test(bg))el.style.backgroundImage='none';
+  });
+}
+
 INIT['html-to-pdf']=function(panel){
-  panel.innerHTML='<div class="ctrl"><label for="ta">Paste HTML</label><textarea id="ta" placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Your HTML here…&lt;/p&gt;"></textarea></div><div class="controls"><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Render to PDF</button></div><div class="note">Renders your HTML visually and places it into an A4 PDF. External images must allow cross-origin access to appear.</div><div class="status" id="st"></div>';
+  var SIZES={a4:[595.28,841.89],letter:[612,792],legal:[612,1008]};
+  panel.innerHTML='<div class="ctrl"><label for="ta">Paste HTML</label><textarea id="ta" placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Your HTML here…&lt;/p&gt;"></textarea></div>'+
+    '<div class="controls">'+
+      '<div class="ctrl"><label for="pg">Paper</label><select id="pg"><option value="a4">A4</option><option value="letter">Letter</option><option value="legal">Legal</option></select></div>'+
+      '<div class="ctrl"><label for="or">Orientation</label><select id="or"><option value="p">Portrait</option><option value="l">Landscape</option></select></div>'+
+      '<div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Render to PDF</button>'+
+    '</div>'+
+    '<div class="note">Renders your HTML visually into a PDF. Modern CSS colours (oklch, lab, lch, color-mix) are converted automatically. External images must allow cross-origin access to appear.</div>'+
+    '<div class="status" id="st"></div>';
   const ta=$('#ta',panel),st=$('#st',panel);
-  $('#run',panel).onclick=async()=>{const html=ta.value;if(!html.trim()){setStatus(st,'Paste some HTML first.',1);return;}setStatus(st,'Rendering…');
-    const box=document.createElement('div');box.style.cssText='position:fixed;left:-9999px;top:0;width:794px;padding:40px;background:#fff;color:#000;font-family:Arial,sans-serif';box.innerHTML=html;document.body.appendChild(box);
-    try{const canvas=await html2canvas(box,{scale:2,backgroundColor:'#fff'});const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'pt',format:'a4'});const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();const iw=pw,ih=canvas.height*pw/canvas.width;const img=canvas.toDataURL('image/jpeg',.92);doc.addImage(img,'JPEG',0,0,iw,ih);let left=ih-ph,pos=0;while(left>0){doc.addPage();pos-=ph;doc.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;}doc.save('document.pdf');setStatus(st,'PDF created.');}catch(e){setStatus(st,'Failed: '+(e.message||e),1);}finally{box.remove();}};
+  $('#run',panel).onclick=async()=>{
+    const html=ta.value;if(!html.trim()){setStatus(st,'Paste some HTML first.',1);return;}
+    if(typeof html2canvas!=='function'){setStatus(st,'Renderer still loading — try again in a moment.',1);return;}
+    setStatus(st,'Rendering\u2026');
+    const size=SIZES[$('#pg',panel).value]||SIZES.a4;
+    const orient=$('#or',panel).value;
+    /* CSS px width of the render box = paper width in px at 96dpi (pt/72*96) */
+    const paperWpt=(orient==='l')?size[1]:size[0];
+    const boxW=Math.round(paperWpt/72*96);
+    const box=document.createElement('div');
+    box.style.cssText='position:fixed;left:-99999px;top:0;width:'+boxW+'px;padding:40px;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box';
+    box.innerHTML=html;document.body.appendChild(box);
+    /* let fonts/images settle a tick before measuring */
+    await new Promise(r=>setTimeout(r,30));
+    try{
+      _sanitizeColors(box); /* ← the oklch fix */
+      const canvas=await html2canvas(box,{
+        scale:Math.min(2,(window.devicePixelRatio||1)*2),
+        backgroundColor:'#fff',
+        useCORS:true,
+        logging:false,
+        onclone:function(doc){var c=doc.body.querySelector('div');if(c)_sanitizeColors(c);}
+      });
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF({unit:'pt',format:$('#pg',panel).value,orientation:orient});
+      const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
+      const iw=pw,ih=canvas.height*pw/canvas.width;
+      const img=canvas.toDataURL('image/jpeg',.95);
+      doc.addImage(img,'JPEG',0,0,iw,ih,'','FAST');
+      let left=ih-ph,pos=0;
+      while(left>0.5){doc.addPage();pos-=ph;doc.addImage(img,'JPEG',0,pos,iw,ih,'','FAST');left-=ph;}
+      doc.save('document.pdf');
+      setStatus(st,'PDF created.');
+    }catch(e){
+      console.error('[html-to-pdf]',e);
+      setStatus(st,'Failed: '+(e&&e.message||e),1);
+    }finally{box.remove();}
+  };
 };
 
 INIT['gif-maker']=function(panel){
@@ -277,11 +317,9 @@ INIT['favicon-generator']=function(panel){
     setTimeout(()=>{try{const ico=buildIco([cv[16],cv[32],cv[48]]);u.actions.className='actions show';u.actions.innerHTML='';const b=document.createElement('button');b.className='btn btn-primary';b.textContent='Download favicon.ico';b.onclick=()=>download(ico,'favicon.ico');u.actions.appendChild(b);}catch(e){}},250);});
 };
 
-
 /* ════════════════════════════════════════════════════════════
    NEW CONVERTER TOOLS
    ════════════════════════════════════════════════════════════ */
-
 
 /* ===== PNG → SVG — intelligent vector tracing, fully client-side =====
    Pipeline: median-cut color quantization → per-color connected regions

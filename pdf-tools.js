@@ -13,7 +13,27 @@ function parseRanges(str,max){
   return [...out].sort((x,y)=>x-y);
 }
 
-async function pdfjsDoc(file){const data=await file.arrayBuffer();return await pdfjsLib.getDocument({data:data}).promise;}
+/* PDF.js worker — MUST be configured or getDocument() silently falls back to a
+   "fake worker" that runs on the main thread: slow, janky, and it blocks the UI
+   during render. Set once, defensively, as soon as the library is present. */
+(function(){
+  try{
+    if(typeof pdfjsLib!=='undefined' && pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  }catch(e){/* library not ready yet — pdfjsDoc() re-checks below */}
+})();
+
+async function pdfjsDoc(file){
+  /* Re-assert the worker in case this file parsed before pdf.min.js finished. */
+  try{
+    if(typeof pdfjsLib!=='undefined' && pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  }catch(e){}
+  const data=await file.arrayBuffer();
+  return await pdfjsLib.getDocument({data:data}).promise;
+}
 
 function imagesToPdfTool(opt){opt=opt||{};return function(panel){
   const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||['JPG','PNG','WEBP'],
@@ -28,8 +48,6 @@ function imagesToPdfTool(opt){opt=opt||{};return function(panel){
     try{const blob=await buildImagesPdf(files,$('#ps',panel).value);download(blob,(opt.outName||'images')+'.pdf');setStatus(u.status,'PDF created with '+files.length+' page(s).');}
     catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
 };}
-
-
 
 INIT['pdf-merger']=function(panel){
   const u=dz(panel,{accept:'application/pdf',multiple:true,formats:['PDF'],title:'Drop PDF files here or click to browse',sub:'Add two or more PDFs, then arrange the order below.'});
@@ -105,64 +123,11 @@ INIT['pdf-to-jpg']=function(panel){
 };
 
 INIT['jpg-to-pdf']=imagesToPdfTool({accept:'image/jpeg',formats:['JPG&#8594;PDF'],outName:'jpg'});
-INIT['png-to-pdf']=imagesToPdfTool({accept:'image/png',formats:['PNG&#8594;PDF'],outName:'png'});
-INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos into one PDF — drag in as many as you like.'});
 
 /* ---------- Scan to PDF (camera + files) -------------------------- */
-INIT['scan-to-pdf']=function(panel){
-  panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
-    '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
-    '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
-  const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
-  let files=[],stream=null,video=null;
-  function refresh(){listRows(res,files,f=>f._nm||f.name||'scan');make.disabled=!files.length;}
-  cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';
-  $('#open',cam).onclick=async()=>{
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.srcObject=stream;
-      pv.className='preview show';pv.innerHTML='';pv.appendChild(video);
-      cam.innerHTML='<button class="btn btn-primary" id="snap">Capture page</button><button class="btn btn-ghost" id="stop">Stop camera</button><div class="ctrl-spacer"></div>';
-      $('#snap',cam).onclick=()=>{const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
-        c.toBlob(b=>{b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
-      $('#stop',cam).onclick=()=>{stream.getTracks().forEach(t=>t.stop());pv.className='preview';pv.innerHTML='';cam.innerHTML='<button class="btn btn-ghost" id="open2">Open camera</button><div class="ctrl-spacer"></div>';$('#open2',cam).onclick=$('#open',cam)&&null;};
-    }catch(e){setStatus(st,'Camera unavailable — drop image scans below instead.',1);}
-  };
-  dropzone($('#d_drop',panel),$('#d_file',panel),fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
-  make.onclick=async()=>{if(!files.length)return;setStatus(st,'Building PDF…');make.disabled=true;
-    try{download(await buildImagesPdf(files,$('#ps',panel).value),'scan.pdf');setStatus(st,'PDF created with '+files.length+' page(s).');}
-    catch(e){setStatus(st,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
-};
-
 INIT['png-to-pdf']=imagesToPdfTool({accept:'image/png',formats:['PNG&#8594;PDF'],outName:'png'});
-INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos into one PDF — drag in as many as you like.'});
 
 /* ---------- Scan to PDF (camera + files) -------------------------- */
-INIT['scan-to-pdf']=function(panel){
-  panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
-    '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
-    '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
-  const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
-  let files=[],stream=null,video=null;
-  function refresh(){listRows(res,files,f=>f._nm||f.name||'scan');make.disabled=!files.length;}
-  cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';
-  $('#open',cam).onclick=async()=>{
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.srcObject=stream;
-      pv.className='preview show';pv.innerHTML='';pv.appendChild(video);
-      cam.innerHTML='<button class="btn btn-primary" id="snap">Capture page</button><button class="btn btn-ghost" id="stop">Stop camera</button><div class="ctrl-spacer"></div>';
-      $('#snap',cam).onclick=()=>{const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
-        c.toBlob(b=>{b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
-      $('#stop',cam).onclick=()=>{stream.getTracks().forEach(t=>t.stop());pv.className='preview';pv.innerHTML='';cam.innerHTML='<button class="btn btn-ghost" id="open2">Open camera</button><div class="ctrl-spacer"></div>';$('#open2',cam).onclick=$('#open',cam)&&null;};
-    }catch(e){setStatus(st,'Camera unavailable — drop image scans below instead.',1);}
-  };
-  dropzone($('#d_drop',panel),$('#d_file',panel),fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
-  make.onclick=async()=>{if(!files.length)return;setStatus(st,'Building PDF…');make.disabled=true;
-    try{download(await buildImagesPdf(files,$('#ps',panel).value),'scan.pdf');setStatus(st,'PDF created with '+files.length+' page(s).');}
-    catch(e){setStatus(st,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
-};
-
 INIT['pdf-to-text']=function(panel){
   const u=dz(panel,{accept:'application/pdf',formats:['PDF&#8594;TXT'],title:'Drop a PDF here or click to browse',sub:'Pulls out selectable text. Scanned image-only PDFs have no text to extract.'});
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;setStatus(u.status,'Extracting text…');
@@ -294,31 +259,6 @@ INIT['pdf-organizer']=function(panel){
   });
 };
 
-INIT['scan-to-pdf']=function(panel){
-  panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
-    '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
-    '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
-  const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
-  let files=[],stream=null,video=null;
-  function refresh(){listRows(res,files,f=>f._nm||f.name||'scan');make.disabled=!files.length;}
-  cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';
-  $('#open',cam).onclick=async()=>{
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.srcObject=stream;
-      pv.className='preview show';pv.innerHTML='';pv.appendChild(video);
-      cam.innerHTML='<button class="btn btn-primary" id="snap">Capture page</button><button class="btn btn-ghost" id="stop">Stop camera</button><div class="ctrl-spacer"></div>';
-      $('#snap',cam).onclick=()=>{const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
-        c.toBlob(b=>{b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
-      $('#stop',cam).onclick=()=>{stream.getTracks().forEach(t=>t.stop());pv.className='preview';pv.innerHTML='';cam.innerHTML='<button class="btn btn-ghost" id="open2">Open camera</button><div class="ctrl-spacer"></div>';$('#open2',cam).onclick=$('#open',cam)&&null;};
-    }catch(e){setStatus(st,'Camera unavailable — drop image scans below instead.',1);}
-  };
-  dropzone($('#d_drop',panel),$('#d_file',panel),fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
-  make.onclick=async()=>{if(!files.length)return;setStatus(st,'Building PDF…');make.disabled=true;
-    try{download(await buildImagesPdf(files,$('#ps',panel).value),'scan.pdf');setStatus(st,'PDF created with '+files.length+' page(s).');}
-    catch(e){setStatus(st,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
-};
-
 INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos into one PDF — drag in as many as you like.'});
 
 /* ---------- Scan to PDF (camera + files) -------------------------- */
@@ -348,17 +288,171 @@ INIT['scan-to-pdf']=function(panel){
 };
 
 INIT['pdf-reader']=function(panel){
-  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'View any PDF right here, page by page.'});
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;setStatus(u.status,'Opening…');
-    try{const pdf=await pdfjsDoc(f);let cur=1,scale=1.3;
-      u.controls.className='controls';
-      u.controls.innerHTML='<button class="btn btn-ghost" id="prev">&#8592; Prev</button><div class="ctrl"><label>Page</label><span class="val" id="pos"></span></div><button class="btn btn-ghost" id="next">Next &#8594;</button><div class="ctrl-spacer"></div><button class="btn btn-ghost" id="zo" aria-label="Zoom out">&#8722;</button><button class="btn btn-ghost" id="zi" aria-label="Zoom in">+</button>';
-      const stage=document.createElement('div');stage.className='preview show';u.results.classList.add('show');u.results.innerHTML='';u.results.appendChild(stage);
-      async function show(){const r=await renderPage(pdf,cur,scale);stage.innerHTML='';stage.appendChild(r.canvas);$('#pos',panel).textContent=cur+' / '+pdf.numPages;}
-      $('#prev',panel).onclick=()=>{if(cur>1){cur--;show();}};
-      $('#next',panel).onclick=()=>{if(cur<pdf.numPages){cur++;show();}};
-      $('#zi',panel).onclick=()=>{scale=Math.min(3,scale+.25);show();};
-      $('#zo',panel).onclick=()=>{scale=Math.max(.5,scale-.25);show();};
-      await show();setStatus(u.status,'Opened '+pdf.numPages+' page(s).');}
-    catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}});
+  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'View any PDF right here — fit, zoom, jump and scan pages.'});
+  dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;
+    if(f.type&&f.type!=='application/pdf'&&!/\.pdf$/i.test(f.name||'')){setStatus(u.status,'That doesn\u2019t look like a PDF.',1);return;}
+    setStatus(u.status,'Opening\u2026');
+    let pdf;
+    try{pdf=await pdfjsDoc(f);}
+    catch(e){setStatus(u.status,'Could not open this PDF'+(/password/i.test(e.message||'')?' \u2014 it is password protected.':': '+(e.message||e)),1);return;}
+
+    u.drop.style.display='none';
+    const cur={n:1}, DPR=Math.min(window.devicePixelRatio||1,3);
+    let mode='fitWidth', scale=1, renderTask=null, renderSeq=0;
+
+    /* ── Toolbar ───────────────────────────────────────────────── */
+    u.controls.className='controls';
+    u.controls.innerHTML=
+      '<div class="pdfr-bar" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%">'+
+        '<button class="btn btn-ghost" id="prev" aria-label="Previous page">&#8592;</button>'+
+        '<span style="display:inline-flex;align-items:center;gap:6px;font-size:13px">'+
+          'Page <input id="pg" type="number" min="1" value="1" style="width:56px;text-align:center;padding:5px 6px;border:1px solid var(--border-2);border-radius:8px;background:var(--bg-2);color:var(--text)"> / <span id="pn">?</span>'+
+        '</span>'+
+        '<button class="btn btn-ghost" id="next" aria-label="Next page">&#8594;</button>'+
+        '<div class="ctrl-spacer" style="flex:1"></div>'+
+        '<button class="btn btn-ghost" id="zo" aria-label="Zoom out">&#8722;</button>'+
+        '<span id="zlbl" style="min-width:48px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums">Fit</span>'+
+        '<button class="btn btn-ghost" id="zi" aria-label="Zoom in">+</button>'+
+        '<select id="fit" aria-label="Fit mode" style="padding:6px 8px;border:1px solid var(--border-2);border-radius:8px;background:var(--bg-2);color:var(--text);font-size:13px">'+
+          '<option value="fitWidth">Fit width</option>'+
+          '<option value="fitPage">Fit page</option>'+
+          '<option value="actual">Actual size</option>'+
+        '</select>'+
+        '<input id="find" type="search" placeholder="Search text\u2026" aria-label="Search PDF text" style="width:130px;padding:6px 10px;border:1px solid var(--border-2);border-radius:8px;background:var(--bg-2);color:var(--text);font-size:13px">'+
+      '</div>';
+
+    /* ── Layout: thumbnail rail + viewer ───────────────────────── */
+    u.results.classList.add('show');u.results.innerHTML='';
+    const shell=document.createElement('div');
+    shell.style.cssText='display:flex;gap:14px;align-items:flex-start';
+    const rail=document.createElement('div');
+    rail.setAttribute('aria-label','Page thumbnails');
+    rail.style.cssText='width:104px;flex-shrink:0;max-height:74vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px';
+    const viewer=document.createElement('div');
+    viewer.style.cssText='flex:1;min-width:0;max-height:78vh;overflow:auto;background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;justify-content:center;align-items:flex-start';
+    const canvas=document.createElement('canvas');
+    canvas.style.cssText='box-shadow:0 6px 30px rgba(0,0,0,.35);max-width:100%;height:auto;background:#fff';
+    viewer.appendChild(canvas);
+    shell.appendChild(rail);shell.appendChild(viewer);u.results.appendChild(shell);
+    if(window.matchMedia&&window.matchMedia('(max-width:640px)').matches)rail.style.display='none';
+
+    const pn=$('#pn',panel),pgIn=$('#pg',panel),zlbl=$('#zlbl',panel),fitSel=$('#fit',panel);
+    pn.textContent=pdf.numPages;pgIn.max=pdf.numPages;
+
+    function fitScale(vp1){
+      const avail=viewer.clientWidth-36||600;
+      if(mode==='fitWidth')return avail/vp1.width;
+      if(mode==='fitPage'){const availH=viewer.clientHeight-36||700;return Math.min(avail/vp1.width,availH/vp1.height);}
+      return 1; /* actual */
+    }
+
+    async function render(){
+      const seq=++renderSeq;
+      const page=await pdf.getPage(cur.n);
+      const vp1=page.getViewport({scale:1});
+      const css=(mode==='actual')?scale:fitScale(vp1)*scale;
+      const vp=page.getViewport({scale:css*DPR});
+      if(seq!==renderSeq)return; /* a newer render superseded us */
+      if(renderTask){try{renderTask.cancel();}catch(e){}}
+      canvas.width=Math.floor(vp.width);canvas.height=Math.floor(vp.height);
+      canvas.style.width=Math.floor(vp.width/DPR)+'px';
+      canvas.style.height=Math.floor(vp.height/DPR)+'px';
+      const cx=canvas.getContext('2d',{alpha:false});
+      renderTask=page.render({canvasContext:cx,viewport:vp,intent:'display'});
+      try{await renderTask.promise;}catch(e){if(e&&e.name==='RenderingCancelledException')return;}
+      pgIn.value=cur.n;
+      zlbl.textContent=(mode==='actual'||scale!==1)?Math.round(css*100)+'%':'Fit';
+    }
+
+    /* ── Thumbnails (lazy, low-res) ────────────────────────────── */
+    function buildThumbs(){
+      for(let i=1;i<=pdf.numPages;i++){
+        (function(i){
+          const cell=document.createElement('button');
+          cell.className='pdfr-thumb';cell.setAttribute('aria-label','Go to page '+i);
+          cell.style.cssText='border:2px solid transparent;border-radius:8px;padding:0;background:#fff;cursor:pointer;line-height:0;overflow:hidden;position:relative';
+          const tc=document.createElement('canvas');tc.style.cssText='width:100%;height:auto;display:block';
+          const num=document.createElement('span');num.textContent=i;
+          num.style.cssText='position:absolute;bottom:2px;right:4px;font-size:10px;color:#333;background:rgba(255,255,255,.8);padding:0 4px;border-radius:4px';
+          cell.appendChild(tc);cell.appendChild(num);cell.dataset.p=i;rail.appendChild(cell);
+          cell.onclick=()=>{cur.n=i;paintActive();render();};
+          pdf.getPage(i).then(p=>{
+            const v1=p.getViewport({scale:1}),s=96/v1.width;
+            const v=p.getViewport({scale:s});tc.width=v.width;tc.height=v.height;
+            p.render({canvasContext:tc.getContext('2d'),viewport:v});
+          }).catch(()=>{});
+        })(i);
+      }
+      paintActive();
+    }
+    function paintActive(){
+      $$('.pdfr-thumb',rail).forEach(c=>{
+        const on=+c.dataset.p===cur.n;
+        c.style.borderColor=on?'var(--p1)':'transparent';
+        if(on)c.scrollIntoView({block:'nearest'});
+      });
+    }
+
+    /* ── Navigation ────────────────────────────────────────────── */
+    function go(n){n=Math.max(1,Math.min(pdf.numPages,n|0));if(n===cur.n)return;cur.n=n;paintActive();render();}
+    $('#prev',panel).onclick=()=>go(cur.n-1);
+    $('#next',panel).onclick=()=>go(cur.n+1);
+    pgIn.onchange=()=>go(+pgIn.value);
+    function zoom(dir){mode=(mode==='actual')?'actual':'actual';fitSel.value='actual';scale=Math.max(.25,Math.min(5,scale*(dir>0?1.2:1/1.2)));render();}
+    $('#zi',panel).onclick=()=>zoom(1);
+    $('#zo',panel).onclick=()=>zoom(-1);
+    fitSel.onchange=()=>{mode=fitSel.value;scale=1;render();};
+
+    /* Keyboard: arrows / PageUp / PageDown / Home / End */
+    viewer.tabIndex=0;
+    viewer.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();go(cur.n+1);}
+      else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur.n-1);}
+      else if(e.key==='Home'){e.preventDefault();go(1);}
+      else if(e.key==='End'){e.preventDefault();go(pdf.numPages);}
+      else if((e.key==='+'||e.key==='=')){e.preventDefault();zoom(1);}
+      else if(e.key==='-'){e.preventDefault();zoom(-1);}
+    });
+
+    /* Ctrl/Cmd + wheel = zoom; plain wheel scrolls the viewer normally */
+    viewer.addEventListener('wheel',e=>{
+      if(e.ctrlKey||e.metaKey){e.preventDefault();zoom(e.deltaY<0?1:-1);}
+    },{passive:false});
+
+    /* Pinch-zoom on touch devices */
+    let pinchStart=0,pinchBase=1;
+    viewer.addEventListener('touchstart',e=>{
+      if(e.touches.length===2){pinchStart=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);pinchBase=(mode==='actual'?scale:1);fitSel.value='actual';mode='actual';}
+    },{passive:true});
+    viewer.addEventListener('touchmove',e=>{
+      if(e.touches.length===2&&pinchStart){
+        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        scale=Math.max(.25,Math.min(5,pinchBase*(d/pinchStart)));render();
+      }
+    },{passive:true});
+    viewer.addEventListener('touchend',()=>{pinchStart=0;});
+
+    /* Re-fit on container resize (fit modes only) */
+    let rz;window.addEventListener('resize',()=>{if(mode!=='actual'&&scale===1){clearTimeout(rz);rz=setTimeout(render,150);}});
+
+    /* ── Text search: jump to the first page containing the query ── */
+    const findEl=$('#find',panel);let findTimer;
+    findEl.addEventListener('input',()=>{
+      clearTimeout(findTimer);const q=findEl.value.trim().toLowerCase();
+      if(q.length<2){findEl.style.color='';return;}
+      findTimer=setTimeout(async()=>{
+        for(let i=1;i<=pdf.numPages;i++){
+          try{const p=await pdf.getPage(i);const tc=await p.getTextContent();
+            const txt=tc.items.map(it=>it.str).join(' ').toLowerCase();
+            if(txt.indexOf(q)>-1){findEl.style.color='';go(i);return;}
+          }catch(e){}
+        }
+        findEl.style.color='var(--err,#f87171)'; /* not found */
+      },300);
+    });
+
+    buildThumbs();
+    await render();
+    setStatus(u.status,'Opened '+pdf.numPages+' page(s).');
+  });
 };

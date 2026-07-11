@@ -12,3 +12,14 @@
 
 /*.html
   Cache-Control: no-cache, must-revalidate
+
+# Disable caching for all site JS. Every tool, config.js, and the GA4
+# loader-injection logic live in these files — without this, Cloudflare's
+# default static-asset caching (long max-age) can keep serving a
+# pre-deploy version of a .js file indefinitely after every push, so a
+# shipped fix silently doesn't reach real visitors even though the
+# source and the live HTML are correct. HTML already forces a
+# revalidate above; without the same rule here, an old *.js can still
+# be paired with new *.html and reintroduce fixed bugs.
+/*.js
+  Cache-Control: no-cache, must-revalidate

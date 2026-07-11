@@ -1289,7 +1289,13 @@ INIT['ai-image-upscaler']=function(panel){
     $('#upcancel',panel).onclick=function(){signal.cancelled=true;};
     var phase=$('#upphase',panel),bar=$('#upbar',panel);
 
-    _loadScript('/upscaler-engine.js','UpscaleEngine').then(function(){
+    _loadScript('/upscaler-engine.js','UpscaleEngine').catch(function(){
+      /* One retry with a cache-busting query string: covers the case where
+         a CDN edge or browser is still holding a bad/partial cached copy
+         from a prior deploy, rather than a true 404. If this also fails,
+         the file genuinely isn't reachable and we say so plainly. */
+      return _loadScript('/upscaler-engine.js?r='+Date.now(),'UpscaleEngine');
+    }).then(function(){
       return window.UpscaleEngine.run({
         canvas:srcCanvas,scale:factor,signal:signal,
         onEngine:function(label){phase.textContent='Engine: '+label;},
@@ -1305,7 +1311,14 @@ INIT['ai-image-upscaler']=function(panel){
       running=null;
       if(e&&e.message==='cancelled'){reset(false);setStatus(u.status,'Cancelled.');return;}
       reset(false);
-      var msg=(e&&/memory|allocation/i.test(e.message||''))?'Ran out of memory \u2014 try 2\u00d7, or a smaller image.':'Processing failed: '+(e&&e.message||'unknown error');
+      var msg;
+      if(e&&/Failed to load|Timeout/.test(e.message||'')){
+        msg='The upscaler couldn\u2019t load just now \u2014 please refresh the page and try again. If this keeps happening, the site may be updating.';
+      }else if(e&&/memory|allocation/i.test(e.message||'')){
+        msg='Ran out of memory \u2014 try 2\u00d7, or a smaller image.';
+      }else{
+        msg='Processing failed: '+(e&&e.message||'unknown error');
+      }
       setStatus(u.status,msg,1);
     });
   };

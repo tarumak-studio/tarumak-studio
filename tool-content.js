@@ -204,7 +204,8 @@ const CAT_DEFAULTS = {
 const WORKFLOW_NEXT = {
   'background-remover': ['ai-image-upscaler', 'image-compressor', 'image-resizer', 'watermark-image'],
   'ai-image-upscaler': ['ai-photo-enhancer', 'image-compressor', 'image-resizer', 'background-remover'],
-  'ai-photo-enhancer': ['ai-image-upscaler', 'image-compressor', 'background-remover', 'image-resizer'],
+  'ai-photo-enhancer': ['ai-object-remover', 'ai-image-upscaler', 'image-compressor', 'background-remover'],
+  'ai-object-remover': ['ai-photo-enhancer', 'background-remover', 'ai-image-upscaler', 'watermark-image'],
   'image-compressor': ['background-remover', 'image-resizer', 'png-to-webp', 'social-image-resizer'],
   'ocr-image-to-text': ['pdf-to-text', 'text-diff', 'word-counter', 'markdown-to-html'],
   'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-organizer'],

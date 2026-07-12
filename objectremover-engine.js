@@ -120,6 +120,36 @@
     }
   }
 
+  /* O(n) chamfer distance from the nearest masked pixel (whole image). */
+  function distFromMask(mask, w, h) {
+    var INF = 1e9, dist = new Float32Array(w * h), i, x, y;
+    for (i = 0; i < w * h; i++) dist[i] = mask[i] ? 0 : INF;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      i = y * w + x; var v = dist[i];
+      if (x > 0) v = Math.min(v, dist[i - 1] + 1);
+      if (y > 0) v = Math.min(v, dist[i - w] + 1);
+      if (x > 0 && y > 0) v = Math.min(v, dist[i - w - 1] + 1.4142);
+      if (x < w - 1 && y > 0) v = Math.min(v, dist[i - w + 1] + 1.4142);
+      dist[i] = v;
+    }
+    for (y = h - 1; y >= 0; y--) for (x = w - 1; x >= 0; x--) {
+      i = y * w + x; var v2 = dist[i];
+      if (x < w - 1) v2 = Math.min(v2, dist[i + 1] + 1);
+      if (y < h - 1) v2 = Math.min(v2, dist[i + w] + 1);
+      if (x < w - 1 && y < h - 1) v2 = Math.min(v2, dist[i + w + 1] + 1.4142);
+      if (x > 0 && y < h - 1) v2 = Math.min(v2, dist[i + w - 1] + 1.4142);
+      dist[i] = v2;
+    }
+    return dist;
+  }
+  /* Grow the mask by `r` pixels (absorbs anti-aliased object fringe so the
+     fill boundary sits on clean background). */
+  function dilateMask(mask, w, h, r) {
+    var dist = distFromMask(mask, w, h), out = new Uint8Array(w * h);
+    for (var i = 0; i < w * h; i++) out[i] = dist[i] <= r ? 1 : 0;
+    return out;
+  }
+
   /* Distance-to-edge feather (approximate): erode mask N times; feather
      alpha = distIn / featherRadius, clamped. Cheap chamfer-ish pass. */
   function featherMap(mask, w, h, radius) {
@@ -150,9 +180,14 @@
      one whose low-frequency best matches the base fill, and composite its
      high-frequency detail with a cosine window (texture-quilting lite).
      Detail-transfer (not raw copy) prevents seams and wrong lighting. */
-  function texturize(d, base, mask, w, h, opts, rand) {
+  function texturize(d, base, mask, w, h, opts, rand, forbid) {
     var B = opts.block, HALF = B >> 1, K = opts.candidates, R = opts.radius;
     rand = rand || Math.random;
+    /* Source blocks must avoid `forbid` (the guard band around the object),
+       not merely `mask` — otherwise candidates sample the object's own
+       anti-aliased fringe and drag its colour back in (the "remnant/smear"
+       artifact). Fall back to `mask` if no forbid map supplied. */
+    var noSample = forbid || mask;
     var win = new Float32Array(B * B);
     for (var wy = 0; wy < B; wy++) for (var wx = 0; wx < B; wx++) {
       win[wy * B + wx] = Math.sin(Math.PI * (wx + .5) / B) * Math.sin(Math.PI * (wy + .5) / B);
@@ -160,7 +195,7 @@
     function blockKnown(bx, by) {
       if (bx < 0 || by < 0 || bx + B > w || by + B > h) return false;
       for (var y = by; y < by + B; y += 2) for (var x = bx; x < bx + B; x += 2) {
-        if (mask[y * w + x]) return false;
+        if (noSample[y * w + x]) return false;
       }
       return true;
     }
@@ -212,9 +247,9 @@
 
   /* ═══════════ browser provider: full pipeline ═══════════════════════ */
   var QUALITY = {
-    fast:     { smallEdge: 200, passes: 12, texture: false },
-    balanced: { smallEdge: 256, passes: 20, texture: true, block: 24, candidates: 10, strength: 0.75 },
-    best:     { smallEdge: 320, passes: 30, texture: true, block: 16, candidates: 22, strength: 0.85 }
+    fast:     { smallEdge: 288, passes: 14, texture: false },
+    balanced: { smallEdge: 448, passes: 24, texture: true, block: 20, candidates: 18, strength: 0.9 },
+    best:     { smallEdge: 640, passes: 34, texture: true, block: 14, candidates: 32, strength: 1.0 }
   };
 
   var BrowserCAF = {
@@ -233,9 +268,22 @@
         try { md = mctx.getImageData(0, 0, w, h).data; }
         catch (e) { reject(new Error('mask readback failed')); return; }
         var mask = new Uint8Array(w * h), any = 0;
-        for (var i = 0; i < w * h; i++) { if (md[i * 4 + 3] > 40) { mask[i] = 1; any++; } }
+        /* Threshold LOW (>10): a soft brush's faded edge must still count
+           as selected, or anti-aliased object fringes survive removal. */
+        for (var i = 0; i < w * h; i++) { if (md[i * 4 + 3] > 10) { mask[i] = 1; any++; } }
         if (!any) { reject(new Error('empty selection \u2014 paint over what you want removed')); return; }
+        /* Dilate the mask adaptively (like every professional remover):
+           users under-paint, and object edges carry 1\u20133px of anti-aliased
+           object color. Absorbing a small ring guarantees the fill boundary
+           sits on CLEAN background \u2014 which is also what makes the edge
+           feather safe instead of remnant-preserving. */
+        var dil = Math.max(3, Math.min(14, Math.round(Math.min(w, h) * 0.008)));
+        mask = dilateMask(mask, w, h, dil);
+        any = 0; for (i = 0; i < w * h; i++) if (mask[i]) any++;
         if (any > w * h * 0.6) { reject(new Error('selection covers most of the image \u2014 for background replacement use the Background Remover instead')); return; }
+        /* Guard ring: texture candidates must ALSO avoid a band around the
+           dilated mask, so near-object pixels can never be sampled. */
+        var guard = dilateMask(mask, w, h, Math.max(8, dil * 2));
 
         var steps = [
           function () {
@@ -261,7 +309,7 @@
           function (base) {
             if (q.texture) {
               if (opts.onProgress) opts.onProgress(0.62, 'Matching textures\u2026');
-              texturize(d, base, mask, w, h, { block: q.block, candidates: q.candidates, radius: q.block * 7, strength: q.strength });
+              texturize(d, base, mask, w, h, { block: q.block, candidates: q.candidates, radius: q.block * 7, strength: q.strength }, null, guard);
             }
             return base;
           },
@@ -345,7 +393,7 @@
   var ORDER = ['cloudflare-ai', 'fal', 'replicate', 'openai', 'browser-caf'];
 
   window.ObjectRemoveEngine = {
-    version: '1.0',
+    version: '2.0',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},

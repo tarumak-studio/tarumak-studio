@@ -1751,3 +1751,295 @@ INIT['ai-photo-enhancer']=function(panel){
   }
 };
 FAQ['ai-photo-enhancer']=[["How does the enhancement work?","The tool analyzes your photo's histogram, color balance, noise and sharpness on your device, then applies targeted corrections: white balance, exposure, contrast, shadow/highlight recovery, vibrance, edge-safe noise reduction, clarity and gated sharpening. It is honest image science running in your browser \u2014 and it always labels which engine produced your result."],["Is my photo uploaded anywhere?","No. The default engine processes everything on your device. An optional cloud engine for AI face restoration can be enabled by the site, and the tool will clearly say so whenever it is used."],["Does it enhance faces?","The on-device engine improves facial sharpness, skin tone and lighting as part of overall correction, but it does not reconstruct facial detail like Remini-class tools \u2014 that requires a server GPU model, available via the optional cloud engine."],["Does it preserve transparency?","Yes \u2014 the alpha channel is never modified. PNG and WEBP keep transparency; JPG flattens onto white."],["What are the presets?","Auto applies corrections derived from the analysis of your specific photo. Portrait, Landscape, Night, Document, Product, Old Photo and Anime are tuned starting points \u2014 adjusting any slider switches to Custom."]];
+
+/* ═══════════════ AI OBJECT REMOVER ═══════════════════════════════════
+   Brush/rectangle mask editing over the photo, then content-aware fill
+   via /objectremover-engine.js (provider-abstracted, lazy-loaded).
+   Undo/redo uses alpha-only mask snapshots (memory-capped). */
+INIT['ai-object-remover']=function(panel){
+  var MAX_PX=16000000;
+  var imgCv=null,maskCv=null,outCv=null,srcName='photo';
+  var running=null,_urls=[],undoStack=[],redoStack=[],view='split';
+  var brush={size:36,soft:60,erase:false,mode:'brush'};
+  var zoom=1,_resizeH=null;
+
+  var u=dz(panel,{accept:'image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif',multiple:false,
+    formats:['JPG','PNG','WEBP','AVIF'],
+    title:'Drop a photo, click to browse, or paste (Ctrl+V)',
+    sub:'Paint over anything \u2014 people, wires, trash, text \u2014 and it\u2019s rebuilt from the surroundings, on your device.'});
+
+  u.controls.className='controls';
+  u.controls.innerHTML=
+    '<div class="ctrl"><label>Tool</label><div class="seg" id="orTool" role="group" aria-label="Selection tool">'+
+      '<button data-t="brush" class="active" aria-pressed="true">Brush</button>'+
+      '<button data-t="rect" aria-pressed="false">Rectangle</button>'+
+      '<button data-t="erase" aria-pressed="false">Eraser</button>'+
+    '</div></div>'+
+    '<div class="ctrl"><label for="orSize">Brush \u00b7 <span class="val" id="orSizeV">36px</span></label><input type="range" id="orSize" min="6" max="140" value="36" style="width:110px" aria-label="Brush size"></div>'+
+    '<div class="ctrl"><label for="orSoft">Softness \u00b7 <span class="val" id="orSoftV">60%</span></label><input type="range" id="orSoft" min="0" max="100" value="60" style="width:90px" aria-label="Brush softness"></div>'+
+    '<div class="ctrl"><label>Quality</label><div class="seg" id="orQual" role="group" aria-label="Fill quality">'+
+      '<button data-q="fast" aria-pressed="false">Fast</button>'+
+      '<button data-q="balanced" class="active" aria-pressed="true">Balanced</button>'+
+      '<button data-q="best" aria-pressed="false">Best</button>'+
+    '</div></div>'+
+    '<div class="ctrl-spacer"></div>'+
+    '<button class="btn btn-ghost" id="orUndo" disabled aria-label="Undo (Ctrl+Z)">&#8630;</button>'+
+    '<button class="btn btn-ghost" id="orRedo" disabled aria-label="Redo (Ctrl+Y)">&#8631;</button>'+
+    '<button class="btn btn-primary" id="orRun" disabled>Remove</button>';
+  var quality='balanced';
+  $('#orQual',panel).addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;quality=b.dataset.q;
+    $$('#orQual button',panel).forEach(function(x){var on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});});
+  $('#orTool',panel).addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+    brush.mode=b.dataset.t==='rect'?'rect':'brush';brush.erase=b.dataset.t==='erase';
+    $$('#orTool button',panel).forEach(function(x){var on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});});
+  $('#orSize',panel).oninput=function(){brush.size=+this.value;$('#orSizeV',panel).textContent=this.value+'px';};
+  $('#orSoft',panel).oninput=function(){brush.soft=+this.value;$('#orSoftV',panel).textContent=this.value+'%';};
+
+  function isBlank(c){try{var t=document.createElement('canvas');t.width=8;t.height=8;var x=t.getContext('2d');x.drawImage(c,0,0,8,8);var d2=x.getImageData(0,0,8,8).data;for(var i=3;i<d2.length;i+=4)if(d2[i]>0)return false;return true;}catch(e){return false;}}
+  function freeUrls(){_urls.forEach(function(uu){try{URL.revokeObjectURL(uu);}catch(e){}});_urls=[];}
+
+  /* ── mask snapshots: alpha channel only, memory-capped ───────────── */
+  function snapCap(){var mp=imgCv?imgCv.width*imgCv.height/1e6:0;return mp>6?3:8;}
+  function maskAlpha(){var d=maskCv.getContext('2d').getImageData(0,0,maskCv.width,maskCv.height).data;var a=new Uint8Array(d.length/4);for(var i=0;i<a.length;i++)a[i]=d[i*4+3];return a;}
+  function restoreAlpha(a){var ctx=maskCv.getContext('2d');var id=ctx.getImageData(0,0,maskCv.width,maskCv.height);for(var i=0;i<a.length;i++){id.data[i*4]=255;id.data[i*4+1]=40;id.data[i*4+2]=70;id.data[i*4+3]=a[i];}ctx.putImageData(id,0,0);}
+  function pushUndo(){try{undoStack.push(maskAlpha());if(undoStack.length>snapCap())undoStack.shift();redoStack=[];paintHistory();}catch(e){}}
+  function paintHistory(){$('#orUndo',panel).disabled=!undoStack.length;$('#orRedo',panel).disabled=!redoStack.length;}
+  $('#orUndo',panel).onclick=function(){if(!undoStack.length)return;redoStack.push(maskAlpha());restoreAlpha(undoStack.pop());paintHistory();};
+  $('#orRedo',panel).onclick=function(){if(!redoStack.length)return;undoStack.push(maskAlpha());restoreAlpha(redoStack.pop());paintHistory();};
+
+  function accept(f){
+    if(!f)return;
+    if(!/^image\//.test(f.type||'')&&!/\.(jpe?g|png|webp|avif|heic|heif)$/i.test(f.name||'')){setStatus(u.status,'That doesn\u2019t look like an image \u2014 JPG, PNG, WEBP or AVIF please.',1);return;}
+    if(f.size>80*1024*1024){setStatus(u.status,'File is over 80 MB \u2014 too large for browser processing.',1);return;}
+    setStatus(u.status,'Reading image\u2026');
+    readImg(f).then(function(img){
+      var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+      if(!w||!h)throw new Error('decode');
+      if(w*h>MAX_PX){setStatus(u.status,'Image is '+Math.round(w*h/1e6)+' MP \u2014 the maximum for object removal is 16 MP. Resize it first with the Image Resizer.',1);return;}
+      imgCv=document.createElement('canvas');imgCv.width=w;imgCv.height=h;
+      imgCv.getContext('2d').drawImage(img,0,0);
+      if(isBlank(imgCv)){imgCv=null;setStatus(u.status,'This image is completely transparent (empty). Please upload your original photo.',1);return;}
+      maskCv=document.createElement('canvas');maskCv.width=w;maskCv.height=h;
+      srcName=(f.name||'photo').replace(/\.[^.]+$/,'');
+      outCv=null;undoStack=[];redoStack=[];paintHistory();
+      buildEditor();
+      $('#orRun',panel).disabled=false;
+      setStatus(u.status,'Paint over what you want removed, then press Remove. [ and ] change brush size.');
+    }).catch(function(){setStatus(u.status,'Could not decode this image \u2014 it may be corrupted, or an unsupported HEIC. Convert it with the HEIC to JPG tool first.',1);});
+  }
+  dropzone(u.drop,u.file,function(fs){accept([].slice.call(fs)[0]);});
+  function onPaste(e){
+    if(!panel.isConnected){document.removeEventListener('paste',onPaste);return;}
+    var items=(e.clipboardData||{}).items||[];
+    for(var i=0;i<items.length;i++){if(items[i].kind==='file'&&/^image\//.test(items[i].type)){accept(items[i].getAsFile());e.preventDefault();return;}}
+  }
+  document.addEventListener('paste',onPaste);
+
+  /* ── editor stage: image + mask overlay, paint with pointer ──────── */
+  function buildEditor(){
+    freeUrls();
+    u.drop.style.display='none';
+    u.results.classList.add('show');
+    u.results.innerHTML=
+      '<p style="text-align:center;font-size:12px;color:var(--text-faint);margin-bottom:8px">'+imgCv.width+'\u00d7'+imgCv.height+' px \u00b7 red = will be removed</p>'+
+      '<div id="orWrap" style="max-width:680px;margin:0 auto;max-height:70vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;background:#000" tabindex="0" aria-label="Mask editor. Paint over objects to remove. Keys: bracket keys change brush size, E eraser, Ctrl+Z undo, F fullscreen">'+
+        '<div id="orStage" style="position:relative;width:100%;touch-action:none;cursor:crosshair"></div>'+
+      '</div>'+
+      '<div style="max-width:680px;margin:10px auto 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost" id="orClear" style="font-size:12.5px;padding:6px 14px">Clear selection</button>'+
+        '<div class="seg" role="group" aria-label="Zoom"><button id="orZO" aria-label="Zoom out">\u2212</button><button id="orZF" aria-pressed="true">Fit</button><button id="orZI" aria-label="Zoom in">+</button></div>'+
+        '<button class="btn btn-ghost" id="orFS" aria-label="Fullscreen (F)" style="padding:6px 12px">\u26F6</button>'+
+      '</div>'+
+      '<div class="status" id="orSt" role="status" aria-live="polite"></div>';
+    var stage=$('#orStage',panel),wrap=$('#orWrap',panel);
+    imgCv.style.cssText='display:block;width:100%';
+    maskCv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;opacity:.5;pointer-events:none';
+    stage.appendChild(imgCv);stage.appendChild(maskCv);
+
+    function toPx(e){var r=imgCv.getBoundingClientRect();return{x:(e.clientX-r.left)*(imgCv.width/r.width),y:(e.clientY-r.top)*(imgCv.height/r.height),scale:imgCv.width/r.width};}
+    function dab(x,y,scale){
+      var ctx=maskCv.getContext('2d');
+      var rad=brush.size*scale/2;
+      ctx.save();
+      if(brush.erase)ctx.globalCompositeOperation='destination-out';
+      var soft=brush.soft/100;
+      var grad=ctx.createRadialGradient(x,y,rad*(1-soft),x,y,rad);
+      grad.addColorStop(0,'rgba(255,40,70,1)');grad.addColorStop(1,'rgba(255,40,70,'+(soft?0:1)+')');
+      ctx.fillStyle=grad;
+      ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+    var painting=false,last=null,rectStart=null,rectEl=null;
+    stage.addEventListener('pointerdown',function(e){
+      if(!imgCv)return;e.preventDefault();stage.setPointerCapture(e.pointerId);
+      var p=toPx(e);pushUndo();
+      if(brush.mode==='rect'){rectStart=p;
+        rectEl=document.createElement('div');
+        rectEl.style.cssText='position:absolute;border:2px dashed #ff2846;background:rgba(255,40,70,.2);pointer-events:none';
+        stage.appendChild(rectEl);return;}
+      painting=true;dab(p.x,p.y,p.scale);last=p;
+    });
+    stage.addEventListener('pointermove',function(e){
+      if(rectStart&&rectEl){var p2=toPx(e);var r=imgCv.getBoundingClientRect();
+        var x0=Math.min(rectStart.x,p2.x)/imgCv.width*100,y0=Math.min(rectStart.y,p2.y)/imgCv.height*100;
+        var x1=Math.max(rectStart.x,p2.x)/imgCv.width*100,y1=Math.max(rectStart.y,p2.y)/imgCv.height*100;
+        rectEl.style.left=x0+'%';rectEl.style.top=y0+'%';rectEl.style.width=(x1-x0)+'%';rectEl.style.height=(y1-y0)+'%';return;}
+      if(!painting)return;
+      var p=toPx(e);
+      if(last){var dx=p.x-last.x,dy=p.y-last.y,dist=Math.sqrt(dx*dx+dy*dy);var rad=brush.size*p.scale/2;
+        var steps=Math.max(1,Math.ceil(dist/(rad*0.35)));
+        for(var s=1;s<=steps;s++)dab(last.x+dx*s/steps,last.y+dy*s/steps,p.scale);}
+      last=p;
+    });
+    function endStroke(e){
+      if(rectStart&&rectEl){var p=toPx(e);var ctx=maskCv.getContext('2d');
+        ctx.fillStyle='rgba(255,40,70,1)';
+        if(brush.erase)ctx.globalCompositeOperation='destination-out';
+        ctx.fillRect(Math.min(rectStart.x,p.x),Math.min(rectStart.y,p.y),Math.abs(p.x-rectStart.x),Math.abs(p.y-rectStart.y));
+        ctx.globalCompositeOperation='source-over';
+        rectEl.remove();rectEl=null;rectStart=null;}
+      painting=false;last=null;
+    }
+    stage.addEventListener('pointerup',endStroke);
+    stage.addEventListener('pointercancel',endStroke);
+
+    $('#orClear',panel).onclick=function(){pushUndo();maskCv.getContext('2d').clearRect(0,0,maskCv.width,maskCv.height);};
+    function setZoom(z){zoom=Math.max(.5,Math.min(6,z));stage.style.width=(zoom*100)+'%';}
+    $('#orZI',panel).onclick=function(){setZoom(zoom*1.4);};
+    $('#orZO',panel).onclick=function(){setZoom(zoom/1.4);};
+    $('#orZF',panel).onclick=function(){setZoom(1);};
+    $('#orFS',panel).onclick=function(){if(document.fullscreenElement){document.exitFullscreen();}else if(wrap.requestFullscreen){wrap.requestFullscreen();}};
+    wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15));}},{passive:false});
+    wrap.addEventListener('keydown',function(e){
+      if(e.key===']'){e.preventDefault();brush.size=Math.min(140,brush.size+6);$('#orSize',panel).value=brush.size;$('#orSizeV',panel).textContent=brush.size+'px';}
+      else if(e.key==='['){e.preventDefault();brush.size=Math.max(6,brush.size-6);$('#orSize',panel).value=brush.size;$('#orSizeV',panel).textContent=brush.size+'px';}
+      else if(e.key==='e'||e.key==='E'){e.preventDefault();$$('#orTool button',panel)[brush.erase?0:2].click();}
+      else if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();$('#orUndo',panel).click();}
+      else if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();$('#orRedo',panel).click();}
+      else if(e.key==='f'||e.key==='F'){e.preventDefault();$('#orFS',panel).click();}
+      else if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoom*1.4);}
+      else if(e.key==='-'){e.preventDefault();setZoom(zoom/1.4);}
+      else if(e.key==='0'){e.preventDefault();setZoom(1);}
+    });
+  }
+
+  function loadEngine(){
+    return _loadScript('/objectremover-engine.js','ObjectRemoveEngine').catch(function(){
+      return _loadScript('/objectremover-engine.js?r='+Date.now(),'ObjectRemoveEngine');
+    });
+  }
+
+  $('#orRun',panel).onclick=function(){
+    if(!imgCv||running)return;
+    var st=$('#orSt',panel)||u.status;
+    var signal={cancelled:false};running=signal;
+    var btn=$('#orRun',panel);btn.disabled=true;
+    st.className='status show';
+    st.innerHTML='Removing\u2026 <span id="orPct">0%</span> <button class="btn btn-ghost" id="orCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
+    $('#orCancel',panel).onclick=function(){signal.cancelled=true;};
+    if(window._ga)window._ga('object_removal_started',{tool_name:'ai-object-remover',quality:quality});
+    outCv=document.createElement('canvas');outCv.width=imgCv.width;outCv.height=imgCv.height;
+    outCv.getContext('2d').drawImage(imgCv,0,0);
+    loadEngine().then(function(){
+      return window.ObjectRemoveEngine.run({
+        canvas:outCv,mask:maskCv,quality:quality,signal:signal,
+        onProgress:function(p,msg){var el=$('#orPct',panel);if(el)el.textContent=Math.round(p*100)+'%'+(msg?' \u00b7 '+msg:'');}
+      });
+    }).then(function(res){
+      running=null;btn.disabled=false;
+      if(signal.cancelled){st.textContent='Cancelled.';return;}
+      showResult(res.engine);
+      if(window._ga)window._ga('object_removal_completed',{tool_name:'ai-object-remover',quality:quality,engine:res.engine});
+    }).catch(function(e){
+      running=null;btn.disabled=false;
+      if(e&&e.message==='cancelled'){st.textContent='Cancelled.';return;}
+      st.textContent=(e&&/selection/.test(e.message||''))?e.message:'Removal failed: '+(e&&e.message||e);
+    });
+  };
+
+  /* ── result: split slider OR side-by-side, then download ─────────── */
+  function showResult(engineLabel){
+    freeUrls();
+    Promise.all([
+      new Promise(function(r){imgCv.toBlob(function(b){r(b);},'image/png');}),
+      new Promise(function(r){outCv.toBlob(function(b){r(b);},'image/png');})
+    ]).then(function(blobs){
+      if(!blobs[0]||!blobs[1])return;
+      var befU=URL.createObjectURL(blobs[0]),aftU=URL.createObjectURL(blobs[1]);
+      _urls.push(befU,aftU);
+      u.results.innerHTML=
+        '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">Engine: '+engineLabel+' \u00b7 v'+(window.ObjectRemoveEngine&&window.ObjectRemoveEngine.version||'?')+'</p>'+
+        '<div style="display:flex;justify-content:center;margin-bottom:10px"><div class="seg" role="group" aria-label="View mode">'+
+          '<button id="orVSplit" class="active" aria-pressed="true">Split</button>'+
+          '<button id="orVSide" aria-pressed="false">Side by side</button>'+
+        '</div></div>'+
+        '<div id="orResView"></div>'+
+        '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
+          '<div class="ctrl"><label for="orFmt">Format</label><select id="orFmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>'+
+          '<button class="btn btn-primary" id="orDl">Download</button>'+
+          '<button class="btn btn-ghost" id="orMore">\u270e Remove more</button>'+
+          '<button class="btn btn-ghost" id="orReset">Start over</button>'+
+        '</div><div class="status" id="orSt2" role="status" aria-live="polite"></div>';
+      function renderView(){
+        var rv=$('#orResView',panel);
+        if(view==='side'){
+          rv.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:840px;margin:0 auto">'+
+            '<figure style="margin:0"><img src="'+befU+'" style="display:block;width:100%;border-radius:10px" alt="Original"><figcaption style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:4px">ORIGINAL</figcaption></figure>'+
+            '<figure style="margin:0"><img src="'+aftU+'" style="display:block;width:100%;border-radius:10px" alt="Object removed"><figcaption style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:4px">REMOVED</figcaption></figure></div>';
+        }else{
+          rv.innerHTML='<div style="max-width:640px;margin:0 auto;border:1px solid var(--border-2);border-radius:14px;overflow:hidden">'+
+            '<div id="orCmp" style="position:relative;width:100%">'+
+              '<img src="'+aftU+'" style="display:block;width:100%" alt="Result with object removed" draggable="false">'+
+              '<div id="orBefW" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden"><img id="orBef" src="'+befU+'" style="display:block;height:100%" alt="Original" draggable="false"></div>'+
+              '<div style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8)" id="orHand"></div>'+
+              '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
+              '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">REMOVED</span>'+
+            '</div></div>'+
+            '<div style="max-width:640px;margin:8px auto 0"><input type="range" id="orSlide" min="0" max="100" value="50" style="width:100%" aria-label="Comparison divider position"></div>';
+          var cmp=$('#orCmp',panel),bef=$('#orBef',panel),befW=$('#orBefW',panel),hand=$('#orHand',panel);
+          function syncBef(){bef.style.width=cmp.clientWidth+'px';}
+          syncBef();
+          if(_resizeH)window.removeEventListener('resize',_resizeH);
+          _resizeH=syncBef;window.addEventListener('resize',_resizeH);
+          $('#orSlide',panel).oninput=function(){befW.style.width=this.value+'%';hand.style.left=this.value+'%';};
+        }
+      }
+      renderView();
+      $('#orVSplit',panel).onclick=function(){view='split';this.classList.add('active');this.setAttribute('aria-pressed','true');$('#orVSide',panel).classList.remove('active');$('#orVSide',panel).setAttribute('aria-pressed','false');renderView();};
+      $('#orVSide',panel).onclick=function(){view='side';this.classList.add('active');this.setAttribute('aria-pressed','true');$('#orVSplit',panel).classList.remove('active');$('#orVSplit',panel).setAttribute('aria-pressed','false');renderView();};
+      $('#orDl',panel).onclick=function(){
+        var fmt=$('#orFmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
+        var c=outCv;
+        if(fmt==='image/jpeg'){var f2=document.createElement('canvas');f2.width=c.width;f2.height=c.height;var fx=f2.getContext('2d');fx.fillStyle='#fff';fx.fillRect(0,0,f2.width,f2.height);fx.drawImage(c,0,0);c=f2;}
+        c.toBlob(function(b){
+          var st2=$('#orSt2',panel);
+          if(!b){st2.className='status show';st2.textContent='Export failed \u2014 try PNG.';return;}
+          var nm=srcName+'-removed.'+ext;
+          download(b,nm);
+          st2.className='status show';st2.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
+          if(window._ga)window._ga('file_download',{file_name:nm,tool_name:'ai-object-remover'});
+        },fmt,fmt==='image/png'?undefined:.92);
+      };
+      $('#orMore',panel).onclick=function(){
+        /* continue editing on the RESULT: it becomes the new source */
+        imgCv=document.createElement('canvas');imgCv.width=outCv.width;imgCv.height=outCv.height;
+        imgCv.getContext('2d').drawImage(outCv,0,0);
+        maskCv=document.createElement('canvas');maskCv.width=imgCv.width;maskCv.height=imgCv.height;
+        undoStack=[];redoStack=[];paintHistory();buildEditor();
+        setStatus(u.status,'Paint over the next object, then press Remove.');
+      };
+      $('#orReset',panel).onclick=resetAll;
+    });
+  }
+
+  function resetAll(){
+    if(running)running.cancelled=true;running=null;
+    freeUrls();
+    if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
+    imgCv=maskCv=outCv=null;undoStack=[];redoStack=[];
+    $('#orRun',panel).disabled=true;paintHistory();
+    u.results.innerHTML='';u.results.classList.remove('show');
+    u.drop.style.display='';setStatus(u.status,'');
+  }
+};
+FAQ['ai-object-remover']=[["How does the removal work?","You paint a mask over unwanted objects; the engine reconstructs the hidden background from the surrounding pixels using content-aware fill \u2014 a multiscale reconstruction plus patch-based texture matching, the same family of techniques behind Photoshop's original Content-Aware Fill. It runs entirely on your device and always labels which engine produced your result."],["What does it remove well?","Power lines, trash, text, logos, people and objects on textured or repeating backgrounds \u2014 sky, grass, walls, water, roads, sand. Very large removals across complex structure (a person covering detailed architecture) are harder for on-device reconstruction; an optional cloud AI inpainting engine can be enabled by the site for those cases, and the tool will say clearly when it's used."],["Can I remove multiple objects?","Yes \u2014 paint several areas and remove them in one pass, or use \u201cRemove more\u201d to keep cleaning up the result iteratively."],["Is my photo uploaded anywhere?","No \u2014 the default engine processes everything in your browser. Nothing leaves your device."],["Can I remove watermarks?","Only from images you own or have rights to edit. Removing watermarks from other people's work violates copyright \u2014 please respect creators."]];

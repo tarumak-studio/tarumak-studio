@@ -1479,7 +1479,15 @@ details.level-details{margin-top:28px;background:var(--soft);border:2px solid va
 
 
 
-<main class="main" id="main"></main>
+<div id="fa-shell">
+  <div class="app" id="app">
+    <nav class="sidebar" id="nav"></nav>
+    <div class="main-wrap">
+      <main class="main" id="main"></main>
+    </div>
+    <div class="scrim" id="scrim"></div>
+  </div>
+</div>
 </div>
 </div>
 
@@ -8177,6 +8185,7 @@ function renderPrepPracticeQ(){
    themeToggleMob) — an unguarded getElementById(...).addEventListener()
    on a null result threw on load, which halted this entire script
    before the init() IIFE below ever ran, blanking the whole app. */
+(function(){var s=document.getElementById("scrim");if(s)s.addEventListener("click",closeDrawer);})();
 
 wireBookmarkStars(document);
 

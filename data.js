@@ -347,6 +347,7 @@ const TOOLS=[
   ['slug-generator','Slug Generator','developer','Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.',['SLUG','URL','SEO']],
   ['text-case-converter','Text Case Converter','developer','Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.',['CASE','FORMAT','TEXT']],
   ['timestamp-converter','Timestamp Converter','developer','Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.',['UNIX','DATE','TIME']],
+  ['ai-object-remover','AI Object Remover','image','Remove unwanted objects, people, text, wires and watermarks from photos. Paint over anything and the background rebuilds itself — free, in your browser.',['Content-Aware Fill','Brush & Rectangle','Privacy Safe']],
   ['ai-photo-enhancer','AI Photo Enhancer','image','Enhance photos automatically: fix exposure, color, noise and sharpness with intelligent auto-analysis in your browser. Presets for portraits, night shots, documents and old photos.',['Auto-Fix','Presets','Privacy Safe']],
   ['ai-image-upscaler','AI Image Upscaler','image','Upscale images 2x or 4x with AI directly in your browser. Enlarge photos, art and product shots with sharp edges and preserved detail — no upload, free.',['AI-Powered','2x / 4x','Privacy Safe']],
  ['background-remover','Background Remover','image','Remove backgrounds from images automatically using AI. Works on people, products, logos and objects. Downloads as transparent PNG.',['AI-Powered','Transparent PNG','Privacy Safe']],
@@ -422,6 +423,7 @@ const bySlug=s=>TOOLS.find(t=>t[0]===s);
 let activeCat='all',term='';
 const tabsEl=$('#tabs'),gridEl=$('#grid');
 
+AI_SUMMARY['ai-object-remover']='Removes objects via brush/rectangle mask + content-aware fill on-device (multiscale diffusion reconstruction + patch-based texture synthesis). Optional cloud tier for LaMa/diffusion inpainting. Input: JPG/PNG/WebP/AVIF ≤16MP. Output: PNG/JPG/WEBP.';
 AI_SUMMARY['ai-photo-enhancer']='Enhances photos via on-device auto-analysis (histogram, white balance, noise, sharpness) driving a correction pipeline: tone, color, edge-safe denoise, clarity, gated sharpening. Optional cloud engine adds neural face restoration. Input: JPG/PNG/WebP/AVIF. Output: PNG/JPG/WEBP.';
 AI_SUMMARY['ai-image-upscaler']='Upscales images 2x/4x using an ESRGAN super-resolution model in the browser (UpscalerJS + TF.js from CDN), with an automatic high-quality resampling fallback. Input: JPG/PNG/WebP/AVIF. Output: PNG/JPG/WEBP. No upload.';
 AI_SUMMARY['background-remover']='Removes image backgrounds using AI (ONNX WASM). Input: JPG/PNG/WebP. Output: transparent PNG. Model runs entirely in the browser — no file upload.';

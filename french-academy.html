@@ -8169,12 +8169,14 @@ function renderPrepPracticeQ(){
 }
 
 
-/* ════════════ WIRE + INIT ════════════ */
-document.getElementById("navHome").addEventListener("click",function(){renderHome();closeDrawer();});
-document.getElementById("hamb").addEventListener("click",function(){appEl.classList.toggle("open");});
-document.getElementById("scrim").addEventListener("click",closeDrawer);
-document.getElementById("themeToggle").addEventListener("click",toggleTheme);
-document.getElementById("themeToggleMob").addEventListener("click",toggleTheme);
+/* ════════════ WIRE + INIT ════════════
+   Header/theme/mobile-menu wiring is handled by nav-responsive.js
+   (loaded on this page, guards every getElementById with a null check).
+   A leftover duplicate block used to live here targeting IDs that don't
+   exist on this page's markup (navHome/hamb/scrim/themeToggle/
+   themeToggleMob) — an unguarded getElementById(...).addEventListener()
+   on a null result threw on load, which halted this entire script
+   before the init() IIFE below ever ran, blanking the whole app. */
 
 wireBookmarkStars(document);
 

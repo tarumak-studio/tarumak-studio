@@ -1476,3 +1476,278 @@ FAQ['ai-image-upscaler']=[
  ['What\u2019s the maximum image size?','Input is capped at 25 megapixels and output at 64 megapixels to keep processing stable in browser memory. For very large photos, use 2\u00d7 rather than 4\u00d7.'],
  ['Which formats are supported?','JPG, PNG and WEBP everywhere; AVIF works in browsers that can decode it natively (all recent Chrome, Edge and Firefox versions).']
 ];
+
+/* ═══════════════ AI PHOTO ENHANCER ═══════════════════════════════════
+   Auto-analysis + full correction pipeline via /enhancer-engine.js
+   (provider-abstracted; loaded lazily on first Enhance). Live preview
+   runs the pipeline on a ≤1200px proxy for instant slider feedback;
+   Download re-runs the same settings on the untouched full-res canvas. */
+INIT['ai-photo-enhancer']=function(panel){
+  var SLIDERS=[
+    ['sharpness','Sharpness',0,100],['noise','Noise Reduction',0,100],
+    ['brightness','Brightness',-100,100],['contrast','Contrast',-100,100],
+    ['highlights','Highlights',-100,100],['shadows','Shadows',-100,100],
+    ['whites','Whites',-100,100],['blacks','Blacks',-100,100],
+    ['temperature','Temperature',-100,100],['tint','Tint',-100,100],
+    ['vibrance','Vibrance',-100,100],['saturation','Saturation',-100,100],
+    ['clarity','Clarity',0,100],['texture','Texture',0,100]
+  ];
+  var PRESETS={
+    auto:null, /* filled from analysis */
+    portrait:{noise:15,vibrance:12,sharpness:20,clarity:8,shadows:10},
+    landscape:{clarity:28,vibrance:28,sharpness:30,contrast:12},
+    night:{shadows:35,noise:30,brightness:15,temperature:-5,sharpness:15},
+    document:{contrast:35,clarity:25,sharpness:50,noise:5},
+    product:{sharpness:40,clarity:25,contrast:15,vibrance:10},
+    oldphoto:{contrast:25,vibrance:22,saturation:10,noise:25,temperature:5,sharpness:22},
+    anime:{saturation:25,sharpness:35,noise:15,contrast:10,clarity:12},
+    custom:{}
+  };
+  var MAX_INPUT_PX=25000000, PROXY_EDGE=1200;
+  var srcCanvas=null,proxySrc=null,proxyOut=null,fullOut=null,srcName='image';
+  var settings={},analysis=null,running=null,_urls=[],liveTimer=null;
+
+  var u=dz(panel,{accept:'image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif',multiple:false,
+    formats:['JPG','PNG','WEBP','AVIF'],
+    title:'Drop a photo, click to browse, or paste (Ctrl+V)',
+    sub:'Auto-fix exposure, color, noise and sharpness \u2014 processed on your device, nothing uploads.'});
+
+  u.controls.className='controls';
+  u.controls.innerHTML=
+    '<div class="ctrl"><label>Preset</label><div class="seg" id="enPresets" role="group" aria-label="Enhancement preset" style="flex-wrap:wrap">'+
+      '<button data-p="auto" class="active" aria-pressed="true">Auto</button>'+
+      '<button data-p="portrait" aria-pressed="false">Portrait</button>'+
+      '<button data-p="landscape" aria-pressed="false">Landscape</button>'+
+      '<button data-p="night" aria-pressed="false">Night</button>'+
+      '<button data-p="document" aria-pressed="false">Document</button>'+
+      '<button data-p="product" aria-pressed="false">Product</button>'+
+      '<button data-p="oldphoto" aria-pressed="false">Old Photo</button>'+
+      '<button data-p="anime" aria-pressed="false">Anime</button>'+
+      '<button data-p="custom" aria-pressed="false">Custom</button>'+
+    '</div></div>'+
+    '<div class="ctrl"><label for="enFmt">Output</label><select id="enFmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>'+
+    '<div class="ctrl-spacer"></div>'+
+    '<button class="btn btn-primary" id="enRun" disabled>Enhance</button>';
+
+  /* Collapsible slider drawer */
+  var drawer=document.createElement('div');
+  drawer.id='enDrawer';
+  drawer.style.cssText='display:none;margin-top:12px;padding:14px;border:1px solid var(--border-2);border-radius:12px;background:var(--bg-2)';
+  var grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px">';
+  SLIDERS.forEach(function(sl){
+    grid+='<label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim)">'+sl[1]+
+      ' <span class="val" id="enV_'+sl[0]+'" style="float:right;font-variant-numeric:tabular-nums">0</span>'+
+      '<input type="range" id="enS_'+sl[0]+'" min="'+sl[2]+'" max="'+sl[3]+'" value="0" style="width:100%" aria-label="'+sl[1]+'"></label>';
+  });
+  drawer.innerHTML=grid+'</div><p style="font-size:11px;color:var(--text-faint);margin:10px 0 0">Adjusting any slider switches to the Custom preset. Changes preview live.</p>';
+  u.controls.parentNode.insertBefore(drawer,u.controls.nextSibling);
+  var toggle=document.createElement('button');
+  toggle.className='btn btn-ghost';toggle.id='enToggle';
+  toggle.style.cssText='margin-top:8px;font-size:12.5px;padding:6px 14px';
+  toggle.textContent='\u2699 Fine-tune sliders';
+  toggle.setAttribute('aria-expanded','false');
+  toggle.onclick=function(){var open=drawer.style.display!=='none';drawer.style.display=open?'none':'';toggle.setAttribute('aria-expanded',String(!open));};
+  u.controls.parentNode.insertBefore(toggle,drawer);
+
+  function readSliders(){var s={};SLIDERS.forEach(function(sl){var v=parseInt($('#enS_'+sl[0],panel).value,10);if(v)s[sl[0]]=v;});return s;}
+  function writeSliders(s){SLIDERS.forEach(function(sl){var v=(s&&s[sl[0]])||0;$('#enS_'+sl[0],panel).value=v;$('#enV_'+sl[0],panel).textContent=v;});}
+  function paintPresets(active){$$('#enPresets button',panel).forEach(function(b){var on=b.dataset.p===active;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});}
+
+  var curPreset='auto';
+  $('#enPresets',panel).addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    curPreset=b.dataset.p;paintPresets(curPreset);
+    settings=curPreset==='auto'?(analysis?Object.assign({},analysis.settings):{}):Object.assign({},PRESETS[curPreset]||{});
+    writeSliders(settings);schedulePreview();
+  });
+  SLIDERS.forEach(function(sl){
+    $('#enS_'+sl[0],panel).addEventListener('input',function(){
+      $('#enV_'+sl[0],panel).textContent=this.value;
+      if(curPreset!=='custom'){curPreset='custom';paintPresets('custom');}
+      settings=readSliders();schedulePreview();
+    });
+  });
+
+  function isBlank(c){try{var t=document.createElement('canvas');t.width=8;t.height=8;var x=t.getContext('2d');x.drawImage(c,0,0,8,8);var d2=x.getImageData(0,0,8,8).data;for(var i=3;i<d2.length;i+=4)if(d2[i]>0)return false;return true;}catch(e){return false;}}
+  function freeUrls(){_urls.forEach(function(uu){try{URL.revokeObjectURL(uu);}catch(e){}});_urls=[];}
+
+  function accept(f){
+    if(!f)return;
+    if(!/^image\//.test(f.type||'')&&!/\.(jpe?g|png|webp|avif|heic|heif)$/i.test(f.name||'')){setStatus(u.status,'That doesn\u2019t look like an image \u2014 JPG, PNG, WEBP or AVIF please.',1);return;}
+    if(f.size>80*1024*1024){setStatus(u.status,'File is over 80 MB \u2014 too large for browser processing.',1);return;}
+    setStatus(u.status,'Reading image\u2026');
+    readImg(f).then(function(img){
+      var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+      if(!w||!h)throw new Error('could not decode');
+      if(w*h>MAX_INPUT_PX){setStatus(u.status,'Image is '+Math.round(w*h/1e6)+' MP \u2014 the maximum is 25 MP. Resize it first with the Image Resizer.',1);return;}
+      srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
+      srcCanvas.getContext('2d').drawImage(img,0,0);
+      if(isBlank(srcCanvas)){srcCanvas=null;$('#enRun',panel).disabled=true;setStatus(u.status,'This image is completely transparent (empty) \u2014 nothing to enhance. Please upload your original photo.',1);return;}
+      /* proxy for live preview */
+      var s=Math.min(1,PROXY_EDGE/Math.max(w,h));
+      proxySrc=document.createElement('canvas');
+      proxySrc.width=Math.max(1,Math.round(w*s));proxySrc.height=Math.max(1,Math.round(h*s));
+      var px=proxySrc.getContext('2d');px.imageSmoothingQuality='high';px.drawImage(srcCanvas,0,0,proxySrc.width,proxySrc.height);
+      srcName=(f.name||'photo').replace(/\.[^.]+$/,'');
+      fullOut=null;
+      /* metadata + analysis */
+      setStatus(u.status,'Analyzing image\u2026');
+      loadEngine().then(function(){
+        analysis=window.EnhanceEngine.analyze(srcCanvas);
+        settings=Object.assign({},analysis.settings);
+        curPreset='auto';paintPresets('auto');writeSliders(settings);
+        $('#enRun',panel).disabled=false;
+        u.results.classList.add('show');
+        u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 4px">'+w+' \u00d7 '+h+' px \u00b7 '+fmtBytes(f.size)+' \u00b7 '+(f.type||'image')+'</p>'+
+          '<p style="text-align:center;font-size:12.5px;margin:0 0 10px"><span style="color:var(--p1,#22d3ee)">Detected:</span> '+analysis.findings.join(' \u00b7 ')+'</p>';
+        setStatus(u.status,'Ready \u2014 press Enhance, or fine-tune first.');
+      }).catch(function(e){setStatus(u.status,'Could not load the enhancement engine: '+(e.message||e)+'. Refresh and try again.',1);});
+    }).catch(function(){setStatus(u.status,'Could not decode this image \u2014 it may be corrupted, or an unsupported HEIC. Convert it with the HEIC to JPG tool first.',1);});
+  }
+  dropzone(u.drop,u.file,function(fs){accept([].slice.call(fs)[0]);});
+  function onPaste(e){
+    if(!panel.isConnected){document.removeEventListener('paste',onPaste);return;}
+    var items=(e.clipboardData||{}).items||[];
+    for(var i=0;i<items.length;i++){if(items[i].kind==='file'&&/^image\//.test(items[i].type)){accept(items[i].getAsFile());e.preventDefault();return;}}
+  }
+  document.addEventListener('paste',onPaste);
+
+  function loadEngine(){
+    return _loadScript('/enhancer-engine.js','EnhanceEngine').catch(function(){
+      return _loadScript('/enhancer-engine.js?r='+Date.now(),'EnhanceEngine');
+    });
+  }
+
+  /* ── Live preview scheduling (proxy-res, debounced) ─────────────── */
+  function schedulePreview(){
+    if(!proxySrc||!window.EnhanceEngine)return;
+    clearTimeout(liveTimer);
+    liveTimer=setTimeout(runPreview,180);
+  }
+  var previewRun=null;
+  function runPreview(){
+    if(!proxySrc)return;
+    if(previewRun)previewRun.cancelled=true;
+    var signal={cancelled:false};previewRun=signal;
+    proxyOut=document.createElement('canvas');
+    proxyOut.width=proxySrc.width;proxyOut.height=proxySrc.height;
+    proxyOut.getContext('2d').drawImage(proxySrc,0,0);
+    window.EnhanceEngine.run({canvas:proxyOut,settings:settings,signal:signal})
+      .then(function(res){if(signal.cancelled)return;showCompare(res.canvas,res.engine,false);})
+      .catch(function(){});
+  }
+
+  $('#enRun',panel).onclick=function(){
+    if(!srcCanvas||running)return;
+    if(window._ga)window._ga('enhancement_started',{tool_name:'ai-photo-enhancer',preset:curPreset});
+    runPreview(); /* instant proxy result */
+    setStatus(u.status,'Enhanced preview ready \u2014 fine-tune with sliders, then Download for full resolution.');
+  };
+
+  /* ── Compare stage (slider + zoom + pan + fullscreen + keys) ────── */
+  var stageBuilt=false,zoom=1,_resizeH=null;
+  function showCompare(outCv,engineLabel){
+    freeUrls();
+    Promise.all([
+      new Promise(function(r){proxySrc.toBlob(function(b){r(b);},'image/png');}),
+      new Promise(function(r){outCv.toBlob(function(b){r(b);},'image/png');})
+    ]).then(function(blobs){
+      if(!blobs[0]||!blobs[1])return;
+      var befU=URL.createObjectURL(blobs[0]),aftU=URL.createObjectURL(blobs[1]);
+      _urls.push(befU,aftU);
+      var meta='<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:4px">Engine: '+engineLabel+' \u00b7 v'+(window.EnhanceEngine&&window.EnhanceEngine.version||'?')+'</p>'+
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:10px">Live preview at reduced resolution \u2014 Download processes the full '+srcCanvas.width+'\u00d7'+srcCanvas.height+' px image.</p>';
+      u.results.innerHTML=meta+
+        '<div id="enWrap" style="max-width:640px;margin:0 auto;max-height:70vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;background:#000" tabindex="0" aria-label="Before and after comparison. Keys: plus and minus to zoom, zero to fit, F for fullscreen">'+
+          '<div id="enCmp" style="position:relative;width:100%">'+
+            '<img src="'+aftU+'" style="display:block;width:100%" alt="Enhanced photo" draggable="false">'+
+            '<div id="enBefW" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden"><img id="enBef" src="'+befU+'" style="display:block;height:100%" alt="Original photo" draggable="false"></div>'+
+            '<div id="enHand" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8)"></div>'+
+            '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
+            '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">ENHANCED</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="max-width:640px;margin:10px auto 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center">'+
+          '<input type="range" id="enSlide" min="0" max="100" value="50" style="flex:1;min-width:150px" aria-label="Comparison divider position">'+
+          '<div class="seg" role="group" aria-label="Zoom"><button id="enZO" aria-label="Zoom out">\u2212</button><button id="enZF" aria-pressed="true">Fit</button><button id="enZI" aria-label="Zoom in">+</button></div>'+
+          '<button class="btn btn-ghost" id="enFS" aria-label="Fullscreen" style="padding:6px 12px">\u26F6</button>'+
+        '</div>'+
+        '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
+          '<button class="btn btn-primary" id="enDl">Download full resolution</button>'+
+          '<button class="btn btn-ghost" id="enReset">Start over</button>'+
+        '</div>'+
+        '<div class="status" id="enDlSt" role="status" aria-live="polite"></div>';
+      var cmp=$('#enCmp',panel),befW=$('#enBefW',panel),bef=$('#enBef',panel),hand=$('#enHand',panel),wrap=$('#enWrap',panel);
+      function syncBef(){bef.style.width=cmp.clientWidth+'px';}
+      syncBef();
+      if(_resizeH)window.removeEventListener('resize',_resizeH);
+      _resizeH=syncBef;window.addEventListener('resize',_resizeH);
+      $('#enSlide',panel).oninput=function(){befW.style.width=this.value+'%';hand.style.left=this.value+'%';};
+      function setZoom(z){zoom=Math.max(.5,Math.min(6,z));cmp.style.width=(zoom*100)+'%';syncBef();}
+      $('#enZI',panel).onclick=function(){setZoom(zoom*1.4);};
+      $('#enZO',panel).onclick=function(){setZoom(zoom/1.4);};
+      $('#enZF',panel).onclick=function(){setZoom(1);};
+      $('#enFS',panel).onclick=function(){
+        if(document.fullscreenElement){document.exitFullscreen();}
+        else if(wrap.requestFullscreen){wrap.requestFullscreen();}
+      };
+      wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15));}},{passive:false});
+      wrap.addEventListener('keydown',function(e){
+        if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoom*1.4);}
+        else if(e.key==='-'){e.preventDefault();setZoom(zoom/1.4);}
+        else if(e.key==='0'){e.preventDefault();setZoom(1);}
+        else if(e.key==='f'||e.key==='F'){e.preventDefault();$('#enFS',panel).click();}
+      });
+      $('#enDl',panel).onclick=downloadFull;
+      $('#enReset',panel).onclick=function(){resetAll();};
+    });
+  }
+
+  /* ── Full-resolution processing on Download ─────────────────────── */
+  function downloadFull(){
+    if(!srcCanvas||running)return;
+    var st=$('#enDlSt',panel)||u.status;
+    var signal={cancelled:false};running=signal;
+    var btn=$('#enDl',panel);btn.disabled=true;
+    st.className='status show';
+    st.innerHTML='Processing full resolution\u2026 <span id="enPct">0%</span> <button class="btn btn-ghost" id="enCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
+    $('#enCancel',panel).onclick=function(){signal.cancelled=true;};
+    fullOut=document.createElement('canvas');
+    fullOut.width=srcCanvas.width;fullOut.height=srcCanvas.height;
+    fullOut.getContext('2d').drawImage(srcCanvas,0,0);
+    window.EnhanceEngine.run({
+      canvas:fullOut,settings:settings,signal:signal,
+      onProgress:function(p,msg){var el=$('#enPct',panel);if(el)el.textContent=Math.round(p*100)+'%'+(msg?' \u00b7 '+msg:'');}
+    }).then(function(res){
+      running=null;
+      if(signal.cancelled){st.textContent='Cancelled.';btn.disabled=false;return;}
+      var fmt=$('#enFmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
+      var c=res.canvas;
+      if(fmt==='image/jpeg'){var f2=document.createElement('canvas');f2.width=c.width;f2.height=c.height;var fx=f2.getContext('2d');fx.fillStyle='#fff';fx.fillRect(0,0,f2.width,f2.height);fx.drawImage(c,0,0);c=f2;}
+      c.toBlob(function(b){
+        btn.disabled=false;
+        if(!b){st.textContent='Export failed \u2014 try PNG.';return;}
+        var nm=srcName+'-enhanced.'+ext;
+        download(b,nm);
+        st.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
+        if(window._ga){window._ga('enhancement_completed',{tool_name:'ai-photo-enhancer',preset:curPreset,engine:res.engine});window._ga('file_download',{file_name:nm,tool_name:'ai-photo-enhancer'});}
+      },fmt,fmt==='image/png'?undefined:.92);
+    }).catch(function(e){
+      running=null;btn.disabled=false;
+      st.textContent=(e&&e.message==='cancelled')?'Cancelled.':'Processing failed: '+(e&&e.message||e);
+    });
+  }
+
+  function resetAll(){
+    if(running)running.cancelled=true;running=null;
+    if(previewRun)previewRun.cancelled=true;previewRun=null;
+    clearTimeout(liveTimer);freeUrls();
+    if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
+    srcCanvas=proxySrc=proxyOut=fullOut=null;analysis=null;settings={};
+    curPreset='auto';paintPresets('auto');writeSliders({});
+    $('#enRun',panel).disabled=true;
+    u.results.innerHTML='';u.results.classList.remove('show');
+    u.drop.style.display='';setStatus(u.status,'');
+  }
+};
+FAQ['ai-photo-enhancer']=[["How does the enhancement work?","The tool analyzes your photo's histogram, color balance, noise and sharpness on your device, then applies targeted corrections: white balance, exposure, contrast, shadow/highlight recovery, vibrance, edge-safe noise reduction, clarity and gated sharpening. It is honest image science running in your browser \u2014 and it always labels which engine produced your result."],["Is my photo uploaded anywhere?","No. The default engine processes everything on your device. An optional cloud engine for AI face restoration can be enabled by the site, and the tool will clearly say so whenever it is used."],["Does it enhance faces?","The on-device engine improves facial sharpness, skin tone and lighting as part of overall correction, but it does not reconstruct facial detail like Remini-class tools \u2014 that requires a server GPU model, available via the optional cloud engine."],["Does it preserve transparency?","Yes \u2014 the alpha channel is never modified. PNG and WEBP keep transparency; JPG flattens onto white."],["What are the presets?","Auto applies corrections derived from the analysis of your specific photo. Portrait, Landscape, Night, Document, Product, Old Photo and Anime are tuned starting points \u2014 adjusting any slider switches to Custom."]];

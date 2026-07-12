@@ -44,6 +44,7 @@ const HERO_MAP = {
   'qr-code-generator':  { type: 'qr' },
   'background-remover': { type: 'comparison' },
   'ai-image-upscaler':  { type: 'comparison' },
+  'ai-photo-enhancer':  { type: 'comparison' },
   'ocr-image-to-text':  { type: 'ocr' },
   'heic-to-jpg':        { type: 'formatConvert', from: 'HEIC', to: 'JPG' },
 

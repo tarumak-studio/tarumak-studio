@@ -45,6 +45,7 @@ const HERO_MAP = {
   'background-remover': { type: 'comparison' },
   'ai-image-upscaler':  { type: 'comparison' },
   'ai-photo-enhancer':  { type: 'comparison' },
+  'ai-object-remover':  { type: 'comparison' },
   'ocr-image-to-text':  { type: 'ocr' },
   'heic-to-jpg':        { type: 'formatConvert', from: 'HEIC', to: 'JPG' },
 

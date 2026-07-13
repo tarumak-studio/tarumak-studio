@@ -133,6 +133,7 @@ function buildFeaturedTools(cat){
     items=meta?meta.popular.map(slug=>({slug:slug,hook:null})):[];
   }
 
+  const NEW_SLUGS=new Set(['ai-object-remover','ai-photo-enhancer','ai-image-upscaler']);
   grid.innerHTML=items.map(f=>{
     const t=bySlug(f.slug);
     if(!t)return '';
@@ -140,6 +141,7 @@ function buildFeaturedTools(cat){
     const preview=FEATURED_PREVIEWS[f.slug]?FEATURED_PREVIEWS[f.slug]():'';
     return ''+
       '<a class="feat-card cat-'+t[2]+'" href="/'+t[0]+'" aria-label="Open '+t[1]+'">'+
+        (NEW_SLUGS.has(t[0])?'<span class="fc-badge-new">NEW</span>':'')+
         '<div class="fc-head">'+
           '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
           '<h3>'+t[1]+'</h3>'+
@@ -185,6 +187,31 @@ const FEATURED_PREVIEWS={
       '<div class="fcp-row"><span class="fcp-row-label">Before</span><span class="fcp-photo fcp-before"><span class="fcp-subject"></span></span></div>'+
       '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
       '<div class="fcp-row"><span class="fcp-row-label">After</span><span class="fcp-photo fcp-after"><span class="fcp-subject"></span></span></div>'+
+    '</div>',
+
+  /* Reuses the same generic "photo" glyph (fcp-img-mini) on both rows —
+     deliberately: unlike background-remover this isn't a transparency
+     transform, it's the same photo minus clutter, so the icon should
+     look like the same photo, not a different visual language. */
+  'ai-object-remover':()=>
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">With clutter</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">Cleaned up</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+    '</div>',
+
+  'ai-photo-enhancer':()=>
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">Flat &amp; dull</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">Sharp &amp; vivid</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+    '</div>',
+
+  'ai-image-upscaler':()=>
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">1\u00d7</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">4\u00d7, still sharp</span><span class="fcp-img-mini"><i></i><i></i><i></i></span></div>'+
     '</div>',
 
   'image-compressor':()=>
@@ -741,18 +768,19 @@ function updateToolMeta(slug,t){
 /* ── SEO: restore homepage meta tags when navigating back ───── */
 function restoreHomeMeta(){
   var baseUrl='https://tarumakstudio.com';
+  var n=(typeof TOOLS!=='undefined'&&TOOLS.length)||69; /* derive from the live registry, never hardcode */
   var md=document.querySelector('meta[name="description"]');
-  if(md) md.setAttribute('content','66 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  if(md) md.setAttribute('content',n+' free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
   var can=document.querySelector('link[rel="canonical"]');
   if(can) can.setAttribute('href',baseUrl+'/');
   var _og=function(prop,val){var el=document.querySelector('meta[property="'+prop+'"]');if(el)el.setAttribute('content',val);};
   _og('og:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
-  _og('og:description','66 free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
+  _og('og:description',n+' free browser-based tools for designers, marketers and developers. Compress images, edit PDFs, build UTMs, create social media graphics and more.');
   _og('og:url',baseUrl+'/');
   _og('og:type','website');
   var _tw=function(name,val){var el=document.querySelector('meta[name="'+name+'"]');if(el)el.setAttribute('content',val);};
   _tw('twitter:title','Tarumak Studio \u2014 Free Design & Marketing Tools');
-  _tw('twitter:description','66 free browser-based tools for designers, marketers and developers.');
+  _tw('twitter:description',n+' free browser-based tools for designers, marketers and developers.');
   var old=document.getElementById('tool-jsonld');
   if(old) old.remove();
 }

@@ -22,19 +22,30 @@
 .nav-tools-panel.mega {
   width: 760px;
   padding: 0;
-  display: block;
+  display: flex;
   grid-template-columns: none;
   transform: translateX(-50%) translateY(-8px) scale(.97);
   transform-origin: top center;
   overflow: hidden;
 }
+/* NOTE: header-chrome.js stamps this element as
+   class="nav-tools-panel mega" \u2014 both classes on the SAME element.
+   .nav-tools-panel.mega (two classes, specificity 0-2-0) therefore
+   always wins over a plain .mega rule (0-1-0), regardless of which
+   is declared first in the file. A separate `.mega { display: flex }`
+   rule used to exist below, setting display on this same element \u2014
+   but it could never actually apply, since this more specific rule
+   said `display: block` and always overrode it. The result: .mega-rail
+   and .mega-preview (both written assuming a flex row parent) stacked
+   as plain block children instead \u2014 rail on top, preview pushed below
+   with a large gap, exactly the layout bug spotted in a live screenshot.
+   Fixed here directly rather than relying on a second, weaker rule. */
 .nav-tools-drop:hover .nav-tools-panel.mega,
 .nav-tools-drop:focus-within .nav-tools-panel.mega,
 .nav-tools-drop.js-open .nav-tools-panel.mega {
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-.mega { display: flex; }
 .mega-rail {
   width: 264px; flex-shrink: 0; padding: 10px;
   border-right: 1px solid rgba(255,255,255,.07);

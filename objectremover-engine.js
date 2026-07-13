@@ -180,14 +180,46 @@
      one whose low-frequency best matches the base fill, and composite its
      high-frequency detail with a cosine window (texture-quilting lite).
      Detail-transfer (not raw copy) prevents seams and wrong lighting. */
+  /* Luma variance of KNOWN pixels in a window — tells us whether the area
+     around a hole is genuinely textured (grass, foliage) or smooth (flat
+     illustration, sky, gradient, product surface). */
+  function knownVar(d, noSample, w, h, bx, by, B) {
+    var pad = B, x0 = Math.max(0, bx - pad), y0 = Math.max(0, by - pad);
+    var x1 = Math.min(w, bx + B + pad), y1 = Math.min(h, by + B + pad);
+    var sum = 0, sq = 0, n = 0;
+    for (var y = y0; y < y1; y += 2) for (var x = x0; x < x1; x += 2) {
+      if (noSample[y * w + x]) continue;                 /* skip hole + guard */
+      var i = (y * w + x) * 4;
+      var l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      sum += l; sq += l * l; n++;
+    }
+    if (n < 8) return 0;
+    return sq / n - (sum / n) * (sum / n);
+  }
+  function blockVar(d, bx, by, B, w) {
+    var sum = 0, sq = 0, n = 0;
+    for (var y = by; y < by + B; y += 2) for (var x = bx; x < bx + B; x += 2) {
+      var i = (y * w + x) * 4;
+      var l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      sum += l; sq += l * l; n++;
+    }
+    if (!n) return 0;
+    return sq / n - (sum / n) * (sum / n);
+  }
+
   function texturize(d, base, mask, w, h, opts, rand, forbid) {
     var B = opts.block, HALF = B >> 1, K = opts.candidates, R = opts.radius;
     rand = rand || Math.random;
     /* Source blocks must avoid `forbid` (the guard band around the object),
        not merely `mask` — otherwise candidates sample the object's own
-       anti-aliased fringe and drag its colour back in (the "remnant/smear"
-       artifact). Fall back to `mask` if no forbid map supplied. */
+       anti-aliased fringe and drag its colour back in. */
     var noSample = forbid || mask;
+    /* SMOOTHNESS GATE: below this known-neighbourhood variance the area is
+       flat (illustration, sky, gradient). The diffused base already
+       continues those gradients correctly — injecting patch detail there is
+       exactly what produced the "green shards / broken geometry". So in
+       smooth areas we keep the pure base and skip texture entirely. */
+    var SMOOTH = 55;
     var win = new Float32Array(B * B);
     for (var wy = 0; wy < B; wy++) for (var wx = 0; wx < B; wx++) {
       win[wy * B + wx] = Math.sin(Math.PI * (wx + .5) / B) * Math.sin(Math.PI * (wy + .5) / B);
@@ -215,6 +247,10 @@
           if (mask[y * w + x]) { touches = true; break; }
         }
         if (!touches) continue;
+        /* Gate: is the surrounding known area textured enough to warrant
+           patch synthesis? If not, leave the smooth base as-is. */
+        var localVar = knownVar(d, noSample, w, h, bx, by, B);
+        if (localVar < SMOOTH) continue;
         var target = blockMean(base, bx, by, 3);
         var best = null, bestScore = 1e18;
         for (var k = 0; k < K; k++) {
@@ -224,18 +260,28 @@
           var m2 = blockMean(d, sx, sy, 4);
           var s = 0;
           for (var c = 0; c < 3; c++) { var dv = m2[c] - target[c]; s += dv * dv; }
+          /* Variance-match penalty: reject a source block whose internal
+             detail level is far from the surrounding texture. This stops an
+             edge/high-contrast block being pasted into a milder texture —
+             the other source of "duplicated texture patches" and geometry
+             breaks. */
+          var svar = blockVar(d, sx, sy, B, w);
+          var vpen = Math.abs(svar - localVar) * 0.5;
+          s += vpen;
           if (s < bestScore) { bestScore = s; best = [sx, sy, m2]; }
         }
         if (!best) continue;
         var sx2 = best[0], sy2 = best[1], srcMean = best[2];
+        /* Scale detail by how textured the area is, so mildly-textured
+           regions get a gentle amount and never look pasted. */
+        var texStrength = opts.strength * Math.min(1, (localVar - SMOOTH) / 120);
         for (var yy = 0; yy < B; yy++) for (var xx = 0; xx < B; xx++) {
           var ti = ((by + yy) * w + (bx + xx));
           if (!mask[ti]) continue;
           var si = ((sy2 + yy) * w + (sx2 + xx)) * 4;
-          var a = win[yy * B + xx] * opts.strength;
+          var a = win[yy * B + xx] * texStrength;
           for (var c2 = 0; c2 < 3; c2++) {
-            /* transfer DETAIL: source high-freq re-lit onto the base */
-            var detail = d[si + c2] - srcMean[c2];
+            var detail = d[si + c2] - srcMean[c2];         /* source high-freq only */
             var v = base[ti * 3 + c2] + detail;
             var cur = base[ti * 3 + c2];
             base[ti * 3 + c2] = cur * (1 - a) + Math.max(0, Math.min(255, v)) * a;
@@ -393,7 +439,7 @@
   var ORDER = ['cloudflare-ai', 'fal', 'replicate', 'openai', 'browser-caf'];
 
   window.ObjectRemoveEngine = {
-    version: '2.0',
+    version: '2.1',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},

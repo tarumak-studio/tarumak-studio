@@ -22,24 +22,32 @@
 .nav-tools-panel.mega {
   width: 760px;
   padding: 0;
-  display: flex;
-  grid-template-columns: none;
+  display: grid;
+  grid-template-columns: 264px 1fr;
   transform: translateX(-50%) translateY(-8px) scale(.97);
   transform-origin: top center;
   overflow: hidden;
 }
 /* NOTE: header-chrome.js stamps this element as
-   class="nav-tools-panel mega" \u2014 both classes on the SAME element.
-   .nav-tools-panel.mega (two classes, specificity 0-2-0) therefore
-   always wins over a plain .mega rule (0-1-0), regardless of which
-   is declared first in the file. A separate `.mega { display: flex }`
-   rule used to exist below, setting display on this same element \u2014
-   but it could never actually apply, since this more specific rule
-   said `display: block` and always overrode it. The result: .mega-rail
-   and .mega-preview (both written assuming a flex row parent) stacked
-   as plain block children instead \u2014 rail on top, preview pushed below
-   with a large gap, exactly the layout bug spotted in a live screenshot.
-   Fixed here directly rather than relying on a second, weaker rule. */
+   class="nav-tools-panel mega" -- both classes on the SAME element.
+   .mega-footer (further below) has always had `grid-column: 1 / -1` --
+   a CSS Grid property, meaningless outside a grid container. That is
+   the tell that this panel was designed as a 2-column GRID (rail |
+   preview, footer spanning both) from the start, not flex. An earlier
+   state of this rule had `display: block`, which broke rail/preview
+   into stacked blocks; a previous pass "fixed" that to
+   `display: flex`, which stopped the stacking but broke the footer's
+   spanning instead, since flex has no concept of grid-column. The
+   footer then became a cramped THIRD flex sibling, squeezing the
+   preview panel down to roughly a third of its intended width --
+   which is what caused a wrapped heading colliding with the
+   illustration, truncated tool names, and an overlapping highlight
+   card, all visible together in one screenshot. Grid is correct here:
+   it matches what .mega-footer already assumed, restores the
+   preview's real ~470px width, and needs no HTML changes -- grid
+   auto-flow places mega-rail and mega-preview in row 1's two columns,
+   then mega-footer's own grid-column: 1 / -1 drops it to row 2,
+   spanning both. */
 .nav-tools-drop:hover .nav-tools-panel.mega,
 .nav-tools-drop:focus-within .nav-tools-panel.mega,
 .nav-tools-drop.js-open .nav-tools-panel.mega {
@@ -47,7 +55,7 @@
 }
 
 .mega-rail {
-  width: 264px; flex-shrink: 0; padding: 10px;
+  min-width: 0; padding: 10px;
   border-right: 1px solid rgba(255,255,255,.07);
   display: flex; flex-direction: column; gap: 2px;
 }
@@ -170,7 +178,8 @@
   font-family: var(--fb); font-size: 11px; font-weight: 600; color: var(--text-faint);
   background: rgba(255,255,255,.05); padding: 2px 7px; border-radius: 99px;
 }
-.mega-preview-head p { font-size: 12px; color: var(--text-dim); margin-top: 2px; line-height: 1.45; position: relative; z-index: 1; max-width: 210px; }
+.mega-preview-head > div { max-width: 230px; min-width: 0; }
+.mega-preview-head p { font-size: 12px; color: var(--text-dim); margin-top: 2px; line-height: 1.45; position: relative; z-index: 1; }
 
 /* Per-category animated illustration \u2014 pulled in closer to the head
    (was top:-6px/right:-4px/148\u00d792) so it reads as part of the same
@@ -379,8 +388,7 @@
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 1023px) {
   .nav-tools-panel.mega { width: 320px; }
-  .mega { flex-direction: column; }
-  .mega-rail { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .mega-rail { grid-column: 1 / -1; width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
   .mega-preview { display: none; } /* no hover target on touch — rail links go straight to category pages */
   .mega-cat-desc { display: none; }
 }

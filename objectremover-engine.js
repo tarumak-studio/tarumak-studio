@@ -88,21 +88,34 @@
         if (m[ny3 * w + nx3]) queue.push(ny3 * w + nx3);
       }
     }
-    /* smoothing passes over originally-masked region only */
+    /* Edge-stopping ("bilateral") smoothing passes over the masked region.
+       Pure isotropic averaging blurs equally in every direction, which turns
+       any structure that reached the hole into a soft blob — the main cause
+       of the "blurry smear". Here each neighbour's weight decays with its
+       colour distance from the current pixel (w = exp(-d²/2σ²)), so the
+       diffusion flows ALONG edges/gradients but not ACROSS them: straight
+       boundaries and gradient bands continue into the fill and stay crisp. */
     var orig = sm.mask;
+    var SIG2 = 2 * 26 * 26;                 /* colour sensitivity (σ≈26) */
     for (var p = 0; p < passes; p++) {
       for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
         i = y * w + x; if (!orig[i]) continue;
-        var r2 = 0, g2 = 0, b2 = 0, n2 = 0;
+        var cr = d[i * 3], cg = d[i * 3 + 1], cb = d[i * 3 + 2];
+        var r2 = 0, g2 = 0, b2 = 0, wsum = 0;
         for (k = 0; k < 4; k++) {
           var nx4 = x + OFF[k][0], ny4 = y + OFF[k][1];
           if (nx4 < 0 || ny4 < 0 || nx4 >= w || ny4 >= h) continue;
           var j2 = (ny4 * w + nx4) * 3;
-          r2 += d[j2]; g2 += d[j2 + 1]; b2 += d[j2 + 2]; n2++;
+          var dr = d[j2] - cr, dg = d[j2 + 1] - cg, db = d[j2 + 2] - cb;
+          var cd = dr * dr + dg * dg + db * db;
+          var wt = Math.exp(-cd / SIG2);      /* similar colour → high weight */
+          r2 += d[j2] * wt; g2 += d[j2 + 1] * wt; b2 += d[j2 + 2] * wt; wsum += wt;
         }
-        d[i * 3] = (d[i * 3] + r2 / n2) / 2;
-        d[i * 3 + 1] = (d[i * 3 + 1] + g2 / n2) / 2;
-        d[i * 3 + 2] = (d[i * 3 + 2] + b2 / n2) / 2;
+        if (wsum > 0) {
+          d[i * 3] = (cr + r2 / wsum) / 2;
+          d[i * 3 + 1] = (cg + g2 / wsum) / 2;
+          d[i * 3 + 2] = (cb + b2 / wsum) / 2;
+        }
       }
     }
     return sm;
@@ -439,7 +452,7 @@
   var ORDER = ['cloudflare-ai', 'fal', 'replicate', 'openai', 'browser-caf'];
 
   window.ObjectRemoveEngine = {
-    version: '2.1',
+    version: '2.2',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},

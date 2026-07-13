@@ -121,16 +121,27 @@
 
     var toolsHtml = m.tools.map(function (t) {
       return '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
-        + (t.starred ? '<span class="mega-star" aria-hidden="true">\u2605</span>' : '')
-        + t.name + '</a>';
+        + '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
+        + '<span class="mega-tool-txt"><span class="mega-tool-name">' + t.name + '</span>'
+        + (t.blurb ? '<span class="mega-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
+        + '</a>';
     }).join('');
     var exploreHref = key === '__ai__' ? '/tools' : '/' + key + '-tools';
     var exploreLabel = key === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
+    var highlightHtml = m.highlight
+      ? '<a class="mega-highlight" href="/' + m.highlight.slug + '">'
+        + '<span class="mega-hl-badge">' + (m.highlight.type === 'new' ? '\u2728' : '\u2b50') + ' ' + m.highlight.label + '</span>'
+        + '<span class="mega-hl-name">' + m.highlight.name + '</span>'
+      + '</a>'
+      : '';
 
     preview.innerHTML =
       '<div class="mega-preview-head" style="--accent:' + m.accent + '"><span class="mega-preview-ico">' + m.icon + '</span>'
-      + '<div><h3>' + m.name + '</h3><p>' + m.desc + '</p></div></div>'
+      + '<div><h3>' + m.name + '</h3><p>' + m.count + ' free browser-based tools. ' + m.desc + '</p></div>'
+      + (m.illustration ? '<div class="mega-illo-wrap" style="color:' + m.accent + '">' + m.illustration + '</div>' : '')
+      + '</div>'
       + '<div class="mega-preview-list">' + toolsHtml + '</div>'
+      + highlightHtml
       + '<a class="mega-explore" href="' + exploreHref + '">' + exploreLabel
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>';
 

@@ -117,8 +117,17 @@
   max-height: 0;
   transition: max-height 280ms var(--ease);
 }
-.mm-acc-panel.open { max-height: 340px; } /* generous ceiling: 4 tools + view-all never exceeds this */
+/* Raised from the old 340px ceiling now that each panel also carries a
+   category description and two-line tool rows (name + one-line blurb)
+   instead of a single line each. Still just a cap for the max-height
+   transition technique \u2014 real content is always shorter, so
+   overshooting here costs nothing visually. */
+.mm-acc-panel.open { max-height: 480px; }
 .mm-acc-panel-inner { padding: 2px 4px 12px 30px; display: flex; flex-direction: column; }
+.mm-acc-desc {
+  font-family: var(--fb); font-size: 13px; color: var(--text-faint);
+  line-height: 1.5; margin: 2px 0 10px;
+}
 .mm-acc-panel a {
   min-height: 44px; display: flex; align-items: center;
   font-family: var(--fb); font-weight: 500; font-size: 14.5px;
@@ -128,6 +137,22 @@
 .mm-acc-panel a.mm-acc-viewall { font-weight: 700; color: var(--p1); gap: 5px; }
 .mm-acc-panel a.mm-acc-viewall svg { width: 13px; height: 13px; transition: transform 200ms var(--ease); }
 .mm-acc-panel a.mm-acc-viewall:hover svg { transform: translateX(2px); }
+
+/* Featured-tool rows: icon mark + name + one-line blurb, stacked \u2014
+   the same content shape as the desktop mega menu's tool cards, just
+   full-width and touch-sized instead of a 2-column grid. */
+.mm-acc-tool { align-items: flex-start !important; gap: 10px; padding: 8px 0 !important; }
+.mm-acc-tool-mark {
+  flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1;
+  color: var(--p1); background: rgba(34,211,238,.14);
+}
+.mm-acc-tool.starred .mm-acc-tool-mark { color: #fbbf24; background: rgba(251,191,36,.14); }
+.mm-acc-tool-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mm-acc-tool-name { font-size: 14.5px; }
+.mm-acc-tool.starred .mm-acc-tool-name { font-weight: 700; color: var(--text); }
+.mm-acc-tool-blurb { font-size: 12px; font-weight: 400; color: var(--text-faint); line-height: 1.4; white-space: normal; }
 
 /* ═══════════════════════════════════════════════════════════
    ACTIONS ROW — Explore Tools + dark mode toggle, pinned at the

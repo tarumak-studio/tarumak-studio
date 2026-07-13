@@ -140,7 +140,11 @@
         var m = DATA[key];
         if (!m) return '';
         var toolsHtml = m.tools.map(function (t) {
-          return '<a href="/' + t.slug + '">' + t.name + '</a>';
+          return '<a class="mm-acc-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
+            + '<span class="mm-acc-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
+            + '<span class="mm-acc-tool-txt"><span class="mm-acc-tool-name">' + t.name + '</span>'
+            + (t.blurb ? '<span class="mm-acc-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
+            + '</a>';
         }).join('');
         return '' +
           '<div class="mm-acc-item">' +
@@ -151,6 +155,7 @@
               '<svg class="mm-acc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>' +
             '</button>' +
             '<div class="mm-acc-panel"><div class="mm-acc-panel-inner">' +
+              '<p class="mm-acc-desc">' + m.desc + '</p>' +
               toolsHtml +
               '<a class="mm-acc-viewall" href="/' + key + '-tools">View All ' + m.name + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>' +
             '</div></div>' +

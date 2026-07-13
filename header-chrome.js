@@ -119,17 +119,27 @@ function getChrome() {
   NAV_ORDER.forEach(c => {
     const meta = CAT_META[c];
     const popular = meta.popular.map(sl => resolveTool(sl, c));
+    const hl = meta.highlight;
+    const hlTool = hl ? resolveTool(hl.slug, c) : null;
     previewData[c] = {
       name: CAT[c], desc: meta.desc || meta.tagline, accent: ACCENT[c], icon: ICON[c],
-      count: COUNT[c],
-      tools: popular.map((t, i) => ({ slug: t[0], name: t[1], starred: i < 2 }))
+      count: COUNT[c], illustration: meta.illustration || '',
+      tools: popular.map((t, i) => ({ slug: t[0], name: t[1], starred: i < 2, blurb: (meta.blurbs && meta.blurbs[t[0]]) || '' })),
+      highlight: hlTool ? { type: hl.type, label: hl.label, slug: hlTool[0], name: hlTool[1] } : null
     };
   });
   previewData.__ai__ = {
     name: 'AI-Powered Tools', desc: 'Tools that run a real model in your browser \u2014 not just an algorithm.', accent: '#f472b6',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>',
     count: AI_POWERED.length,
-    tools: AI_POWERED.map((t, i) => ({ slug: t[0], name: t[1], starred: true }))
+    illustration: '<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+      + '<circle class="illo-float illo-d1" cx="56" cy="50" r="26" stroke="currentColor" stroke-width="2" opacity=".4"/>'
+      + '<circle class="illo-float illo-d2" cx="100" cy="50" r="18" stroke="currentColor" stroke-width="2" opacity=".55"/>'
+      + '<path class="illo-sparkle" d="M120 24l3.2 8.8L132 36l-8.8 3.2L120 48l-3.2-8.8L108 36l8.8-3.2z" fill="currentColor"/>'
+      + '<path class="illo-sparkle illo-sp2" d="M40 68l2.2 6L48 76l-5.8 2-2.2 6-2.2-6L32 76l5.8-2z" fill="currentColor"/>'
+      + '</svg>',
+    tools: AI_POWERED.map((t, i) => ({ slug: t[0], name: t[1], starred: true, blurb: '' })),
+    highlight: null
   };
 
   const rail = NAV_ORDER.map((c, i) => {
@@ -145,14 +155,25 @@ function getChrome() {
   function renderPreview(m, catKey) {
     const tools = m.tools.map(t =>
       '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
-      + (t.starred ? '<span class="mega-star" aria-hidden="true">\u2605</span>' : '')
-      + t.name + '</a>'
+      + '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
+      + '<span class="mega-tool-txt"><span class="mega-tool-name">' + t.name + '</span>'
+      + (t.blurb ? '<span class="mega-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
+      + '</a>'
     ).join('');
     const exploreHref = catKey === '__ai__' ? '/tools' : '/' + catKey + '-tools';
     const exploreLabel = catKey === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
+    const highlightHtml = m.highlight
+      ? '<a class="mega-highlight" href="/' + m.highlight.slug + '">'
+        + '<span class="mega-hl-badge">' + (m.highlight.type === 'new' ? '\u2728' : '\u2b50') + ' ' + m.highlight.label + '</span>'
+        + '<span class="mega-hl-name">' + m.highlight.name + '</span>'
+      + '</a>'
+      : '';
     return '<div class="mega-preview-head" style="--accent:' + m.accent + '"><span class="mega-preview-ico">' + m.icon + '</span>'
-      + '<div><h3>' + m.name + '</h3><p>' + m.desc + '</p></div></div>'
+      + '<div><h3>' + m.name + '</h3><p>' + m.count + ' free browser-based tools. ' + m.desc + '</p></div>'
+      + (m.illustration ? '<div class="mega-illo-wrap" style="color:' + m.accent + '">' + m.illustration + '</div>' : '')
+      + '</div>'
       + '<div class="mega-preview-list">' + tools + '</div>'
+      + highlightHtml
       + '<a class="mega-explore" href="' + exploreHref + '">' + exploreLabel + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>';
   }
 

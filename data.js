@@ -17,31 +17,124 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
        from the live nav dropdown for who knows how long, since the old
        bake logic just skipped anything it couldn't find. Fixed to the
        real slugs. The first TWO entries in each popular[] are treated as
-       the "starred" picks in the mega menu \u2014 order here is meaningful. */
+       the "starred" picks in the mega menu \u2014 order here is meaningful.
+
+       blurbs: a short (~7-9 word) one-liner per popular[] slug for the
+       mega-menu row, kept separate from each tool's longer marketing
+       description (TOOLS[..][3]) which is too long next to an icon.
+
+       highlight: the small callout card at the foot of each category's
+       preview. Only 'image' uses type:'new' \u2014 the 3 AI tools were
+       genuinely just added, so that's a true claim. The other four use
+       type:'pick' ("Editor's Pick"), a curatorial statement rather than
+       an unverifiable usage claim \u2014 this site has no real analytics
+       yet (see the AI-Powered tab reasoning below), so a "Most Popular"
+       badge here would be exactly the fabricated-numbers problem that
+       reasoning already warns against.
+
+       illustration: small inline SVG, animated via CSS classes in
+       mega-menu.css (transform/opacity only, gated behind
+       prefers-reduced-motion: no-preference). */
     image:{
       tagline:'Compress, resize, crop and optimize images instantly.',
       desc:'Compress, resize, remove backgrounds and optimize images.',
-      popular:['ai-object-remover','ai-photo-enhancer','ai-image-upscaler','background-remover']
+      popular:['ai-object-remover','ai-photo-enhancer','ai-image-upscaler','background-remover'],
+      blurbs:{
+        'ai-object-remover':'Paint over anything to erase it cleanly.',
+        'ai-photo-enhancer':'Auto-fix exposure, color and noise in one tap.',
+        'ai-image-upscaler':'Enlarge photos 2\u00d7 or 4\u00d7, edges still crisp.',
+        'background-remover':'Erase any background in a single click.'
+      },
+      highlight:{type:'new',slug:'ai-object-remover',label:'Recently Added'},
+      illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+        +'<rect class="illo-float illo-d1" x="20" y="34" width="52" height="40" rx="7" fill="currentColor" opacity=".12"/>'
+        +'<rect class="illo-float illo-d2" x="42" y="24" width="52" height="40" rx="7" fill="currentColor" opacity=".18" transform="rotate(-6 68 44)"/>'
+        +'<rect class="illo-float illo-d3" x="64" y="30" width="52" height="40" rx="7" stroke="currentColor" stroke-width="2" opacity=".55"/>'
+        +'<circle class="illo-float illo-d3" cx="80" cy="46" r="6" stroke="currentColor" stroke-width="2" opacity=".7"/>'
+        +'<path class="illo-sparkle" d="M132 20l3.2 8.8L144 32l-8.8 3.2L132 44l-3.2-8.8L120 32l8.8-3.2z" fill="currentColor"/>'
+        +'</svg>'
     },
     pdf:{
       tagline:'Merge, split, rotate and convert PDFs — fully in-browser.',
       desc:'Merge, split, compress and convert PDFs, no upload required.',
-      popular:['pdf-merger','pdf-compressor','pdf-splitter','pdf-to-jpg']
+      popular:['pdf-merger','pdf-compressor','pdf-splitter','pdf-to-jpg'],
+      blurbs:{
+        'pdf-merger':'Combine any number of PDFs into one file.',
+        'pdf-compressor':'Shrink PDF size without losing readability.',
+        'pdf-splitter':'Pull pages out or split into separate files.',
+        'pdf-to-jpg':'Turn each PDF page into a sharp JPG image.'
+      },
+      highlight:{type:'pick',slug:'pdf-merger',label:'Editor\u2019s Pick'},
+      illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+        +'<rect class="illo-float illo-d1" x="34" y="40" width="46" height="56" rx="5" fill="currentColor" opacity=".12"/>'
+        +'<rect class="illo-float illo-d2" x="46" y="30" width="46" height="56" rx="5" fill="currentColor" opacity=".2"/>'
+        +'<rect class="illo-float illo-d3" x="58" y="20" width="46" height="56" rx="5" stroke="currentColor" stroke-width="2" opacity=".6"/>'
+        +'<path class="illo-float illo-d3" d="M90 20v14h14z" fill="currentColor" opacity=".35"/>'
+        +'<line class="illo-float illo-d3" x1="66" y1="42" x2="94" y2="42" stroke="currentColor" stroke-width="2" opacity=".4"/>'
+        +'<line class="illo-float illo-d3" x1="66" y1="52" x2="94" y2="52" stroke="currentColor" stroke-width="2" opacity=".4"/>'
+        +'</svg>'
     },
     developer:{
       tagline:'JSON, Regex, Base64, color and SEO utilities for builders.',
       desc:'JSON, Regex, Base64 and color utilities built for developers.',
-      popular:['json-formatter','regex-tester','color-converter','base64-encoder']
+      popular:['json-formatter','regex-tester','color-converter','base64-encoder'],
+      blurbs:{
+        'json-formatter':'Format, validate and beautify JSON instantly.',
+        'regex-tester':'Test patterns with live match highlighting.',
+        'color-converter':'Convert HEX, RGB and HSL in one place.',
+        'base64-encoder':'Encode or decode Base64 text and files.'
+      },
+      highlight:{type:'pick',slug:'json-formatter',label:'Editor\u2019s Pick'},
+      illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+        +'<path class="illo-float illo-d1" d="M46 26c-8 0-10 4-10 12s-2 12 -10 12c8 0 10 4 10 12s2 12 10 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity=".55"/>'
+        +'<path class="illo-float illo-d2" d="M114 26c8 0 10 4 10 12s2 12 10 12c-8 0-10 4-10 12s-2 12-10 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity=".55"/>'
+        +'<rect class="illo-cursor" x="77" y="38" width="4" height="24" fill="currentColor"/>'
+        +'<rect class="illo-float illo-d3" x="56" y="70" width="18" height="9" rx="3" fill="currentColor" opacity=".2"/>'
+        +'<rect class="illo-float illo-d1" x="86" y="70" width="18" height="9" rx="3" fill="currentColor" opacity=".2"/>'
+        +'</svg>'
     },
     marketing:{
       tagline:'UTM builders, OG images, CTAs and campaign tools.',
       desc:'UTM links, OG images and CTAs for marketers and creators.',
-      popular:['utm-builder','og-image-gen','qr-code-generator','color-palette-gen']
+      popular:['utm-builder','og-image-gen','qr-code-generator','color-palette-gen'],
+      blurbs:{
+        'utm-builder':'Build trackable campaign links in seconds.',
+        'og-image-gen':'Create social preview images that get clicks.',
+        'qr-code-generator':'Generate a scannable QR code for any link.',
+        'color-palette-gen':'Extract or build a matching color palette.'
+      },
+      highlight:{type:'pick',slug:'og-image-gen',label:'Editor\u2019s Pick'},
+      illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+        +'<rect class="illo-float illo-d1" x="24" y="24" width="60" height="56" rx="10" stroke="currentColor" stroke-width="2" opacity=".55"/>'
+        +'<circle class="illo-float illo-d1" cx="38" cy="38" r="6" fill="currentColor" opacity=".3"/>'
+        +'<line class="illo-float illo-d1" x1="50" y1="35" x2="74" y2="35" stroke="currentColor" stroke-width="2" opacity=".35"/>'
+        +'<line class="illo-float illo-d1" x1="50" y1="42" x2="68" y2="42" stroke="currentColor" stroke-width="2" opacity=".35"/>'
+        +'<path class="illo-heart" d="M38 60c-8-5-12-14-6-19 3-2.6 7-2 9 1 2-3 6-3.6 9-1 6 5 2 14-6 19-2 1.3-4 1.3-6 0z" fill="currentColor" opacity=".5"/>'
+        +'<rect class="illo-bar illo-b1" x="98" y="52" width="10" height="28" rx="2" fill="currentColor" opacity=".3"/>'
+        +'<rect class="illo-bar illo-b2" x="114" y="38" width="10" height="42" rx="2" fill="currentColor" opacity=".45"/>'
+        +'<rect class="illo-bar illo-b3" x="130" y="22" width="10" height="58" rx="2" fill="currentColor" opacity=".6"/>'
+        +'</svg>'
     },
     converter:{
       tagline:'Convert between popular image, document and text formats.',
       desc:'Convert between image, document and text formats instantly.',
-      popular:['word-to-pdf','markdown-to-html','png-to-svg','png-to-jpg']
+      popular:['word-to-pdf','markdown-to-html','png-to-svg','png-to-jpg'],
+      blurbs:{
+        'word-to-pdf':'Turn a Word doc into a shareable PDF.',
+        'markdown-to-html':'Convert Markdown into clean, ready HTML.',
+        'png-to-svg':'Trace a PNG into a scalable vector file.',
+        'png-to-jpg':'Convert PNG to JPG to save file size.'
+      },
+      highlight:{type:'pick',slug:'word-to-pdf',label:'Editor\u2019s Pick'},
+      illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
+        +'<rect class="illo-float illo-d1" x="18" y="26" width="42" height="52" rx="6" stroke="currentColor" stroke-width="2" opacity=".55"/>'
+        +'<line x1="26" y1="40" x2="52" y2="40" stroke="currentColor" stroke-width="2" opacity=".35"/>'
+        +'<line x1="26" y1="50" x2="52" y2="50" stroke="currentColor" stroke-width="2" opacity=".35"/>'
+        +'<line x1="26" y1="60" x2="44" y2="60" stroke="currentColor" stroke-width="2" opacity=".35"/>'
+        +'<path class="illo-arrow" d="M68 52h30m0 0-8-8m8 8-8 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>'
+        +'<rect class="illo-float illo-d2" x="100" y="22" width="42" height="52" rx="14" fill="currentColor" opacity=".14"/>'
+        +'<rect class="illo-float illo-d2" x="100" y="22" width="42" height="52" rx="14" stroke="currentColor" stroke-width="2" opacity=".5"/>'
+        +'</svg>'
     }
   };
 

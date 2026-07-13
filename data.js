@@ -21,7 +21,7 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
     image:{
       tagline:'Compress, resize, crop and optimize images instantly.',
       desc:'Compress, resize, remove backgrounds and optimize images.',
-      popular:['background-remover','image-compressor','image-resizer','heic-to-jpg']
+      popular:['ai-object-remover','ai-photo-enhancer','ai-image-upscaler','background-remover']
     },
     pdf:{
       tagline:'Merge, split, rotate and convert PDFs — fully in-browser.',
@@ -54,12 +54,12 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
   ────────────────────────────────────────────────── */
   const FEATURED=[
     {slug:'background-remover',  hook:'Erase any background in one click — no design skill needed.'},
+    {slug:'ai-object-remover',   hook:'Paint over anything you want gone — it vanishes, seamlessly.'},
+    {slug:'ai-photo-enhancer',   hook:'Auto-fix exposure, color and noise in one click — no editing skill needed.'},
+    {slug:'ai-image-upscaler',   hook:'Enlarge any photo 2\u00d7 or 4\u00d7 while keeping edges crisp and clean.'},
     {slug:'image-compressor',    hook:'Shrink image file size by up to 80% with zero visible quality loss.'},
-    {slug:'ocr-image-to-text',   hook:'Pull text out of any screenshot, scan or photo instantly.'},
     {slug:'word-to-pdf',         hook:'Turn any Word doc into a clean, shareable PDF in seconds.'},
-    {slug:'heic-to-jpg',         hook:'Open iPhone photos anywhere — convert HEIC to JPG instantly.'},
-    {slug:'regex-tester',        hook:'Build and debug regex patterns with live match highlighting.'},
-    {slug:'markdown-to-html',    hook:'Convert Markdown to clean, ready-to-paste HTML instantly.'},
+    {slug:'ocr-image-to-text',   hook:'Pull text out of any screenshot, scan or photo instantly.'},
     {slug:'qr-code-generator',   hook:'Generate a scannable QR code for any link in one step.'}
   ];
 const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',developer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'};
@@ -363,7 +363,12 @@ const TOOLS=[
    search on all 66 tool pages threw "matchTools is not defined"
    the instant anyone typed into it \u2014 a real bug, not moved
    here for tidiness. One definition, used by every page. */
-var EXT_SYNONYMS={jpeg:'jpg',jpg:'jpeg',yml:'yaml',yaml:'yml',htm:'html'};
+var EXT_SYNONYMS={jpeg:'jpg',jpg:'jpeg',yml:'yaml',yaml:'yml',htm:'html',
+  cleanup:'remove',
+  'remove object':'object',
+  'remove objects':'object',
+  restore:'old photo',
+  quality:'enhance'};
 function normalizeSearchTerm(raw){
   var t=raw.toLowerCase().trim();
   if(t.charAt(0)==='.')t=t.slice(1);

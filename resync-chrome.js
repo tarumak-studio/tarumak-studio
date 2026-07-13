@@ -57,7 +57,28 @@ for (const file of targets) {
     const before = html;
 
     const headerStart = html.indexOf('<header id="header">');
-    const mainStart = html.indexOf('<main', headerStart);
+    /* Chrome ends at the true close of the mobile-menu block, NOT at the
+       next literal "<main" in the file. Every normal page happens to have
+       <main> immediately after the mobile-menu, so a naive
+       indexOf('<main', headerStart) worked — until a page (French Academy)
+       legitimately has its own wrapper markup between chrome and <main>.
+       That naive search then spliced INSIDE that wrapper, silently
+       deleting its opening tags on every resync run. A balanced-div scan
+       from the mobile-menu's own opening tag to its real matching close is
+       robust regardless of what any page puts after the shared chrome. */
+    const mmOpen = html.indexOf('id="mobileMenu"', headerStart);
+    let chromeEnd = -1;
+    if (mmOpen !== -1) {
+      const divOpenStart = html.lastIndexOf('<div', mmOpen);
+      let depth = 0, i = divOpenStart, re = /<div\b|<\/div>/g;
+      re.lastIndex = divOpenStart;
+      let m;
+      while ((m = re.exec(html))) {
+        if (m[0] === '<\/div>') { depth--; if (depth === 0) { chromeEnd = m.index + m[0].length; break; } }
+        else depth++;
+      }
+    }
+    const mainStart = chromeEnd !== -1 ? chromeEnd : html.indexOf('<main', headerStart); /* fallback: old behaviour if mobile-menu absent */
     if (headerStart === -1 || mainStart === -1) throw new Error('header/main boundary not found');
 
     const key = activeKeyFor(file);

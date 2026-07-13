@@ -1445,6 +1445,17 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   cursor: pointer; overflow: hidden;
   transition: transform 240ms var(--ease), border-color 240ms var(--ease), box-shadow 240ms var(--ease), background 240ms var(--ease);
 }
+/* Subtle, honest "new" marker — factual (these tools were recently
+   added), not a hyped claim, and deliberately quiet: small caps, soft
+   tint, no animation, no shadow. Premium restraint over flashiness. */
+.fc-badge-new {
+  position: absolute; top: 14px; right: 14px; z-index: 1;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+  color: var(--p1); background: rgba(34,211,238,.1);
+  border: 1px solid rgba(34,211,238,.22);
+  border-radius: 100px; padding: 3px 8px;
+  line-height: 1.4;
+}
 .feat-card:hover {
   transform: translateY(-4px);
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));

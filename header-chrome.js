@@ -96,49 +96,82 @@ function getChrome() {
   const ACCENT = { image: '#22d3ee', pdf: '#a78bfa', developer: '#34d399', marketing: '#fb923c', converter: '#a3e635' };
   const COUNT = {};
   NAV_ORDER.forEach(c => { COUNT[c] = TOOLS.filter(t => t[2] === c).length; });
+  const BUILD_DATE = new Date();
 
   function resolveTool(slug, cat) {
     const t = TOOLS.find(x => x[0] === slug);
     if (!t) throw new Error('header-chrome: CAT_META.' + cat + '.popular references unknown slug "' + slug + '"');
     return t;
   }
+  function fmtTools(n) { return n + ' Tool' + (n === 1 ? '' : 's'); }
 
-  /* AI-Powered tab: an honest, small, code-verified list — not a
-     marketing-invented one. Only tools that actually call a real
-     model at runtime (checked directly in image-tools.js: @imgly/
-     background-removal for background-remover, Tesseract.js for OCR)
-     qualify. "New" / "Trending" / "Most Used" tabs are deliberately
-     NOT implemented: the site's analytics tag is still a placeholder
-     (see the SEO audit), so there is no real data to back those claims
-     yet, and fabricating activity numbers would be exactly the kind of
-     thing the trust-copy work elsewhere in this project has been
-     fixing, not adding. */
-  const AI_POWERED = ['background-remover', 'ai-image-upscaler', 'ocr-image-to-text'].map(sl => TOOLS.find(t => t[0] === sl)).filter(Boolean);
+  /* AI Tools tab: describes CAPABILITY, never mechanism. Earlier this
+     tab was restricted to tools verified to run a real model at runtime
+     (background-remover, ai-image-upscaler, ocr-image-to-text) and its
+     copy said so explicitly ("runs a real model \u2014 not just an
+     algorithm"). This round asked for all 4 image-AI tools grouped here
+     as a discovery surface, but two of them (Object Remover, Photo
+     Enhancer) default to algorithmic engines, not neural ones \u2014
+     documented plainly in their own FAQs. Rather than either refuse the
+     grouping or quietly widen a claim that would become false, the tab
+     now describes what these tools DO ("remove objects, enhance photos,
+     upscale images, erase backgrounds") rather than HOW, which is true
+     for all 4 regardless of the engine tier running underneath. OCR
+     (a genuinely real-model tool) is no longer in this specific tab \u2014
+     the brief's list was exactly these 4 image tools \u2014 but it's still
+     fully searchable and linked everywhere else on the site. */
+  const AI_STUDIO_SLUGS = ['background-remover', 'ai-object-remover', 'ai-photo-enhancer', 'ai-image-upscaler'];
+  const AI_STUDIO = AI_STUDIO_SLUGS.map(sl => TOOLS.find(t => t[0] === sl)).filter(Boolean);
+
+  /* Recently-Added freshness: a highlight authored with type:'new' only
+     displays as NEW for ~90 days from its own dateAdded, computed against
+     the actual build date \u2014 then automatically falls back to the same
+     honest 'pick' framing every other category uses. No one has to
+     remember to manually downgrade a stale "just added!" claim. */
+  function resolveHighlight(hl, cat) {
+    if (!hl) return null;
+    const tool = resolveTool(hl.slug, cat);
+    if (hl.type === 'new' && hl.dateAdded) {
+      const days = Math.floor((BUILD_DATE - new Date(hl.dateAdded + 'T00:00:00Z')) / 86400000);
+      if (days > 90) return { type: 'pick', label: 'Editor\u2019s Pick', slug: hl.slug, name: tool[1] };
+      return { type: 'new', label: hl.label, slug: hl.slug, name: tool[1] };
+    }
+    return { type: hl.type, label: hl.label, slug: hl.slug, name: tool[1] };
+  }
 
   const previewData = {};
   NAV_ORDER.forEach(c => {
     const meta = CAT_META[c];
     const popular = meta.popular.map(sl => resolveTool(sl, c));
-    const hl = meta.highlight;
-    const hlTool = hl ? resolveTool(hl.slug, c) : null;
     previewData[c] = {
       name: CAT[c], desc: meta.desc || meta.tagline, accent: ACCENT[c], icon: ICON[c],
       count: COUNT[c], illustration: meta.illustration || '',
-      tools: popular.map((t, i) => ({ slug: t[0], name: t[1], starred: i < 2, blurb: (meta.blurbs && meta.blurbs[t[0]]) || '' })),
-      highlight: hlTool ? { type: hl.type, label: hl.label, slug: hlTool[0], name: hlTool[1] } : null
+      placeholders: meta.placeholders || [],
+      tools: popular.map((t, i) => ({
+        slug: t[0], name: t[1], starred: i < 2,
+        blurb: (meta.blurbs && meta.blurbs[t[0]]) || '',
+        thumb: (meta.thumbs && meta.thumbs[t[0]]) || ''
+      })),
+      highlight: resolveHighlight(meta.highlight, c)
     };
   });
+  const imgMeta = CAT_META.image;
   previewData.__ai__ = {
-    name: 'AI-Powered Tools', desc: 'Tools that run a real model in your browser \u2014 not just an algorithm.', accent: '#f472b6',
+    name: 'AI Tools', desc: 'Remove objects, enhance photos, upscale images and erase backgrounds \u2014 all in your browser.', accent: '#f472b6',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>',
-    count: AI_POWERED.length,
+    count: AI_STUDIO.length,
+    placeholders: ['Remove an object\u2026', 'Enhance a photo\u2026', 'Upscale an image\u2026', 'Erase a background\u2026'],
     illustration: '<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
       + '<circle class="illo-float illo-d1" cx="56" cy="50" r="26" stroke="currentColor" stroke-width="2" opacity=".4"/>'
       + '<circle class="illo-float illo-d2" cx="100" cy="50" r="18" stroke="currentColor" stroke-width="2" opacity=".55"/>'
       + '<path class="illo-sparkle" d="M120 24l3.2 8.8L132 36l-8.8 3.2L120 48l-3.2-8.8L108 36l8.8-3.2z" fill="currentColor"/>'
       + '<path class="illo-sparkle illo-sp2" d="M40 68l2.2 6L48 76l-5.8 2-2.2 6-2.2-6L32 76l5.8-2z" fill="currentColor"/>'
       + '</svg>',
-    tools: AI_POWERED.map((t, i) => ({ slug: t[0], name: t[1], starred: true, blurb: '' })),
+    tools: AI_STUDIO.map((t, i) => ({
+      slug: t[0], name: t[1], starred: true,
+      blurb: (imgMeta.blurbs && imgMeta.blurbs[t[0]]) || '',
+      thumb: (imgMeta.thumbs && imgMeta.thumbs[t[0]]) || ''
+    })),
     highlight: null
   };
 
@@ -146,33 +179,55 @@ function getChrome() {
     const m = previewData[c];
     return '<a class="mega-cat" href="/' + c + '-tools" data-cat="' + c + '" style="--accent:' + m.accent + '"' + (i === 0 ? ' data-default="1"' : '') + '>'
       + '<span class="mega-cat-ico">' + m.icon + '</span>'
-      + '<span class="mega-cat-body"><span class="mega-cat-top">' + m.name + '<span class="mega-cat-count">' + m.count + '</span></span>'
+      + '<span class="mega-cat-body"><span class="mega-cat-top">' + m.name + '<span class="mega-cat-count">' + fmtTools(m.count) + '</span></span>'
       + '<span class="mega-cat-desc">' + m.desc + '</span></span>'
       + '<svg class="mega-cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'
       + '</a>';
   }).join('');
 
-  function renderPreview(m, catKey) {
-    const tools = m.tools.map(t =>
-      '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
-      + '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
+  /* One tool row renderer, used for BOTH the hero (first, larger) card
+     and the compact secondary cards \u2014 a shared function keeps the two
+     visually related instead of feeling like different components. */
+  function toolRow(t, isHero) {
+    const thumbHtml = t.thumb
+      ? '<span class="mega-tool-thumb">' + t.thumb + '</span>'
+      : '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>';
+    if (isHero) {
+      return '<a class="mega-tool-hero" href="/' + t.slug + '">'
+        + '<span class="mega-tool-hero-label">Featured Tool</span>'
+        + '<span class="mega-tool-hero-row">' + thumbHtml
+        + '<span class="mega-tool-hero-txt"><span class="mega-tool-hero-name">' + t.name + '</span>'
+        + (t.blurb ? '<span class="mega-tool-hero-blurb">' + t.blurb + '</span>' : '') + '</span></span>'
+        + '<span class="mega-tool-hero-cta">Open<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>'
+        + '</a>';
+    }
+    return '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
+      + thumbHtml
       + '<span class="mega-tool-txt"><span class="mega-tool-name">' + t.name + '</span>'
       + (t.blurb ? '<span class="mega-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
-      + '</a>'
-    ).join('');
+      + '</a>';
+  }
+
+  function renderPreview(m, catKey) {
+    const hero = m.tools[0], secondary = m.tools.slice(1);
+    const heroHtml = hero ? toolRow(hero, true) : '';
+    const secondaryHtml = secondary.map(t => toolRow(t, false)).join('');
     const exploreHref = catKey === '__ai__' ? '/tools' : '/' + catKey + '-tools';
-    const exploreLabel = catKey === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
+    const exploreLabel = catKey === '__ai__' ? 'View all ' + fmtTools(m.count) + ' \u2014 AI Studio' : 'View all ' + fmtTools(m.count);
     const highlightHtml = m.highlight
-      ? '<a class="mega-highlight" href="/' + m.highlight.slug + '">'
-        + '<span class="mega-hl-badge">' + (m.highlight.type === 'new' ? '\u2728' : '\u2b50') + ' ' + m.highlight.label + '</span>'
-        + '<span class="mega-hl-name">' + m.highlight.name + '</span>'
+      ? '<a class="mega-highlight mega-highlight-' + m.highlight.type + '" href="/' + m.highlight.slug + '">'
+        + (m.highlight.type === 'new' ? '<span class="mega-hl-sparkle" aria-hidden="true">\u2728</span>' : '')
+        + '<span class="mega-hl-body"><span class="mega-hl-badge">' + (m.highlight.type === 'new' ? 'NEW' : '\u2b50 ' + m.highlight.label) + '</span>'
+        + '<span class="mega-hl-name">' + m.highlight.name + '</span></span>'
+        + '<span class="mega-hl-cta">Open Tool<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>'
       + '</a>'
       : '';
     return '<div class="mega-preview-head" style="--accent:' + m.accent + '"><span class="mega-preview-ico">' + m.icon + '</span>'
-      + '<div><h3>' + m.name + '</h3><p>' + m.count + ' free browser-based tools. ' + m.desc + '</p></div>'
+      + '<div><h3>' + m.name + ' <span class="mega-preview-count">' + fmtTools(m.count) + '</span></h3><p>' + m.desc + '</p></div>'
       + (m.illustration ? '<div class="mega-illo-wrap" style="color:' + m.accent + '">' + m.illustration + '</div>' : '')
       + '</div>'
-      + '<div class="mega-preview-list">' + tools + '</div>'
+      + '<div class="mega-tool-hero-wrap">' + heroHtml + '</div>'
+      + '<div class="mega-preview-list">' + secondaryHtml + '</div>'
       + highlightHtml
       + '<a class="mega-explore" href="' + exploreHref + '">' + exploreLabel + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>';
   }
@@ -182,13 +237,13 @@ function getChrome() {
 
   const bakedPanel = '<div class="mega-rail" role="none">' + rail
     + '<div class="mega-tabs" role="tablist" aria-label="Highlight">'
-    + '<button type="button" class="mega-tab active" data-tab="popular" role="tab" aria-selected="true">Popular</button>'
-    + '<button type="button" class="mega-tab" data-tab="__ai__" role="tab" aria-selected="false">\u2728 AI-Powered</button>'
+    + '<button type="button" class="mega-tab active" data-tab="popular" role="tab" aria-selected="true"><span aria-hidden="true">\ud83d\udd25</span> Popular</button>'
+    + '<button type="button" class="mega-tab" data-tab="__ai__" role="tab" aria-selected="false"><span aria-hidden="true">\u2728</span> AI Tools</button>'
     + '</div></div>'
     + '<div class="mega-preview" id="megaPreview" aria-live="polite">' + defaultPreview + '</div>'
     + '<div class="mega-footer"><form class="mega-ai-prompt" action="/" method="get" role="search">'
     + '<svg class="mega-ai-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>'
-    + '<input type="text" name="q" class="mega-ai-input" placeholder="What would you like to accomplish today?" aria-label="Describe what you want to do \u2014 runs the real tool search" autocomplete="off">'
+    + '<input type="text" name="q" class="mega-ai-input" id="megaAiInput" placeholder="What would you like to accomplish today?" aria-label="Describe what you want to do \u2014 runs the real tool search" autocomplete="off">'
     + '<button type="submit" class="mega-ai-go" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>'
     + '</form></div>' + dataScript;
 

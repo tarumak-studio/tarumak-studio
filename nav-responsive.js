@@ -135,23 +135,35 @@
       var DATA;
       try { DATA = JSON.parse(dataEl.textContent); } catch (e) { return; }
 
+      function fmtTools(n) { return n + ' Tool' + (n === 1 ? '' : 's'); }
+
       var order = ['image', 'pdf', 'developer', 'marketing', 'converter'];
       var html = order.map(function (key) {
         var m = DATA[key];
         if (!m) return '';
         var toolsHtml = m.tools.map(function (t) {
+          var thumbHtml = t.thumb
+            ? '<span class="mm-acc-tool-thumb">' + t.thumb + '</span>'
+            : '<span class="mm-acc-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>';
           return '<a class="mm-acc-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
-            + '<span class="mm-acc-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
+            + thumbHtml
             + '<span class="mm-acc-tool-txt"><span class="mm-acc-tool-name">' + t.name + '</span>'
             + (t.blurb ? '<span class="mm-acc-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
             + '</a>';
         }).join('');
+        /* Compact NEW dot next to the count \u2014 same self-expiring
+           freshness data as desktop (see header-chrome.js), just a
+           smaller treatment to stay within "don't increase menu
+           complexity" for the touch drawer. */
+        var newBadge = (m.highlight && m.highlight.type === 'new')
+          ? '<span class="mm-acc-new" aria-label="Recently added tool inside">\u2728 NEW</span>' : '';
         return '' +
           '<div class="mm-acc-item">' +
             '<button class="mm-acc-trigger" type="button" aria-expanded="false" data-cat="' + key + '">' +
               '<span class="mm-acc-ico" style="--acc-color:' + m.accent + '">' + m.icon + '</span>' +
               '<span class="mm-acc-name">' + m.name + '</span>' +
-              '<span class="mm-acc-count">' + m.count + '</span>' +
+              newBadge +
+              '<span class="mm-acc-count">' + fmtTools(m.count) + '</span>' +
               '<svg class="mm-acc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>' +
             '</button>' +
             '<div class="mm-acc-panel"><div class="mm-acc-panel-inner">' +

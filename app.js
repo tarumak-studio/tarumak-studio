@@ -233,6 +233,13 @@ const FEATURED_PREVIEWS={
       '<div class="fcp-row"><span class="fcp-row-label">Extracted text</span><span class="fcp-text-mini">Invoice #4471<br>Total: $214.00</span></div>'+
     '</div>',
 
+  'pdf-merger':()=>
+    '<div class="fc-preview fc-preview-stack">'+
+      '<div class="fcp-row"><span class="fcp-row-label">3 separate PDFs</span><span class="fcp-file fcp-file-pdf">PDF</span></div>'+
+      '<span class="fcp-down-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>'+
+      '<div class="fcp-row"><span class="fcp-row-label">One combined file</span><span class="fcp-file fcp-file-pdf">PDF</span></div>'+
+    '</div>',
+
   'word-to-pdf':()=>
     '<div class="fc-preview fc-preview-stack">'+
       '<div class="fcp-row"><span class="fcp-file fcp-file-docx">DOCX</span></div>'+

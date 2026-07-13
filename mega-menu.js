@@ -112,35 +112,58 @@
   })();
 
   function iconSvg(key) { return DATA[key] ? DATA[key].icon : ''; }
+  function fmtTools(n) { return n + ' Tool' + (n === 1 ? '' : 's'); }
+
+  /* Mirrors header-chrome.js's toolRow() exactly \u2014 the hero (first
+     tool) and the compact secondary cards share this one renderer. */
+  function toolRow(t, isHero) {
+    var thumbHtml = t.thumb
+      ? '<span class="mega-tool-thumb">' + t.thumb + '</span>'
+      : '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>';
+    if (isHero) {
+      return '<a class="mega-tool-hero" href="/' + t.slug + '">'
+        + '<span class="mega-tool-hero-label">Featured Tool</span>'
+        + '<span class="mega-tool-hero-row">' + thumbHtml
+        + '<span class="mega-tool-hero-txt"><span class="mega-tool-hero-name">' + t.name + '</span>'
+        + (t.blurb ? '<span class="mega-tool-hero-blurb">' + t.blurb + '</span>' : '') + '</span></span>'
+        + '<span class="mega-tool-hero-cta">Open<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>'
+        + '</a>';
+    }
+    return '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
+      + thumbHtml
+      + '<span class="mega-tool-txt"><span class="mega-tool-name">' + t.name + '</span>'
+      + (t.blurb ? '<span class="mega-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
+      + '</a>';
+  }
 
   function render(key) {
     if (key === activeKey) return; // nothing to do — avoid needless reflow/flash
     var m = DATA[key];
     if (!m) return;
     activeKey = key;
+    startPlaceholderRotation(m.placeholders);
 
-    var toolsHtml = m.tools.map(function (t) {
-      return '<a class="mega-tool' + (t.starred ? ' starred' : '') + '" href="/' + t.slug + '">'
-        + '<span class="mega-tool-mark">' + (t.starred ? '\u2605' : '\u2713') + '</span>'
-        + '<span class="mega-tool-txt"><span class="mega-tool-name">' + t.name + '</span>'
-        + (t.blurb ? '<span class="mega-tool-blurb">' + t.blurb + '</span>' : '') + '</span>'
-        + '</a>';
-    }).join('');
+    var hero = m.tools[0], secondary = m.tools.slice(1);
+    var heroHtml = hero ? toolRow(hero, true) : '';
+    var secondaryHtml = secondary.map(function (t) { return toolRow(t, false); }).join('');
     var exploreHref = key === '__ai__' ? '/tools' : '/' + key + '-tools';
-    var exploreLabel = key === '__ai__' ? 'Explore all tools' : 'Explore ' + m.name;
+    var exploreLabel = key === '__ai__' ? 'View all ' + fmtTools(m.count) + ' \u2014 AI Studio' : 'View all ' + fmtTools(m.count);
     var highlightHtml = m.highlight
-      ? '<a class="mega-highlight" href="/' + m.highlight.slug + '">'
-        + '<span class="mega-hl-badge">' + (m.highlight.type === 'new' ? '\u2728' : '\u2b50') + ' ' + m.highlight.label + '</span>'
-        + '<span class="mega-hl-name">' + m.highlight.name + '</span>'
+      ? '<a class="mega-highlight mega-highlight-' + m.highlight.type + '" href="/' + m.highlight.slug + '">'
+        + (m.highlight.type === 'new' ? '<span class="mega-hl-sparkle" aria-hidden="true">\u2728</span>' : '')
+        + '<span class="mega-hl-body"><span class="mega-hl-badge">' + (m.highlight.type === 'new' ? 'NEW' : '\u2b50 ' + m.highlight.label) + '</span>'
+        + '<span class="mega-hl-name">' + m.highlight.name + '</span></span>'
+        + '<span class="mega-hl-cta">Open Tool<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>'
       + '</a>'
       : '';
 
     preview.innerHTML =
       '<div class="mega-preview-head" style="--accent:' + m.accent + '"><span class="mega-preview-ico">' + m.icon + '</span>'
-      + '<div><h3>' + m.name + '</h3><p>' + m.count + ' free browser-based tools. ' + m.desc + '</p></div>'
+      + '<div><h3>' + m.name + ' <span class="mega-preview-count">' + fmtTools(m.count) + '</span></h3><p>' + m.desc + '</p></div>'
       + (m.illustration ? '<div class="mega-illo-wrap" style="color:' + m.accent + '">' + m.illustration + '</div>' : '')
       + '</div>'
-      + '<div class="mega-preview-list">' + toolsHtml + '</div>'
+      + '<div class="mega-tool-hero-wrap">' + heroHtml + '</div>'
+      + '<div class="mega-preview-list">' + secondaryHtml + '</div>'
       + highlightHtml
       + '<a class="mega-explore" href="' + exploreHref + '">' + exploreLabel
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>';
@@ -171,6 +194,27 @@
       render(b.dataset.tab === '__ai__' ? '__ai__' : lastCatKey);
     });
   });
+
+  /* ── Rotating search placeholder: cycles through category-specific
+     example phrases every 2.8s while a category's preview is showing.
+     Reduced motion → show the first example statically, no interval
+     (still category-relevant, just not animated). The generic prompt
+     ("What would you like to accomplish today?") stays as the very
+     first thing shown, before any category has been hovered — this
+     only starts once render() runs for the first time. ── */
+  var aiInput = document.getElementById('megaAiInput');
+  var placeholderTimer = null, placeholderIdx = 0;
+  function startPlaceholderRotation(list) {
+    if (placeholderTimer !== null) { clearInterval(placeholderTimer); placeholderTimer = null; }
+    if (!aiInput || !list || !list.length) return;
+    placeholderIdx = 0;
+    aiInput.setAttribute('placeholder', list[0]);
+    if (prefersReducedMotion || list.length < 2) return; /* static first example only */
+    placeholderTimer = setInterval(function () {
+      placeholderIdx = (placeholderIdx + 1) % list.length;
+      aiInput.setAttribute('placeholder', list[placeholderIdx]);
+    }, 2800);
+  }
 
   /* ── Keyboard: Up/Down moves through the category rail; Escape closes
      the menu and returns focus to the "Tools" trigger, since native

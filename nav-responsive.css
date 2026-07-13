@@ -105,6 +105,14 @@
 .mm-acc-ico { width: 20px; height: 20px; flex-shrink: 0; color: var(--acc-color, var(--p1)); display: grid; place-items: center; }
 .mm-acc-ico svg { width: 18px; height: 18px; }
 .mm-acc-name { flex: 1; }
+/* Compact NEW indicator \u2014 same self-expiring freshness data as the
+   desktop highlight card, sized down for the trigger row so it doesn't
+   compete with the count badge next to it. */
+.mm-acc-new {
+  font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: .02em;
+  color: #f472b6; background: rgba(244,114,182,.14); border-radius: 100px;
+  padding: 2px 7px; flex-shrink: 0;
+}
 .mm-acc-count {
   font-family: var(--fm); font-size: 11px; font-weight: 600; color: var(--text-faint);
   background: var(--surface); border-radius: 100px; padding: 2px 8px; flex-shrink: 0;
@@ -149,6 +157,14 @@
   color: var(--p1); background: rgba(34,211,238,.14);
 }
 .mm-acc-tool.starred .mm-acc-tool-mark { color: #fbbf24; background: rgba(251,191,36,.14); }
+/* Real per-tool thumbnail (same SVGs as desktop, data.js's `thumbs`
+   map) \u2014 replaces the generic mark when one is supplied. */
+.mm-acc-tool-thumb {
+  flex-shrink: 0; width: 32px; height: 24px; border-radius: 6px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  background: rgba(255,255,255,.04); color: var(--p1);
+}
+.mm-acc-tool-thumb svg { width: 28px; height: 20px; }
 .mm-acc-tool-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mm-acc-tool-name { font-size: 14.5px; }
 .mm-acc-tool.starred .mm-acc-tool-name { font-weight: 700; color: var(--text); }

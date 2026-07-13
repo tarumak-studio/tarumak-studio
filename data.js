@@ -17,20 +17,30 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
        from the live nav dropdown for who knows how long, since the old
        bake logic just skipped anything it couldn't find. Fixed to the
        real slugs. The first TWO entries in each popular[] are treated as
-       the "starred" picks in the mega menu \u2014 order here is meaningful.
+       the "starred" picks in the mega menu — order here is meaningful.
 
        blurbs: a short (~7-9 word) one-liner per popular[] slug for the
        mega-menu row, kept separate from each tool's longer marketing
        description (TOOLS[..][3]) which is too long next to an icon.
 
+       thumbs: a tiny (28x20) representative SVG per popular[] slug —
+       real per-tool visual recognition, not another category-level icon.
+       Kept intentionally simple line art (matching the site's existing
+       icon language) so 20 of these cost nothing in bundle size or
+       render time.
+
        highlight: the small callout card at the foot of each category's
-       preview. Only 'image' uses type:'new' \u2014 the 3 AI tools were
-       genuinely just added, so that's a true claim. The other four use
-       type:'pick' ("Editor's Pick"), a curatorial statement rather than
-       an unverifiable usage claim \u2014 this site has no real analytics
-       yet (see the AI-Powered tab reasoning below), so a "Most Popular"
-       badge here would be exactly the fabricated-numbers problem that
-       reasoning already warns against.
+       preview. Only 'image' uses type:'new' — the 3 AI tools were
+       genuinely just added. dateAdded (ISO) makes that claim
+       self-expiring: header-chrome.js checks it against the build date
+       at build time and only shows the NEW badge within ~90 days,
+       falling back to 'pick' automatically afterward — no one has to
+       remember to remove a stale "new" claim by hand. The other four
+       categories use type:'pick' ("Editor's Pick"), a curatorial
+       statement rather than an unverifiable usage claim — this site has
+       no real analytics yet (see the AI-Powered tab reasoning below), so
+       a "Most Popular" badge here would be exactly the fabricated-numbers
+       problem that reasoning already warns against.
 
        illustration: small inline SVG, animated via CSS classes in
        mega-menu.css (transform/opacity only, gated behind
@@ -39,13 +49,20 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       tagline:'Compress, resize, crop and optimize images instantly.',
       desc:'Compress, resize, remove backgrounds and optimize images.',
       popular:['ai-object-remover','ai-photo-enhancer','ai-image-upscaler','background-remover'],
+      placeholders:['Remove background…','Upscale image…','Compress JPG…','Resize PNG…'],
       blurbs:{
         'ai-object-remover':'Paint over anything to erase it cleanly.',
         'ai-photo-enhancer':'Auto-fix exposure, color and noise in one tap.',
         'ai-image-upscaler':'Enlarge photos 2\u00d7 or 4\u00d7, edges still crisp.',
         'background-remover':'Erase any background in a single click.'
       },
-      highlight:{type:'new',slug:'ai-object-remover',label:'Recently Added'},
+      thumbs:{
+        'ai-object-remover':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="16" rx="2" stroke="currentColor" stroke-width="1.6" opacity=".5"/><circle cx="14" cy="10" r="5" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 2.2" opacity=".9"/></svg>',
+        'ai-photo-enhancer':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="16" rx="2" fill="currentColor" opacity=".18"/><rect x="14" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.6" opacity=".9"/><circle cx="20" cy="7" r="2.3" stroke="currentColor" stroke-width="1.4" opacity=".9"/></svg>',
+        'ai-image-upscaler':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="6" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" opacity=".55"/><rect x="13" y="2" width="13" height="16" rx="2" stroke="currentColor" stroke-width="1.6" opacity=".9"/><path d="M10 10h3m0 0-1.6-1.6M13 10l-1.6 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>',
+        'background-remover':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1.6 1.6" opacity=".45"/><circle cx="8" cy="10" r="4.4" fill="currentColor" opacity=".22"/><rect x="14" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.6" opacity=".9"/><circle cx="20" cy="10" r="4.4" fill="currentColor" opacity=".8"/></svg>'
+      },
+      highlight:{type:'new',slug:'ai-object-remover',label:'Recently Added',dateAdded:'2026-06-15'},
       illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
         +'<rect class="illo-float illo-d1" x="20" y="34" width="52" height="40" rx="7" fill="currentColor" opacity=".12"/>'
         +'<rect class="illo-float illo-d2" x="42" y="24" width="52" height="40" rx="7" fill="currentColor" opacity=".18" transform="rotate(-6 68 44)"/>'
@@ -58,11 +75,18 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       tagline:'Merge, split, rotate and convert PDFs — fully in-browser.',
       desc:'Merge, split, compress and convert PDFs, no upload required.',
       popular:['pdf-merger','pdf-compressor','pdf-splitter','pdf-to-jpg'],
+      placeholders:['Merge PDFs…','Split PDF…','Compress PDF…','Convert PDF…'],
       blurbs:{
         'pdf-merger':'Combine any number of PDFs into one file.',
         'pdf-compressor':'Shrink PDF size without losing readability.',
         'pdf-splitter':'Pull pages out or split into separate files.',
         'pdf-to-jpg':'Turn each PDF page into a sharp JPG image.'
+      },
+      thumbs:{
+        'pdf-merger':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="1" y="1" width="10" height="13" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".5"/><rect x="1" y="6" width="10" height="13" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".85"/><path d="M13 10h6m0 0-2.2-2.2M19 10l-2.2 2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><rect x="20" y="3" width="7" height="14" rx="1.6" stroke="currentColor" stroke-width="1.6" opacity=".9"/></svg>',
+        'pdf-compressor':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="8" y="1" width="12" height="16" rx="1.8" stroke="currentColor" stroke-width="1.6" opacity=".9"/><path d="M14 6v5m0 0-2-2m2 2 2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/><path d="M10 15h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".5"/></svg>',
+        'pdf-splitter':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="4" y="1" width="9" height="16" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".9"/><rect x="15" y="1" width="9" height="16" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".55"/><line x1="14" y1="1" x2="14" y2="17" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1.8 1.8" opacity=".7"/></svg>',
+        'pdf-to-jpg':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="1" y="2" width="11" height="15" rx="1.6" stroke="currentColor" stroke-width="1.6" opacity=".9"/><path d="M14 9h6m0 0-2-2m2 2-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/><rect x="21" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4" opacity=".9"/><circle cx="23" cy="5" r=".8" fill="currentColor"/></svg>'
       },
       highlight:{type:'pick',slug:'pdf-merger',label:'Editor\u2019s Pick'},
       illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
@@ -78,11 +102,18 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       tagline:'JSON, Regex, Base64, color and SEO utilities for builders.',
       desc:'JSON, Regex, Base64 and color utilities built for developers.',
       popular:['json-formatter','regex-tester','color-converter','base64-encoder'],
+      placeholders:['Beautify JSON…','Test Regex…','Encode Base64…'],
       blurbs:{
         'json-formatter':'Format, validate and beautify JSON instantly.',
         'regex-tester':'Test patterns with live match highlighting.',
         'color-converter':'Convert HEX, RGB and HSL in one place.',
         'base64-encoder':'Encode or decode Base64 text and files.'
+      },
+      thumbs:{
+        'json-formatter':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><path d="M11 3c-2.5 0-3 1.3-3 3.5S7.5 10 5 10c2.5 0 3 1.3 3 3.5S8 17 11 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".85"/><path d="M17 3c2.5 0 3 1.3 3 3.5S19.5 10 22 10c-2.5 0-3 1.3-3 3.5S18 17 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".85"/></svg>',
+        'regex-tester':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><path d="M4 17 12 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".7"/><circle cx="17" cy="6" r="1.6" fill="currentColor" opacity=".85"/><path d="M20 10h4M20 14h4M20 6h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/></svg>',
+        'color-converter':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><circle cx="9" cy="10" r="6.5" fill="currentColor" opacity=".28"/><circle cx="15" cy="7" r="6.5" fill="currentColor" opacity=".4"/><circle cx="15" cy="13" r="6.5" fill="currentColor" opacity=".55"/></svg>',
+        'base64-encoder':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="4" width="8" height="12" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".85"/><path d="M12 10h4m0 0-1.8-1.8M16 10l-1.8 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><rect x="18" y="4" width="8" height="12" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".5"/></svg>'
       },
       highlight:{type:'pick',slug:'json-formatter',label:'Editor\u2019s Pick'},
       illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
@@ -97,11 +128,18 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       tagline:'UTM builders, OG images, CTAs and campaign tools.',
       desc:'UTM links, OG images and CTAs for marketers and creators.',
       popular:['utm-builder','og-image-gen','qr-code-generator','color-palette-gen'],
+      placeholders:['Create QR code…','Generate Open Graph image…','Build a UTM link…'],
       blurbs:{
         'utm-builder':'Build trackable campaign links in seconds.',
         'og-image-gen':'Create social preview images that get clicks.',
         'qr-code-generator':'Generate a scannable QR code for any link.',
         'color-palette-gen':'Extract or build a matching color palette.'
+      },
+      thumbs:{
+        'utm-builder':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="7" width="10" height="6" rx="3" stroke="currentColor" stroke-width="1.6" opacity=".85" transform="rotate(-20 7 10)"/><rect x="16" y="7" width="10" height="6" rx="3" stroke="currentColor" stroke-width="1.6" opacity=".6" transform="rotate(-20 21 10)"/></svg>',
+        'og-image-gen':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="16" rx="2" stroke="currentColor" stroke-width="1.6" opacity=".85"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4" opacity=".8"/><path d="M2 15l6-5 5 4 4-3 7 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></svg>',
+        'qr-code-generator':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="3" y="2" width="5" height="5" fill="currentColor" opacity=".85"/><rect x="20" y="2" width="5" height="5" fill="currentColor" opacity=".85"/><rect x="3" y="13" width="5" height="5" fill="currentColor" opacity=".85"/><rect x="11" y="2" width="2" height="2" fill="currentColor" opacity=".55"/><rect x="15" y="5" width="2" height="2" fill="currentColor" opacity=".55"/><rect x="11" y="9" width="2" height="2" fill="currentColor" opacity=".55"/><rect x="15" y="13" width="2" height="2" fill="currentColor" opacity=".55"/><rect x="20" y="13" width="5" height="5" fill="currentColor" opacity=".5"/></svg>',
+        'color-palette-gen':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><circle cx="5" cy="10" r="4" fill="currentColor" opacity=".3"/><circle cx="12" cy="10" r="4" fill="currentColor" opacity=".48"/><circle cx="19" cy="10" r="4" fill="currentColor" opacity=".66"/><circle cx="26" cy="10" r="4" fill="currentColor" opacity=".85"/></svg>'
       },
       highlight:{type:'pick',slug:'og-image-gen',label:'Editor\u2019s Pick'},
       illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
@@ -119,11 +157,18 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
       tagline:'Convert between popular image, document and text formats.',
       desc:'Convert between image, document and text formats instantly.',
       popular:['word-to-pdf','markdown-to-html','png-to-svg','png-to-jpg'],
+      placeholders:['PNG to JPG…','Word to PDF…','Markdown to HTML…'],
       blurbs:{
         'word-to-pdf':'Turn a Word doc into a shareable PDF.',
         'markdown-to-html':'Convert Markdown into clean, ready HTML.',
         'png-to-svg':'Trace a PNG into a scalable vector file.',
         'png-to-jpg':'Convert PNG to JPG to save file size.'
+      },
+      thumbs:{
+        'word-to-pdf':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="1" y="2" width="10" height="15" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".85"/><text x="2.6" y="12" font-size="6.5" font-weight="700" fill="currentColor" opacity=".9">W</text><path d="M13 9h5m0 0-1.8-1.8M18 9l-1.8 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><rect x="19" y="2" width="8" height="15" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".55"/></svg>',
+        'markdown-to-html':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><text x="1" y="13" font-size="8" font-weight="700" fill="currentColor" opacity=".85">M\u2193</text><path d="M14 10h5m0 0-1.8-1.8M19 10l-1.8 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><text x="20" y="13" font-size="7" font-weight="700" fill="currentColor" opacity=".6">&lt;/&gt;</text></svg>',
+        'png-to-svg':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="1" y="4" width="2.4" height="2.4" fill="currentColor" opacity=".7"/><rect x="4" y="4" width="2.4" height="2.4" fill="currentColor" opacity=".7"/><rect x="1" y="7" width="2.4" height="2.4" fill="currentColor" opacity=".7"/><rect x="4" y="7" width="2.4" height="2.4" fill="currentColor" opacity=".7"/><path d="M10 10h5m0 0-1.8-1.8M15 10l-1.8 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><path d="M18 15c2-8 5-11 8-11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".85"/></svg>',
+        'png-to-jpg':'<svg viewBox="0 0 28 20" fill="none" aria-hidden="true"><rect x="2" y="3" width="11" height="11" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".85"/><rect x="15" y="6" width="11" height="11" rx="1.6" stroke="currentColor" stroke-width="1.5" opacity=".5"/></svg>'
       },
       highlight:{type:'pick',slug:'word-to-pdf',label:'Editor\u2019s Pick'},
       illustration:'<svg class="mega-illo" viewBox="0 0 160 100" fill="none" aria-hidden="true">'
@@ -136,7 +181,8 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
         +'<rect class="illo-float illo-d2" x="100" y="22" width="42" height="52" rx="14" stroke="currentColor" stroke-width="2" opacity=".5"/>'
         +'</svg>'
     }
-  };
+  }
+
 
   /* ──────────────────────────────────────────────────
      FEATURED — flagship tools shown in the homepage
@@ -150,10 +196,10 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
     {slug:'ai-object-remover',   hook:'Paint over anything you want gone — it vanishes, seamlessly.'},
     {slug:'ai-photo-enhancer',   hook:'Auto-fix exposure, color and noise in one click — no editing skill needed.'},
     {slug:'ai-image-upscaler',   hook:'Enlarge any photo 2\u00d7 or 4\u00d7 while keeping edges crisp and clean.'},
-    {slug:'image-compressor',    hook:'Shrink image file size by up to 80% with zero visible quality loss.'},
+    {slug:'pdf-merger',          hook:'Combine any number of PDFs into one file, in seconds.'},
     {slug:'word-to-pdf',         hook:'Turn any Word doc into a clean, shareable PDF in seconds.'},
     {slug:'ocr-image-to-text',   hook:'Pull text out of any screenshot, scan or photo instantly.'},
-    {slug:'qr-code-generator',   hook:'Generate a scannable QR code for any link in one step.'}
+    {slug:'image-compressor',    hook:'Shrink image file size by up to 80% with zero visible quality loss.'}
   ];
 const ICON={image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',converter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',marketing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',developer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'};
 

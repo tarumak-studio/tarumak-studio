@@ -108,49 +108,64 @@
   border-top: 1px solid rgba(255,255,255,.07);
 }
 .mega-tab {
-  flex: 1; padding: 7px 8px; border-radius: 8px; border: none; cursor: pointer;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 7px 8px; border-radius: 8px; border: none; cursor: pointer;
   background: transparent; color: var(--text-dim);
   font-family: var(--fb); font-size: 12px; font-weight: 600;
-  transition: background 160ms var(--ease), color 160ms var(--ease);
+  transition: background 160ms var(--ease), color 160ms var(--ease), box-shadow 160ms var(--ease);
 }
+.mega-tab span { font-size: 12px; }
 .mega-tab:hover { background: rgba(255,255,255,.05); color: var(--text); }
-.mega-tab.active { background: rgba(34,211,238,.12); color: var(--p1); }
+.mega-tab.active {
+  background: rgba(34,211,238,.14); color: var(--p1);
+  box-shadow: inset 0 0 0 1px rgba(34,211,238,.25);
+}
 .mega-tab:focus-visible { outline: 2px solid var(--p1); outline-offset: 2px; }
 
 /* ── Preview panel (right) ── */
 .mega-preview {
   flex: 1; padding: 20px 22px; display: flex; flex-direction: column; min-width: 0;
 }
+/* Compressed ~35% vs the previous pass (margin-bottom 16\u219210, gap
+   12\u21938, min-height 60\u219240) \u2014 the illustration sits right next to
+   the title now instead of floating in dead space above it. */
 .mega-preview-head {
-  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;
-  position: relative; min-height: 60px;
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px;
+  position: relative; min-height: 40px;
 }
 /* Soft glow blob behind the icon — the same radial-glow technique the
    homepage hero already uses (--accent set inline per category/tab). */
 .mega-preview-head::before {
-  content: ''; position: absolute; top: -20px; left: -20px; width: 120px; height: 120px;
+  content: ''; position: absolute; top: -14px; left: -14px; width: 96px; height: 96px;
   background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%);
   pointer-events: none; z-index: 0;
 }
 .mega-preview-ico {
-  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; position: relative; z-index: 1;
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; position: relative; z-index: 1;
   display: flex; align-items: center; justify-content: center;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
 }
-.mega-preview-ico svg { width: 24px; height: 24px; }
-.mega-preview-head h3 { font-family: var(--fd); font-size: 17px; font-weight: 700; color: var(--text); position: relative; z-index: 1; }
-.mega-preview-head p { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; position: relative; z-index: 1; max-width: 230px; }
+.mega-preview-ico svg { width: 21px; height: 21px; }
+.mega-preview-head h3 {
+  font-family: var(--fd); font-size: 16px; font-weight: 700; color: var(--text);
+  position: relative; z-index: 1; display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+}
+/* "21 Tools" next to the title \u2014 quieter than the heading itself but
+   still legible; the count that used to open the paragraph below now
+   lives inline here instead, one less line to read before the desc. */
+.mega-preview-count {
+  font-family: var(--fb); font-size: 11px; font-weight: 600; color: var(--text-faint);
+  background: rgba(255,255,255,.05); padding: 2px 7px; border-radius: 99px;
+}
+.mega-preview-head p { font-size: 12px; color: var(--text-dim); margin-top: 2px; line-height: 1.45; position: relative; z-index: 1; max-width: 210px; }
 
-/* Per-category animated illustration \u2014 decorative, absolutely
-   positioned in the head's top-right corner (the exact spot the brief
-   flagged as empty), sized modestly so it never competes with the text
-   for attention. `currentColor` is set to the category accent via an
-   inline style on the wrapper, so one SVG works for every category
-   without per-category CSS color rules. */
+/* Per-category animated illustration \u2014 pulled in closer to the head
+   (was top:-6px/right:-4px/148\u00d792) so it reads as part of the same
+   compact block instead of a separate floating element. */
 .mega-illo-wrap {
-  position: absolute; top: -6px; right: -4px; width: 148px; height: 92px;
+  position: absolute; top: -2px; right: 0; width: 120px; height: 74px;
   z-index: 0; pointer-events: none; opacity: .9;
 }
 .mega-illo { width: 100%; height: 100%; overflow: visible; }
@@ -183,40 +198,109 @@
    with it absent, every .illo-* element simply keeps its static SVG
    transform/opacity \u2014 there is no default animation to turn off. */
 
-.mega-preview-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; position: relative; z-index: 1; }
+/* ── Hero featured card: the first tool in each category's popular[]
+   list gets real visual weight instead of sitting flush with the
+   other three. No star rating here \u2014 this site has no review data,
+   and a fabricated "\u2605\u2605\u2605\u2605\u2605" would be exactly the kind of invented
+   number the honesty notes elsewhere in this codebase warn against.
+   The hierarchy comes from size, an elevated background and a real
+   CTA instead. ── */
+.mega-tool-hero-wrap { position: relative; z-index: 1; margin-bottom: 10px; }
+.mega-tool-hero {
+  display: flex; flex-direction: column; gap: 8px; padding: 13px 14px; border-radius: 12px;
+  text-decoration: none; color: inherit;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 12%, transparent), rgba(255,255,255,.03));
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.mega-tool-hero:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.mega-tool-hero-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent);
+}
+.mega-tool-hero-row { display: flex; align-items: center; gap: 10px; }
+.mega-tool-hero-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mega-tool-hero-name { font-family: var(--fd); font-size: 14.5px; font-weight: 700; color: var(--text); }
+.mega-tool-hero-blurb { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+.mega-tool-hero-cta {
+  display: inline-flex; align-items: center; gap: 5px; align-self: flex-start;
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  padding: 5px 10px; border-radius: 99px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.mega-tool-hero-cta svg { width: 12px; height: 12px; transition: transform 200ms var(--ease); }
+.mega-tool-hero:hover .mega-tool-hero-cta svg { transform: translateX(2px); }
+
+/* Secondary tools: single column now that the hero card carries the
+   primary visual weight \u2014 three compact rows read cleaner than an
+   uneven 2-column grid with an odd number of items. */
+.mega-preview-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; position: relative; z-index: 1; }
 .mega-tool {
-  display: flex; align-items: flex-start; gap: 8px; padding: 10px 11px; border-radius: 10px;
+  display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 9px;
   color: var(--text-dim); text-decoration: none;
   background: rgba(255,255,255,.03); border: 1px solid transparent;
   transition: background 150ms var(--ease), color 150ms var(--ease), border-color 150ms var(--ease), transform 150ms var(--ease);
 }
-.mega-tool:hover { background: rgba(255,255,255,.06); color: var(--text); border-color: rgba(255,255,255,.08); transform: translateY(-1px); }
+.mega-tool:hover { background: rgba(255,255,255,.06); color: var(--text); border-color: rgba(255,255,255,.08); transform: translateX(2px); }
 .mega-tool.starred .mega-tool-name { color: var(--text); font-weight: 600; }
 .mega-tool-mark {
-  flex-shrink: 0; width: 18px; height: 18px; border-radius: 6px; margin-top: 1px;
+  flex-shrink: 0; width: 18px; height: 18px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; line-height: 1;
   color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .mega-tool.starred .mega-tool-mark { color: #fbbf24; background: rgba(251,191,36,.14); }
-.mega-tool-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Real per-tool preview thumbnail \u2014 replaces the generic \u2605/\u2713 mark
+   when CAT_META supplies one (data.js's `thumbs` map). SVG only, no
+   images, sized to sit inline with a text row at no performance cost. */
+.mega-tool-thumb {
+  flex-shrink: 0; width: 30px; height: 22px; border-radius: 5px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04); color: var(--accent);
+}
+.mega-tool-thumb svg { width: 26px; height: 18px; }
+.mega-tool-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
 .mega-tool-name { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mega-tool-blurb { font-size: 11px; color: var(--text-faint); line-height: 1.35; }
+.mega-tool-blurb { font-size: 11px; color: var(--text-faint); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ── Highlight card: "Recently Added" or "Editor's Pick" \u2014 see the
-   honesty note in data.js's CAT_META for why those are the only two
-   framings used (both are claims this site can actually back up). ── */
+/* ── Highlight card: "Recently Added" (self-expiring, see data.js) or
+   "Editor's Pick" \u2014 the only two framings used, both claims this site
+   can actually back up (see the honesty note in data.js's CAT_META).
+   NEW gets a touch more presence (soft glow + a slow pulse on the
+   sparkle) since it's flagging something genuinely just-shipped;
+   Editor's Pick stays calmer \u2014 it's curation, not news. ── */
 .mega-highlight {
-  display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px;
-  padding: 10px 12px; border-radius: 10px; text-decoration: none;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  padding: 10px 12px; border-radius: 11px; text-decoration: none;
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  transition: background 150ms var(--ease), border-color 150ms var(--ease);
+  transition: background 150ms var(--ease), border-color 150ms var(--ease), box-shadow 150ms var(--ease);
   position: relative; z-index: 1;
 }
 .mega-highlight:hover { background: color-mix(in srgb, var(--accent) 13%, transparent); }
-.mega-hl-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: var(--accent); }
+.mega-highlight-new {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), 0 0 20px -8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.mega-hl-sparkle { font-size: 15px; flex-shrink: 0; }
+.mega-hl-body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.mega-hl-badge { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--accent); }
+.mega-highlight-new .mega-hl-badge { text-transform: uppercase; }
 .mega-hl-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.mega-hl-cta {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  font-size: 11.5px; font-weight: 600; color: var(--accent);
+}
+.mega-hl-cta svg { width: 12px; height: 12px; transition: transform 200ms var(--ease); }
+.mega-highlight:hover .mega-hl-cta svg { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .mega-highlight-new .mega-hl-sparkle { animation: hlPulse 2.4s ease-in-out infinite; }
+  @keyframes hlPulse { 0%, 100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+}
 
 .mega-explore {
   display: inline-flex; align-items: center; gap: 6px; margin-top: auto;
@@ -303,10 +387,13 @@
 @media (prefers-reduced-motion: reduce) {
   .nav-tools-panel.mega,
   .nav-tools-panel.mega .mega-cat,
-  .mega-cat-ico, .mega-cat-arrow, .mega-explore svg, .mega-preview.swapping {
+  .mega-cat-ico, .mega-cat-arrow, .mega-explore svg, .mega-preview.swapping,
+  .mega-tool, .mega-tool-hero, .mega-tool-hero-cta svg, .mega-highlight, .mega-hl-cta svg {
     animation: none !important; transition-duration: 1ms !important;
   }
   .mega-cat { opacity: 1; transform: none; }
+  .mega-tool:hover { transform: none; }
+  .mega-tool-hero:hover, .mega-highlight:hover { transform: none; box-shadow: none; }
   .nav-tools-drop:hover .nav-tools-panel.mega,
   .nav-tools-drop:focus-within .nav-tools-panel.mega,
   .nav-tools-drop.js-open .nav-tools-panel.mega { transform: translateX(-50%) translateY(0) scale(1); }

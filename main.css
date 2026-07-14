@@ -99,18 +99,25 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-stats .l{font-size:12.5px;color:var(--text-faint)}
 .stage{perspective:1200px;height:400px;position:relative;display:grid;place-items:center}
 /* Outer wrapper floats; inner cluster spins — two separate animations, no override */
-.float-wrap{animation:float 7s ease-in-out infinite;transform-style:preserve-3d}
+.float-wrap{animation:float 8s cubic-bezier(.45,0,.25,1) infinite;transform-style:preserve-3d}
 .cluster{transform-style:preserve-3d;animation:spin 48s linear infinite;position:relative;width:240px;height:240px}
 @keyframes spin{to{transform:rotateY(360deg)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+/* Smoother than a plain ease-in-out — the custom curve lingers a touch
+   longer at each extreme before reversing, reading as a gentle drift
+   rather than a mechanical bounce. */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
 /* 6 glass format cards — 60-deg intervals, 3 always face viewer simultaneously.
    Color discipline: glyphs are set in the text color; exactly ONE card (the
    front-facing PDF card) carries the brand gradient. The previous version
    gave every card its own loud two-stop gradient — six competing accents on
    the first thing a visitor sees. Premium brands spend color deliberately:
    category accents stay (they're wayfinding), but the hero now has one. */
-.card3d{position:absolute;inset:0;margin:auto;width:128px;height:160px;border-radius:20px;display:grid;place-items:center;backface-visibility:hidden;background:linear-gradient(155deg,var(--surface-2),var(--surface));border:1px solid var(--border-2);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.22);backdrop-filter:blur(14px)}
-.card3d::before{content:"";position:absolute;inset:0;border-radius:20px;background:linear-gradient(148deg,rgba(255,255,255,.30),transparent 44%);pointer-events:none}
+.card3d{position:absolute;inset:0;margin:auto;width:128px;height:160px;border-radius:20px;display:grid;place-items:center;backface-visibility:hidden;background:linear-gradient(155deg,var(--surface-2),var(--surface));border:1px solid var(--border-2);box-shadow:0 24px 48px -20px rgba(0,0,0,.45),0 8px 20px -10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.24);backdrop-filter:blur(14px)}
+/* Two-layer glass reflection instead of one flat highlight: a broad soft
+   sheen plus a thinner, brighter streak near the top edge — closer to how
+   light actually catches curved glass than a single gradient. */
+.card3d::before{content:"";position:absolute;inset:0;border-radius:20px;background:linear-gradient(148deg,rgba(255,255,255,.32),transparent 46%);pointer-events:none}
+.card3d::after{content:"";position:absolute;top:6px;left:14px;right:14px;height:1px;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);pointer-events:none}
 .card3d .glyph{font-family:var(--fd);font-weight:700;font-size:32px;letter-spacing:-1px;position:relative;color:var(--text)}
 .card3d .fmt{position:absolute;bottom:13px;font-family:var(--fm);font-size:10px;color:var(--text-dim);letter-spacing:.5px}
 .c1{transform:rotateY(0deg)   translateZ(120px);border-color:color-mix(in srgb,var(--p1) 40%,var(--border-2))}
@@ -184,10 +191,25 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .count-pop{animation:countPop .35s var(--ease)}
 .empty{grid-column:1/-1;text-align:center;padding:50px;color:var(--text-faint);font-size:14px}
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.trust .t{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
-.trust .t .ico{width:40px;height:40px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--p1);margin-bottom:14px}
-.trust .t h4{font-family:var(--fd);font-weight:600;font-size:16px;margin-bottom:6px}
-.trust .t p{font-size:13px;color:var(--text-dim)}
+.trust .t{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:26px 24px;
+  transition:transform 240ms var(--ease),border-color 240ms var(--ease),box-shadow 240ms var(--ease);
+}
+.trust .t:hover{
+  transform:translateY(-4px);
+  border-color:rgba(34,211,238,.22);
+  box-shadow:0 16px 34px -20px rgba(0,0,0,.45),0 5px 14px -8px rgba(34,211,238,.14);
+}
+.trust .t .ico{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(34,211,238,.14),rgba(99,102,241,.07));
+  border:1px solid rgba(34,211,238,.18);
+  display:grid;place-items:center;color:var(--p1);margin-bottom:16px;
+  transition:transform 240ms var(--ease);
+}
+.trust .t:hover .ico{transform:scale(1.08) rotate(-3deg)}
+.trust .t h4{font-family:var(--fd);font-weight:700;font-size:16.5px;margin-bottom:7px;letter-spacing:-.2px}
+.trust .t p{font-size:13px;color:var(--text-dim);line-height:1.55}
 @media (max-width: 900px) { .trust { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .trust { grid-template-columns: 1fr; gap: 12px; } }
 /* tool view */
@@ -401,10 +423,27 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 }
 .cat-card .cc-tag{
   font-size:12.5px;color:var(--text-dim);
-  line-height:1.5;margin:0;
+  line-height:1.5;margin:0 0 10px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
-.cc-hint{color:var(--text-faint);font-style:italic}
+/* Popular tools inside each category card — real data from the same
+   CAT_META.popular array the mega menu already uses, not invented. */
+.cc-popular{
+  display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none;
+}
+.cc-popular li{
+  font-size:12px;color:var(--text-faint);line-height:1.4;
+  padding-left:14px;position:relative;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color 200ms var(--ease);
+}
+.cc-popular li::before{
+  content:'';position:absolute;left:0;top:50%;width:5px;height:5px;
+  border-radius:50%;background:var(--p1);opacity:.5;transform:translateY(-50%);
+  transition:opacity 200ms var(--ease);
+}
+.cat-card:hover .cc-popular li{color:var(--text-dim);}
+.cat-card:hover .cc-popular li::before{opacity:.9;}
 .cat-card .cc-count{
   font-family:var(--fm);font-size:11.5px;
   letter-spacing:.02em;
@@ -1433,6 +1472,44 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 @media (max-width: 1100px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .feat-grid { grid-template-columns: 1fr; gap: 12px; } }
 
+/* ═══════════════════════════════════════════════════════════
+   AI STUDIO — dedicated homepage section for the 4 AI-branded
+   tools. Deliberately reuses .feat-card's exact structure/CSS
+   (same class on the <a>) so it inherits all existing hover/
+   focus/motion behavior with zero duplication — only the
+   section chrome around it (eyebrow, heading, grid) is new,
+   plus a pink accent (matching the mega menu's own "AI Tools"
+   tab) so this reads as a distinct, intentional collection
+   rather than a second copy of "Start with Our Best".
+   ═══════════════════════════════════════════════════════════ */
+.ai-studio-section { padding: 8px 0 56px; }
+.ai-studio-head { margin-bottom: 36px; }
+.ai-studio-eyebrow { color: #f472b6; }
+.ai-studio-eyebrow .dot { background: #f472b6; }
+.ai-studio-head h2 {
+  font-family: var(--fd); font-weight: 700;
+  font-size: clamp(24px, 3vw, 30px);
+  letter-spacing: -.8px; line-height: 1.15;
+  margin: 14px 0 10px; max-width: 620px; margin-left: auto; margin-right: auto;
+}
+.ai-studio-head p { color: var(--text-dim); font-size: 14px; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+.ai-studio-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+@media (max-width: 1100px) { .ai-studio-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .ai-studio-grid { grid-template-columns: 1fr; gap: 12px; } }
+
+.ai-studio-card { border-color: rgba(244,114,182,.16); }
+.ai-studio-card:hover {
+  border-color: rgba(244,114,182,.32);
+  box-shadow: 0 16px 36px -18px rgba(0,0,0,.5), 0 5px 16px -8px rgba(244,114,182,.22);
+}
+.ai-studio-card .fc-ico { color: #f472b6; background: linear-gradient(135deg, rgba(244,114,182,.14), rgba(244,114,182,.05)); border-color: rgba(244,114,182,.2); }
+.ai-studio-card .fc-cta { color: #f472b6; }
+.ai-badge-new { color: #f472b6; background: rgba(244,114,182,.1); border-color: rgba(244,114,182,.22); }
+
+
 .feat-card {
   position: relative;
   display: flex; flex-direction: column;
@@ -1985,6 +2062,27 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 @media (max-width: 560px) {
   .hero-browse-hint { gap: 4px 10px; }
   .hbh-label { width: 100%; margin-bottom: 2px; text-align: center; }
+}
+
+/* Trust strip — deliberately quieter than .hero-browse-hint above:
+   these are facts, not clickable actions, so no pill background, no
+   hover lift, just clean inline text with a small icon. Kept to 5
+   short items per the brief's "do not create visual clutter" note. */
+.hero-trust {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 8px 22px; margin-top: 18px; width: 100%;
+}
+.hero-trust span[role="listitem"] {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--fb); font-size: 12.5px; font-weight: 500;
+  color: var(--text-faint);
+}
+.hero-trust svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--p1); opacity: .85; }
+.hero-trust #heroTrustCount { font-weight: 700; color: var(--text-dim); }
+
+@media (max-width: 560px) {
+  .hero-trust { gap: 6px 14px; margin-top: 14px; }
+  .hero-trust span[role="listitem"] { font-size: 11.5px; }
 }
 
 /* Dismissible "x" on the active-category chip (Toolkit tabs) */

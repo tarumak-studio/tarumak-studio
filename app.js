@@ -94,8 +94,13 @@ function buildCategoryCards(){
   grid.innerHTML=order.map(cat=>{
     const meta=CAT_META[cat];if(!meta)return '';
     const count=TOOLS.filter(t=>t[2]===cat).length;
-    const topTool=meta.popular.map(slug=>bySlug(slug)).filter(Boolean)[0];
-    const hint=topTool?'<span class="cc-hint">Incl. '+topTool[1].replace(/Generator|Converter|Compressor/g,'').trim()+'</span>':'';
+    /* Real popular-tools list (top 3 of the same curated CAT_META.popular
+       array the mega menu already uses) instead of a single "Incl. X"
+       hint — genuine reuse, not new data authored a third time. */
+    const popularTools=meta.popular.map(slug=>bySlug(slug)).filter(Boolean).slice(0,3);
+    const popularHtml=popularTools.length
+      ? '<ul class="cc-popular">'+popularTools.map(t=>'<li>'+t[1]+'</li>').join('')+'</ul>'
+      : '';
     return ''+
       '<a class="cat-card" data-cat="'+cat+'" href="/'+cat+'-tools" aria-label="Browse '+CAT[cat]+' — '+count+' tools">'+
         '<div class="cc-row">'+
@@ -103,7 +108,8 @@ function buildCategoryCards(){
           '<div class="cc-heading"><h3>'+CAT[cat]+'</h3><span class="cc-count">'+count+' tools</span></div>'+
           '<span class="cc-arrow">'+arrow+'</span>'+
         '</div>'+
-        '<p class="cc-tag">'+meta.tagline+' '+hint+'</p>'+
+        '<p class="cc-tag">'+meta.tagline+'</p>'+
+        popularHtml+
       '</a>';
   }).join('');
 }
@@ -142,6 +148,40 @@ function buildFeaturedTools(cat){
     return ''+
       '<a class="feat-card cat-'+t[2]+'" href="/'+t[0]+'" aria-label="Open '+t[1]+'">'+
         (NEW_SLUGS.has(t[0])?'<span class="fc-badge-new">NEW</span>':'')+
+        '<div class="fc-head">'+
+          '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
+          '<h3>'+t[1]+'</h3>'+
+        '</div>'+
+        (preview?'<div class="fc-preview-panel">'+preview+'</div>':'')+
+        '<p class="fc-hook">'+hook+'</p>'+
+        '<span class="fc-cta">Try Now '+arrow+'</span>'+
+      '</a>';
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────
+   buildAIStudioSection — the homepage's dedicated AI
+   collection (background remover, object remover, photo
+   enhancer, upscaler). Reads the SAME AI_STUDIO_SLUGS
+   array the mega menu's AI Tools tab uses (data.js) —
+   one list, two surfaces, so adding a 5th AI tool later
+   means editing one array, not this function too.
+   Reuses the same FEATURED_PREVIEWS panels already built
+   for these 4 tools rather than authoring new ones.
+────────────────────────────────────────────────── */
+function buildAIStudioSection(){
+  const grid=document.getElementById('ai-studio-grid');
+  if(!grid||typeof AI_STUDIO_SLUGS==='undefined')return;
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  const NEW_SLUGS=new Set(['ai-object-remover','ai-photo-enhancer','ai-image-upscaler']);
+  grid.innerHTML=AI_STUDIO_SLUGS.map(slug=>{
+    const t=bySlug(slug);
+    if(!t)return '';
+    const hook=t[3];
+    const preview=FEATURED_PREVIEWS[slug]?FEATURED_PREVIEWS[slug]():'';
+    return ''+
+      '<a class="feat-card ai-studio-card cat-'+t[2]+'" href="/'+t[0]+'" aria-label="Open '+t[1]+'">'+
+        (NEW_SLUGS.has(t[0])?'<span class="fc-badge-new ai-badge-new">NEW</span>':'')+
         '<div class="fc-head">'+
           '<div class="fc-ico">'+ICON[t[2]]+'</div>'+
           '<h3>'+t[1]+'</h3>'+
@@ -1043,14 +1083,17 @@ route();
   var heroEl   = document.getElementById('hero-tool-count');
   var glanceEl = document.getElementById('glance-tool-count');
   var badgeEl  = document.querySelector('.eyebrow');
+  var trustEl  = document.getElementById('heroTrustCount');
   if(heroEl)   heroEl.textContent   = n;
   if(glanceEl) glanceEl.textContent = n + '+';
   if(badgeEl)  badgeEl.innerHTML    = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
+  if(trustEl)  trustEl.textContent  = n;
 })();
 
 /* Boot-time render of category cards */
 buildCategoryCards();
 buildFeaturedTools();
+buildAIStudioSection();
 buildLatestArticles();
 
 wireHeroSearch();

@@ -191,6 +191,13 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
      short, punchy line distinct from the tool's normal
      card description (used only in the featured section).
   ────────────────────────────────────────────────── */
+  /* Single source of truth for "our AI-branded tools" — read by
+     header-chrome.js at build time (mega menu's AI Tools tab) AND by
+     app.js at runtime (homepage AI Studio section), so adding a 5th AI
+     tool later means changing this one array, not two separate
+     hardcoded copies that could drift apart. */
+  const AI_STUDIO_SLUGS=['background-remover','ai-object-remover','ai-photo-enhancer','ai-image-upscaler'];
+
   const FEATURED=[
     {slug:'background-remover',  hook:'Erase any background in one click — no design skill needed.'},
     {slug:'ai-object-remover',   hook:'Paint over anything you want gone — it vanishes, seamlessly.'},

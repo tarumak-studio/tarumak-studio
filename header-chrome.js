@@ -53,11 +53,11 @@ function getChrome() {
   sandbox.__CAP__ = x => { captured = x; };
   vm.createContext(sandbox);
   const src = fs.readFileSync('data.js', 'utf8');
-  const names = ['TOOLS', 'CAT', 'CAT_META', 'ICON'];
+  const names = ['TOOLS', 'CAT', 'CAT_META', 'ICON', 'AI_STUDIO_SLUGS'];
   const cap = `\n;__CAP__({${names.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : null`).join(',')}});`;
   vm.runInContext(src + cap, sandbox);
   if (!captured || !captured.TOOLS) throw new Error('header-chrome: TOOLS capture from data.js failed');
-  const { TOOLS, CAT, CAT_META, ICON } = captured;
+  const { TOOLS, CAT, CAT_META, ICON, AI_STUDIO_SLUGS: AI_STUDIO_SLUGS_SRC } = captured;
 
   /* ── CDN libraries, in the SPA's exact order — every page that mounts
      a real tool (currently just tool pages) needs these; pages that
@@ -120,7 +120,7 @@ function getChrome() {
      (a genuinely real-model tool) is no longer in this specific tab \u2014
      the brief's list was exactly these 4 image tools \u2014 but it's still
      fully searchable and linked everywhere else on the site. */
-  const AI_STUDIO_SLUGS = ['background-remover', 'ai-object-remover', 'ai-photo-enhancer', 'ai-image-upscaler'];
+  const AI_STUDIO_SLUGS = AI_STUDIO_SLUGS_SRC || ['background-remover', 'ai-object-remover', 'ai-photo-enhancer', 'ai-image-upscaler'];
   const AI_STUDIO = AI_STUDIO_SLUGS.map(sl => TOOLS.find(t => t[0] === sl)).filter(Boolean);
 
   /* Recently-Added freshness: a highlight authored with type:'new' only

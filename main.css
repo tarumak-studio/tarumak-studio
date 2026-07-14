@@ -2070,7 +2070,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    short items per the brief's "do not create visual clutter" note. */
 .hero-trust {
   display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
-  gap: 8px 22px; margin-top: 18px; width: 100%;
+  gap: 8px 22px; margin-top: 18px; align-self: stretch; width: 100%;
 }
 .hero-trust span[role="listitem"] {
   display: inline-flex; align-items: center; gap: 6px;
@@ -2143,6 +2143,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    section-by-section.
    ═══════════════════════════════════════════════════════════ */
 .featured-section .wrap,
+.ai-studio-section .wrap,
 .filter-section .wrap,
 .category-section .wrap,
 .blog-strip-section .wrap,

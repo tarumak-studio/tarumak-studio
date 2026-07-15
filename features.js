@@ -25,17 +25,13 @@ function counts(){const c={all:TOOLS.length,image:0,pdf:0,converter:0,marketing:
 function buildTabs(){
   if(!tabsEl)return;
   const c=counts(),fv=getFavs().size;
-  const catKeys=['image','pdf','converter','marketing','developer'];
-  /* When something sets activeCat to a real category (not
-     'all'/'favs'), show a dismissible "currently showing" chip —
-     without this, arriving here already filtered would show no
-     visible confirmation of what's active. */
-  const activeCatChip=catKeys.includes(activeCat)
-    ? '<button class="tab active tab-active-cat" data-cat="'+activeCat+'">'+CAT[activeCat]+' <span class="ct">'+c[activeCat]+'</span><span class="tab-clear" data-clear="1">&times;</span></button>'
-    : '';
-  tabsEl.innerHTML='<button class="tab '+(activeCat==='all'?'active':'')+'" data-cat="all">All <span class="ct">'+c['all']+'</span></button>'
-  +activeCatChip
-  +'<button class="tab t-saved '+(activeCat==='favs'?'active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
+  const catKeys=['image','pdf','developer','marketing','converter'];
+  const catTabs=catKeys.map(k=>
+    '<button class="tab'+(activeCat===k?' active':'')+'" data-cat="'+k+'">'+CAT[k]+' <span class="ct">'+c[k]+'</span></button>'
+  ).join('');
+  tabsEl.innerHTML='<button class="tab'+(activeCat==='all'?' active':'')+'" data-cat="all">All <span class="ct">'+c['all']+'</span></button>'
+  +catTabs
+  +'<button class="tab t-saved'+(activeCat==='favs'?' active':'')+'" data-cat="favs">&#9829; Saved <span class="ct">'+fv+'</span></button>';
 }
 
 /* ══════════════════════════════════════════════════
@@ -94,12 +90,6 @@ function buildGrid(){
   }).join('');
 }
 if(tabsEl)tabsEl.addEventListener('click',e=>{
-  /* The clear (x) button is nested inside the active-category
-     chip, so it needs to be checked BEFORE the general .tab
-     handler below — otherwise closest('.tab') would just find
-     the parent chip and re-select the same category instead of
-     clearing it. */
-  if(e.target.closest('[data-clear]')){ activeCat='all'; buildTabs(); buildGrid(); return; }
   const b=e.target.closest('.tab');if(!b)return;activeCat=b.dataset.cat;buildTabs();buildGrid();
 });
 var _gs=$('#gridSearch');if(_gs)_gs.addEventListener('input',e=>{term=e.target.value;buildGrid();});

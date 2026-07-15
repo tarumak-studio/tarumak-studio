@@ -77,10 +77,12 @@ function toolCard(x) {
 const staticGrid = TOOLS.map(toolCard).join('');
 
 /* Static tabs — matches buildTabs()'s default-state output (All +
-   Saved, 0 saved at build time — corrected immediately by JS from
-   the visitor's own localStorage). */
+   all 5 categories + Saved, 0 saved at build time — corrected
+   immediately by JS from the visitor's own localStorage). */
 const catCounts = {}; TOOLS.forEach(t => { catCounts[t[2]] = (catCounts[t[2]] || 0) + 1; });
+const CAT_ORDER = ['image', 'pdf', 'developer', 'marketing', 'converter'];
 const staticTabs = '<button class="tab active" data-cat="all">All <span class="ct">' + TOOLS.length + '</span></button>'
+  + CAT_ORDER.map(k => '<button class="tab" data-cat="' + k + '">' + CAT[k] + ' <span class="ct">' + (catCounts[k] || 0) + '</span></button>').join('')
   + '<button class="tab t-saved" data-cat="favs">&#9829; Saved <span class="ct">0</span></button>';
 
 const title = 'All ' + TOOLS.length + ' Free Browser Tools | Tarumak Studio';

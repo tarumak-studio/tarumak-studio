@@ -1472,43 +1472,6 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 @media (max-width: 1100px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .feat-grid { grid-template-columns: 1fr; gap: 12px; } }
 
-/* ═══════════════════════════════════════════════════════════
-   AI STUDIO — dedicated homepage section for the 4 AI-branded
-   tools. Deliberately reuses .feat-card's exact structure/CSS
-   (same class on the <a>) so it inherits all existing hover/
-   focus/motion behavior with zero duplication — only the
-   section chrome around it (eyebrow, heading, grid) is new,
-   plus a pink accent (matching the mega menu's own "AI Tools"
-   tab) so this reads as a distinct, intentional collection
-   rather than a second copy of "Start with Our Best".
-   ═══════════════════════════════════════════════════════════ */
-.ai-studio-section { padding: 8px 0 56px; }
-.ai-studio-head { margin-bottom: 36px; }
-.ai-studio-eyebrow { color: #f472b6; }
-.ai-studio-eyebrow .dot { background: #f472b6; }
-.ai-studio-head h2 {
-  font-family: var(--fd); font-weight: 700;
-  font-size: clamp(24px, 3vw, 30px);
-  letter-spacing: -.8px; line-height: 1.15;
-  margin: 14px 0 10px; max-width: 620px; margin-left: auto; margin-right: auto;
-}
-.ai-studio-head p { color: var(--text-dim); font-size: 14px; max-width: 480px; margin: 0 auto; line-height: 1.6; }
-
-.ai-studio-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-}
-@media (max-width: 1100px) { .ai-studio-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .ai-studio-grid { grid-template-columns: 1fr; gap: 12px; } }
-
-.ai-studio-card { border-color: rgba(244,114,182,.16); }
-.ai-studio-card:hover {
-  border-color: rgba(244,114,182,.32);
-  box-shadow: 0 16px 36px -18px rgba(0,0,0,.5), 0 5px 16px -8px rgba(244,114,182,.22);
-}
-.ai-studio-card .fc-ico { color: #f472b6; background: linear-gradient(135deg, rgba(244,114,182,.14), rgba(244,114,182,.05)); border-color: rgba(244,114,182,.2); }
-.ai-studio-card .fc-cta { color: #f472b6; }
-.ai-badge-new { color: #f472b6; background: rgba(244,114,182,.1); border-color: rgba(244,114,182,.22); }
-
 
 .feat-card {
   position: relative;
@@ -2143,7 +2106,6 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    section-by-section.
    ═══════════════════════════════════════════════════════════ */
 .featured-section .wrap,
-.ai-studio-section .wrap,
 .filter-section .wrap,
 .category-section .wrap,
 .blog-strip-section .wrap,

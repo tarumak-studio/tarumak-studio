@@ -250,6 +250,7 @@ INIT['html-to-pdf']=function(panel){
     const paperWpt=(orient==='l')?size[1]:size[0];
     const boxW=Math.round(paperWpt/72*96);
     const box=document.createElement('div');
+    box.id='htp-render-box';
     box.style.cssText='position:fixed;left:-99999px;top:0;width:'+boxW+'px;padding:40px;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box';
     box.innerHTML=html;document.body.appendChild(box);
     /* let fonts/images settle a tick before measuring */
@@ -261,7 +262,7 @@ INIT['html-to-pdf']=function(panel){
         backgroundColor:'#fff',
         useCORS:true,
         logging:false,
-        onclone:function(doc){var c=doc.body.querySelector('div');if(c)_sanitizeColors(c);}
+        onclone:function(doc){var c=doc.getElementById('htp-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
       });
       const {jsPDF}=window.jspdf;
       const doc=new jsPDF({unit:'pt',format:$('#pg',panel).value,orientation:orient});
@@ -551,6 +552,7 @@ INIT['word-to-pdf']=function(panel){
     var size=SIZES[paperKey];
     var boxW=Math.round(size[0]/72*96);
     var box=document.createElement('div');
+    box.id='w2p-render-box';
     box.style.cssText='position:fixed;left:-99999px;top:0;width:'+boxW+'px;padding:56px 50px;background:#fff;color:#111;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:12pt;line-height:1.55;box-sizing:border-box';
     box.innerHTML=
       '<style>'+
@@ -595,7 +597,7 @@ INIT['word-to-pdf']=function(panel){
         backgroundColor:'#fff',
         useCORS:true,
         logging:false,
-        onclone:function(doc){var c=doc.body.querySelector('div');if(c)_sanitizeColors(c);}
+        onclone:function(doc){var c=doc.getElementById('w2p-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
       });
       setStatus(st,'Generating PDF\u2026 60%');
 

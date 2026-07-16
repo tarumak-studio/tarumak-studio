@@ -229,6 +229,25 @@ function _choosePageBreaks(safeBreaks, totalHeight, idealPageHeight) {
   return pages;
 }
 
+/* Belt-and-braces on top of _sanitizeColors: some Chrome versions now
+   resolve certain BROWSER-INTERNAL defaults (::selection highlight,
+   :focus-visible outline, some form-control UA styling) through oklch/
+   color-mix internally — independent of anything this site's own CSS
+   ever wrote (confirmed: no file in this project uses oklch at all).
+   Those live on pseudo-elements and UA defaults, which a real-DOM walk
+   like _sanitizeColors structurally cannot reach (querySelectorAll never
+   returns ::selection). A blanket, maximum-specificity override in the
+   CLONED document's own <head> forces safe plain-rgb fallbacks for
+   exactly the properties html2canvas is known to choke on, without
+   touching the live page's actual appearance for real users. */
+function _injectSafeColorOverrides(doc){
+  var style=doc.createElement('style');
+  style.textContent=
+    '*,*::before,*::after{outline-color:rgb(0,0,0)!important;text-decoration-color:rgb(0,0,0)!important;caret-color:rgb(0,0,0)!important;-webkit-text-fill-color:unset!important;accent-color:rgb(34,110,220)!important}'+
+    '::selection{background:rgb(179,215,255)!important;color:rgb(0,0,0)!important}';
+  doc.head.appendChild(style);
+}
+
 INIT['html-to-pdf']=function(panel){
   var SIZES={a4:[595.28,841.89],letter:[612,792],legal:[612,1008]};
   panel.innerHTML='<div class="ctrl"><label for="ta">Paste HTML</label><textarea id="ta" placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Your HTML here…&lt;/p&gt;"></textarea></div>'+
@@ -262,7 +281,7 @@ INIT['html-to-pdf']=function(panel){
         backgroundColor:'#fff',
         useCORS:true,
         logging:false,
-        onclone:function(doc){var c=doc.getElementById('htp-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
+        onclone:function(doc){_injectSafeColorOverrides(doc);_sanitizeColors(doc.documentElement);var c=doc.getElementById('htp-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
       });
       const {jsPDF}=window.jspdf;
       const doc=new jsPDF({unit:'pt',format:$('#pg',panel).value,orientation:orient});
@@ -597,7 +616,7 @@ INIT['word-to-pdf']=function(panel){
         backgroundColor:'#fff',
         useCORS:true,
         logging:false,
-        onclone:function(doc){var c=doc.getElementById('w2p-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
+        onclone:function(doc){_injectSafeColorOverrides(doc);_sanitizeColors(doc.documentElement);var c=doc.getElementById('w2p-render-box')||doc.body.lastElementChild;if(c)_sanitizeColors(c);}
       });
       setStatus(st,'Generating PDF\u2026 60%');
 

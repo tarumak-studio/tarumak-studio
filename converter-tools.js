@@ -206,6 +206,29 @@ function _sanitizeColors(root){
   });
 }
 
+/* Content-aware page-break selection: given a sorted list of "safe" Y
+   positions (the top/bottom edge of every paragraph, heading, list item,
+   table row, etc. in the rendered document) and an ideal page height, pick
+   actual page-break points that fall ON one of those edges — never through
+   the middle of an element. Falls back to the naive ideal cut only when no
+   safe edge exists nearby (e.g. one huge image), and always guarantees
+   forward progress so it can never stall. Pure function — no DOM — so it's
+   unit-testable on its own before ever touching real rendered content. */
+function _choosePageBreaks(safeBreaks, totalHeight, idealPageHeight) {
+  var pages = [];
+  var cursor = 0;
+  var sorted = safeBreaks.slice().sort(function (a, b) { return a - b; });
+  while (cursor < totalHeight - 0.5) {
+    var idealEnd = cursor + idealPageHeight;
+    var candidates = sorted.filter(function (y) { return y > cursor + 1 && y <= idealEnd; });
+    var end = candidates.length ? candidates[candidates.length - 1] : Math.min(idealEnd, totalHeight);
+    if (end <= cursor) end = Math.min(idealEnd, totalHeight);
+    pages.push({ start: cursor, end: end });
+    cursor = end;
+  }
+  return pages;
+}
+
 INIT['html-to-pdf']=function(panel){
   var SIZES={a4:[595.28,841.89],letter:[612,792],legal:[612,1008]};
   panel.innerHTML='<div class="ctrl"><label for="ta">Paste HTML</label><textarea id="ta" placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Your HTML here…&lt;/p&gt;"></textarea></div>'+
@@ -448,43 +471,169 @@ INIT['png-to-svg']=function(panel){
    message as an error. And the popup-window print flow is replaced with
    a hidden same-origin iframe — immune to popup blockers. */
 INIT['word-to-pdf']=function(panel){
-  var u=dz(panel,{accept:'.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multiple:false,formats:['DOCX\u2192PDF'],sub:'Upload a .docx Word document — converted to PDF entirely in your browser.'});
+  var HTML2CANVAS_CDN='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+  var JSPDF_CDN='https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+  var SIZES={a4:[595.28,841.89],letter:[612,792]};
+
+  var u=dz(panel,{accept:'.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multiple:false,formats:['DOCX\u2192PDF'],sub:'Upload a .docx Word document \u2014 converts to a real PDF and downloads automatically. No print dialog.'});
+
+  u.controls.className='controls';
+  u.controls.innerHTML='<div class="ctrl"><label for="w2pPaper">Paper size</label><select id="w2pPaper"><option value="a4">A4</option><option value="letter">Letter</option></select></div>'+
+    '<div class="ctrl-spacer"></div><button class="btn btn-primary" id="w2pRun" disabled>Convert to PDF</button>';
+
+  var file=null,running=false;
+
   dropzone(u.drop,u.file,function(files){
-    var file=[].slice.call(files).find(function(f){
-      return /\.docx$/i.test(f.name)||f.type==='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    var f=[].slice.call(files).find(function(x){
+      return /\.docx$/i.test(x.name)||x.type==='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     });
-    if(!file){setStatus(u.status,'That is not a .docx file. Legacy .doc files are not supported \u2014 re-save as .docx in Word first.',1);return;}
-    if(typeof mammoth==='undefined'){setStatus(u.status,'The converter library has not finished loading \u2014 check your connection and try again in a moment.',1);return;}
-    setStatus(u.status,'Reading document\u2026');
-    file.arrayBuffer().then(function(buf){
-      return mammoth.convertToHtml({arrayBuffer:buf});
-    }).then(function(result){
-      var html=result.value;
-      if(!html||!html.trim()){setStatus(u.status,'The document appears to be empty or could not be read.',1);return;}
-      var warnings=result.messages.filter(function(m){return m.type==='warning';}).length;
-      var title=file.name.replace(/\.docx$/i,'');
-      /* Hidden same-origin iframe: no popups, no blockers. */
-      var old=document.getElementById('w2p-frame');if(old)old.remove();
-      var fr=document.createElement('iframe');
-      fr.id='w2p-frame';fr.style.cssText='position:fixed;width:0;height:0;border:0;visibility:hidden';
-      document.body.appendChild(fr);
-      var doc=fr.contentDocument;
-      doc.open();
-      doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title.replace(/</g,'&lt;')+'</title>'
-        +'<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;font-size:12.5pt;color:#111}'
-        +'h1,h2,h3,h4{margin-top:1.4em}p{margin:.7em 0}table{border-collapse:collapse;width:100%;margin:1em 0}'
-        +'td,th{border:1px solid #bbb;padding:6px 10px;text-align:left}img{max-width:100%}'
-        +'@media print{body{margin:0;padding:16px}}</style></head><body>'+html+'</body></html>');
-      doc.close();
-      setStatus(u.status,'Ready \u2014 choose \u201cSave as PDF\u201d in the print dialog.'+(warnings?' ('+warnings+' formatting note'+(warnings>1?'s':'')+' \u2014 complex layouts may simplify.)':''));
-      setTimeout(function(){
-        try{fr.contentWindow.focus();fr.contentWindow.print();}
-        catch(e){setStatus(u.status,'Could not open the print dialog: '+e.message,1);}
-      },150);
-    }).catch(function(err){
-      setStatus(u.status,'Conversion failed: '+(err&&err.message?err.message:'the file could not be parsed as a Word document.'),1);
-    });
+    if(!f){setStatus(u.status,'That is not a .docx file. Legacy .doc files are not supported \u2014 re-save as .docx in Word first.',1);return;}
+    file=f;$('#w2pRun',panel).disabled=false;
+    setStatus(u.status,'Ready \u2014 '+f.name+' ('+fmtBytes(f.size)+').');
   });
+
+  function loadLib(cdn,glob){return _loadScript(cdn,glob).catch(function(){return _loadScript(cdn+'?r='+Date.now(),glob);});}
+
+  $('#w2pRun',panel).onclick=async function(){
+    if(!file||running)return;
+    running=true;
+    var runBtn=$('#w2pRun',panel);runBtn.disabled=true;
+    var st=u.status;st.className='status show';st.setAttribute('role','status');st.setAttribute('aria-live','polite');
+
+    /* ── STAGE 1: Uploading ── (local read \u2014 framed to match the
+       requested UX stages; nothing actually leaves the browser) */
+    setStatus(st,'Uploading\u2026');
+    var buf;
+    try{buf=await file.arrayBuffer();}
+    catch(e){setStatus(st,'Could not read this file.',1);running=false;runBtn.disabled=false;return;}
+
+    /* ── STAGE 2: Reading DOCX ── */
+    setStatus(st,'Reading DOCX\u2026');
+    if(typeof mammoth==='undefined'){setStatus(st,'The document reader has not finished loading \u2014 check your connection and try again.',1);running=false;runBtn.disabled=false;return;}
+
+    var html,warnCount=0;
+    try{
+      /* Explicit style map: mammoth's own defaults already catch standard
+         "Heading 1"-"Heading 4", but Title/Subtitle/Quote and character
+         styles (Strong/Emphasis) aren't mapped by default and otherwise
+         fall through as plain, unstyled paragraphs \u2014 a real fidelity
+         loss on real-world Word documents that use named styles. */
+      var styleMap=[
+        "p[style-name='Title'] => h1.doc-title:fresh",
+        "p[style-name='Subtitle'] => h2.doc-subtitle:fresh",
+        "p[style-name='Quote'] => blockquote:fresh",
+        "p[style-name='Intense Quote'] => blockquote.intense:fresh",
+        "r[style-name='Strong'] => strong",
+        "r[style-name='Emphasis'] => em"
+      ];
+      var result=await mammoth.convertToHtml({arrayBuffer:buf},{styleMap:styleMap});
+      html=result.value;
+      warnCount=(result.messages||[]).filter(function(m){return m.type==='warning';}).length;
+    }catch(e){
+      setStatus(st,'Could not read this document: '+(e&&e.message?e.message:'it may be corrupted or password-protected.'),1);
+      running=false;runBtn.disabled=false;return;
+    }
+    if(!html||!html.trim()){setStatus(st,'The document appears to be empty or has no readable content.',1);running=false;runBtn.disabled=false;return;}
+
+    try{
+      await Promise.all([
+        typeof html2canvas==='function'?Promise.resolve():loadLib(HTML2CANVAS_CDN,'html2canvas'),
+        window.jspdf?Promise.resolve():loadLib(JSPDF_CDN,'jspdf')
+      ]);
+    }catch(e){
+      setStatus(st,'The PDF engine could not be loaded \u2014 check your connection and try again.',1);
+      running=false;runBtn.disabled=false;return;
+    }
+
+    /* ── STAGE 3: Generating PDF ── */
+    setStatus(st,'Generating PDF\u2026 0%');
+    var paperKey=($('#w2pPaper',panel).value)||'a4';
+    var size=SIZES[paperKey];
+    var boxW=Math.round(size[0]/72*96);
+    var box=document.createElement('div');
+    box.style.cssText='position:fixed;left:-99999px;top:0;width:'+boxW+'px;padding:56px 50px;background:#fff;color:#111;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:12pt;line-height:1.55;box-sizing:border-box';
+    box.innerHTML=
+      '<style>'+
+        '.doc-title{font-size:26pt;font-weight:700;margin:0 0 4pt;font-family:Georgia,serif}'+
+        '.doc-subtitle{font-size:14pt;font-weight:400;color:#555;margin:0 0 18pt}'+
+        'h1{font-size:18pt;font-weight:700;margin:16pt 0 8pt}'+
+        'h2{font-size:15pt;font-weight:700;margin:14pt 0 6pt}'+
+        'h3{font-size:13pt;font-weight:700;margin:12pt 0 6pt}'+
+        'h4{font-size:12pt;font-weight:700;font-style:italic;margin:10pt 0 4pt}'+
+        'p{margin:0 0 8pt}'+
+        'ul,ol{margin:0 0 8pt;padding-left:22pt}'+
+        'li{margin:0 0 4pt}'+
+        'table{border-collapse:collapse;width:100%;margin:0 0 12pt}'+
+        'td,th{border:1px solid #999;padding:5pt 8pt;text-align:left;vertical-align:top}'+
+        'th{background:#f0f0f0;font-weight:700}'+
+        'blockquote{border-left:3px solid #999;margin:0 0 8pt;padding:2pt 0 2pt 12pt;color:#444}'+
+        'blockquote.intense{border-left-color:#666;font-style:italic}'+
+        'img{max-width:100%;height:auto}'+
+        'strong,b{font-weight:700}em,i{font-style:italic}'+
+      '</style>'+html;
+    document.body.appendChild(box);
+    await new Promise(function(r){setTimeout(r,60);}); /* let fonts/images settle */
+
+    try{
+      _sanitizeColors(box);
+
+      /* Content-aware safe page-break points: the top/bottom edge of every
+         paragraph, heading, list item, table row, quote and image \u2014
+         see _choosePageBreaks()'s own comment for why this matters. */
+      var blockEls=box.querySelectorAll('p,h1,h2,h3,h4,li,tr,blockquote,img');
+      var boxRectBefore=box.getBoundingClientRect();
+      var safeBreaks=[0,boxRectBefore.height];
+      blockEls.forEach(function(el){
+        var r=el.getBoundingClientRect();
+        safeBreaks.push(r.top-boxRectBefore.top);
+        safeBreaks.push(r.bottom-boxRectBefore.top);
+      });
+      var totalHeightPx=boxRectBefore.height;
+
+      var canvas=await html2canvas(box,{
+        scale:Math.min(2,(window.devicePixelRatio||1)*2),
+        backgroundColor:'#fff',
+        useCORS:true,
+        logging:false,
+        onclone:function(doc){var c=doc.body.querySelector('div');if(c)_sanitizeColors(c);}
+      });
+      setStatus(st,'Generating PDF\u2026 60%');
+
+      var {jsPDF}=window.jspdf;
+      var doc=new jsPDF({unit:'pt',format:paperKey});
+      var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
+      var pxToPt=72/96;
+      var idealPageHeightPx=ph/pxToPt;
+      var pages=_choosePageBreaks(safeBreaks,totalHeightPx,idealPageHeightPx);
+      var scaleFactor=canvas.width/boxW; /* canvas px per CSS px, from html2canvas's own scale option */
+
+      pages.forEach(function(pg,idx){
+        var sliceHeightPx=pg.end-pg.start;
+        if(sliceHeightPx<=0)return;
+        var sliceCanvas=document.createElement('canvas');
+        sliceCanvas.width=canvas.width;
+        sliceCanvas.height=Math.max(1,Math.round(sliceHeightPx*scaleFactor));
+        var sctx=sliceCanvas.getContext('2d');
+        sctx.fillStyle='#fff';sctx.fillRect(0,0,sliceCanvas.width,sliceCanvas.height);
+        sctx.drawImage(canvas,0,Math.round(pg.start*scaleFactor),canvas.width,sliceCanvas.height,0,0,canvas.width,sliceCanvas.height);
+        var imgData=sliceCanvas.toDataURL('image/jpeg',.95);
+        if(idx>0)doc.addPage();
+        var imgHpt=sliceHeightPx*pxToPt;
+        doc.addImage(imgData,'JPEG',0,0,pw,imgHpt,'','FAST');
+      });
+
+      setStatus(st,'Downloading\u2026');
+      var outName=(file.name||'document').replace(/\.docx$/i,'')+'.pdf';
+      doc.save(outName);
+      if(window._ga){window._ga('conversion_completed',{tool_name:'word-to-pdf',pages:pages.length});window._ga('file_download',{file_name:outName,tool_name:'word-to-pdf'});}
+      setStatus(st,'Done \u2014 saved '+outName+' ('+pages.length+' page'+(pages.length===1?'':'s')+').'+(warnCount?' ('+warnCount+' formatting note'+(warnCount>1?'s':'')+' \u2014 unusual layouts may simplify.)':''));
+    }catch(e){
+      console.error('[word-to-pdf]',e);
+      setStatus(st,'Conversion failed: '+(e&&e.message?e.message:'the PDF could not be generated.'),1);
+    }finally{
+      box.remove();running=false;runBtn.disabled=false;
+    }
+  };
 };
 
 /* 2 ── Markdown to HTML */

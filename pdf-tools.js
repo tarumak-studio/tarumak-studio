@@ -678,10 +678,3 @@ INIT['pdf-to-excel']=function(panel){
     setStatus(st,'Converted '+pdf.numPages+' page(s) into '+sheets.length+' sheet(s).');
   }
 };
-FAQ['pdf-to-excel']=[
-  ["How does the table extraction work?","The tool reads each text run's real position on the page from the PDF's own content stream, then groups runs into rows by shared vertical position and into columns by shared horizontal start position \u2014 the same technique used by well-known open-source PDF table tools. It works well on clean, evenly-spaced tabular data (invoices, exports from spreadsheets, bank statements). It does not detect tables via drawn ruling lines, so very unusual layouts may need manual cleanup afterward."],
-  ["Does it work on scanned PDFs?","Yes \u2014 pages with no selectable text are automatically run through on-device OCR (the same engine as the OCR Image to Text tool), then the same row/column reconstruction is applied to the recognized words. OCR accuracy depends on scan quality; low-resolution scans may extract less reliably."],
-  ["Will dates convert correctly?","Dates are kept as readable text rather than converted to Excel's internal date format. Date text is genuinely ambiguous (03/04/2026 could mean different days in different countries) \u2014 guessing wrong would silently corrupt a date in your spreadsheet, so the tool preserves the text exactly as printed instead."],
-  ["Can it open password-protected PDFs?","Yes \u2014 if a PDF needs a password to open, the tool will ask for it before processing. The password is only used locally to decrypt the file in your browser; it is never sent anywhere."],
-  ["Does it preserve merged cells?","It approximates section-header-style merged rows (a single wide label spanning what would otherwise be several columns) as a real merged cell in the output. This is a best-effort heuristic, not exact PDF structural data, since PDFs don't expose table cell-merge information directly."]
-];

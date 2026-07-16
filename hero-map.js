@@ -54,6 +54,7 @@ const HERO_MAP = {
   'pdf-splitter':          { type: 'splitDocs' },
   'pdf-compressor':        { type: 'sizeReduction', from: '9.1 MB', to: '2.4 MB', saved: '\u221274%' },
   'pdf-to-jpg':            { type: 'formatConvert', from: 'PDF', to: 'JPG' },
+  'pdf-to-excel':          { type: 'formatConvert', from: 'PDF', to: 'XLSX' },
   'jpg-to-pdf':            { type: 'formatConvert', from: 'JPG', to: 'PDF' },
   'png-to-pdf':            { type: 'formatConvert', from: 'PNG', to: 'PDF' },
   'pdf-to-text':           { type: 'formatConvert', from: 'PDF', to: 'TXT' },

@@ -208,7 +208,8 @@ const WORKFLOW_NEXT = {
   'ai-object-remover': ['ai-photo-enhancer', 'ai-image-upscaler', 'background-remover', 'image-compressor', 'watermark-image'],
   'image-compressor': ['background-remover', 'image-resizer', 'png-to-webp', 'social-image-resizer'],
   'ocr-image-to-text': ['pdf-to-text', 'text-diff', 'word-counter', 'markdown-to-html'],
-  'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-organizer'],
+  'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-to-excel', 'pdf-organizer'],
+  'pdf-to-excel': ['pdf-to-text', 'ocr-image-to-text', 'pdf-merger', 'pdf-compressor'],
   'json-formatter': ['base64-encoder', 'regex-tester', 'url-encoder', 'timestamp-converter'],
   'og-image-gen': ['social-image-resizer', 'qr-code-generator', 'color-palette-gen', 'utm-builder'],
   'word-to-pdf': ['pdf-compressor', 'pdf-merger', 'html-to-pdf', 'txt-to-pdf']

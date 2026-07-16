@@ -447,6 +447,7 @@ const TOOLS=[
  ['pdf-splitter','PDF Splitter','pdf','Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.',['PDF']],
  ['pdf-compressor','PDF Compressor','pdf','Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.',['PDF']],
  ['pdf-to-jpg','PDF to JPG Converter','pdf','Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.',['PDF→JPG']],
+ ['pdf-to-excel','PDF to Excel Converter','pdf','Convert PDF tables to Excel (.xlsx) online. Reconstructs rows and columns from real text positions, with OCR for scanned pages — free, private, no upload.',['PDF→XLSX']],
  ['jpg-to-pdf','JPG to PDF Converter','pdf','Convert JPG images to PDF online in seconds. Combine multiple JPGs into one PDF or convert individually.',['JPG→PDF']],
  ['png-to-pdf','PNG to PDF Converter','pdf','Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.',['PNG→PDF']],
  ['pdf-to-text','PDF to Text Converter','pdf','Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.',['PDF→TXT']],
@@ -514,7 +515,8 @@ var EXT_SYNONYMS={jpeg:'jpg',jpg:'jpeg',yml:'yaml',yaml:'yml',htm:'html',
   'remove object':'object',
   'remove objects':'object',
   restore:'old photo',
-  quality:'enhance'};
+  quality:'enhance',
+  spreadsheet:'excel'};
 function normalizeSearchTerm(raw){
   var t=raw.toLowerCase().trim();
   if(t.charAt(0)==='.')t=t.slice(1);

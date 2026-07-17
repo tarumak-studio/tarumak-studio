@@ -109,7 +109,8 @@ for (const file of targets) {
       '<script src="/config.js" defer></script>',
       '<script src="/utils.js" defer></script>',
       '<script src="/data.js" defer></script>',
-      '<script src="/features.js" defer></script>'
+      '<script src="/features.js" defer></script>',
+      '<script src="/analytics.js" defer></script>'
     ].join('\n');
     if (!html.includes('src="/features.js"')) {
       const bodyClose = html.lastIndexOf('</body>');

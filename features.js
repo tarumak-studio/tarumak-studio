@@ -92,7 +92,16 @@ function buildGrid(){
 if(tabsEl)tabsEl.addEventListener('click',e=>{
   const b=e.target.closest('.tab');if(!b)return;activeCat=b.dataset.cat;buildTabs();buildGrid();
 });
-var _gs=$('#gridSearch');if(_gs)_gs.addEventListener('input',e=>{term=e.target.value;buildGrid();});
+var _gs=$('#gridSearch');
+var _gsTimer=null;
+if(_gs)_gs.addEventListener('input',e=>{
+  term=e.target.value;buildGrid();
+  if(window.trackEvent){
+    clearTimeout(_gsTimer);
+    var q=term;
+    _gsTimer=setTimeout(()=>{if(q.trim())window.trackEvent('site_search',{search_term:q.trim().slice(0,80)});},600);
+  }
+});
 /* grid initialised by route() boot call in app.js */
 
 /* ---------- nav search ---------- */

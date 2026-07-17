@@ -5,7 +5,8 @@
    and BEFORE image-tools.js / pdf-tools.js (uses them)
    ================================================================ */
 
-function setStatus(el,msg,err){el.className='status show'+(err?' err':'');el.textContent=msg;}
+function setStatus(el,msg,err){el.className='status show'+(err?' err':'');el.textContent=msg;
+  if(err&&window.trackEvent)window.trackEvent('tool_error',{error_message:String(msg).slice(0,150)});}
 
 function row(box,thumb,name,meta,onDl){box.classList.add('show');const d=document.createElement('div');d.className='row';
   d.innerHTML=(thumb?'<img class="thumb" src="'+thumb+'">':'<div class="thumb" style="display:grid;place-items:center;color:var(--accent)">'+ICON.pdf+'</div>')+
@@ -103,6 +104,7 @@ function noInit(panel){panel.innerHTML='<div class="note">This tool is being fin
     revokeAll();
     panel.innerHTML='';
     try{INIT[slug](panel);}catch(e){if(window.console)console.warn('[reset] remount failed:',e);return false;}
+    if(window.trackEvent)window.trackEvent('tool_reset',{});
     return true;
   };
 })();

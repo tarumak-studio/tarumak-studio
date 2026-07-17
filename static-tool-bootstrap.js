@@ -18,9 +18,11 @@
   var SLUG = document.body.getAttribute('data-tool-slug');
   if (!SLUG) return;
 
-  /* Safety stub — nothing in the category files calls _ga (verified), but
-     if analytics wiring ever lands in shared helpers, static pages must
-     not throw. */
+  /* Safety stub — if config.js somehow failed to load before this file
+     runs, _ga must still be callable without throwing. Real analytics
+     wiring lives in analytics.js (trackEvent) and config.js (_ga/gtag),
+     both loaded earlier in the page's script order; this is just a
+     defensive fallback, not the primary path. */
   window._ga = window._ga || function () {};
 
   function ready(fn) {
@@ -38,6 +40,7 @@
           panel.innerHTML = '';
           INIT[SLUG](panel);
           mounted = true;
+          if (window.trackEvent) window.trackEvent('tool_open', {});
           /* Universal Reset (shared system in tool-helpers.js): one
              button, every tool, no page refresh needed. Injected after
              the panel so a reset (which wipes the panel) never removes

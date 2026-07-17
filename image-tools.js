@@ -1322,6 +1322,8 @@ INIT['ai-image-upscaler']=function(panel){
       setStatus(u.status,'Your browser can\u2019t create a '+outW+'\u00d7'+outH+' px image ('+Math.round(outW*outH/1e6)+' MP) \u2014 this is a browser memory limit, common in Safari. Try 2\u00d7 instead.',1);return;
     }
     var signal={cancelled:false};running=signal;
+    if(window.trackEvent)window.trackEvent('tool_process_started',{scale:factor+'x'});
+    var _t0=performance.now();
     $('#uprun',panel).disabled=true;
     u.results.innerHTML=
       '<div style="max-width:460px;margin:0 auto;text-align:center">'+
@@ -1357,7 +1359,11 @@ INIT['ai-image-upscaler']=function(panel){
       }
       outCanvas=res.canvas;
       showResult(res.engine,factor);
-      if(window._ga)window._ga('upscale_complete',{tool_name:'ai-image-upscaler',scale:factor+'x',engine:res.engine});
+      if(window.trackEvent){
+        var elapsed=Math.round((performance.now()-_t0)/100)/10;
+        window.trackEvent('tool_process_completed',{scale:factor+'x',engine:res.engine,processing_time:elapsed});
+        window.trackEvent('ai_upscale_completed',{scale:factor+'x',engine:res.engine,processing_time:elapsed});
+      }
     }).catch(function(e){
       running=null;
       if(e&&e.message==='cancelled'){reset(false);setStatus(u.status,'Cancelled.');return;}
@@ -1451,7 +1457,6 @@ INIT['ai-image-upscaler']=function(panel){
           if(!b){setStatus(u.status,'Export failed \u2014 try PNG.',1);return;}
           var nm=srcName+'-upscaled-'+factor+'x.'+ext;
           download(b,nm);
-          if(window._ga)window._ga('file_download',{file_name:nm,tool_name:'ai-image-upscaler'});
         },fmt,fmt==='image/png'?undefined:.92);
       };
       $('#upreset',panel).onclick=function(){reset(true);};
@@ -1633,7 +1638,6 @@ INIT['ai-photo-enhancer']=function(panel){
 
   $('#enRun',panel).onclick=function(){
     if(!srcCanvas||running)return;
-    if(window._ga)window._ga('enhancement_started',{tool_name:'ai-photo-enhancer',preset:curPreset});
     runPreview(); /* instant proxy result */
     setStatus(u.status,'Enhanced preview ready \u2014 fine-tune with sliders, then Download for full resolution.');
   };
@@ -1705,6 +1709,8 @@ INIT['ai-photo-enhancer']=function(panel){
     var btn=$('#enDl',panel);btn.disabled=true;
     st.className='status show';
     st.innerHTML='Processing full resolution\u2026 <span id="enPct">0%</span> <button class="btn btn-ghost" id="enCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
+    if(window.trackEvent)window.trackEvent('tool_process_started',{preset:curPreset});
+    var _t0=performance.now();
     $('#enCancel',panel).onclick=function(){signal.cancelled=true;};
     fullOut=document.createElement('canvas');
     fullOut.width=srcCanvas.width;fullOut.height=srcCanvas.height;
@@ -1724,7 +1730,11 @@ INIT['ai-photo-enhancer']=function(panel){
         var nm=srcName+'-enhanced.'+ext;
         download(b,nm);
         st.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
-        if(window._ga){window._ga('enhancement_completed',{tool_name:'ai-photo-enhancer',preset:curPreset,engine:res.engine});window._ga('file_download',{file_name:nm,tool_name:'ai-photo-enhancer'});}
+        if(window.trackEvent){
+          var elapsed=Math.round((performance.now()-_t0)/100)/10;
+          window.trackEvent('tool_process_completed',{preset:curPreset,engine:res.engine,processing_time:elapsed});
+          window.trackEvent('ai_enhance_completed',{preset:curPreset,engine:res.engine,processing_time:elapsed});
+        }
       },fmt,fmt==='image/png'?undefined:.92);
     }).catch(function(e){
       running=null;btn.disabled=false;
@@ -1930,7 +1940,7 @@ INIT['ai-object-remover']=function(panel){
     st.className='status show';
     st.innerHTML='Removing\u2026 <span id="orPct">0%</span> <button class="btn btn-ghost" id="orCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
     $('#orCancel',panel).onclick=function(){signal.cancelled=true;};
-    if(window._ga)window._ga('object_removal_started',{tool_name:'ai-object-remover',quality:quality});
+    if(window.trackEvent)window.trackEvent('tool_process_started',{quality:quality});
     outCv=document.createElement('canvas');outCv.width=imgCv.width;outCv.height=imgCv.height;
     outCv.getContext('2d').drawImage(imgCv,0,0);
     var _t0=performance.now();
@@ -1942,12 +1952,18 @@ INIT['ai-object-remover']=function(panel){
     }).then(function(res){
       running=null;btn.disabled=false;
       if(signal.cancelled){st.textContent='Cancelled.';return;}
-      showResult(res.engine,(performance.now()-_t0)/1000);
-      if(window._ga)window._ga('object_removal_completed',{tool_name:'ai-object-remover',quality:quality,engine:res.engine});
+      var elapsed=(performance.now()-_t0)/1000;
+      showResult(res.engine,elapsed);
+      if(window.trackEvent){
+        window.trackEvent('tool_process_completed',{quality:quality,engine:res.engine,processing_time:Math.round(elapsed*10)/10});
+        window.trackEvent('ai_object_remove_completed',{quality:quality,engine:res.engine,processing_time:Math.round(elapsed*10)/10});
+      }
     }).catch(function(e){
       running=null;btn.disabled=false;
       if(e&&e.message==='cancelled'){st.textContent='Cancelled.';return;}
-      st.textContent=(e&&/selection/.test(e.message||''))?e.message:'Removal failed: '+(e&&e.message||e);
+      var msg=(e&&/selection/.test(e.message||''))?e.message:'Removal failed: '+(e&&e.message||e);
+      st.textContent=msg;
+      if(window.trackEvent)window.trackEvent('tool_error',{error_message:String(msg).slice(0,150)});
     });
   };
 
@@ -2054,7 +2070,6 @@ INIT['ai-object-remover']=function(panel){
           var nm=srcName+'-removed.'+ext;
           download(b,nm);
           st2.className='status show';st2.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
-          if(window._ga)window._ga('file_download',{file_name:nm,tool_name:'ai-object-remover'});
         },fmt,fmt==='image/png'?undefined:.92);
       };
       $('#orMore',panel).onclick=function(){

@@ -263,6 +263,8 @@ INIT['html-to-pdf']=function(panel){
     const html=ta.value;if(!html.trim()){setStatus(st,'Paste some HTML first.',1);return;}
     if(typeof html2canvas!=='function'){setStatus(st,'Renderer still loading — try again in a moment.',1);return;}
     setStatus(st,'Rendering\u2026');
+    if(window.trackEvent)window.trackEvent('tool_process_started',{});
+    const _t0=performance.now();
     const size=SIZES[$('#pg',panel).value]||SIZES.a4;
     const orient=$('#or',panel).value;
     /* CSS px width of the render box = paper width in px at 96dpi (pt/72*96) */
@@ -293,6 +295,10 @@ INIT['html-to-pdf']=function(panel){
       while(left>0.5){doc.addPage();pos-=ph;doc.addImage(img,'JPEG',0,pos,iw,ih,'','FAST');left-=ph;}
       doc.save('document.pdf');
       setStatus(st,'PDF created.');
+      if(window.trackEvent){
+        window.trackEvent('tool_process_completed',{processing_time:Math.round((performance.now()-_t0)/100)/10});
+        window.trackEvent('tool_download',{file_type:'pdf'});
+      }
     }catch(e){
       console.error('[html-to-pdf]',e);
       setStatus(st,'Failed: '+(e&&e.message||e),1);
@@ -519,6 +525,8 @@ INIT['word-to-pdf']=function(panel){
     running=true;
     var runBtn=$('#w2pRun',panel);runBtn.disabled=true;
     var st=u.status;st.className='status show';st.setAttribute('role','status');st.setAttribute('aria-live','polite');
+    if(window.trackEvent)window.trackEvent('tool_process_started',{});
+    var _t0=performance.now();
 
     /* ── STAGE 1: Uploading ── (local read \u2014 framed to match the
        requested UX stages; nothing actually leaves the browser) */
@@ -646,7 +654,15 @@ INIT['word-to-pdf']=function(panel){
       setStatus(st,'Downloading\u2026');
       var outName=(file.name||'document').replace(/\.docx$/i,'')+'.pdf';
       doc.save(outName);
-      if(window._ga){window._ga('conversion_completed',{tool_name:'word-to-pdf',pages:pages.length});window._ga('file_download',{file_name:outName,tool_name:'word-to-pdf'});}
+      if(window.trackEvent){
+        var elapsed=Math.round((performance.now()-_t0)/100)/10;
+        window.trackEvent('tool_process_completed',{pages:pages.length,processing_time:elapsed});
+        /* Explicit fire: jsPDF's doc.save() triggers the browser download
+           directly, bypassing utils.js's download() helper entirely — the
+           one case in this file where tool_download can't be picked up
+           automatically and needs its own call. */
+        window.trackEvent('tool_download',{file_type:'pdf'});
+      }
       setStatus(st,'Done \u2014 saved '+outName+' ('+pages.length+' page'+(pages.length===1?'':'s')+').'+(warnCount?' ('+warnCount+' formatting note'+(warnCount>1?'s':'')+' \u2014 unusual layouts may simplify.)':''));
     }catch(e){
       console.error('[word-to-pdf]',e);

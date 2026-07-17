@@ -513,7 +513,7 @@ INIT['pdf-to-excel']=function(panel){
     var signal={cancelled:false};running=signal;
     var runBtn=$('#pteRun',panel);runBtn.disabled=true;
     setStatus(u.status,'Reading PDF\u2026');
-    if(window._ga)window._ga('conversion_started',{tool_name:'pdf-to-excel'});
+    if(window.trackEvent)window.trackEvent('tool_process_started',{});
 
     var buf;
     try{buf=await file.arrayBuffer();}
@@ -553,6 +553,7 @@ INIT['pdf-to-excel']=function(panel){
 
   async function convert(pdf,signal){
     var runBtn=$('#pteRun',panel);
+    var _t0=performance.now();
     if(pdf.numPages>MAX_PAGES){
       setStatus(u.status,'This PDF has '+pdf.numPages+' pages \u2014 the maximum for browser conversion is '+MAX_PAGES+'. Try splitting it first with the PDF Splitter.',1);
       runBtn.disabled=false;running=null;return;
@@ -668,7 +669,7 @@ INIT['pdf-to-excel']=function(panel){
       '</div>';
     $('#pteDl',panel).onclick=function(){
       download(wbBlob,outName);
-      if(window._ga){window._ga('conversion_completed',{tool_name:'pdf-to-excel',pages:pdf.numPages,sheets:sheets.length});window._ga('file_download',{file_name:outName,tool_name:'pdf-to-excel'});}
+      if(window.trackEvent)window.trackEvent('tool_process_completed',{pages:pdf.numPages,sheets:sheets.length,processing_time:Math.round((performance.now()-_t0)/100)/10});
       setStatus(st,'Saved '+outName+'.');
     };
     $('#pteReset',panel).onclick=function(){

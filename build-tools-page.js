@@ -156,6 +156,7 @@ ${FOOTER}
 <script src="/utils.js" defer></script>
 <script src="/data.js" defer></script>
 <script src="/features.js" defer></script>
+<script src="/analytics.js" defer></script>
 ${MEGA_MENU_SCRIPT}
 ${NAV_RESPONSIVE_SCRIPT}
 <script>

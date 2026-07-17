@@ -668,7 +668,15 @@ function wireHeroSearch(){
     render(matchTools(term,8),term);
   }
 
-  input.addEventListener('input',()=>search(input.value));
+  let _heroSearchTimer=null;
+  input.addEventListener('input',()=>{
+    search(input.value);
+    if(window.trackEvent){
+      clearTimeout(_heroSearchTimer);
+      const q=input.value;
+      _heroSearchTimer=setTimeout(()=>{if(q.trim())window.trackEvent('site_search',{search_term:q.trim().slice(0,80)});},600);
+    }
+  });
   input.addEventListener('focus',()=>{
     if(input.value.trim()){ search(input.value); }
     else { togglePopular(true); results.classList.add('show'); }
@@ -1018,12 +1026,15 @@ function openPage(name){
   };
 })();
 
-/* GA event hooks */
+/* GA event hooks — tool_open for the homepage's SPA-style quick-launch
+   flow (static-tool-bootstrap.js fires the same event for the static SEO
+   pages, which is where organic traffic actually lands). download()
+   itself now fires tool_download directly (see utils.js) so there's
+   nothing left to wrap here for downloads — wrapping it too would just
+   double-fire the event on every homepage-launched tool. */
 (function(){
   var _ot = openTool;
-  openTool = function(slug) { _ot(slug); window._ga('tool_open', {tool_name:slug}); };
-  var _dl = download;
-  download = function(blob, name) { _dl(blob, name); window._ga('file_download', {file_name:name}); };
+  openTool = function(slug) { _ot(slug); if(window.trackEvent) window.trackEvent('tool_open', {tool_name:slug}); };
 })();
 
 /* ── BOOT: absolute last lines ────────────────────────────────── */

@@ -970,6 +970,7 @@ ${CDN_TAGS}
 ${MEGA_MENU_SCRIPT}
 ${NAV_RESPONSIVE_SCRIPT}
 <script src="/tool-hero.js" defer></script>
+<script src="/analytics.js" defer></script>
 <script src="/static-tool-bootstrap.js" defer></script>
 </body>
 </html>`;

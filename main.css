@@ -98,43 +98,63 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .hero-stats .n{font-family:var(--fd);font-weight:700;font-size:24px}
 .hero-stats .l{font-size:12.5px;color:var(--text-faint)}
 .stage{perspective:1200px;height:400px;position:relative;display:grid;place-items:center}
-/* Outer wrapper floats; inner cluster spins — two separate animations, no override */
-.float-wrap{animation:float 8s cubic-bezier(.45,0,.25,1) infinite;transform-style:preserve-3d}
-.cluster{transform-style:preserve-3d;animation:spin 48s linear infinite;position:relative;width:240px;height:240px}
-@keyframes spin{to{transform:rotateY(360deg)}}
-/* Smoother than a plain ease-in-out — the custom curve lingers a touch
-   longer at each extreme before reversing, reading as a gentle drift
-   rather than a mechanical bounce. */
+/* ── AI before/after demo ─────────────────────────────────────────────
+   One illustrated "photo" cross-fades through the 4 AI tools' effects on
+   a loop (~3s hold, 600ms transitions — driven by wireAiDemo() in app.js
+   swapping st-* classes). SVG + CSS only: transform/opacity/filter.
+   Colors: --p1 is simultaneously the site primary AND the image-category
+   accent (all four AI tools are image-category tools), so badges use it;
+   the erase ring uses the AI-grouping pink (#f472b6) already established
+   by the mega menu's AI Tools tab — both are pre-existing colors, none
+   invented here. */
+.ai-demo{position:relative;display:block;width:250px;text-decoration:none;animation:float 8s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
-/* 6 glass format cards — 60-deg intervals, 3 always face viewer simultaneously.
-   Color discipline: glyphs are set in the text color; exactly ONE card (the
-   front-facing PDF card) carries the brand gradient. The previous version
-   gave every card its own loud two-stop gradient — six competing accents on
-   the first thing a visitor sees. Premium brands spend color deliberately:
-   category accents stay (they're wayfinding), but the hero now has one. */
-.card3d{position:absolute;inset:0;margin:auto;width:128px;height:160px;border-radius:20px;display:grid;place-items:center;backface-visibility:hidden;background:linear-gradient(155deg,var(--surface-2),var(--surface));border:1px solid var(--border-2);box-shadow:0 24px 48px -20px rgba(0,0,0,.45),0 8px 20px -10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.24);backdrop-filter:blur(14px)}
-/* Two-layer glass reflection instead of one flat highlight: a broad soft
-   sheen plus a thinner, brighter streak near the top edge — closer to how
-   light actually catches curved glass than a single gradient. */
-.card3d::before{content:"";position:absolute;inset:0;border-radius:20px;background:linear-gradient(148deg,rgba(255,255,255,.32),transparent 46%);pointer-events:none}
-.card3d::after{content:"";position:absolute;top:6px;left:14px;right:14px;height:1px;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);pointer-events:none}
-.card3d .glyph{font-family:var(--fd);font-weight:700;font-size:32px;letter-spacing:-1px;position:relative;color:var(--text)}
-.card3d .fmt{position:absolute;bottom:13px;font-family:var(--fm);font-size:10px;color:var(--text-dim);letter-spacing:.5px}
-.c1{transform:rotateY(0deg)   translateZ(120px);border-color:color-mix(in srgb,var(--p1) 40%,var(--border-2))}
-.c1 .glyph{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c2{transform:rotateY(60deg)  translateZ(120px)}
-.c3{transform:rotateY(120deg) translateZ(120px)}
-.c4{transform:rotateY(180deg) translateZ(120px)}
-.c5{transform:rotateY(240deg) translateZ(120px)}
-.c6{transform:rotateY(300deg) translateZ(120px)}
+.ai-photo{position:relative;display:block;height:288px;border-radius:20px;overflow:hidden;border:1px solid var(--border-2);box-shadow:0 24px 48px -20px rgba(0,0,0,.45),0 8px 20px -10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18)}
+/* Checkerboard: the EXACT technique already used on the AI tool result
+   pages (image-tools.js CHECKER / CHK) — same gradient, same tile size. */
+.ai-checker{position:absolute;inset:0;background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px}
+.ai-scene{position:relative;display:block;width:100%;height:100%;transition:transform .6s var(--ease),filter .6s var(--ease)}
+.ai-sky{fill:#1c2f57;transition:opacity .6s var(--ease)}
+.ai-sun{fill:var(--accent);opacity:.85;transition:opacity .6s var(--ease)}
+.ai-hill{transition:opacity .6s var(--ease)}
+.ai-hill-far{fill:#2e4370}
+.ai-hill-near{fill:#22335c}
+.ai-balloon path,.ai-balloon rect{fill:var(--p1)}
+.ai-balloon{transition:opacity .6s var(--ease)}
+.ai-erase-ring{fill:none;stroke:#f472b6;stroke-width:2.5;stroke-dasharray:7 6;opacity:0;transition:opacity .45s var(--ease)}
+.ai-scale-tag{position:absolute;top:10px;right:10px;font-family:var(--fm);font-size:12.5px;font-weight:700;color:var(--text);background:rgba(10,13,24,.72);border:1px solid var(--border-2);border-radius:8px;padding:3px 9px;opacity:0;transition:opacity .45s var(--ease)}
+.ai-scale-tag .ai-x2,.ai-scale-tag .ai-x4{transition:opacity .4s var(--ease)}
+.ai-scale-tag .ai-x4{display:none}
+.ai-badge{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--p1);background:var(--bg-2);border:1px solid color-mix(in srgb,var(--p1) 40%,var(--border-2));border-radius:99px;padding:6px 14px;box-shadow:var(--shadow);transition:opacity .3s var(--ease)}
+.ai-badge.ai-badge-swap{opacity:0}
+/* State 1 — Background Remover: sky+hills fade out, checkerboard shows */
+.ai-demo.st-bg .ai-sky,.ai-demo.st-bg .ai-hill,.ai-demo.st-bg .ai-sun{opacity:0}
+/* State 2 — AI Photo Enhancer: visibly brighter/sharper */
+.ai-demo.st-enhance .ai-scene{filter:brightness(1.28) contrast(1.22) saturate(1.45)}
+/* State 3 — AI Image Upscaler: crop zooms crisply, 2× / 4× tag */
+.ai-demo.st-upscale .ai-scene{transform:scale(1.38);transform-origin:36% 34%}
+.ai-demo.st-upscale .ai-scale-tag{opacity:1}
+.ai-demo.st-upscale.st-x4 .ai-x2{display:none}
+.ai-demo.st-upscale.st-x4 .ai-x4{display:inline}
+.ai-demo.st-upscale:not(.st-x4) .ai-x4{display:none}
+.ai-demo.st-upscale:not(.st-x4) .ai-x2{display:inline}
+/* State 4 — AI Object Remover: dashed ring appears, balloon vanishes */
+.ai-demo.st-erase .ai-erase-ring{opacity:1}
+.ai-demo.st-erase.st-erased .ai-balloon{opacity:0}
+.ai-demo.st-erase.st-erased .ai-erase-ring{opacity:0}
 .cluster-glow{position:absolute;width:310px;height:310px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.24),transparent 64%);filter:blur(34px);animation:pulse 7s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12);opacity:.7}}
 /* Reduced motion: the homepage hero previously had NO reduce guard — the
    only animated surface on the site that ignored the user's setting. */
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .cluster,.float-wrap,.cluster-glow,.eyebrow .dot{animation:none}
-  .cluster{transform:rotateY(-18deg)}
+  /* AI demo: freeze on a meaningful static end-state — the Background
+     Remover result (checkerboard visible), no floating, no glow pulse,
+     no state cycling (wireAiDemo() in app.js also skips its timer under
+     this same media query, so this is belt-and-braces, not the only
+     guard). Transitions removed entirely, not slowed. */
+  .ai-demo,.cluster-glow,.eyebrow .dot{animation:none}
+  .ai-scene,.ai-sky,.ai-hill,.ai-balloon,.ai-erase-ring,.ai-scale-tag,.ai-badge{transition:none !important}
 }
 /* sections */
 .section{padding:60px 0}
@@ -1756,12 +1776,14 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    without touching the column ratio itself.
    ═══════════════════════════════════════════════════════════ */
 .stage { height: 460px; }
-.cluster { width: 280px; height: 280px; }
+.ai-demo { width: 290px; }
+.ai-demo .ai-photo { height: 334px; }
 .cluster-glow { width: 360px; height: 360px; }
 
 @media (max-width: 900px) {
   .stage { height: 360px; }
-  .cluster { width: 220px; height: 220px; }
+  .ai-demo { width: 230px; }
+  .ai-demo .ai-photo { height: 265px; }
   .cluster-glow { width: 280px; height: 280px; }
 }
 
@@ -1782,8 +1804,10 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   .hero-grid { grid-template-columns: 1fr; gap: 4px; }
   .hero-copy { order: 1; }
   .hero-search-row { order: 2; }
-  .stage { order: 3; height: 200px; margin-top: 4px; }
-  .cluster { width: 150px; height: 150px; }
+  .stage { order: 3; height: 216px; margin-top: 4px; }
+  .ai-demo { width: 150px; }
+  .ai-demo .ai-photo { height: 173px; }
+  .ai-badge { font-size: 10.5px; padding: 4px 10px; bottom: -13px; }
   .cluster-glow { width: 200px; height: 200px; }
   .hero { padding: 28px 0 24px; }
 }
@@ -2088,6 +2112,18 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
   opacity: 0;
   transform: translateY(-6px);
 }
+/* Typing cursor: only present while the JS typing loop is active
+   (.hs-typing is never added under prefers-reduced-motion — see
+   wireHeroSearch — and the guard below removes the blink regardless). */
+.hs-rotator.hs-typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px; height: 1.15em;
+  margin-left: 2px;
+  background: var(--text-dim);
+  animation: hs-caret 1.06s step-end infinite;
+}
+@keyframes hs-caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 @media (max-width: 720px) {
   .hs-rotator { font-size: 16px; }
@@ -2095,6 +2131,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 
 @media (prefers-reduced-motion: reduce) {
   .hs-rotator { transition: none !important; }
+  .hs-rotator.hs-typing::after { animation: none; display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════

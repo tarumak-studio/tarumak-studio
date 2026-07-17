@@ -518,6 +518,48 @@ function getArticleThumb(slug, key, fallbackIcoSvg){
    very common extension synonyms so "jpeg" also finds "jpg"
    tools and vice versa. */
 
+/* ── Hero AI demo loop ─────────────────────────────────────────────────
+   Cycles the hero illustration through the 4 AI tools' effects (~3s hold,
+   600ms CSS transitions — see .ai-demo styles). All visuals are CSS class
+   swaps; this driver only rotates classes, badge text and the link href.
+   Sub-steps: upscale shows 2× then 4× mid-state; erase shows the dashed
+   ring first, then the object vanishing. Under prefers-reduced-motion the
+   loop never starts and the panel stays on its static initial state
+   (Background Remover result) — matching how the old card cluster froze
+   to a fixed rotation rather than spinning slower. */
+function wireAiDemo(){
+  var demo=document.getElementById('aiDemo');
+  var badge=document.getElementById('aiDemoBadge');
+  if(!demo||!badge)return;
+  var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduceMotion)return; /* static st-bg end-state, set in the markup */
+  var STATES=[
+    {cls:'st-bg',      slug:'background-remover', label:'Background Remover'},
+    {cls:'st-enhance', slug:'ai-photo-enhancer',  label:'AI Photo Enhancer'},
+    {cls:'st-upscale', slug:'ai-image-upscaler',  label:'AI Image Upscaler'},
+    {cls:'st-erase',   slug:'ai-object-remover',  label:'AI Object Remover'}
+  ];
+  var idx=0,subTimers=[];
+  function clearSubs(){subTimers.forEach(clearTimeout);subTimers=[];}
+  function apply(){
+    var s=STATES[idx];
+    clearSubs();
+    demo.className='ai-demo '+s.cls;
+    demo.setAttribute('href','/'+s.slug);
+    /* badge: quick fade-out, swap text, fade back — 300ms transition */
+    badge.classList.add('ai-badge-swap');
+    subTimers.push(setTimeout(function(){badge.textContent=s.label;badge.classList.remove('ai-badge-swap');},300));
+    if(s.cls==='st-upscale'){
+      subTimers.push(setTimeout(function(){demo.classList.add('st-x4');},1500));
+    }
+    if(s.cls==='st-erase'){
+      subTimers.push(setTimeout(function(){demo.classList.add('st-erased');},1300));
+    }
+  }
+  apply();
+  setInterval(function(){idx=(idx+1)%STATES.length;apply();},3000);
+}
+
 function wireHeroSearch(){
   const input=document.getElementById('heroSearch');
   const results=document.getElementById('heroSearchResults');
@@ -525,22 +567,13 @@ function wireHeroSearch(){
   if(!input||!results)return;
   let activeIndex=-1;
 
-  /* Rotating placeholder \u2014 cycles through real example searches so
-     the search bar also doubles as implicit tool discovery. Uses a
-     separate overlay span (not the native placeholder attribute) so the
-     text change can crossfade AND slide, which native placeholders
-     can't do (they can only swap instantly). Pauses whenever the input
-     has a value, and respects prefers-reduced-motion. */
-  /* Rotating placeholder \u2014 drives the input's own NATIVE
-     placeholder attribute directly, rather than a separate
-     absolutely-positioned overlay element. This trades away the
-     smooth crossfade transition (native placeholders can only
-     swap instantly) for a guarantee that matters more: the
-     browser positions its own placeholder text correctly by
-     construction, so there is no longer any custom left/right/
-     inset math that can drift out of sync with the icon size,
-     padding, or input width \u2014 the entire class of alignment
-     bug from earlier rounds is now structurally impossible. */
+  /* Rotating placeholder \u2014 an aria-hidden overlay span (NOT the native
+     placeholder attribute) that types out real example searches
+     character-by-character with a blinking cursor, holds, backspaces,
+     and moves to the next. Doubles as implicit tool discovery. Pauses
+     whenever the input has a value or focus, and under
+     prefers-reduced-motion falls back to instant full-string swaps
+     (the pre-typing behaviour) with no cursor. */
   const rotatorEl=document.getElementById('hsRotator');
   const examples=['Search "Compress PDF"','Search "Background Remover"','Search "OCR Image"','Search "Merge PDF"','Search "JPG to PNG"','Search "Image Resizer"','Search "SVG to PNG"','Search "Word to PDF"'];
   const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -558,22 +591,58 @@ function wireHeroSearch(){
       rotatorEl.textContent=examples[exIndex];
       rotatorEl.classList.remove('hs-rotator-hidden');
     }
-    paintPlaceholder();
 
-    if(!reduceMotion){
+    if(reduceMotion){
+      /* Reduced motion: the pre-existing behaviour, unchanged — full
+         strings swap instantly on a timer, no character animation, no
+         cursor. (Under reduce, the swap interval itself also never runs
+         character steps, so nothing here merely "slows down".) */
+      paintPlaceholder();
       setInterval(()=>{
         if(isPaused())return;
-        rotatorEl.classList.add('hs-rotator-hidden');
-        setTimeout(()=>{
-          if(isPaused())return; /* re-check: user may have focused mid-transition */
-          exIndex=(exIndex+1)%examples.length;
-          paintPlaceholder();
-        },260);
+        exIndex=(exIndex+1)%examples.length;
+        paintPlaceholder();
       },2600);
+    }else{
+      /* Typing effect: type each example character-by-character with a
+         blinking cursor (CSS .hs-typing::after), hold ~1.2s, backspace,
+         move to the next. Same examples list, same isPaused() rules,
+         same overlay element as the crossfade version it replaces —
+         this is that mechanism evolved, not a second parallel system.
+         The input's aria-label ("Search tools") is static and never
+         touched mid-animation; the overlay itself is aria-hidden. */
+      rotatorEl.classList.add('hs-typing');
+      let pos=0,phase='type',timer=null;
+      const TYPE_MS=46,ERASE_MS=24,HOLD_MS=1200,BETWEEN_MS=350;
+      function step(){
+        if(isPaused()){
+          /* Fully reset so resuming starts a fresh example cleanly */
+          rotatorEl.classList.add('hs-rotator-hidden');
+          rotatorEl.textContent='';pos=0;phase='type';
+          timer=setTimeout(step,500);
+          return;
+        }
+        rotatorEl.classList.remove('hs-rotator-hidden');
+        const full=examples[exIndex];
+        if(phase==='type'){
+          pos++;
+          rotatorEl.textContent=full.slice(0,pos);
+          if(pos>=full.length){phase='hold';timer=setTimeout(step,HOLD_MS);}
+          else timer=setTimeout(step,TYPE_MS);
+        }else if(phase==='hold'){
+          phase='erase';timer=setTimeout(step,ERASE_MS);
+        }else if(phase==='erase'){
+          pos--;
+          rotatorEl.textContent=full.slice(0,Math.max(0,pos));
+          if(pos<=0){phase='type';exIndex=(exIndex+1)%examples.length;timer=setTimeout(step,BETWEEN_MS);}
+          else timer=setTimeout(step,ERASE_MS);
+        }
+      }
+      step();
     }
 
     input.addEventListener('focus',()=>{ rotatorEl.classList.add('hs-rotator-hidden'); });
-    input.addEventListener('blur',paintPlaceholder);
+    input.addEventListener('blur',()=>{ if(reduceMotion)paintPlaceholder(); });
     input.addEventListener('input',()=>{ if(input.value)rotatorEl.classList.add('hs-rotator-hidden'); });
   }
 
@@ -1064,7 +1133,25 @@ route();
   if(heroEl)   heroEl.textContent   = n;
   if(glanceEl) glanceEl.textContent = n + '+';
   if(badgeEl)  badgeEl.innerHTML    = badgeEl.innerHTML.replace(/\d+ TOOLS/, n+' TOOLS');
-  if(trustEl)  trustEl.textContent  = n;
+  if(trustEl){
+    /* Count up 0 -> n on first paint (~900ms, eased). Value still derives
+       from the live TOOLS registry — the animation only changes how the
+       number arrives, never what it is. Reduced motion: set instantly. */
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ trustEl.textContent=n; }
+    else{
+      var t0=null,DUR=900;
+      function tick(ts){
+        if(t0===null)t0=ts;
+        var p=Math.min(1,(ts-t0)/DUR);
+        var eased=1-Math.pow(1-p,3);
+        trustEl.textContent=Math.round(eased*n);
+        if(p<1)requestAnimationFrame(tick);
+      }
+      trustEl.textContent='0';
+      requestAnimationFrame(tick);
+    }
+  }
 })();
 
 /* Boot-time render of category cards */
@@ -1073,4 +1160,5 @@ buildFeaturedTools();
 buildLatestArticles();
 
 wireHeroSearch();
+wireAiDemo();
 wireFilterPills();

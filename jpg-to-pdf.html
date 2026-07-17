@@ -50,6 +50,71 @@
   #cb-accept { height: 34px; padding: 0 14px; font-size: 12.5px; } .cb-decline { padding: 7px 12px; font-size: 12.5px; }
 }
 
+.tp-rel-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-decoration:none;transition:border-color .2s,transform .2s}
+.tp-rel-card:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-rel-card:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-rel-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.tp-rel-ico{width:28px;height:28px;flex-shrink:0;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--p1)}
+.tp-rel-ico svg{width:16px;height:16px}
+.tp-rel-cat{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint)}
+.tp-rel-badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:auto}
+.tp-rel-badge.new{background:rgba(34,211,238,.14);color:var(--p1)}
+.tp-rel-badge.popular{background:rgba(245,176,66,.14);color:var(--accent)}
+.tp-rel-card h3{font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tp-rel-card p{font-size:12.5px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tp-rel-card .tp-rel-cta{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--p1)}
+.tp-rel-date{font-size:11px;color:var(--text-faint);margin-left:auto}
+
+/* Suggested workflow — a horizontal chain rendering of the SAME related-
+   tools data as the grid above it, just emphasising sequence over
+   browsing. No new data source: this is Related Tools' own array, read
+   differently. */
+.tp-chain{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;justify-content:center}
+.tp-chain-step{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 16px;text-decoration:none;gap:8px;transition:border-color .2s,transform .2s}
+.tp-chain-step:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-chain-step:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-chain-n{width:20px;height:20px;border-radius:50%;background:var(--surface-2);color:var(--p1);font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.tp-chain-step span{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.tp-chain-arrow{display:flex;align-items:center;color:var(--text-faint);padding:0 10px;flex-shrink:0}
+.tp-chain-arrow svg{width:16px;height:16px}
+@media (max-width:640px){
+  .tp-chain{flex-direction:column;align-items:stretch}
+  .tp-chain-arrow{transform:rotate(90deg);align-self:center;padding:2px 0}
+}
+
+/* Popular-in-category — deliberately a compact strip, not a full card
+   grid: this page already has a Related Tools grid; a second identical
+   grid two scrolls later reads as filler. Reuses CAT_META.popular, the
+   same real curated data the mega menu and homepage category cards use —
+   not a new ranking invented for this page. */
+.tp-popular-strip{display:flex;flex-wrap:wrap;gap:8px}
+.tp-popular-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:7px 14px 7px 8px;text-decoration:none;transition:border-color .2s}
+.tp-popular-chip:hover{border-color:rgba(245,176,66,.4)}
+.tp-popular-chip:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-popular-chip .tp-rel-ico{width:22px;height:22px}
+.tp-popular-chip .tp-rel-ico svg{width:13px;height:13px}
+.tp-popular-chip span{font-size:12.5px;font-weight:600;color:var(--text)}
+
+/* Desktop sidebar — a second column that only appears when there's
+   genuinely room for it beside the 1240px-capped main column, so it
+   never competes with the primary reading width main.css already tuned.
+   Pure CSS grid + media query: no JS, so it's exactly as crawlable as
+   everything else on the page (req: never JS-only navigation). */
+.tp-layout{display:block}
+.tp-sidebar{display:none}
+@media (min-width:1440px){
+  .tp-layout{display:grid;grid-template-columns:1fr 280px;gap:32px;align-items:start}
+  .tp-sidebar{display:block;position:sticky;top:24px}
+}
+.tp-side-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.tp-side-box h4{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px}
+.tp-side-list{display:flex;flex-direction:column;gap:2px}
+.tp-side-list a{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);text-decoration:none;padding:6px 0;border-radius:6px;transition:color .2s}
+.tp-side-list a:hover{color:var(--p1)}
+.tp-side-list a:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-side-list .tp-rel-ico{width:22px;height:22px}
+.tp-side-list .tp-rel-ico svg{width:13px;height:13px}
+
 .breadcrumb{display:flex;align-items:center;flex-wrap:wrap;font-size:13px;padding-top:22px}
 .breadcrumb a{color:var(--text-dim);text-decoration:none;transition:color .2s}
 .breadcrumb a:hover{color:var(--p1)}
@@ -253,6 +318,9 @@
       <p class="trust-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Runs locally in your browser — your file never leaves this device. <span class="trust-line-lib">Open source: pdf-lib</span></span></p>
     </section>
 
+    <div class="tp-layout">
+      <div class="tp-col-main">
+
     <section class="tp-sec" aria-labelledby="tp-uc">
       <h2 id="tp-uc">Where JPG to PDF Converter actually gets used</h2>
       <p class="tp-sub">Real situations this tool is built for.</p>
@@ -301,14 +369,142 @@
       <h2 id="tp-rel">Related tools</h2>
       <p class="tp-sub">More free pdf tools — same privacy, same price.</p>
       <div class="tp-related">
-        <a class="tp-rel-card" href="/pdf-merger"><h3>PDF Merger</h3><p>Merge multiple PDF files into one online for free. Drag to reorder pages before combining — no uploads, no sign-up.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/pdf-splitter"><h3>PDF Splitter</h3><p>Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/pdf-compressor"><h3>PDF Compressor</h3><p>Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/pdf-to-jpg"><h3>PDF to JPG Converter</h3><p>Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/pdf-to-excel"><h3>PDF to Excel Converter</h3><p>Convert PDF tables to Excel (.xlsx) online. Reconstructs rows and columns from real text positions, with OCR for scanned pages — free, private, no upload.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/png-to-pdf"><h3>PNG to PDF Converter</h3><p>Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/pdf-merger">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Merger</h3><p>Merge multiple PDF files into one online for free. Drag to reorder pages before combining — no uploads, no sign-up.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-splitter">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Splitter</h3><p>Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-compressor">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Compressor</h3><p>Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-to-jpg">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF to JPG Converter</h3><p>Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-to-excel">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF to Excel Converter</h3><p>Convert PDF tables to Excel (.xlsx) online. Reconstructs rows and columns from real text positions, with OCR for scanned pages — free, private, no upload.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/png-to-pdf">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PNG to PDF Converter</h3><p>Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
       </div>
     </section>
+
+    <section class="tp-sec" aria-labelledby="tp-suggwf">
+      <h2 id="tp-suggwf">Suggested workflow</h2>
+      <p class="tp-sub">A common order people use these tools in.</p>
+      <nav class="tp-chain" aria-label="Suggested tool workflow">
+        <a class="tp-chain-step" href="/jpg-to-pdf"><span class="tp-chain-n" aria-hidden="true">1</span><span>JPG to PDF Converter</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/pdf-merger"><span class="tp-chain-n" aria-hidden="true">2</span><span>PDF Merger</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/pdf-splitter"><span class="tp-chain-n" aria-hidden="true">3</span><span>PDF Splitter</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/pdf-compressor"><span class="tp-chain-n" aria-hidden="true">4</span><span>PDF Compressor</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/pdf-to-jpg"><span class="tp-chain-n" aria-hidden="true">5</span><span>PDF to JPG Converter</span></a>
+      </nav>
+    </section>
+
+    
+
+    <section class="tp-sec" aria-labelledby="tp-pau">
+      <h2 id="tp-pau">People also use</h2>
+      <p class="tp-sub">Commonly paired with JPG to PDF Converter.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/pdf-to-text">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF to Text Converter</h3><p>Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-password-protect">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Password Protector</h3><p>Add password protection to a PDF online. Encrypt your PDF before sharing to prevent unauthorised access.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-unlock">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Unlock Tool</h3><p>Remove password from a PDF online. Unlock a PDF you own to enable editing, printing and copying.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-page-rotator">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Page Rotator</h3><p>Rotate PDF pages online — rotate individual pages or the entire document 90° or 180°. Download the corrected PDF.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-new">
+      <h2 id="tp-new">Recently added</h2>
+      <p class="tp-sub">The newest tools on Tarumak Studio.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/ai-image-upscaler">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-24</span></div>
+          <h3>AI Image Upscaler</h3><p>Upscale images 2x or 4x with AI directly in your browser. Enlarge photos, art and product shots with sharp edges and preserved detail — no upload, free.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/ai-photo-enhancer">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-20</span></div>
+          <h3>AI Photo Enhancer</h3><p>Enhance photos automatically: fix exposure, color, noise and sharpness with intelligent auto-analysis in your browser. Presets for portraits, night shots, documents and old photos.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/ai-object-remover">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-15</span></div>
+          <h3>AI Object Remover</h3><p>Remove unwanted objects, people, text, wires and watermarks from photos. Paint over anything and the background rebuilds itself — free, in your browser.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+    
+
+    <section class="tp-sec" aria-labelledby="tp-foot-rec">
+      <h2 id="tp-foot-rec">You may also like</h2>
+      <p class="tp-sub">More free tools worth a look.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/pdf-page-remover">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Page Remover</h3><p>Delete specific pages from a PDF online. Enter page numbers or ranges and download the PDF with those pages removed.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-organizer">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Organizer</h3><p>Reorder PDF pages online with drag-and-drop thumbnail view. Rearrange, rotate and preview before downloading.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/scan-to-pdf">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>Scan to PDF Tool</h3><p>Scan documents to PDF using your device camera. Capture multiple pages and merge them into a single PDF file.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/images-to-pdf">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>Multiple Images to PDF</h3><p>Convert multiple images to a single PDF online. Drag in JPG, PNG or WebP files, reorder them and download.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/pdf-reader">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span></div>
+          <h3>PDF Reader Web App</h3><p>Read and view PDF files online without downloading software. Navigate pages and zoom in — all in your browser.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/image-compressor">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span></div>
+          <h3>Image Compressor</h3><p>Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+      </div>
+      <aside class="tp-sidebar" aria-label="More tools"><div class="tp-side-box"><h4>Popular in PDF Tools</h4><div class="tp-side-list">
+      <a href="/pdf-merger"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF Merger</a>
+      <a href="/pdf-compressor"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF Compressor</a>
+      <a href="/pdf-splitter"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF Splitter</a>
+      <a href="/pdf-to-jpg"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF to JPG Converter</a>
+    </div></div>
+<div class="tp-side-box"><h4>Recently added</h4><div class="tp-side-list">
+      <a href="/pdf-to-excel"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF to Excel Converter</a>
+      <a href="/ai-image-upscaler"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Image Upscaler</a>
+      <a href="/ai-photo-enhancer"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Photo Enhancer</a>
+      <a href="/ai-object-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Object Remover</a>
+    </div></div>
+<div class="tp-side-box"><h4>AI tools</h4><div class="tp-side-list">
+      <a href="/background-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>Background Remover</a>
+      <a href="/ai-object-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Object Remover</a>
+      <a href="/ai-photo-enhancer"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Photo Enhancer</a>
+      <a href="/ai-image-upscaler"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Image Upscaler</a>
+    </div></div></aside>
+    </div>
 
     <section class="tp-cta-band" aria-label="Explore more tools">
       <div>

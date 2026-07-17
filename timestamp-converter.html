@@ -50,6 +50,71 @@
   #cb-accept { height: 34px; padding: 0 14px; font-size: 12.5px; } .cb-decline { padding: 7px 12px; font-size: 12.5px; }
 }
 
+.tp-rel-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-decoration:none;transition:border-color .2s,transform .2s}
+.tp-rel-card:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-rel-card:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-rel-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.tp-rel-ico{width:28px;height:28px;flex-shrink:0;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--p1)}
+.tp-rel-ico svg{width:16px;height:16px}
+.tp-rel-cat{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint)}
+.tp-rel-badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:auto}
+.tp-rel-badge.new{background:rgba(34,211,238,.14);color:var(--p1)}
+.tp-rel-badge.popular{background:rgba(245,176,66,.14);color:var(--accent)}
+.tp-rel-card h3{font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tp-rel-card p{font-size:12.5px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tp-rel-card .tp-rel-cta{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--p1)}
+.tp-rel-date{font-size:11px;color:var(--text-faint);margin-left:auto}
+
+/* Suggested workflow — a horizontal chain rendering of the SAME related-
+   tools data as the grid above it, just emphasising sequence over
+   browsing. No new data source: this is Related Tools' own array, read
+   differently. */
+.tp-chain{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;justify-content:center}
+.tp-chain-step{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 16px;text-decoration:none;gap:8px;transition:border-color .2s,transform .2s}
+.tp-chain-step:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-chain-step:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-chain-n{width:20px;height:20px;border-radius:50%;background:var(--surface-2);color:var(--p1);font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.tp-chain-step span{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.tp-chain-arrow{display:flex;align-items:center;color:var(--text-faint);padding:0 10px;flex-shrink:0}
+.tp-chain-arrow svg{width:16px;height:16px}
+@media (max-width:640px){
+  .tp-chain{flex-direction:column;align-items:stretch}
+  .tp-chain-arrow{transform:rotate(90deg);align-self:center;padding:2px 0}
+}
+
+/* Popular-in-category — deliberately a compact strip, not a full card
+   grid: this page already has a Related Tools grid; a second identical
+   grid two scrolls later reads as filler. Reuses CAT_META.popular, the
+   same real curated data the mega menu and homepage category cards use —
+   not a new ranking invented for this page. */
+.tp-popular-strip{display:flex;flex-wrap:wrap;gap:8px}
+.tp-popular-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:7px 14px 7px 8px;text-decoration:none;transition:border-color .2s}
+.tp-popular-chip:hover{border-color:rgba(245,176,66,.4)}
+.tp-popular-chip:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-popular-chip .tp-rel-ico{width:22px;height:22px}
+.tp-popular-chip .tp-rel-ico svg{width:13px;height:13px}
+.tp-popular-chip span{font-size:12.5px;font-weight:600;color:var(--text)}
+
+/* Desktop sidebar — a second column that only appears when there's
+   genuinely room for it beside the 1240px-capped main column, so it
+   never competes with the primary reading width main.css already tuned.
+   Pure CSS grid + media query: no JS, so it's exactly as crawlable as
+   everything else on the page (req: never JS-only navigation). */
+.tp-layout{display:block}
+.tp-sidebar{display:none}
+@media (min-width:1440px){
+  .tp-layout{display:grid;grid-template-columns:1fr 280px;gap:32px;align-items:start}
+  .tp-sidebar{display:block;position:sticky;top:24px}
+}
+.tp-side-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.tp-side-box h4{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px}
+.tp-side-list{display:flex;flex-direction:column;gap:2px}
+.tp-side-list a{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);text-decoration:none;padding:6px 0;border-radius:6px;transition:color .2s}
+.tp-side-list a:hover{color:var(--p1)}
+.tp-side-list a:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-side-list .tp-rel-ico{width:22px;height:22px}
+.tp-side-list .tp-rel-ico svg{width:13px;height:13px}
+
 .breadcrumb{display:flex;align-items:center;flex-wrap:wrap;font-size:13px;padding-top:22px}
 .breadcrumb a{color:var(--text-dim);text-decoration:none;transition:color .2s}
 .breadcrumb a:hover{color:var(--p1)}
@@ -253,6 +318,9 @@
       <p class="trust-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Runs locally in your browser — nothing you type is sent anywhere.</span></p>
     </section>
 
+    <div class="tp-layout">
+      <div class="tp-col-main">
+
     <section class="tp-sec" aria-labelledby="tp-tips">
       <h2 id="tp-tips">Get better results</h2>
       <p class="tp-sub">Tips from how Timestamp Converter actually works, and mistakes worth avoiding.</p>
@@ -292,14 +360,160 @@
       <h2 id="tp-rel">Related tools</h2>
       <p class="tp-sub">More free developer &amp; seo — same privacy, same price.</p>
       <div class="tp-related">
-        <a class="tp-rel-card" href="/word-counter"><h3>Word &amp; Character Counter</h3><p>Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/password-generator"><h3>Secure Password Generator</h3><p>Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/css-gradient-gen"><h3>CSS Gradient Generator</h3><p>Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/base64-encoder"><h3>Base64 Encoder &amp; Decoder</h3><p>Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/json-formatter"><h3>JSON Formatter &amp; Validator</h3><p>Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.</p><span class="tp-rel-cta">Try Tool →</span></a>
-        <a class="tp-rel-card" href="/meta-tag-gen"><h3>Meta Tag Generator</h3><p>Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.</p><span class="tp-rel-cta">Try Tool →</span></a>
+        <a class="tp-rel-card" href="/word-counter">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Word &amp; Character Counter</h3><p>Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/password-generator">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Secure Password Generator</h3><p>Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/css-gradient-gen">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>CSS Gradient Generator</h3><p>Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/base64-encoder">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Base64 Encoder &amp; Decoder</h3><p>Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/json-formatter">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>JSON Formatter &amp; Validator</h3><p>Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/meta-tag-gen">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Meta Tag Generator</h3><p>Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
       </div>
     </section>
+
+    <section class="tp-sec" aria-labelledby="tp-suggwf">
+      <h2 id="tp-suggwf">Suggested workflow</h2>
+      <p class="tp-sub">A common order people use these tools in.</p>
+      <nav class="tp-chain" aria-label="Suggested tool workflow">
+        <a class="tp-chain-step" href="/timestamp-converter"><span class="tp-chain-n" aria-hidden="true">1</span><span>Timestamp Converter</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/word-counter"><span class="tp-chain-n" aria-hidden="true">2</span><span>Word &amp; Character Counter</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/password-generator"><span class="tp-chain-n" aria-hidden="true">3</span><span>Secure Password Generator</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/css-gradient-gen"><span class="tp-chain-n" aria-hidden="true">4</span><span>CSS Gradient Generator</span></a>
+        <span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span><a class="tp-chain-step" href="/base64-encoder"><span class="tp-chain-n" aria-hidden="true">5</span><span>Base64 Encoder &amp; Decoder</span></a>
+      </nav>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-pop">
+      <h2 id="tp-pop">Popular in Developer &amp; SEO</h2>
+      <p class="tp-sub">Editor-curated picks from this category.</p>
+      <div class="tp-popular-strip">
+        <a class="tp-popular-chip" href="/regex-tester"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span>Regex Tester</span></a>
+        <a class="tp-popular-chip" href="/color-converter"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span>Color Code Converter</span></a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-pau">
+      <h2 id="tp-pau">People also use</h2>
+      <p class="tp-sub">Commonly paired with Timestamp Converter.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/hashtag-gen">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Hashtag Generator</h3><p>Generate targeted hashtags for Instagram, Twitter and LinkedIn from design, marketing, business and tech categories.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/lorem-ipsum">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Lorem Ipsum Generator</h3><p>Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/url-encoder">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>URL Encoder &amp; Decoder</h3><p>Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/text-diff">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Text Diff Checker</h3><p>Compare two texts side-by-side and highlight every addition, deletion and change between them.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-new">
+      <h2 id="tp-new">Recently added</h2>
+      <p class="tp-sub">The newest tools on Tarumak Studio.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/pdf-to-excel">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tp-rel-cat">PDF Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-07-13</span></div>
+          <h3>PDF to Excel Converter</h3><p>Convert PDF tables to Excel (.xlsx) online. Reconstructs rows and columns from real text positions, with OCR for scanned pages — free, private, no upload.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/ai-image-upscaler">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-24</span></div>
+          <h3>AI Image Upscaler</h3><p>Upscale images 2x or 4x with AI directly in your browser. Enlarge photos, art and product shots with sharp edges and preserved detail — no upload, free.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/ai-photo-enhancer">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-20</span></div>
+          <h3>AI Photo Enhancer</h3><p>Enhance photos automatically: fix exposure, color, noise and sharpness with intelligent auto-analysis in your browser. Presets for portraits, night shots, documents and old photos.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/ai-object-remover">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span><span class="tp-rel-badge new">New</span><span class="tp-rel-date">2026-06-15</span></div>
+          <h3>AI Object Remover</h3><p>Remove unwanted objects, people, text, wires and watermarks from photos. Paint over anything and the background rebuilds itself — free, in your browser.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-guides">
+      <h2 id="tp-guides">Related guides</h2>
+      <p class="tp-sub">From the Tarumak Studio blog.</p>
+      <div class="tp-guides">
+        <a class="tp-guide" href="/article-unix-timestamps-explained"><span class="tp-g-badge">Guide</span><h3>UNIX Timestamps Explained</h3><span class="tp-g-meta">June 2026 · 6 min read</span></a>
+        <a class="tp-guide" href="/article-json-formatting-validation-guide"><span class="tp-g-badge">Guide</span><h3>JSON Formatting and Validation: A Complete Developer Guide</h3><span class="tp-g-meta">June 2026 · 7 min read</span></a>
+      </div>
+    </section>
+
+    <section class="tp-sec" aria-labelledby="tp-foot-rec">
+      <h2 id="tp-foot-rec">You may also like</h2>
+      <p class="tp-sub">More free tools worth a look.</p>
+      <div class="tp-related">
+        <a class="tp-rel-card" href="/slug-generator">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Slug Generator</h3><p>Convert any text into a clean, SEO-friendly URL slug. Removes special characters and formats with hyphens.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/text-case-converter">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="tp-rel-cat">Developer &amp; SEO</span></div>
+          <h3>Text Case Converter</h3><p>Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/image-compressor">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span></div>
+          <h3>Image Compressor</h3><p>Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/image-resizer">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span></div>
+          <h3>Image Resizer</h3><p>Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/image-cropper">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span></div>
+          <h3>Image Cropper</h3><p>Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+        <a class="tp-rel-card" href="/jpg-to-png">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="tp-rel-cat">Image Tools</span></div>
+          <h3>JPG to PNG Converter</h3><p>Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.</p><span class="tp-rel-cta">Open Tool →</span>
+        </a>
+      </div>
+    </section>
+
+      </div>
+      <aside class="tp-sidebar" aria-label="More tools"><div class="tp-side-box"><h4>Popular in Developer &amp; SEO</h4><div class="tp-side-list">
+      <a href="/json-formatter"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>JSON Formatter &amp; Validator</a>
+      <a href="/regex-tester"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>Regex Tester</a>
+      <a href="/color-converter"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>Color Code Converter</a>
+      <a href="/base64-encoder"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>Base64 Encoder &amp; Decoder</a>
+    </div></div>
+<div class="tp-side-box"><h4>Recently added</h4><div class="tp-side-list">
+      <a href="/pdf-to-excel"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>PDF to Excel Converter</a>
+      <a href="/ai-image-upscaler"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Image Upscaler</a>
+      <a href="/ai-photo-enhancer"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Photo Enhancer</a>
+      <a href="/ai-object-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Object Remover</a>
+    </div></div>
+<div class="tp-side-box"><h4>AI tools</h4><div class="tp-side-list">
+      <a href="/background-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>Background Remover</a>
+      <a href="/ai-object-remover"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Object Remover</a>
+      <a href="/ai-photo-enhancer"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Photo Enhancer</a>
+      <a href="/ai-image-upscaler"><span class="tp-rel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>AI Image Upscaler</a>
+    </div></div></aside>
+    </div>
 
     <section class="tp-cta-band" aria-label="Explore more tools">
       <div>

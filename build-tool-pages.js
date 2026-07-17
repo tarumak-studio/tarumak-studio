@@ -34,6 +34,7 @@ const vm = require('vm');
 
 const SITE = 'https://tarumakstudio.com';
 const TODAY = new Date().toISOString().slice(0, 10);
+const BUILD_DATE = new Date(TODAY + 'T00:00:00Z');
 
 /* ── 1. Capture data from data.js + blog-data.js + tool-content.js ── */
 function makeAbsorber() {
@@ -57,9 +58,9 @@ function capture(files, names) {
   vm.runInContext(src + cap, sandbox);
   return captured;
 }
-const D = capture(['data.js', 'blog-data.js'], ['TOOLS', 'CAT', 'FAQ', 'TOOL_ARTICLES', 'ARTICLES', 'FEAT', 'CAT_META', 'ICON']);
+const D = capture(['data.js', 'blog-data.js'], ['TOOLS', 'CAT', 'FAQ', 'TOOL_ARTICLES', 'ARTICLES', 'FEAT', 'CAT_META', 'ICON', 'TOOL_DATES', 'AI_STUDIO_SLUGS']);
 if (!D.TOOLS || !D.TOOLS.length) throw new Error('TOOLS capture failed');
-const { TOOLS, CAT, FAQ, TOOL_ARTICLES, ARTICLES, CAT_META, ICON } = D;
+const { TOOLS, CAT, FAQ, TOOL_ARTICLES, ARTICLES, CAT_META, ICON, TOOL_DATES, AI_STUDIO_SLUGS: AI_STUDIO_SLUGS_SIDEBAR } = D;
 const FEAT_SET = new Set();
 (function collect(v) {
   if (typeof v === 'string') { FEAT_SET.add(v); return; }
@@ -94,6 +95,53 @@ function seededPick(pool, n, seed) {
   let s = seed || 1;
   for (let i = arr.length - 1; i > 0; i--) { s = (s * 1103515245 + 12345) & 0x7fffffff; const j = s % (i + 1); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
   return arr.slice(0, Math.min(n, arr.length));
+}
+
+/* ── Recommendation engine ────────────────────────────────────────────
+   ONE scoring function, reused by every "more tools" section on the page
+   (Popular strip, People Also Use, footer recommendations) so each
+   section is a genuinely different pool rather than five copies of the
+   same grid — every call takes and MUTATES the same `exclude` Set as it
+   picks, so a tool shown in an earlier section on this page can never
+   repeat in a later one. Priority order matches the brief exactly:
+   same category > shared format > popular-in-category > everything else
+   (same-workflow is handled separately by WORKFLOW_NEXT/Related Tools,
+   which already existed and already does that job — this function
+   covers the tiers that didn't have a home yet). Pure — no I/O, no
+   globals read internally — so it's unit-testable with synthetic data,
+   which is how this was actually verified before being wired in here. */
+function scoreAndPick(fromSlug, cat, chips, allTools, catMeta, exclude, limit) {
+  const pool = allTools.filter(t => t[0] !== fromSlug && !exclude.has(t[0]));
+  const popularSet = new Set((catMeta[cat] && catMeta[cat].popular) || []);
+  const chipSet = new Set(chips || []);
+  const scored = pool.map(t => {
+    let score = 0;
+    if (t[2] === cat) score += 100;
+    const shared = (t[4] || []).filter(c => chipSet.has(c)).length;
+    score += shared * 20;
+    if (popularSet.has(t[0])) score += 10;
+    return { t, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const picked = scored.slice(0, limit).map(s => s.t);
+  picked.forEach(t => exclude.add(t[0]));
+  return picked;
+}
+
+/* Site-wide "recently added": tools with a real TOOL_DATES entry still
+   within the same 90-day window as CAT_META's per-category highlight —
+   identical date math to header-chrome.js's resolveHighlight, reused
+   rather than reinvented. Tools with no dateAdded simply never appear
+   here (see TOOL_DATES's own comment on why no date is invented for
+   them) — correct behaviour, not a gap. */
+function recentlyAddedTools(allTools, toolDates, buildDate, maxAgeDays) {
+  const dated = Object.entries(toolDates || {}).map(([slug, iso]) => {
+    const days = Math.floor((buildDate - new Date(iso + 'T00:00:00Z')) / 86400000);
+    return { slug, iso, days };
+  }).filter(d => d.days >= 0 && d.days <= (maxAgeDays || 90));
+  dated.sort((a, b) => a.days - b.days);
+  const bySlug = {}; allTools.forEach(t => { bySlug[t[0]] = t; });
+  return dated.map(d => ({ tool: bySlug[d.slug], dateAdded: d.iso })).filter(x => x.tool);
 }
 
 const CAT_PAGE = { image: '/image-tools', pdf: '/pdf-tools', developer: '/developer-tools', marketing: '/marketing-tools', converter: '/converter-tools' };
@@ -168,6 +216,71 @@ const TOOL_CSS = `
   .cb-btns button { flex: 1; }
   #cb-accept { height: 34px; padding: 0 14px; font-size: 12.5px; } .cb-decline { padding: 7px 12px; font-size: 12.5px; }
 }
+
+.tp-rel-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-decoration:none;transition:border-color .2s,transform .2s}
+.tp-rel-card:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-rel-card:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-rel-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.tp-rel-ico{width:28px;height:28px;flex-shrink:0;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--p1)}
+.tp-rel-ico svg{width:16px;height:16px}
+.tp-rel-cat{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint)}
+.tp-rel-badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:auto}
+.tp-rel-badge.new{background:rgba(34,211,238,.14);color:var(--p1)}
+.tp-rel-badge.popular{background:rgba(245,176,66,.14);color:var(--accent)}
+.tp-rel-card h3{font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tp-rel-card p{font-size:12.5px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tp-rel-card .tp-rel-cta{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--p1)}
+.tp-rel-date{font-size:11px;color:var(--text-faint);margin-left:auto}
+
+/* Suggested workflow — a horizontal chain rendering of the SAME related-
+   tools data as the grid above it, just emphasising sequence over
+   browsing. No new data source: this is Related Tools' own array, read
+   differently. */
+.tp-chain{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;justify-content:center}
+.tp-chain-step{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 16px;text-decoration:none;gap:8px;transition:border-color .2s,transform .2s}
+.tp-chain-step:hover{border-color:rgba(34,211,238,.35);transform:translateY(-2px)}
+.tp-chain-step:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-chain-n{width:20px;height:20px;border-radius:50%;background:var(--surface-2);color:var(--p1);font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.tp-chain-step span{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.tp-chain-arrow{display:flex;align-items:center;color:var(--text-faint);padding:0 10px;flex-shrink:0}
+.tp-chain-arrow svg{width:16px;height:16px}
+@media (max-width:640px){
+  .tp-chain{flex-direction:column;align-items:stretch}
+  .tp-chain-arrow{transform:rotate(90deg);align-self:center;padding:2px 0}
+}
+
+/* Popular-in-category — deliberately a compact strip, not a full card
+   grid: this page already has a Related Tools grid; a second identical
+   grid two scrolls later reads as filler. Reuses CAT_META.popular, the
+   same real curated data the mega menu and homepage category cards use —
+   not a new ranking invented for this page. */
+.tp-popular-strip{display:flex;flex-wrap:wrap;gap:8px}
+.tp-popular-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:7px 14px 7px 8px;text-decoration:none;transition:border-color .2s}
+.tp-popular-chip:hover{border-color:rgba(245,176,66,.4)}
+.tp-popular-chip:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-popular-chip .tp-rel-ico{width:22px;height:22px}
+.tp-popular-chip .tp-rel-ico svg{width:13px;height:13px}
+.tp-popular-chip span{font-size:12.5px;font-weight:600;color:var(--text)}
+
+/* Desktop sidebar — a second column that only appears when there's
+   genuinely room for it beside the 1240px-capped main column, so it
+   never competes with the primary reading width main.css already tuned.
+   Pure CSS grid + media query: no JS, so it's exactly as crawlable as
+   everything else on the page (req: never JS-only navigation). */
+.tp-layout{display:block}
+.tp-sidebar{display:none}
+@media (min-width:1440px){
+  .tp-layout{display:grid;grid-template-columns:1fr 280px;gap:32px;align-items:start}
+  .tp-sidebar{display:block;position:sticky;top:24px}
+}
+.tp-side-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.tp-side-box h4{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px}
+.tp-side-list{display:flex;flex-direction:column;gap:2px}
+.tp-side-list a{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);text-decoration:none;padding:6px 0;border-radius:6px;transition:color .2s}
+.tp-side-list a:hover{color:var(--p1)}
+.tp-side-list a:focus-visible{outline:2px solid var(--p1);outline-offset:2px}
+.tp-side-list .tp-rel-ico{width:22px;height:22px}
+.tp-side-list .tp-rel-ico svg{width:13px;height:13px}
 
 .breadcrumb{display:flex;align-items:center;flex-wrap:wrap;font-size:13px;padding-top:22px}
 .breadcrumb a{color:var(--text-dim);text-decoration:none;transition:color .2s}
@@ -476,6 +589,132 @@ function renderFeatures(meta) {
     </section>`;
 }
 
+/* ── New recommendation-system section renderers ─────────────────────
+   All five share one card shape (icon + category badge + name + one-line
+   description + CTA) built by relCard() below, so "Related Tools",
+   "People Also Use" and the footer recommendations are one component
+   used three times with different pools — not three separate designs. */
+function relCard(t, opts) {
+  opts = opts || {};
+  const [rSlug, rName, rCat, rDesc] = t;
+  const badge = opts.badge ? `<span class="tp-rel-badge ${opts.badge.cls}">${esc(opts.badge.label)}</span>` : '';
+  const dateStr = opts.dateAdded ? `<span class="tp-rel-date">${esc(opts.dateAdded)}</span>` : '';
+  return `<a class="tp-rel-card" href="/${rSlug}">
+          <div class="tp-rel-head"><span class="tp-rel-ico" aria-hidden="true">${ICON[rCat] || ''}</span><span class="tp-rel-cat">${esc(CAT[rCat])}</span>${badge}${dateStr}</div>
+          <h3>${esc(rName)}</h3><p>${esc(rDesc)}</p><span class="tp-rel-cta">Open Tool \u2192</span>
+        </a>`;
+}
+
+/* Suggested workflow — same `related` array Related Tools already
+   computed, rendered as a sequence instead of a browsable grid. Hidden
+   entirely below 2 items (a "chain" of one thing isn't a workflow). */
+function renderSuggestedWorkflow(related, meta) {
+  if (related.length < 2) return '';
+  const steps = related.slice(0, 4);
+  const arrow = `<span class="tp-chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>`;
+  const chain = [`<a class="tp-chain-step" href="/${meta.slug}"><span class="tp-chain-n" aria-hidden="true">1</span><span>${esc(meta.name)}</span></a>`]
+    .concat(steps.map((t, i) => `${arrow}<a class="tp-chain-step" href="/${t[0]}"><span class="tp-chain-n" aria-hidden="true">${i + 2}</span><span>${esc(t[1])}</span></a>`));
+  return `<section class="tp-sec" aria-labelledby="tp-suggwf">
+      <h2 id="tp-suggwf">Suggested workflow</h2>
+      <p class="tp-sub">A common order people use these tools in.</p>
+      <nav class="tp-chain" aria-label="Suggested tool workflow">
+        ${chain.join('\n        ')}
+      </nav>
+    </section>`;
+}
+
+/* Popular in [category] — real CAT_META.popular data (the same list the
+   mega menu and homepage category cards already use), filtered against
+   whatever this page has already shown so it's a genuinely different set
+   from Related Tools above it, not a repeat. */
+function renderPopularStrip(cat, slug, exclude) {
+  const popSlugs = ((CAT_META[cat] && CAT_META[cat].popular) || []).filter(s => s !== slug && !exclude.has(s));
+  if (!popSlugs.length) return '';
+  const picks = popSlugs.slice(0, 6).map(s => TOOLS_BY_SLUG[s]).filter(Boolean);
+  if (!picks.length) return '';
+  picks.forEach(t => exclude.add(t[0]));
+  return `<section class="tp-sec" aria-labelledby="tp-pop">
+      <h2 id="tp-pop">Popular in ${esc(CAT[cat])}</h2>
+      <p class="tp-sub">Editor-curated picks from this category.</p>
+      <div class="tp-popular-strip">
+        ${picks.map(t => `<a class="tp-popular-chip" href="/${t[0]}"><span class="tp-rel-ico" aria-hidden="true">${ICON[t[2]] || ''}</span><span>${esc(t[1])}</span></a>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+/* People also use — the scored recommendation engine's main output.
+   Excludes everything already shown above on this same page. */
+function renderPeopleAlsoUse(slug, cat, chips, exclude) {
+  const picks = scoreAndPick(slug, cat, chips, TOOLS, CAT_META, exclude, 4);
+  if (!picks.length) return '';
+  return `<section class="tp-sec" aria-labelledby="tp-pau">
+      <h2 id="tp-pau">People also use</h2>
+      <p class="tp-sub">Commonly paired with ${esc(TOOLS_BY_SLUG[slug][1])}.</p>
+      <div class="tp-related">
+        ${picks.map(t => relCard(t)).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+/* Recently added — site-wide, driven entirely by TOOL_DATES (see that
+   map's own comment: only tools with a REAL known date appear here).
+   Naturally empty once every dated tool ages past 90 days on some future
+   build with no new dates added \u2014 correctly hides itself rather than
+   show stale "NEW" claims, matching the CAT_META highlight's convention. */
+function renderRecentlyAdded(slug, exclude) {
+  const items = recentlyAddedTools(TOOLS, TOOL_DATES, BUILD_DATE, 90)
+    .filter(x => x.tool[0] !== slug && !exclude.has(x.tool[0])).slice(0, 4);
+  if (!items.length) return '';
+  items.forEach(x => exclude.add(x.tool[0]));
+  return `<section class="tp-sec" aria-labelledby="tp-new">
+      <h2 id="tp-new">Recently added</h2>
+      <p class="tp-sub">The newest tools on Tarumak Studio.</p>
+      <div class="tp-related">
+        ${items.map(x => relCard(x.tool, { badge: { cls: 'new', label: 'New' }, dateAdded: x.dateAdded })).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+/* Footer catch-all \u2014 the last "more tools" section on the page, so it
+   gets first refusal on nothing: by the time this runs, exclude already
+   contains Related Tools + Popular + People Also Use + Recently Added,
+   so this is guaranteed to be a genuinely different 6 tools, not a
+   repeat of anything above. */
+function renderFooterRecs(slug, cat, chips, exclude) {
+  const picks = scoreAndPick(slug, cat, chips, TOOLS, CAT_META, exclude, 6);
+  if (!picks.length) return '';
+  return `<section class="tp-sec" aria-labelledby="tp-foot-rec">
+      <h2 id="tp-foot-rec">You may also like</h2>
+      <p class="tp-sub">More free tools worth a look.</p>
+      <div class="tp-related">
+        ${picks.map(t => relCard(t)).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+/* Compact sidebar (desktop-only via CSS, see .tp-sidebar media query) \u2014
+   reuses the SAME data as the inline sections above; text links, not
+   cards, since it's a secondary/glanceable column, not a second grid. */
+function renderSidebar(cat, slug, exclude) {
+  const popSlugs = ((CAT_META[cat] && CAT_META[cat].popular) || []).filter(s => s !== slug).slice(0, 4);
+  const popPicks = popSlugs.map(s => TOOLS_BY_SLUG[s]).filter(Boolean);
+  const recent = recentlyAddedTools(TOOLS, TOOL_DATES, BUILD_DATE, 90).filter(x => x.tool[0] !== slug).slice(0, 4);
+  const aiPicks = AI_STUDIO_SLUGS_SIDEBAR.filter(s => s !== slug).map(s => TOOLS_BY_SLUG[s]).filter(Boolean).slice(0, 4);
+  function box(title, list) {
+    if (!list.length) return '';
+    return `<div class="tp-side-box"><h4>${esc(title)}</h4><div class="tp-side-list">
+      ${list.map(t => `<a href="/${t[0]}"><span class="tp-rel-ico" aria-hidden="true">${ICON[t[2]] || ''}</span>${esc(t[1])}</a>`).join('\n      ')}
+    </div></div>`;
+  }
+  const parts = [
+    box(`Popular in ${CAT[cat]}`, popPicks),
+    recent.length ? box('Recently added', recent.map(x => x.tool)) : '',
+    box('AI tools', aiPicks)
+  ].filter(Boolean);
+  if (!parts.length) return '';
+  return `<aside class="tp-sidebar" aria-label="More tools">${parts.join('\n')}</aside>`;
+}
+
 /* Section-composition variants — the brief's A/B/C/D, implemented as
    one data-driven dispatcher (not four copy-pasted template
    functions), so adding a variant E is a data change, not a new
@@ -548,6 +787,16 @@ function buildPage(t) {
       </div>
     </section>` : '';
 
+  /* Pre-existing gap this touches while it's already in scope: guidesHTML
+     was only ever rendered for variants B/D — the only two that list
+     'guides' in SECTION_COMPOSITION below. Variants A/C never rendered
+     it anywhere, so a real article could exist for that tool and simply
+     never show. standaloneGuidesHTML fixes that: render it in the new
+     recommendations area whenever THIS variant's composition didn't
+     already include it via middleHTML — every variant shows real guides
+     when they exist, and none show it twice. */
+  const standaloneGuidesHTML = composition.includes('guides') ? '' : guidesHTML;
+
   /* 'guides' is the one composition key needing data other than meta
      (the actual guide objects), so it's substituted here rather than
      inside renderSection — this is also what makes variant C (which
@@ -558,9 +807,21 @@ function buildPage(t) {
       <h2 id="tp-rel">Related tools</h2>
       <p class="tp-sub">${WORKFLOW_NEXT[slug] ? 'What people typically reach for next.' : `More free ${esc(CAT[cat]).toLowerCase()} \u2014 same privacy, same price.`}</p>
       <div class="tp-related">
-        ${related.map(r => `<a class="tp-rel-card" href="/${r[0]}"><h3>${esc(r[1])}</h3><p>${esc(r[3])}</p><span class="tp-rel-cta">Try Tool \u2192</span></a>`).join('\n        ')}
+        ${related.map(r => relCard(r)).join('\n        ')}
       </div>
     </section>` : '';
+
+  /* Shared exclude set: every "more tools" section below reads AND adds
+     to this same Set, in this exact order, so nothing already shown
+     earlier on this page can repeat in a later section. Related Tools'
+     own picks seed it first since that section is visually first. */
+  const shown = new Set([slug, ...related.map(r => r[0])]);
+  const workflowHTML = renderSuggestedWorkflow(related, meta);
+  const popularHTML = renderPopularStrip(cat, slug, shown);
+  const peopleAlsoUseHTML = renderPeopleAlsoUse(slug, cat, chips, shown);
+  const recentlyAddedHTML = renderRecentlyAdded(slug, shown);
+  const footerRecsHTML = renderFooterRecs(slug, cat, chips, shown);
+  const sidebarHTML = renderSidebar(cat, slug, shown);
 
   return `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -623,6 +884,9 @@ ${CHROME_TOP}
       ${trustLine(slug, cat, meta.isFileTool)}
     </section>
 
+    <div class="tp-layout">
+      <div class="tp-col-main">
+
     ${middleHTML}
 
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
@@ -632,6 +896,22 @@ ${CHROME_TOP}
     </section>
 
     ${relatedHTML}
+
+    ${workflowHTML}
+
+    ${popularHTML}
+
+    ${peopleAlsoUseHTML}
+
+    ${recentlyAddedHTML}
+
+    ${standaloneGuidesHTML}
+
+    ${footerRecsHTML}
+
+      </div>
+      ${sidebarHTML}
+    </div>
 
     <section class="tp-cta-band" aria-label="Explore more tools">
       <div>

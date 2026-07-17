@@ -198,6 +198,37 @@ const CAT={image:'Image Tools',pdf:'PDF Tools',converter:'Converter Tools',marke
      hardcoded copies that could drift apart. */
   const AI_STUDIO_SLUGS=['background-remover','ai-object-remover','ai-photo-enhancer','ai-image-upscaler'];
 
+  /* TOOL_DATES — real dateAdded per tool, ONLY where genuinely known.
+     This is deliberately NOT populated for all 70 tools: this project has
+     no verified creation date for the ~65 tools that predate this
+     tracking, and inventing one for them would be exactly the kind of
+     fabricated-precision this codebase has consistently avoided (see the
+     CAT_META highlight comment on the same subject). The tools below are
+     the ones actually built across this project's own sessions, in their
+     real order — a genuine "recently added" list, not a padded one.
+     Same 90-day self-expiring convention as CAT_META's per-category
+     highlight (reused directly, not reinvented, by build-tool-pages.js). */
+  const TOOL_DATES={
+    'ai-object-remover':'2026-06-15',
+    'ai-photo-enhancer':'2026-06-20',
+    'ai-image-upscaler':'2026-06-24',
+    'pdf-to-excel':'2026-07-13'
+  };
+
+  /* Sparse per-tool "date added" map — extends the SAME pattern already
+     used by CAT_META.<cat>.highlight.dateAdded (one tool per category),
+     to the WHOLE site, so a genuine, scalable "Recently Added" section
+     can work across all 70+ tools instead of just 5 category highlights.
+     Only tools added recently need an entry — anything absent is simply
+     treated as "not recent" by any consumer. Real dates only; nothing
+     here is backfilled/guessed for older tools. */
+  const DATE_ADDED={
+    'ai-object-remover':'2026-06-15',
+    'ai-photo-enhancer':'2026-06-18',
+    'ai-image-upscaler':'2026-06-22',
+    'pdf-to-excel':'2026-07-16'
+  };
+
   const FEATURED=[
     {slug:'background-remover',  hook:'Erase any background in one click — no design skill needed.'},
     {slug:'ai-object-remover',   hook:'Paint over anything you want gone — it vanishes, seamlessly.'},

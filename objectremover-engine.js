@@ -304,11 +304,204 @@
     }
   }
 
+  /* ═══════════ v3.0: edge-aware structure propagation ═════════════════
+     The diffusion base is deliberately smooth and texturize adds detail —
+     but neither CONTINUES an interrupted line: a fence rail, horizon,
+     table edge or building line that enters the mask on one side and
+     exits on the other used to dissolve into blur across the hole. This
+     stage detects strong edges terminating at the mask boundary, pairs
+     up entries that are collinear + similar in colour (the two ends of
+     the same real-world line), and stamps a feathered strip of pixels
+     sampled from both ends through the fill — BEFORE texturize, so
+     texture synthesis then builds around restored structure. This is the
+     core idea of classic structure-propagation inpainting (the
+     literature Photoshop's original CAF built on), sized for browsers. */
+
+  /* Sobel gradient at a known pixel (luma). Returns [gx, gy]. */
+  function sobelAt(d, w, h, x, y) {
+    function L(xx, yy) {
+      xx = Math.max(0, Math.min(w - 1, xx)); yy = Math.max(0, Math.min(h - 1, yy));
+      var i = (yy * w + xx) * 4;
+      return 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    }
+    var gx = -L(x - 1, y - 1) - 2 * L(x - 1, y) - L(x - 1, y + 1)
+             + L(x + 1, y - 1) + 2 * L(x + 1, y) + L(x + 1, y + 1);
+    var gy = -L(x - 1, y - 1) - 2 * L(x, y - 1) - L(x + 1, y - 1)
+             + L(x - 1, y + 1) + 2 * L(x, y + 1) + L(x + 1, y + 1);
+    return [gx, gy];
+  }
+
+  /* Find strong edges that terminate at the mask boundary. Walks the ring
+     of known pixels just outside the dilated mask; keeps local gradient-
+     magnitude maxima. Each entry: {x, y, angle (edge tangent), mag,
+     color:[r,g,b]}. */
+  function detectEdgeEntries(d, mask, w, h, threshold) {
+    var dist = distFromMask(mask, w, h);
+    var entries = [];
+    for (var y = 1; y < h - 1; y++) {
+      for (var x = 1; x < w - 1; x++) {
+        var i = y * w + x;
+        if (mask[i]) continue;
+        if (dist[i] > 2.5) continue;               /* ring just outside the mask */
+        var g = sobelAt(d, w, h, x, y);
+        var mag = Math.hypot(g[0], g[1]);
+        if (mag < threshold) continue;
+        /* edge tangent = gradient rotated 90° */
+        var angle = Math.atan2(g[0], -g[1]);
+        var ci = (y * w + x) * 4;
+        entries.push({ x: x, y: y, angle: angle, mag: mag,
+          color: [d[ci], d[ci + 1], d[ci + 2]] });
+      }
+    }
+    /* Non-max suppression: keep the strongest entry per 6px neighbourhood
+       so one thick real edge yields one entry, not a smear of dozens. */
+    entries.sort(function (a, b) { return b.mag - a.mag; });
+    var kept = [];
+    for (var e = 0; e < entries.length; e++) {
+      var ok = true;
+      for (var k = 0; k < kept.length; k++) {
+        var dx = entries[e].x - kept[k].x, dy = entries[e].y - kept[k].y;
+        if (dx * dx + dy * dy < 36) { ok = false; break; }
+      }
+      if (ok) kept.push(entries[e]);
+      if (kept.length >= 48) break;                /* cap: enough for any real scene */
+    }
+    return kept;
+  }
+
+  /* Pair up entries that look like two ends of the same interrupted line:
+     the chord between them must cross the mask, both tangents must align
+     with the chord direction, and end colours must be similar. Greedy
+     best-score matching, each entry used once. */
+  function matchEntryPairs(entries, mask, w, h) {
+    function angDiff(u, v) {
+      var t = Math.abs(u - v) % Math.PI;           /* tangents are direction-less */
+      return Math.min(t, Math.PI - t);
+    }
+    var cands = [];
+    for (var a = 0; a < entries.length; a++) {
+      for (var b = a + 1; b < entries.length; b++) {
+        var A = entries[a], Bb = entries[b];
+        var dx = Bb.x - A.x, dy = Bb.y - A.y;
+        var len = Math.hypot(dx, dy);
+        if (len < 6) continue;
+        var chord = Math.atan2(dy, dx);
+        var alignA = angDiff(A.angle, chord), alignB = angDiff(Bb.angle, chord);
+        if (alignA > 0.5 || alignB > 0.5) continue; /* ~28° tolerance */
+        var cd = 0;
+        for (var c = 0; c < 3; c++) { var dv = A.color[c] - Bb.color[c]; cd += dv * dv; }
+        if (cd > 3600) continue;                    /* end colours must roughly match */
+        /* chord must actually pass through the hole */
+        var steps = Math.ceil(len), inside = 0;
+        for (var s = 0; s <= steps; s++) {
+          var px = Math.round(A.x + dx * s / steps), py = Math.round(A.y + dy * s / steps);
+          if (px < 0 || py < 0 || px >= w || py >= h) continue;
+          if (mask[py * w + px]) inside++;
+        }
+        if (inside < len * 0.3) continue;
+        cands.push({ a: a, b: b, score: (alignA + alignB) * 100 + cd * 0.02 + len * 0.05 });
+      }
+    }
+    cands.sort(function (p, q) { return p.score - q.score; });
+    var used = {}, pairs = [];
+    for (var i = 0; i < cands.length && pairs.length < 12; i++) {
+      var p = cands[i];
+      if (used[p.a] || used[p.b]) continue;
+      used[p.a] = used[p.b] = 1;
+      pairs.push([entries[p.a], entries[p.b]]);
+    }
+    return pairs;
+  }
+
+  /* Stamp each matched structure through the fill: walk the chord, and at
+     each step copy a short pixel strip perpendicular to the chord,
+     sampled just outside whichever end is nearer (cross-faded around the
+     middle), feathered so it beds into the base. */
+  function propagateStructures(d, base, mask, w, h, pairs, stripHalf) {
+    /* Sobel detects the light↔dark TRANSITION, not a line's dark center —
+       so the chord can sit 1-3px off the true line body. The strip must
+       be wide enough to carry the whole cross-profile even with that
+       offset. 6px half-width covers lines up to ~8px thick with a
+       2-3px detection offset; the profile sampling below reads whatever
+       is truly there (line + surrounding), so an over-wide strip stamps
+       correct background pixels — harmless — rather than clipping the
+       line body, which was the visible failure. */
+    stripHalf = stripHalf || 6;
+    pairs.forEach(function (pr) {
+      var A = pr[0], B = pr[1];
+      var dx = B.x - A.x, dy = B.y - A.y;
+      var len = Math.hypot(dx, dy);
+      var ux = dx / len, uy = dy / len;             /* along the chord */
+      var nx = -uy, ny = ux;                        /* perpendicular */
+      var steps = Math.ceil(len);
+      for (var s = 0; s <= steps; s++) {
+        var t = s / steps;
+        var cx = A.x + dx * t, cy = A.y + dy * t;
+        for (var o = -stripHalf; o <= stripHalf; o++) {
+          var px = Math.round(cx + nx * o), py = Math.round(cy + ny * o);
+          if (px < 1 || py < 1 || px >= w - 1 || py >= h - 1) continue;
+          var ti = py * w + px;
+          if (!mask[ti]) continue;
+          /* source strips: mirror position just OUTSIDE each end, same
+             perpendicular offset — reads the line's own cross-profile */
+          var back = 2 + (s % 3);                   /* small jitter breaks exact repetition */
+          var axs = Math.round(A.x - ux * back + nx * o), ays = Math.round(A.y - uy * back + ny * o);
+          var bxs = Math.round(B.x + ux * back + nx * o), bys = Math.round(B.y + uy * back + ny * o);
+          var va = null, vb = null;
+          if (axs >= 0 && ays >= 0 && axs < w && ays < h && !mask[ays * w + axs]) va = (ays * w + axs) * 4;
+          if (bxs >= 0 && bys >= 0 && bxs < w && bys < h && !mask[bys * w + bxs]) vb = (bys * w + bxs) * 4;
+          if (va == null && vb == null) continue;
+          /* cross-fade A→B along the chord; if one side unavailable use the other */
+          var wa = (vb == null) ? 1 : (va == null) ? 0 : 1 - t;
+          /* feather only the strip's outer 2px — the inner body must stamp
+             at full strength or the propagated line arrives washed out
+             (the exact defect this stage exists to fix). */
+          var edge = stripHalf - Math.abs(o);
+          var f = Math.min(1, (edge + 1) / 2.5);
+          for (var c = 0; c < 3; c++) {
+            var sv = (va != null ? d[va + c] : 0) * wa + (vb != null ? d[vb + c] : 0) * (1 - wa);
+            var cur = base[ti * 3 + c];
+            base[ti * 3 + c] = cur * (1 - f) + sv * f;
+          }
+        }
+      }
+    });
+  }
+
+  /* ═══════════ v3.0: artifact assessment (drives auto-refinement) ═════
+     After the fill, compare local detail (luma variance) INSIDE the
+     filled region against the ring of known pixels around it. A big
+     deficit = the classic "smudged patch" (fill too smooth for its
+     surroundings). Returns a 0..1 mismatch score; the pipeline runs an
+     extra texturize pass automatically when it exceeds a threshold —
+     the user never has to click Remove twice. */
+  function assessFillQuality(d, mask, w, h, guard) {
+    var inSum = 0, inSq = 0, inN = 0, outSum = 0, outSq = 0, outN = 0;
+    var dist = distFromMask(mask, w, h);
+    for (var y = 0; y < h; y += 2) {
+      for (var x = 0; x < w; x += 2) {
+        var i = y * w + x;
+        var li = (y * w + x) * 4;
+        var l = 0.299 * d[li] + 0.587 * d[li + 1] + 0.114 * d[li + 2];
+        if (mask[i]) { inSum += l; inSq += l * l; inN++; }
+        else if (dist[i] < 24 && !(guard && guard[i])) { outSum += l; outSq += l * l; outN++; }
+      }
+    }
+    if (inN < 16 || outN < 16) return 0;
+    var inVar = inSq / inN - (inSum / inN) * (inSum / inN);
+    var outVar = outSq / outN - (outSum / outN) * (outSum / outN);
+    if (outVar < 40) return 0;                      /* smooth surroundings: smooth fill is CORRECT */
+    var ratio = inVar / outVar;
+    return ratio >= 0.55 ? 0 : Math.min(1, (0.55 - ratio) / 0.55);
+  }
+
   /* ═══════════ browser provider: full pipeline ═══════════════════════ */
   var QUALITY = {
-    fast:     { smallEdge: 288, passes: 14, texture: false },
-    balanced: { smallEdge: 448, passes: 24, texture: true, block: 20, candidates: 18, strength: 0.9 },
-    best:     { smallEdge: 640, passes: 34, texture: true, block: 14, candidates: 32, strength: 1.0 }
+    fast:     { smallEdge: 288, passes: 14, texture: false, structure: false, refine: false },
+    balanced: { smallEdge: 448, passes: 24, texture: true, block: 20, candidates: 18, strength: 0.9,
+                structure: true, edgeThreshold: 120, refine: true },
+    best:     { smallEdge: 640, passes: 34, texture: true, block: 14, candidates: 32, strength: 1.0,
+                structure: true, edgeThreshold: 90, refine: true, twoScale: true }
   };
 
   var BrowserCAF = {
@@ -366,8 +559,26 @@
             return base;
           },
           function (base) {
+            /* v3.0: continue interrupted lines through the hole BEFORE
+               texture synthesis, so texture builds around real structure. */
+            if (q.structure) {
+              if (opts.onProgress) opts.onProgress(0.55, 'Reconnecting edges\u2026');
+              var entries = detectEdgeEntries(d, mask, w, h, q.edgeThreshold || 110);
+              if (entries.length >= 2) {
+                var pairs = matchEntryPairs(entries, mask, w, h);
+                if (pairs.length) propagateStructures(d, base, mask, w, h, pairs, 3);
+              }
+            }
+            return base;
+          },
+          function (base) {
             if (q.texture) {
               if (opts.onProgress) opts.onProgress(0.62, 'Matching textures\u2026');
+              /* v3.0 Best: two-scale synthesis — coarse blocks first to lay
+                 down large pattern, then finer blocks over it for detail. */
+              if (q.twoScale) {
+                texturize(d, base, mask, w, h, { block: q.block * 2, candidates: q.candidates, radius: q.block * 12, strength: q.strength * 0.7 }, null, guard);
+              }
               texturize(d, base, mask, w, h, { block: q.block, candidates: q.candidates, radius: q.block * 7, strength: q.strength }, null, guard);
             }
             return base;
@@ -383,6 +594,27 @@
                 d[ii * 4 + c] = Math.round(orig * (1 - a) + fill * a);
               }
               /* alpha untouched */
+            }
+            return base;
+          },
+          function (base) {
+            /* v3.0 auto-refinement: if the filled area came out smudged
+               relative to its textured surroundings, run one more finer
+               texturize + re-blend automatically — no second click. */
+            if (!q.refine) return;
+            var score = assessFillQuality(d, mask, w, h, guard);
+            if (score < 0.25) return;
+            if (opts.onProgress) opts.onProgress(0.92, 'Refining details\u2026');
+            var b2 = Math.max(10, Math.round((q.block || 16) * 0.75));
+            texturize(d, base, mask, w, h, { block: b2, candidates: (q.candidates || 24) + 8, radius: b2 * 9, strength: Math.min(1, (q.strength || 0.9) + 0.1) }, null, guard);
+            var feather2 = featherMap(mask, w, h, 4);
+            for (var jj = 0; jj < w * h; jj++) {
+              if (!mask[jj]) continue;
+              var a2 = feather2[jj];
+              for (var c2 = 0; c2 < 3; c2++) {
+                var orig2 = d[jj * 4 + c2], fill2 = base[jj * 3 + c2];
+                d[jj * 4 + c2] = Math.round(orig2 * (1 - a2) + fill2 * a2);
+              }
             }
           }
         ];
@@ -452,10 +684,20 @@
   var ORDER = ['cloudflare-ai', 'fal', 'replicate', 'openai', 'browser-caf'];
 
   window.ObjectRemoveEngine = {
-    version: '2.2',
+    version: '3.0',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},
+    /* v3.0 internals exposed for unit testing (same pattern as
+       PdfToExcelEngine) — pure typed-array functions, no DOM. */
+    _test: {
+      detectEdgeEntries: detectEdgeEntries,
+      matchEntryPairs: matchEntryPairs,
+      propagateStructures: propagateStructures,
+      assessFillQuality: assessFillQuality,
+      dilateMask: dilateMask,
+      distFromMask: distFromMask
+    },
     run: function (opts) {
       var self = window.ObjectRemoveEngine;
       self.lastErrors = {};
@@ -478,5 +720,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[object-remover] engine v1.0 loaded'); } catch (e) {}
+  try { console.log('[object-remover] engine v3.0 loaded'); } catch (e) {}
 })();

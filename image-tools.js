@@ -111,8 +111,8 @@ INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
 INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
 INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg,image/png,image/webp',bg:'#fff',formats:['JPG']});
 INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards all EXIF metadata (GPS location, camera model, timestamps, copyright), then re-exports a clean file.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+
+
 
 /* ===== SVG rasterizer factory ===== */
 
@@ -1469,13 +1469,7 @@ INIT['ai-image-upscaler']=function(panel){
     else{u.results.innerHTML='';}
   }
 };
-FAQ['ai-image-upscaler']=[
- ['How does the AI upscaling work?','The default engine runs an ESRGAN super-resolution model directly in your browser (downloaded once from a CDN, then cached). If your browser can\u2019t run the model, the tool automatically falls back to high-quality progressive resampling with edge-aware sharpening \u2014 and always tells you which engine produced your result.'],
- ['Is my image uploaded anywhere?','No. Both engines process your image entirely on your device. The only network activity is downloading the AI model file itself \u2014 your image never leaves your browser.'],
- ['Does it preserve transparency?','Yes \u2014 PNG and WEBP output keep the alpha channel intact. JPG doesn\u2019t support transparency, so transparent areas are flattened onto white for that format only.'],
- ['What\u2019s the maximum image size?','Input is capped at 25 megapixels and output at 64 megapixels to keep processing stable in browser memory. For very large photos, use 2\u00d7 rather than 4\u00d7.'],
- ['Which formats are supported?','JPG, PNG and WEBP everywhere; AVIF works in browsers that can decode it natively (all recent Chrome, Edge and Firefox versions).']
-];
+
 
 /* ═══════════════ AI PHOTO ENHANCER ═══════════════════════════════════
    Auto-analysis + full correction pipeline via /enhancer-engine.js
@@ -1750,7 +1744,6 @@ INIT['ai-photo-enhancer']=function(panel){
     u.drop.style.display='';setStatus(u.status,'');
   }
 };
-FAQ['ai-photo-enhancer']=[["How does the enhancement work?","The tool analyzes your photo's histogram, color balance, noise and sharpness on your device, then applies targeted corrections: white balance, exposure, contrast, shadow/highlight recovery, vibrance, edge-safe noise reduction, clarity and gated sharpening. It is honest image science running in your browser \u2014 and it always labels which engine produced your result."],["Is my photo uploaded anywhere?","No. The default engine processes everything on your device. An optional cloud engine for AI face restoration can be enabled by the site, and the tool will clearly say so whenever it is used."],["Does it enhance faces?","The on-device engine improves facial sharpness, skin tone and lighting as part of overall correction, but it does not reconstruct facial detail like Remini-class tools \u2014 that requires a server GPU model, available via the optional cloud engine."],["Does it preserve transparency?","Yes \u2014 the alpha channel is never modified. PNG and WEBP keep transparency; JPG flattens onto white."],["What are the presets?","Auto applies corrections derived from the analysis of your specific photo. Portrait, Landscape, Night, Document, Product, Old Photo and Anime are tuned starting points \u2014 adjusting any slider switches to Custom."]];
 
 /* ═══════════════ AI OBJECT REMOVER ═══════════════════════════════════
    Brush/rectangle mask editing over the photo, then content-aware fill
@@ -1940,6 +1933,7 @@ INIT['ai-object-remover']=function(panel){
     if(window._ga)window._ga('object_removal_started',{tool_name:'ai-object-remover',quality:quality});
     outCv=document.createElement('canvas');outCv.width=imgCv.width;outCv.height=imgCv.height;
     outCv.getContext('2d').drawImage(imgCv,0,0);
+    var _t0=performance.now();
     loadEngine().then(function(){
       return window.ObjectRemoveEngine.run({
         canvas:outCv,mask:maskCv,quality:quality,signal:signal,
@@ -1948,7 +1942,7 @@ INIT['ai-object-remover']=function(panel){
     }).then(function(res){
       running=null;btn.disabled=false;
       if(signal.cancelled){st.textContent='Cancelled.';return;}
-      showResult(res.engine);
+      showResult(res.engine,(performance.now()-_t0)/1000);
       if(window._ga)window._ga('object_removal_completed',{tool_name:'ai-object-remover',quality:quality,engine:res.engine});
     }).catch(function(e){
       running=null;btn.disabled=false;
@@ -1957,8 +1951,8 @@ INIT['ai-object-remover']=function(panel){
     });
   };
 
-  /* ── result: split slider OR side-by-side, then download ─────────── */
-  function showResult(engineLabel){
+  /* ── result: split slider / side-by-side / hold-to-compare ────────── */
+  function showResult(engineLabel,elapsedSec){
     freeUrls();
     Promise.all([
       new Promise(function(r){imgCv.toBlob(function(b){r(b);},'image/png');}),
@@ -1967,11 +1961,19 @@ INIT['ai-object-remover']=function(panel){
       if(!blobs[0]||!blobs[1])return;
       var befU=URL.createObjectURL(blobs[0]),aftU=URL.createObjectURL(blobs[1]);
       _urls.push(befU,aftU);
+      var qLabel={fast:'Fast',balanced:'Balanced',best:'Best'}[quality]||quality;
+      var meta=[
+        (elapsedSec!=null?elapsedSec.toFixed(1)+'s':null),
+        imgCv.width+'\u00d7'+imgCv.height,
+        qLabel+' quality',
+        'Processed entirely in your browser'
+      ].filter(Boolean).join(' \u00b7 ');
       u.results.innerHTML=
-        '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">Engine: '+engineLabel+' \u00b7 v'+(window.ObjectRemoveEngine&&window.ObjectRemoveEngine.version||'?')+'</p>'+
+        '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+meta+'</p>'+
         '<div style="display:flex;justify-content:center;margin-bottom:10px"><div class="seg" role="group" aria-label="View mode">'+
           '<button id="orVSplit" class="active" aria-pressed="true">Split</button>'+
           '<button id="orVSide" aria-pressed="false">Side by side</button>'+
+          '<button id="orVHold" aria-pressed="false">Hold to compare</button>'+
         '</div></div>'+
         '<div id="orResView"></div>'+
         '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
@@ -1979,13 +1981,38 @@ INIT['ai-object-remover']=function(panel){
           '<button class="btn btn-primary" id="orDl">Download</button>'+
           '<button class="btn btn-ghost" id="orMore">\u270e Remove more</button>'+
           '<button class="btn btn-ghost" id="orReset">Start over</button>'+
-        '</div><div class="status" id="orSt2" role="status" aria-live="polite"></div>';
+        '</div><div class="status" id="orSt2" role="status" aria-live="polite"></div>'+
+        '<p style="text-align:center;font-size:12px;color:var(--text-faint);margin:16px 0 6px">\u2728 Continue editing</p>'+
+        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
+          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/ai-photo-enhancer">AI Photo Enhancer</a>'+
+          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/ai-image-upscaler">AI Image Upscaler</a>'+
+          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/background-remover">Background Remover</a>'+
+          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/image-compressor">Image Compressor</a>'+
+        '</div>';
       function renderView(){
         var rv=$('#orResView',panel);
         if(view==='side'){
           rv.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:840px;margin:0 auto">'+
             '<figure style="margin:0"><img src="'+befU+'" style="display:block;width:100%;border-radius:10px" alt="Original"><figcaption style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:4px">ORIGINAL</figcaption></figure>'+
             '<figure style="margin:0"><img src="'+aftU+'" style="display:block;width:100%;border-radius:10px" alt="Object removed"><figcaption style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:4px">REMOVED</figcaption></figure></div>';
+        }else if(view==='hold'){
+          /* Before/After toggle: press-and-hold (mouse, touch or keyboard)
+             shows the ORIGINAL; release shows the result. The fastest way
+             to spot any leftover artifact. */
+          rv.innerHTML='<div style="max-width:640px;margin:0 auto">'+
+            '<div id="orHoldW" style="position:relative;border:1px solid var(--border-2);border-radius:14px;overflow:hidden">'+
+              '<img id="orHoldA" src="'+aftU+'" style="display:block;width:100%" alt="Result with object removed" draggable="false">'+
+              '<img id="orHoldB" src="'+befU+'" style="display:block;width:100%;position:absolute;inset:0;opacity:0;transition:opacity 120ms ease" alt="Original" draggable="false">'+
+              '<span id="orHoldTag" style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">REMOVED</span>'+
+            '</div>'+
+            '<button class="btn btn-ghost" id="orHoldBtn" style="display:block;margin:10px auto 0" aria-label="Press and hold to show the original image">Hold to see original</button>'+
+          '</div>';
+          var hb=$('#orHoldBtn',panel),hB=$('#orHoldB',panel),hTag=$('#orHoldTag',panel);
+          function showB(on){hB.style.opacity=on?'1':'0';hTag.textContent=on?'ORIGINAL':'REMOVED';hTag.style.background=on?'rgba(0,0,0,.55)':'rgba(34,211,238,.85)';hTag.style.color=on?'#fff':'#04222a';}
+          hb.onpointerdown=function(e){e.preventDefault();showB(true);};
+          hb.onpointerup=hb.onpointerleave=hb.onpointercancel=function(){showB(false);};
+          hb.onkeydown=function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();showB(true);}};
+          hb.onkeyup=function(e){if(e.key===' '||e.key==='Enter'){showB(false);}};
         }else{
           rv.innerHTML='<div style="max-width:640px;margin:0 auto;border:1px solid var(--border-2);border-radius:14px;overflow:hidden">'+
             '<div id="orCmp" style="position:relative;width:100%">'+
@@ -2005,8 +2032,18 @@ INIT['ai-object-remover']=function(panel){
         }
       }
       renderView();
-      $('#orVSplit',panel).onclick=function(){view='split';this.classList.add('active');this.setAttribute('aria-pressed','true');$('#orVSide',panel).classList.remove('active');$('#orVSide',panel).setAttribute('aria-pressed','false');renderView();};
-      $('#orVSide',panel).onclick=function(){view='side';this.classList.add('active');this.setAttribute('aria-pressed','true');$('#orVSplit',panel).classList.remove('active');$('#orVSplit',panel).setAttribute('aria-pressed','false');renderView();};
+      var viewBtns={split:'#orVSplit',side:'#orVSide',hold:'#orVHold'};
+      Object.keys(viewBtns).forEach(function(mode){
+        var el=$(viewBtns[mode],panel);if(!el)return;
+        el.onclick=function(){
+          view=mode;
+          Object.keys(viewBtns).forEach(function(m2){
+            var b2=$(viewBtns[m2],panel);if(!b2)return;
+            var on=m2===mode;b2.classList.toggle('active',on);b2.setAttribute('aria-pressed',String(on));
+          });
+          renderView();
+        };
+      });
       $('#orDl',panel).onclick=function(){
         var fmt=$('#orFmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
         var c=outCv;
@@ -2042,4 +2079,4 @@ INIT['ai-object-remover']=function(panel){
     u.drop.style.display='';setStatus(u.status,'');
   }
 };
-FAQ['ai-object-remover']=[["How does the removal work?","You paint a mask over unwanted objects; the engine reconstructs the hidden background from the surrounding pixels using content-aware fill \u2014 a multiscale reconstruction plus patch-based texture matching, the same family of techniques behind Photoshop's original Content-Aware Fill. It runs entirely on your device and always labels which engine produced your result."],["What does it remove well?","Power lines, trash, text, logos, people and objects on textured or repeating backgrounds \u2014 sky, grass, walls, water, roads, sand. Very large removals across complex structure (a person covering detailed architecture) are harder for on-device reconstruction; an optional cloud AI inpainting engine can be enabled by the site for those cases, and the tool will say clearly when it's used."],["Can I remove multiple objects?","Yes \u2014 paint several areas and remove them in one pass, or use \u201cRemove more\u201d to keep cleaning up the result iteratively."],["Is my photo uploaded anywhere?","No \u2014 the default engine processes everything in your browser. Nothing leaves your device."],["Can I remove watermarks?","Only from images you own or have rights to edit. Removing watermarks from other people's work violates copyright \u2014 please respect creators."]];
+

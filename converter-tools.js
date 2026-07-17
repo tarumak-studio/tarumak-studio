@@ -142,7 +142,7 @@ function gifFromFrames(frames,delayMs,cb,errCb){
 
 /* ===== GIF Maker ===== */
 /* ===== WebP to GIF ===== */
-FAQ['webp-to-gif']=[['Does it keep animation?','This converts a still WebP into a single-frame GIF. Decoding animated WebP frames is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+
 
 /* ===== Color Picker ===== */
 /* ===== Image Collage ===== */
@@ -312,8 +312,8 @@ INIT['gif-maker']=function(panel){
 };
 
 INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
-FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
-FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+
+
 
 /* ===== SVG rasterizer factory ===== */
 function svgConv(outType,ext,bg){return function(panel){

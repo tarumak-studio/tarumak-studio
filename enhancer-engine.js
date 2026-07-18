@@ -457,7 +457,7 @@
   var ORDER = ['cloudflare-ai', 'replicate', 'fal', 'browser-auto'];
 
   window.EnhanceEngine = {
-    version: '2.0',
+    version: '2.1',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     analyze: analyze,
@@ -483,5 +483,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[enhancer] engine v2.0 loaded'); } catch (e) {}
+  try { console.log('[enhancer] engine v2.1 loaded'); } catch (e) {}
 })();

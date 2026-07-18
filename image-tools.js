@@ -1388,7 +1388,7 @@ INIT['ai-image-upscaler']=function(panel){
        whenever the engine changes, so a cache can't serve last version's
        file under this version's request — it's a genuinely different URL.
        Bump ENGINE_V here whenever upscaler-engine.js's own version bumps. */
-    var ENGINE_V='4.1';
+    var ENGINE_V='4.2';
     _loadScript('/upscaler-engine.js?v='+ENGINE_V,'UpscaleEngine').catch(function(){
       /* Still-rare fallback: a timestamp buster for the case even the
          versioned URL is somehow blocked (e.g. an overzealous proxy
@@ -1851,7 +1851,7 @@ INIT['ai-photo-enhancer']=function(panel){
      after a real deployment problem confirmed a stale cache serving a
      valid-but-old file never triggers a catch-only retry. Bump this
      whenever enhancer-engine.js's own version bumps. */
-  var EN_ENGINE_V='2.0';
+  var EN_ENGINE_V='2.1';
   function loadEngine(){
     return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V,'EnhanceEngine').catch(function(){
       return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V+'&r='+Date.now(),'EnhanceEngine');

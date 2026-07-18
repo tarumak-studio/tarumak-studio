@@ -466,7 +466,7 @@
   var PROVIDER_ORDER = ['cloudflare-ai', 'replicate', 'fal', 'browser-neural', 'browser-classical'];
 
   window.UpscaleEngine = {
-    version: '4.1',
+    version: '4.2',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},            /* provider id -> why it fell through (diagnostics) */
@@ -494,5 +494,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[upscaler] engine v4.1 loaded — CDN URLs verified against upscalerjs.com docs'); } catch (e) {}
+  try { console.log('[upscaler] engine v4.2 loaded — CDN URLs verified against upscalerjs.com docs'); } catch (e) {}
 })();

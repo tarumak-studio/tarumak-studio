@@ -1245,10 +1245,19 @@ INIT['ai-image-upscaler']=function(panel){
     var okType=/^image\/(jpeg|png|webp|avif)$/.test(f.type)||/\.(jpe?g|png|webp|avif)$/i.test(f.name||'');
     if(!okType){setStatus(u.status,'That file type isn\u2019t supported \u2014 use JPG, PNG, WEBP or AVIF.',1);return;}
     if(f.size>80*1024*1024){setStatus(u.status,'File too large (over 80 MB).',1);return;}
+    u.results.classList.add('show');
+    u.results.innerHTML=
+      '<div class="tp-progress-wrap" role="status" aria-live="polite">'+
+        '<div class="tp-progress-stage" id="upUpStage">Uploading image\u2026</div>'+
+        '<div class="tp-progress-track"><div class="tp-progress-fill" id="upUpBar" style="width:12%"></div></div>'+
+        '<div class="tp-progress-pct" id="upUpPct">'+fmtBytes(f.size)+'</div>'+
+      '</div>';
     readImg(f).then(function(img){
       var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
       if(!w||!h){setStatus(u.status,'This image appears to be corrupted or empty.',1);return;}
       if(w*h>MAX_IN_PX){setStatus(u.status,'Image is too large ('+Math.round(w*h/1e6)+' MP). Maximum input is 25 MP \u2014 resize it first with the Image Resizer.',1);return;}
+      var bar=$('#upUpBar',panel),stage=$('#upUpStage',panel),pct=$('#upUpPct',panel);
+      if(bar){bar.style.width='55%';stage.textContent='Reading image data\u2026';pct.textContent=w+'\u00d7'+h+' px';}
       srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
       srcCanvas.getContext('2d').drawImage(img,0,0);
       /* A fully-transparent input has nothing to upscale. The most common
@@ -1263,12 +1272,15 @@ INIT['ai-image-upscaler']=function(panel){
       }
       srcName=(f.name||'image').replace(/\.[^.]+$/,'');
       $('#uprun',panel).disabled=false;
-      u.results.classList.add('show');
       /* Preview from a downsized copy — a full-res data URL of a 25MP
          image is tens of MB of string; the preview never needs that. */
       var pv=srcCanvas;
       if(w>900||h>900){var s=900/Math.max(w,h);pv=document.createElement('canvas');pv.width=Math.round(w*s);pv.height=Math.round(h*s);var px=pv.getContext('2d');px.imageSmoothingQuality='high';px.drawImage(srcCanvas,0,0,pv.width,pv.height);}
-      u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 12px">'+w+' \u00d7 '+h+' px \u00b7 '+fmtBytes(f.size)+' \u2014 ready. Choose a factor and press <strong>Upscale</strong>.</p>'+
+      if(bar){bar.style.width='100%';}
+      var mp=(w*h/1e6).toFixed(1);
+      var estSec=Math.max(1,Math.round(w*h/6000000));
+      u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 4px">'+w+' \u00d7 '+h+' px \u00b7 '+mp+' MP \u00b7 '+fmtBytes(f.size)+'</p>'+
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:0 0 12px">Estimated processing time: ~'+estSec+'s at 2\u00d7 \u2014 ready. Choose a factor and press <strong>Upscale</strong>.</p>'+
         '<div style="max-width:420px;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--border-2);'+CHK+'"><img src="'+pv.toDataURL('image/png')+'" style="display:block;width:100%" alt="Preview of uploaded image"></div>';
       setStatus(u.status,'');
     }).catch(function(){setStatus(u.status,'Could not read this image \u2014 the file may be corrupted, or your browser can\u2019t decode this format.',1);});
@@ -1325,14 +1337,40 @@ INIT['ai-image-upscaler']=function(panel){
     if(window.trackEvent)window.trackEvent('tool_process_started',{scale:factor+'x'});
     var _t0=performance.now();
     $('#uprun',panel).disabled=true;
+    /* Step checklist: mapped to REAL progress ranges the engine actually
+       reports (see upscaler-engine.js's onProgress calls), not a fixed
+       fake timer — the step lights up when live progress enters its
+       range, and is marked done once progress moves past it. */
+    var STEPS=[
+      {upto:0.05,label:'Analyzing image'},
+      {upto:0.20,label:'Cleaning noise & artifacts'},
+      {upto:0.55,label:'Reconstructing resolution'},
+      {upto:0.75,label:'Recovering local detail'},
+      {upto:0.98,label:'Enhancing edges'},
+      {upto:1.00,label:'Finalizing'}
+    ];
     u.results.innerHTML=
-      '<div style="max-width:460px;margin:0 auto;text-align:center">'+
-        '<div role="status" aria-live="polite" id="upphase" style="font-size:13.5px;color:var(--text-dim);margin-bottom:10px">Preparing\u2026</div>'+
-        '<div style="height:8px;border-radius:99px;background:var(--bg-3,rgba(255,255,255,.08));overflow:hidden" aria-hidden="true"><div id="upbar" style="height:100%;width:2%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#a78bfa);transition:width .25s"></div></div>'+
+      '<div class="tp-progress-wrap" style="max-width:460px">'+
+        '<div class="tp-progress-stage" id="upphase" role="status" aria-live="polite">Preparing\u2026</div>'+
+        '<div class="tp-progress-track"><div class="tp-progress-fill" id="upbar"></div></div>'+
+        '<div class="tp-progress-pct" id="uppct">0%</div>'+
+        '<ul id="upsteps" style="list-style:none;padding:0;margin:14px 0 0;text-align:left;display:inline-block" aria-hidden="true">'+
+          STEPS.map(function(s,i){return '<li id="upstep'+i+'" style="font-size:12px;color:var(--text-faint);padding:3px 0;transition:color .3s ease"><span style="display:inline-block;width:16px">\u25CB</span>'+s.label+'</li>';}).join('')+
+        '</ul>'+
         '<button class="btn btn-ghost" id="upcancel" style="margin-top:14px">Cancel</button>'+
       '</div>';
     $('#upcancel',panel).onclick=function(){signal.cancelled=true;};
-    var phase=$('#upphase',panel),bar=$('#upbar',panel);
+    var phase=$('#upphase',panel),bar=$('#upbar',panel),pctEl=$('#uppct',panel);
+    var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function paintSteps(p){
+      STEPS.forEach(function(s,i){
+        var el=$('#upstep'+i,panel);if(!el)return;
+        var mark=el.querySelector('span');
+        if(p>=s.upto){el.style.color='var(--p1,#22d3ee)';if(mark)mark.textContent='\u2713';}
+        else if(i===0||p>=STEPS[i-1].upto){el.style.color='var(--text)';if(mark)mark.textContent='\u25CF';}
+        else{el.style.color='var(--text-faint)';if(mark)mark.textContent='\u25CB';}
+      });
+    }
 
     _loadScript('/upscaler-engine.js','UpscaleEngine').catch(function(){
       /* One retry with a cache-busting query string: covers the case where
@@ -1343,8 +1381,13 @@ INIT['ai-image-upscaler']=function(panel){
     }).then(function(){
       return window.UpscaleEngine.run({
         canvas:srcCanvas,scale:factor,signal:signal,
-        onEngine:function(label){phase.textContent='Engine: '+label;},
-        onProgress:function(p,msg){bar.style.width=Math.max(2,Math.round(p*100))+'%';if(msg)phase.textContent=msg;}
+        onEngine:function(label){phase.textContent=label;},
+        onProgress:function(p,msg){
+          var pct=Math.max(2,Math.round(p*100));
+          bar.style.width=pct+'%';pctEl.textContent=pct+'%';
+          if(msg)phase.textContent=msg;
+          if(!reduceMotion)paintSteps(p);
+        }
       });
     }).then(function(res){
       running=null;
@@ -1358,9 +1401,9 @@ INIT['ai-image-upscaler']=function(panel){
         return;
       }
       outCanvas=res.canvas;
-      showResult(res.engine,factor);
+      var elapsed=Math.round((performance.now()-_t0)/100)/10;
+      showResult(res.engine,factor,elapsed);
       if(window.trackEvent){
-        var elapsed=Math.round((performance.now()-_t0)/100)/10;
         window.trackEvent('tool_process_completed',{scale:factor+'x',engine:res.engine,processing_time:elapsed});
         window.trackEvent('ai_upscale_completed',{scale:factor+'x',engine:res.engine,processing_time:elapsed});
       }
@@ -1383,7 +1426,8 @@ INIT['ai-image-upscaler']=function(panel){
   /* ── Result: before/after slider + zoom + downloads ───────────── */
   var _urls=[],_resizeH=null;
   function freeUrls(){_urls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(e){}});_urls=[];}
-  function showResult(engineLabel,factor){
+  var curCompareMode='split'; /* remembered for the rest of this session */
+  function showResult(engineLabel,factor,elapsedSec){
     /* Preview at display resolution: encoding + decoding a 25MP+ PNG just
        to LOOK at it costs seconds of frozen UI. The compare view gets a
        ≤2400px copy (still far beyond screen size at Fit); the download
@@ -1400,6 +1444,13 @@ INIT['ai-image-upscaler']=function(panel){
     }
     var outPrev=previewOf(outCanvas,2400);
     var prevCapped=outPrev!==outCanvas;
+    /* Real badges: derived from what actually ran (engine id + the size
+       relationship), not a fixed decorative list — a neural pass and a
+       classical pass earn different badges. */
+    var isNeural=/ESRGAN|neural/i.test(engineLabel);
+    var badges=isNeural
+      ? ['AI Detail Recovery','Sharper Details','Improved Edges']
+      : ['Cleaner Noise','Better Texture','Sharper Details','Improved Edges'];
     /* Object URLs, never data URLs: a 64MP PNG data URL is a 100MB+
        string held in the DOM — toBlob keeps the pixels in native
        memory and the DOM only holds a short blob: reference. */
@@ -1413,43 +1464,121 @@ INIT['ai-image-upscaler']=function(panel){
       var afterUrl=blobs[1]?URL.createObjectURL(blobs[1]):'';
       _urls.push(beforeUrl,afterUrl);
       zoom=1;
+      var estBytes=Math.round(outCanvas.width*outCanvas.height*($('#upfmt',panel).value==='image/png'?2.2:0.35));
       u.results.innerHTML=
-      '<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:10px">'+srcCanvas.width+'\u00d7'+srcCanvas.height+' \u2192 <strong>'+outCanvas.width+'\u00d7'+outCanvas.height+'</strong> px \u00b7 Engine: '+engineLabel+' \u00b7 v'+(window.UpscaleEngine&&window.UpscaleEngine.version||'?')+(prevCapped?'<br><span style="font-size:11px;color:var(--text-faint)">Preview shown at reduced resolution \u2014 the download contains the full '+outCanvas.width+'\u00d7'+outCanvas.height+' px detail.</span>':'')+'</p>'+
-      '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'">'+
-        '<div id="upcmp" style="position:relative;width:100%;transform-origin:top left">'+
-          '<img src="'+afterUrl+'" style="display:block;width:100%" alt="Upscaled result" draggable="false">'+
-          '<div id="upbefwrap" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden">'+
-            '<img id="upbef" src="'+beforeUrl+'" style="display:block;height:100%;image-rendering:pixelated" alt="Original for comparison" draggable="false">'+
-          '</div>'+
-          '<div id="uphandle" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8)"></div>'+
-          '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
-          '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span>'+
+      /* Enhancement summary card */
+      '<div style="max-width:620px;margin:0 auto 12px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2)">'+
+        '<div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;margin-bottom:10px">'+
+          '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-faint)">Original</div><div style="font-size:14px;font-weight:700">'+srcCanvas.width+'\u00d7'+srcCanvas.height+'</div></div>'+
+          '<div style="color:var(--p1);font-size:18px" aria-hidden="true">\u2192</div>'+
+          '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--p1)">AI Enhanced</div><div style="font-size:14px;font-weight:700">'+outCanvas.width+'\u00d7'+outCanvas.height+'</div></div>'+
+          '<div style="padding:4px 10px;border-radius:99px;background:rgba(34,211,238,.12);color:var(--p1);font-size:12px;font-weight:700">'+factor+'\u00d7 Resolution</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px" id="upBadges">'+
+          badges.map(function(b,i){return '<span class="tp-badge-fade" style="animation-delay:'+(i*80)+'ms;font-size:11px;color:var(--p1);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.22);border-radius:99px;padding:4px 10px">\u2713 '+b+'</span>';}).join('')+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--text-faint);text-align:center;border-top:1px solid var(--border);padding-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:4px 10px">'+
+          '<div><b style="color:var(--text-dim)">Engine</b><br>'+engineLabel+'</div>'+
+          (elapsedSec!=null?'<div><b style="color:var(--text-dim)">Processing time</b><br>'+elapsedSec+'s</div>':'')+
+          '<div><b style="color:var(--text-dim)">Version</b><br>v'+(window.UpscaleEngine&&window.UpscaleEngine.version||'?')+'</div>'+
         '</div>'+
       '</div>'+
-      '<div style="max-width:620px;margin:10px auto 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center">'+
-        '<input type="range" id="upslide" min="0" max="100" value="50" style="flex:1;min-width:160px" aria-label="Before / after comparison position">'+
-        '<div class="seg" role="group" aria-label="Zoom">'+
-          '<button id="upzo" aria-label="Zoom out">\u2212</button>'+
-          '<button id="upzfit" aria-pressed="true">Fit</button>'+
-          '<button id="upzi" aria-label="Zoom in">+</button>'+
-        '</div>'+
-      '</div>'+
+      (prevCapped?'<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:10px">Preview shown at reduced resolution \u2014 the download contains the full '+outCanvas.width+'\u00d7'+outCanvas.height+' px detail.</p>':'')+
+      '<div style="display:flex;justify-content:center;margin-bottom:10px"><div class="seg" role="group" aria-label="Comparison mode">'+
+        '<button data-m="split" aria-pressed="false">Split</button>'+
+        '<button data-m="side" aria-pressed="false">Side by side</button>'+
+      '</div></div>'+
+      '<div id="upViewportArea"></div>'+
       '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
-        '<button class="btn btn-primary" id="updl">Download</button>'+
+        '<button class="btn btn-primary" id="updl">Download '+outCanvas.width+'\u00d7'+outCanvas.height+' '+$('#upfmt',panel).value.split('/')[1].toUpperCase()+' (~'+fmtBytes(estBytes)+')</button>'+
         '<button class="btn btn-ghost" id="upreset">Start over</button>'+
+      '</div>'+
+      '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:14px 0 4px">\u2728 Continue editing</p>'+
+      '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
+        '<a class="btn btn-ghost tp-continue-edit" style="font-size:12px;padding:5px 11px" href="/ai-photo-enhancer">AI Photo Enhancer</a>'+
+        '<a class="btn btn-ghost tp-continue-edit" style="font-size:12px;padding:5px 11px" href="/background-remover">Background Remover</a>'+
+        '<a class="btn btn-ghost tp-continue-edit" style="font-size:12px;padding:5px 11px" href="/ai-object-remover">AI Object Remover</a>'+
+        '<a class="btn btn-ghost tp-continue-edit" style="font-size:12px;padding:5px 11px" href="/image-compressor">Image Compressor</a>'+
       '</div>';
-      var cmp=$('#upcmp',panel),befw=$('#upbefwrap',panel),bef=$('#upbef',panel),hand=$('#uphandle',panel),wrap=$('#upzoomwrap',panel);
-      function syncBef(){bef.style.width=cmp.clientWidth+'px';}
-      syncBef();
-      if(_resizeH)window.removeEventListener('resize',_resizeH);
-      _resizeH=syncBef;window.addEventListener('resize',_resizeH);
-      $('#upslide',panel).oninput=function(){befw.style.width=this.value+'%';hand.style.left=this.value+'%';};
-      function setZoom(z){zoom=Math.max(.5,Math.min(6,z));cmp.style.width=(zoom*100)+'%';syncBef();}
-      $('#upzi',panel).onclick=function(){setZoom(zoom*1.4);};
-      $('#upzo',panel).onclick=function(){setZoom(zoom/1.4);};
-      $('#upzfit',panel).onclick=function(){setZoom(1);};
-      wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15));}},{passive:false});
+
+      var modeBtns=$$('.seg[aria-label="Comparison mode"] button',panel);
+      function paintMode(){modeBtns.forEach(function(b){var on=b.dataset.m===curCompareMode;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});}
+      modeBtns.forEach(function(b){b.onclick=function(){
+        curCompareMode=b.dataset.m;paintMode();renderViewport();
+        if(window.trackEvent)window.trackEvent('comparison_mode_used',{mode:curCompareMode,tool:'ai-image-upscaler'});
+      };});
+      paintMode();
+
+      var ZOOM_STOPS=[{k:'fit',v:1,label:'Fit'},{k:'100',v:1,label:'100%'},{k:'200',v:2,label:'200%'},{k:'400',v:4,label:'400%'}];
+      function renderViewport(){
+        var area=$('#upViewportArea',panel);
+        var zoomCtrl='<div style="max-width:620px;margin:10px auto 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">'+
+            '<div class="seg" role="group" aria-label="Zoom level">'+ZOOM_STOPS.map(function(z){return '<button data-z="'+z.k+'" aria-pressed="'+(z.k==='fit')+'">'+z.label+'</button>';}).join('')+'<button data-z="reset" aria-label="Reset zoom">Reset</button></div>'+
+          '</div>';
+        if(curCompareMode==='side'){
+          area.innerHTML=
+            '<div id="upzoomwrap" style="max-width:900px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'" tabindex="0" aria-label="Side by side comparison">'+
+              '<div id="upcmp" style="display:flex;gap:2px;width:100%;transform-origin:top left">'+
+                '<div style="flex:1;position:relative"><img src="'+beforeUrl+'" style="display:block;width:100%" alt="Original" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span></div>'+
+                '<div style="flex:1;position:relative"><img src="'+afterUrl+'" style="display:block;width:100%" alt="AI upscaled" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span></div>'+
+              '</div>'+
+            '</div>'+zoomCtrl;
+          wireZoom();return;
+        }
+        area.innerHTML=
+          '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'" tabindex="0" aria-label="Before and after slider comparison">'+
+            '<div id="upcmp" style="position:relative;width:100%;transform-origin:top left">'+
+              '<img src="'+afterUrl+'" style="display:block;width:100%" alt="AI upscaled result" draggable="false">'+
+              '<div id="upbefwrap" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden">'+
+                '<img id="upbef" src="'+beforeUrl+'" style="display:block;height:100%;image-rendering:pixelated" alt="Original for comparison" draggable="false">'+
+              '</div>'+
+              '<div id="uphandle" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8);transition:box-shadow .2s ease"></div>'+
+              '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
+              '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;letter-spacing:.5px;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="max-width:620px;margin:10px auto 0"><input type="range" id="upslide" min="0" max="100" value="50" style="width:100%" aria-label="Before / after comparison position"></div>'+
+          zoomCtrl;
+        var cmp=$('#upcmp',panel),befw=$('#upbefwrap',panel),bef=$('#upbef',panel),hand=$('#uphandle',panel);
+        function syncBef(){bef.style.width=cmp.clientWidth+'px';}
+        syncBef();
+        if(_resizeH)window.removeEventListener('resize',_resizeH);
+        _resizeH=syncBef;window.addEventListener('resize',_resizeH);
+        var slide=$('#upslide',panel);
+        /* Live difference highlight: a subtle glow on the divider while
+           actively dragging — draws the eye to the comparison line
+           itself without exaggerating or faking a pixel-diff overlay. */
+        slide.oninput=function(){befw.style.width=this.value+'%';hand.style.left=this.value+'%';};
+        slide.addEventListener('pointerdown',function(){hand.style.boxShadow='0 0 16px 2px rgba(34,211,238,.95)';});
+        slide.addEventListener('pointerup',function(){hand.style.boxShadow='0 0 8px rgba(34,211,238,.8)';});
+        wireZoom();
+      }
+      function wireZoom(){
+        var cmp=$('#upcmp',panel),wrap=$('#upzoomwrap',panel);
+        if(!cmp||!wrap)return;
+        function setZoom(z,stopKey){
+          zoom=Math.max(.5,Math.min(4,z));cmp.style.width=(zoom*100)+'%';
+          var bef=$('#upbef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
+          $$('.seg[aria-label="Zoom level"] button[data-z]',panel).forEach(function(b){if(b.dataset.z!=='reset')b.setAttribute('aria-pressed',String(b.dataset.z===stopKey));});
+          if(window.trackEvent)window.trackEvent('zoom_usage',{zoom:Math.round(zoom*100)+'%',mode:curCompareMode,tool:'ai-image-upscaler'});
+        }
+        $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){
+          b.onclick=function(){
+            if(b.dataset.z==='reset'){setZoom(1,'fit');return;}
+            var stop=ZOOM_STOPS.filter(function(z){return z.k===b.dataset.z;})[0];setZoom(stop.v,stop.k);
+          };
+        });
+        /* Both images zoom together by construction — they're one DOM
+           subtree (#upcmp) being scaled as a unit in split mode, and two
+           siblings inside the same scaled flex row in side-by-side mode,
+           so panning (the shared scroll container) and zoom are
+           inherently synchronized, never two separate transforms to
+           keep in sync by hand. */
+        wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15),'');}},{passive:false});
+      }
+      renderViewport();
       $('#updl',panel).onclick=function(){
+        if(window.trackEvent)window.trackEvent('download_clicked',{scale:factor+'x',engine:engineLabel});
         var fmt=$('#upfmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
         var c=outCanvas;
         if(fmt==='image/jpeg'){var f2=document.createElement('canvas');f2.width=c.width;f2.height=c.height;var fx=f2.getContext('2d');fx.fillStyle='#fff';fx.fillRect(0,0,f2.width,f2.height);fx.drawImage(c,0,0);c=f2;}

@@ -240,3 +240,10 @@ footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(i
 .tp-progress-fill{height:100%;border-radius:99px;background:var(--grad);width:0%;transition:width .18s ease}
 .tp-progress-pct{font-size:11px;color:var(--text-faint);margin-top:5px;font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.tp-progress-fill{transition:none}}
+
+/* Enhancement badges — subtle fade-in, staggered via inline animation-delay
+   set per badge at render time. Reused by AI Image Upscaler and available
+   to any tool that wants the same "here's what changed" treatment. */
+.tp-badge-fade{opacity:0;animation:tp-badge-in .4s ease forwards}
+@keyframes tp-badge-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.tp-badge-fade{animation:none;opacity:1}}

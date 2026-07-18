@@ -1543,11 +1543,12 @@ INIT['ai-image-upscaler']=function(panel){
         if(curCompareMode==='side'){
           area.innerHTML=
             '<div id="upzoomwrap" style="max-width:900px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'" tabindex="0" aria-label="Side by side comparison">'+
-              '<div id="upcmp" style="display:flex;gap:2px;width:100%;transform-origin:top left">'+
-                '<div style="flex:1;position:relative"><img src="'+beforeUrl+'" style="display:block;width:100%" alt="Original" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span></div>'+
-                '<div style="flex:1;position:relative"><img src="'+afterUrl+'" style="display:block;width:100%" alt="AI upscaled" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span></div>'+
+              '<div id="upcmp" style="display:flex;gap:2px;width:100%;align-items:flex-start;transform-origin:top left">'+
+                '<div id="upSidePanelBef" style="flex:1;position:relative"><img src="'+beforeUrl+'" style="display:block;width:100%" alt="Original" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span></div>'+
+                '<div id="upSidePanelAft" style="flex:1;position:relative"><img src="'+afterUrl+'" style="display:block;width:100%" alt="AI upscaled" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span></div>'+
               '</div>'+
-            '</div>'+zoomCtrl;
+            '</div>'+zoomCtrl+
+            '<p style="text-align:center;font-size:11px;color:var(--text-faint);max-width:480px;margin:6px auto 0" id="upSideHint">At 100%\u2013400%, the AI panel is shown genuinely wider than Original \u2014 it has more real pixels, not just a bigger frame.</p>';
           wireZoom(ZOOM_STOPS);return;
         }
         area.innerHTML=
@@ -1581,29 +1582,54 @@ INIT['ai-image-upscaler']=function(panel){
       function wireZoom(ZOOM_STOPS){
         var cmp=$('#upcmp',panel),wrap=$('#upzoomwrap',panel);
         if(!cmp||!wrap)return;
-        /* Zoom is now an ABSOLUTE scale against the real output pixel
-           width, not a percentage of the ~620px display container —
-           that was the actual bug: "Fit" and "100%" previously computed
-           to the exact same value, because both set cmp's width as a
-           percentage of its container rather than of the true image
-           resolution. "100%" now means one real output pixel per screen
-           pixel; "Fit" is computed fresh each time from the container's
-           current width so it still behaves like a sane default size,
-           it just no longer collides with 100%. */
+        var isSide=curCompareMode==='side';
+        var befPanel=isSide?$('#upSidePanelBef',panel):null;
+        var aftPanel=isSide?$('#upSidePanelAft',panel):null;
+        /* Zoom is an ABSOLUTE scale against the real output pixel width,
+           not a percentage of the ~620px display container — that was
+           the original bug: "Fit" and "100%" used to compute to the
+           exact same value. A SECOND, separate bug lived only in
+           side-by-side mode: both panels used flex:1 (equal share)
+           unconditionally, so zooming just made both panels bigger
+           TOGETHER while staying equal width to each other at every
+           zoom level — meaning side-by-side could never show that the
+           AI panel has genuinely more pixels, no matter how the
+           underlying algorithm performed. Fix: away from "Fit", the two
+           panels get real, DIFFERENT pixel widths (befPrev.width*zoom
+           vs outPrev.width*zoom) — the AI panel becomes visibly wider,
+           which is an honest, immediate signal of "more real detail",
+           not just a bigger frame around the same information. Fit
+           keeps the original equal-flex layout, which is the right
+           default for a quick overview. */
         function setZoom(z,stopKey){
           zoom=Math.max(.25,Math.min(4,z));
-          /* outPrev, not outCanvas: the image actually shown is the
-             (now correctly, consistently) scaled preview — sizing zoom
-             math against the true full-resolution canvas that isn't
-             what's on screen would stretch the preview bitmap via CSS
-             to fake a size it doesn't have, softening exactly the
-             detail zoom is supposed to reveal. */
-          cmp.style.width=Math.round(outPrev.width*zoom)+'px';
-          var bef=$('#upbef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
+          if(isSide){
+            if(stopKey==='fit'){
+              cmp.style.width='100%';
+              befPanel.style.cssText='flex:1;position:relative';
+              aftPanel.style.cssText='flex:1;position:relative';
+            }else{
+              cmp.style.width='auto';
+              befPanel.style.cssText='flex:none;width:'+Math.round(befPrev.width*zoom)+'px;position:relative';
+              aftPanel.style.cssText='flex:none;width:'+Math.round(outPrev.width*zoom)+'px;position:relative';
+            }
+          }else{
+            /* outPrev, not outCanvas: the image actually shown is the
+               (now correctly, consistently) scaled preview — sizing
+               zoom math against the true full-resolution canvas that
+               isn't what's on screen would stretch the preview bitmap
+               via CSS to fake a size it doesn't have, softening exactly
+               the detail zoom is supposed to reveal. */
+            cmp.style.width=Math.round(outPrev.width*zoom)+'px';
+            var bef=$('#upbef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
+          }
           $$('.seg[aria-label="Zoom level"] button[data-z]',panel).forEach(function(b){if(b.dataset.z!=='reset')b.setAttribute('aria-pressed',String(b.dataset.z===stopKey));});
           if(window.trackEvent)window.trackEvent('zoom_usage',{zoom:Math.round(zoom*100)+'%',mode:curCompareMode,tool:'ai-image-upscaler'});
         }
-        function fitZoom(){return Math.min(1,wrap.clientWidth/outPrev.width);}
+        function fitZoom(){
+          if(isSide)return 1; /* 'fit' is a distinct equal-flex layout in side mode, not a computed scale */
+          return Math.min(1,wrap.clientWidth/outPrev.width);
+        }
         $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){
           b.onclick=function(){
             if(b.dataset.z==='reset'){setZoom(1,'100');return;}
@@ -1621,12 +1647,13 @@ INIT['ai-image-upscaler']=function(panel){
         wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15),'');}},{passive:false});
         /* Default to real 100% (actual output pixels), not Fit — at Fit,
            any upscaler looks like it did nothing, because the extra
-           resolution is scaled back out to match the display container.
-           Showing true pixels by default is what actually answers "did
-           this improve anything?" without an extra click first. Centered
-           via rAF (after layout settles) rather than left at the
-           top-left corner, which for a typical photo is background, not
-           the subject. */
+           resolution is scaled back out to match the display container
+           (in split mode) or an equal-width flex column (in side mode).
+           Showing true pixels/true relative sizing by default is what
+           actually answers "did this improve anything?" without an
+           extra click first. Centered via rAF (after layout settles)
+           rather than left at the top-left corner, which for a typical
+           photo is background, not the subject. */
         setZoom(1,'100');
         requestAnimationFrame(function(){
           wrap.scrollLeft=Math.max(0,(cmp.scrollWidth-wrap.clientWidth)/2);

@@ -1429,20 +1429,35 @@ INIT['ai-image-upscaler']=function(panel){
   var curCompareMode='split'; /* remembered for the rest of this session */
   function showResult(engineLabel,factor,elapsedSec){
     /* Preview at display resolution: encoding + decoding a 25MP+ PNG just
-       to LOOK at it costs seconds of frozen UI. The compare view gets a
-       ≤2400px copy (still far beyond screen size at Fit); the download
-       always uses the untouched full-resolution outCanvas. */
+       to LOOK at it costs seconds of frozen UI. The compare view gets
+       scaled-down copies (still far beyond screen size at Fit); the
+       download always uses the untouched full-resolution outCanvas.
+
+       BUG THIS REPLACES: previewOf() used to be called independently on
+       each image — outCanvas capped to a 2400px edge, srcCanvas left at
+       its full original size. For a 2x result those aren't independent:
+       capping the (larger) after-image on its own can leave it with
+       FEWER raw pixels than the uncapped original, so when both are
+       stretched to the same on-screen width for comparison, the
+       "enhanced" image needed MORE upscaling than the original —
+       backwards, and enough on its own to make a real improvement look
+       like nothing happened regardless of zoom controls or the
+       algorithm. Fix: compute ONE scale factor from the larger (after)
+       image, apply it to BOTH, so the true 2x/4x relationship survives
+       into the preview pair, not just the full-resolution download. */
     setStatus(u.status,'Preparing preview\u2026');
-    function previewOf(c,maxEdge){
-      if(Math.max(c.width,c.height)<=maxEdge)return c;
-      var s=maxEdge/Math.max(c.width,c.height);
+    var MAX_PREVIEW_EDGE=2400;
+    var previewScale=Math.min(1,MAX_PREVIEW_EDGE/Math.max(outCanvas.width,outCanvas.height));
+    function scaledCopy(c,s){
+      if(s>=1)return c;
       var p=document.createElement('canvas');
-      p.width=Math.round(c.width*s);p.height=Math.round(c.height*s);
+      p.width=Math.max(1,Math.round(c.width*s));p.height=Math.max(1,Math.round(c.height*s));
       var px=p.getContext('2d');px.imageSmoothingQuality='high';
       px.drawImage(c,0,0,p.width,p.height);
       return p;
     }
-    var outPrev=previewOf(outCanvas,2400);
+    var outPrev=scaledCopy(outCanvas,previewScale);
+    var befPrev=scaledCopy(srcCanvas,previewScale);
     var prevCapped=outPrev!==outCanvas;
     /* Real badges: derived from what actually ran (engine id + the size
        relationship), not a fixed decorative list — a neural pass and a
@@ -1455,7 +1470,7 @@ INIT['ai-image-upscaler']=function(panel){
        string held in the DOM — toBlob keeps the pixels in native
        memory and the DOM only holds a short blob: reference. */
     Promise.all([
-      new Promise(function(r){srcCanvas.toBlob(function(b){r(b);},'image/png');}),
+      new Promise(function(r){befPrev.toBlob(function(b){r(b);},'image/png');}),
       new Promise(function(r){outPrev.toBlob(function(b){r(b);},'image/png');})
     ]).then(function(blobs){
       if(!blobs[0]||!blobs[1]){setStatus(u.status,'Preview failed \u2014 you can still download the result.',1);}
@@ -1569,12 +1584,18 @@ INIT['ai-image-upscaler']=function(panel){
            it just no longer collides with 100%. */
         function setZoom(z,stopKey){
           zoom=Math.max(.25,Math.min(4,z));
-          cmp.style.width=Math.round(outCanvas.width*zoom)+'px';
+          /* outPrev, not outCanvas: the image actually shown is the
+             (now correctly, consistently) scaled preview — sizing zoom
+             math against the true full-resolution canvas that isn't
+             what's on screen would stretch the preview bitmap via CSS
+             to fake a size it doesn't have, softening exactly the
+             detail zoom is supposed to reveal. */
+          cmp.style.width=Math.round(outPrev.width*zoom)+'px';
           var bef=$('#upbef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
           $$('.seg[aria-label="Zoom level"] button[data-z]',panel).forEach(function(b){if(b.dataset.z!=='reset')b.setAttribute('aria-pressed',String(b.dataset.z===stopKey));});
           if(window.trackEvent)window.trackEvent('zoom_usage',{zoom:Math.round(zoom*100)+'%',mode:curCompareMode,tool:'ai-image-upscaler'});
         }
-        function fitZoom(){return Math.min(1,wrap.clientWidth/outCanvas.width);}
+        function fitZoom(){return Math.min(1,wrap.clientWidth/outPrev.width);}
         $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){
           b.onclick=function(){
             if(b.dataset.z==='reset'){setZoom(1,'100');return;}

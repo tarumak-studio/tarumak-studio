@@ -523,10 +523,13 @@ function getArticleThumb(slug, key, fallbackIcoSvg){
    600ms CSS transitions — see .ai-demo styles). All visuals are CSS class
    swaps; this driver only rotates classes, badge text and the link href.
    Sub-steps: upscale shows 2× then 4× mid-state; erase shows the dashed
-   ring first, then the object vanishing. Under prefers-reduced-motion the
-   loop never starts and the panel stays on its static initial state
-   (Background Remover result) — matching how the old card cluster froze
-   to a fixed rotation rather than spinning slower. */
+   ring first, then a small secondary element (not the main subject)
+   vanishing. Hover/focus pauses the state advance, so the link's href
+   can't change out from under someone between hovering and clicking.
+   Under prefers-reduced-motion the loop never starts and the panel stays
+   on its static initial state (Background Remover result) — matching how
+   the old card cluster froze to a fixed rotation rather than spinning
+   slower. */
 function wireAiDemo(){
   var demo=document.getElementById('aiDemo');
   var badge=document.getElementById('aiDemoBadge');
@@ -539,7 +542,7 @@ function wireAiDemo(){
     {cls:'st-upscale', slug:'ai-image-upscaler',  label:'AI Image Upscaler'},
     {cls:'st-erase',   slug:'ai-object-remover',  label:'AI Object Remover'}
   ];
-  var idx=0,subTimers=[];
+  var idx=0,subTimers=[],paused=false;
   function clearSubs(){subTimers.forEach(clearTimeout);subTimers=[];}
   function apply(){
     var s=STATES[idx];
@@ -557,7 +560,19 @@ function wireAiDemo(){
     }
   }
   apply();
-  setInterval(function(){idx=(idx+1)%STATES.length;apply();},3000);
+  setInterval(function(){
+    if(paused)return; /* href/state must stay put while the user is looking at or focused on it */
+    idx=(idx+1)%STATES.length;apply();
+  },3000);
+  /* Hover or keyboard focus freezes the current state so the link's
+     destination never changes out from under someone mid-click — the
+     visible hover/focus affordance above is what makes clicking feel
+     intentional in the first place, so the target has to hold still
+     for that same duration. */
+  demo.addEventListener('mouseenter',function(){paused=true;});
+  demo.addEventListener('mouseleave',function(){paused=false;});
+  demo.addEventListener('focus',function(){paused=true;});
+  demo.addEventListener('blur',function(){paused=false;});
 }
 
 function wireHeroSearch(){

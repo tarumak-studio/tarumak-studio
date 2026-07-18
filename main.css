@@ -109,7 +109,16 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
    invented here. */
 .ai-demo{position:relative;display:block;width:250px;text-decoration:none;animation:float 8s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
-.ai-photo{position:relative;display:block;height:288px;border-radius:20px;overflow:hidden;border:1px solid var(--border-2);box-shadow:0 24px 48px -20px rgba(0,0,0,.45),0 8px 20px -10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18)}
+.ai-photo{position:relative;display:block;height:288px;border-radius:20px;overflow:hidden;border:1px solid var(--border-2);box-shadow:0 24px 48px -20px rgba(0,0,0,.45),0 8px 20px -10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .25s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease)}
+/* Same lift+glow language as .feat-card:hover elsewhere on this page —
+   a link that visibly reacts to hover/keyboard focus, which the panel
+   didn't have at all before this fix. */
+.ai-demo:hover .ai-photo,.ai-demo:focus-visible .ai-photo{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb,var(--p1) 38%,var(--border-2));
+  box-shadow:0 28px 54px -20px rgba(0,0,0,.5),0 8px 22px -10px rgba(34,211,238,.22);
+}
+.ai-demo:focus-visible{outline:2px solid var(--p1);outline-offset:4px;border-radius:20px}
 /* Checkerboard: the EXACT technique already used on the AI tool result
    pages (image-tools.js CHECKER / CHK) — same gradient, same tile size. */
 .ai-checker{position:absolute;inset:0;background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px}
@@ -121,6 +130,7 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .ai-hill-near{fill:#22335c}
 .ai-balloon path,.ai-balloon rect{fill:var(--p1)}
 .ai-balloon{transition:opacity .6s var(--ease)}
+.ai-bird{stroke:var(--text-dim);transition:opacity .45s var(--ease)}
 .ai-erase-ring{fill:none;stroke:#f472b6;stroke-width:2.5;stroke-dasharray:7 6;opacity:0;transition:opacity .45s var(--ease)}
 .ai-scale-tag{position:absolute;top:10px;right:10px;font-family:var(--fm);font-size:12.5px;font-weight:700;color:var(--text);background:rgba(10,13,24,.72);border:1px solid var(--border-2);border-radius:8px;padding:3px 9px;opacity:0;transition:opacity .45s var(--ease)}
 .ai-scale-tag .ai-x2,.ai-scale-tag .ai-x4{transition:opacity .4s var(--ease)}
@@ -138,9 +148,12 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
 .ai-demo.st-upscale.st-x4 .ai-x4{display:inline}
 .ai-demo.st-upscale:not(.st-x4) .ai-x4{display:none}
 .ai-demo.st-upscale:not(.st-x4) .ai-x2{display:inline}
-/* State 4 — AI Object Remover: dashed ring appears, balloon vanishes */
+/* State 4 — AI Object Remover: dashed ring circles a small distracting
+   element (the bird), which then vanishes. The main subject (balloon)
+   stays untouched the whole time — a clean removal of one unwanted
+   thing from an otherwise intact photo, not "the photo emptied out". */
 .ai-demo.st-erase .ai-erase-ring{opacity:1}
-.ai-demo.st-erase.st-erased .ai-balloon{opacity:0}
+.ai-demo.st-erase.st-erased .ai-bird{opacity:0}
 .ai-demo.st-erase.st-erased .ai-erase-ring{opacity:0}
 .cluster-glow{position:absolute;width:310px;height:310px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.24),transparent 64%);filter:blur(34px);animation:pulse 7s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12);opacity:.7}}
@@ -154,7 +167,8 @@ h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-cl
      this same media query, so this is belt-and-braces, not the only
      guard). Transitions removed entirely, not slowed. */
   .ai-demo,.cluster-glow,.eyebrow .dot{animation:none}
-  .ai-scene,.ai-sky,.ai-hill,.ai-balloon,.ai-erase-ring,.ai-scale-tag,.ai-badge{transition:none !important}
+  .ai-scene,.ai-sky,.ai-hill,.ai-balloon,.ai-erase-ring,.ai-scale-tag,.ai-badge,.ai-photo{transition:none !important}
+  .ai-demo:hover .ai-photo,.ai-demo:focus-visible .ai-photo{transform:none !important}
 }
 /* sections */
 .section{padding:60px 0}

@@ -2421,6 +2421,15 @@ INIT['ai-object-remover']=function(panel){
         }
       }
       renderView();
+      /* The outer u.status line (distinct from the now-destroyed #orSt
+         that lived inside the old editor markup) was never updated on
+         success — it silently kept showing "Paint over what you want
+         removed..." from before processing started, straight through a
+         fully completed removal. That's actively misleading: it reads
+         as "still waiting for input" even once a real result exists,
+         which is exactly the kind of thing that makes a working result
+         look like nothing happened. */
+      setStatus(u.status,'Done \u2014 compare the result below, or paint another area with Remove more.');
       var viewBtns={split:'#orVSplit',side:'#orVSide',hold:'#orVHold'};
       Object.keys(viewBtns).forEach(function(mode){
         var el=$(viewBtns[mode],panel);if(!el)return;

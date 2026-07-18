@@ -98,6 +98,13 @@
       return;
     }
 
+    /* "Continue editing" suggestions shown after a tool finishes (AI
+       Photo Enhancer, AI Object Remover, etc.) */
+    if (/\btp-continue-edit\b/.test(cls)) {
+      trackEvent('continue_editing_click', { target_tool: (a.getAttribute('href') || '').replace(/^\//, '') });
+      return;
+    }
+
     /* A tool page linking OUT to a blog article */
     if (/\btp-guide\b/.test(cls)) {
       trackEvent('tool_to_blog_click', { article_url: a.getAttribute('href') || '' });

@@ -229,3 +229,14 @@ footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(i
 .palette-row span{flex:1;cursor:pointer;transition:.15s}
 .palette-row span:hover{flex:2}
 #og-canvas{max-width:100%;border-radius:12px;display:block;margin:0 auto;border:1px solid var(--border)}
+
+/* Reusable staged progress bar — any tool can drop in .tp-progress-wrap
+   with a #<id>Bar/#<id>Pct/#<id>Stage triple; used first by the AI Photo
+   Enhancer's upload/enhance/full-res stages. Colors are the existing
+   --grad/--surface-2/--border tokens, nothing new introduced. */
+.tp-progress-wrap{max-width:420px;margin:10px auto;text-align:center}
+.tp-progress-stage{font-size:12.5px;color:var(--text-dim);margin-bottom:6px;min-height:1.4em}
+.tp-progress-track{height:6px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden}
+.tp-progress-fill{height:100%;border-radius:99px;background:var(--grad);width:0%;transition:width .18s ease}
+.tp-progress-pct{font-size:11px;color:var(--text-faint);margin-top:5px;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.tp-progress-fill{transition:none}}

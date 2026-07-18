@@ -77,8 +77,13 @@
     /* Exposure */
     if (meanL < 95)  { set.brightness = Math.min(30, Math.round((95 - meanL) * 0.5)); notes.push('underexposed / low light'); }
     if (meanL > 175) { set.brightness = -Math.min(25, Math.round((meanL - 175) * 0.5)); notes.push('overexposed'); }
-    /* Contrast */
+    /* Contrast: real correction when genuinely flat, PLUS a small always-on
+       "punch" floor even on already-decent images. A photo that measures
+       fine statistically can still look flat on screen next to nothing —
+       every product in this category (Remini, Pixelcut, Fotor) applies
+       some baseline punch rather than only correcting outright faults. */
     if (stdL < 48)   { set.contrast = Math.min(28, Math.round((48 - stdL) * 0.9)); notes.push('low contrast / faded'); }
+    else             { set.contrast = 11; }
     /* Clipping → shadow lift / highlight recovery */
     if (darkClip / n > 0.05)  { set.shadows = 25; notes.push('crushed shadows'); }
     if (lightClip / n > 0.05) { set.highlights = -25; notes.push('blown highlights'); }
@@ -87,17 +92,27 @@
     if (Math.abs(castRB) > 8) { set.temperature = -Math.max(-30, Math.min(30, Math.round(castRB * 0.6))); notes.push(castRB > 0 ? 'warm color cast' : 'cool color cast'); }
     var castG = meanG - (meanR + meanB) / 2;
     if (Math.abs(castG) > 8)  { set.tint = -Math.max(-25, Math.min(25, Math.round(castG * 0.6))); notes.push('green/magenta cast'); }
-    /* Color richness */
-    if (meanSat < 0.16) { set.vibrance = 24; notes.push('faded colors'); }
+    /* Color richness: strong correction when genuinely faded, PLUS a small
+       always-on floor otherwise — vibrance (which protects already-
+       saturated pixels from clipping into neon) is the single most
+       reliably visible, least risky perceptual lift available, which is
+       exactly why it's the one every competitor leans on hardest. */
+    if (meanSat < 0.16) { set.vibrance = 26; notes.push('faded colors'); }
+    else                { set.vibrance = 15; }
     /* Noise */
     if (noiseEst > 9)   { set.noise = Math.min(45, Math.round((noiseEst - 9) * 5)); notes.push('visible noise'); }
-    /* Softness */
-    if (lapVar < 60)    { set.sharpness = 32; set.clarity = 15; notes.push('soft focus'); }
-    else                { set.sharpness = 18; set.clarity = 10; }
+    /* Softness: real correction when genuinely soft, PLUS a stronger
+       always-on baseline than before — 18/10 rounded to nothing once run
+       through the pipeline's own amount math (sharpen amt = value/100*0.9,
+       clarity amt = value/100*0.8); 34/26 is the smallest floor that
+       actually survives that math as a visible change without crossing
+       into the halo/oversharpen territory the brief explicitly rules out. */
+    if (lapVar < 60)    { set.sharpness = 40; set.clarity = 30; notes.push('soft focus'); }
+    else                { set.sharpness = 34; set.clarity = 26; }
 
     return {
       settings: set,
-      findings: notes.length ? notes : ['already well balanced — applying gentle refinement'],
+      findings: notes.length ? notes : ['balanced exposure — applying color, clarity & sharpness enhancement'],
       stats: { meanLuma: Math.round(meanL), contrastStd: Math.round(stdL), meanSat: +meanSat.toFixed(2), noiseEst: +noiseEst.toFixed(1), sharpnessVar: Math.round(lapVar) }
     };
   }
@@ -289,7 +304,89 @@
     });
   }
 
-  /* ── Provider: browser-auto (default, always available) ──────────── */
+  /* ═══════════════════ STRENGTH CONTROL ═══════════════════════════════
+     Scales whatever settings object is already active (auto-analysis OR
+     a preset) by one multiplier — Subtle/Balanced/Strong/Maximum, or a
+     raw 0–100 slider mapped to the same range. Balanced (1.0) is the new,
+     stronger baseline tuned above; this only moves relative to that, so
+     "Subtle" still looks like a real (if gentler) enhancement rather than
+     the old near-invisible default, and "Maximum" is capped well short
+     of the halo/neon territory the brief rules out. Pure function — same
+     testing approach as everything else in this engine. */
+  var STRENGTH_PRESETS = { subtle: 0.55, balanced: 1.0, strong: 1.35, maximum: 1.7 };
+  var SCALED_KEYS = ['contrast', 'vibrance', 'saturation', 'sharpness', 'clarity', 'texture',
+    'shadows', 'highlights', 'whites', 'blacks', 'noise'];
+  /* Deliberately NOT scaled: brightness/temperature/tint are corrective
+     (fixing an actual exposure/cast problem) rather than stylistic —
+     scaling them with "strength" would make Subtle under-correct a
+     genuinely too-dark photo and Maximum over-correct it, which isn't
+     what an intensity slider should mean. */
+  function scaleSettings(settings, strength) {
+    var mul = typeof strength === 'number' ? Math.max(0, Math.min(2, strength / 50)) : (STRENGTH_PRESETS[strength] || 1);
+    var out = {};
+    for (var k in settings) {
+      if (!Object.prototype.hasOwnProperty.call(settings, k)) continue;
+      out[k] = SCALED_KEYS.indexOf(k) !== -1 ? Math.round(settings[k] * mul) : settings[k];
+    }
+    return out;
+  }
+
+  /* ═══════════════════ SKIN-TONE-AWARE PORTRAIT PASS ══════════════════
+     HONESTY NOTE: this is a colour-range heuristic, not face detection.
+     It cannot find eyes or a face region — it classifies each pixel by
+     whether its RGB falls in a broad, well-established skin-tone range
+     (the same rule-based test used as a first-pass filter in a lot of
+     computer-vision literature before anyone reaches for a trained
+     model). Pixels that pass get a very light smoothing (blemish/texture
+     softened slightly); pixels that don't — eyes, eyebrows, hair, lips,
+     background — get left alone here (the main sharpen/clarity passes
+     already sharpen everything, so contrast against the softened skin
+     comes from those areas simply NOT being softened). This will not
+     work reliably on illustration, anime, or non-photographic input,
+     which is exactly why it's only wired into the Portrait preset, not
+     applied globally. */
+  function isSkinTone(r, g, b) {
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    return r > 95 && g > 40 && b > 20 && (mx - mn) > 15 &&
+      Math.abs(r - g) > 15 && r > g && r > b;
+  }
+  function skinSmoothPass(canvas, strength, onP, signal) {
+    return new Promise(function (res, rej) {
+      if (!strength) { res(); return; }
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var id, d, src;
+      try { id = ctx.getImageData(0, 0, w, h); d = id.data; src = d.slice(0); }
+      catch (e) { res(); return; }
+      var mix = Math.min(1, strength / 100) * 0.55; /* deliberately capped — this must stay subtle */
+      var BAND = Math.max(32, Math.round(1200000 / w)), y = 1;
+      function tick() {
+        if (signal && signal.cancelled) { rej(new Error('cancelled')); return; }
+        var end = Math.min(h - 1, y + BAND);
+        for (var yy = y; yy < end; yy++) {
+          for (var x = 1; x < w - 1; x++) {
+            var i = (yy * w + x) * 4;
+            if (!isSkinTone(src[i], src[i + 1], src[i + 2])) continue;
+            var r = 0, g = 0, b = 0, n = 0;
+            for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+              var j = ((yy + dy) * w + (x + dx)) * 4;
+              r += src[j]; g += src[j + 1]; b += src[j + 2]; n++;
+            }
+            r /= n; g /= n; b /= n;
+            d[i] = src[i] + (r - src[i]) * mix;
+            d[i + 1] = src[i + 1] + (g - src[i + 1]) * mix;
+            d[i + 2] = src[i + 2] + (b - src[i + 2]) * mix;
+          }
+        }
+        y = end;
+        if (onP) onP(y / (h - 1));
+        if (y >= h - 1) { ctx.putImageData(id, 0, 0); res(); return; }
+        setTimeout(tick, 0);
+      }
+      tick();
+    });
+  }
+
+
   var BrowserAuto = {
     id: 'browser-auto',
     label: 'On-device enhancement',
@@ -304,9 +401,10 @@
           });
         };
       }
-      return seg(function (p) { return tonePass(canvas, s, p, signal); }, 0.02, 0.45, 'Correcting tone & color')()
-        .then(seg(function (p) { return denoisePass(canvas, s.noise, p, signal); }, 0.45, 0.70, 'Reducing noise'))
-        .then(seg(function (p) { return clarityPass(canvas, s.clarity, p, signal); }, 0.70, 0.80, 'Boosting clarity'))
+      return seg(function (p) { return tonePass(canvas, s, p, signal); }, 0.02, 0.40, 'Correcting tone & color')()
+        .then(seg(function (p) { return denoisePass(canvas, s.noise, p, signal); }, 0.40, 0.58, 'Reducing noise'))
+        .then(seg(function (p) { return skinSmoothPass(canvas, s.skinSmooth, p, signal); }, 0.58, 0.68, 'Refining skin tones'))
+        .then(seg(function (p) { return clarityPass(canvas, s.clarity, p, signal); }, 0.68, 0.80, 'Boosting clarity'))
         .then(seg(function (p) { return sharpenPass(canvas, s.sharpness, s.texture, p, signal); }, 0.80, 0.98, 'Sharpening'))
         .then(function () {
           if (opts.onProgress) opts.onProgress(1, 'Done');
@@ -359,10 +457,12 @@
   var ORDER = ['cloudflare-ai', 'replicate', 'fal', 'browser-auto'];
 
   window.EnhanceEngine = {
-    version: '1.0',
+    version: '2.0',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     analyze: analyze,
+    scaleSettings: scaleSettings,
+    strengthPresets: STRENGTH_PRESETS,
     lastErrors: {},
     run: function (opts) {
       var self = window.EnhanceEngine;
@@ -383,5 +483,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[enhancer] engine v1.0 loaded'); } catch (e) {}
+  try { console.log('[enhancer] engine v2.0 loaded'); } catch (e) {}
 })();

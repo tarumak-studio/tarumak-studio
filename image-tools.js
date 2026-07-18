@@ -1493,13 +1493,13 @@ INIT['ai-photo-enhancer']=function(panel){
   ];
   var PRESETS={
     auto:null, /* filled from analysis */
-    portrait:{noise:15,vibrance:12,sharpness:20,clarity:8,shadows:10},
-    landscape:{clarity:28,vibrance:28,sharpness:30,contrast:12},
-    night:{shadows:35,noise:30,brightness:15,temperature:-5,sharpness:15},
+    portrait:{noise:12,vibrance:14,sharpness:26,clarity:14,shadows:12,skinSmooth:22},
+    landscape:{clarity:30,vibrance:30,sharpness:32,contrast:16},
+    night:{shadows:35,noise:26,brightness:15,temperature:-5,sharpness:18,clarity:10},
     document:{contrast:35,clarity:25,sharpness:50,noise:5},
-    product:{sharpness:40,clarity:25,contrast:15,vibrance:10},
-    oldphoto:{contrast:25,vibrance:22,saturation:10,noise:25,temperature:5,sharpness:22},
-    anime:{saturation:25,sharpness:35,noise:15,contrast:10,clarity:12},
+    product:{sharpness:40,clarity:26,contrast:16,vibrance:12,noise:10},
+    oldphoto:{contrast:26,vibrance:24,saturation:10,noise:32,temperature:6,sharpness:24},
+    anime:{saturation:26,sharpness:36,noise:10,contrast:12,clarity:14},
     custom:{}
   };
   var MAX_INPUT_PX=25000000, PROXY_EDGE=1200;
@@ -1524,9 +1524,22 @@ INIT['ai-photo-enhancer']=function(panel){
       '<button data-p="anime" aria-pressed="false">Anime</button>'+
       '<button data-p="custom" aria-pressed="false">Custom</button>'+
     '</div></div>'+
+    '<div class="ctrl"><label>Strength</label><div class="seg" id="enStrength" role="group" aria-label="Enhancement strength">'+
+      '<button data-s="subtle" aria-pressed="false">Subtle</button>'+
+      '<button data-s="balanced" class="active" aria-pressed="true">Balanced</button>'+
+      '<button data-s="strong" aria-pressed="false">Strong</button>'+
+      '<button data-s="maximum" aria-pressed="false">Maximum</button>'+
+    '</div></div>'+
     '<div class="ctrl"><label for="enFmt">Output</label><select id="enFmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>'+
     '<div class="ctrl-spacer"></div>'+
     '<button class="btn btn-primary" id="enRun" disabled>Enhance</button>';
+  var curStrength='balanced';
+  $('#enStrength',panel).addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    curStrength=b.dataset.s;
+    $$('#enStrength button',panel).forEach(function(x){var on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});
+    schedulePreview();
+  });
 
   /* Collapsible slider drawer */
   var drawer=document.createElement('div');
@@ -1556,6 +1569,7 @@ INIT['ai-photo-enhancer']=function(panel){
   $('#enPresets',panel).addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
     curPreset=b.dataset.p;paintPresets(curPreset);
+    if(window.trackEvent)window.trackEvent('preset_selected',{preset:curPreset});
     settings=curPreset==='auto'?(analysis?Object.assign({},analysis.settings):{}):Object.assign({},PRESETS[curPreset]||{});
     writeSliders(settings);schedulePreview();
   });
@@ -1600,6 +1614,7 @@ INIT['ai-photo-enhancer']=function(panel){
         u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 4px">'+w+' \u00d7 '+h+' px \u00b7 '+fmtBytes(f.size)+' \u00b7 '+(f.type||'image')+'</p>'+
           '<p style="text-align:center;font-size:12.5px;margin:0 0 10px"><span style="color:var(--p1,#22d3ee)">Detected:</span> '+analysis.findings.join(' \u00b7 ')+'</p>';
         setStatus(u.status,'Ready \u2014 press Enhance, or fine-tune first.');
+        if(window.trackEvent)window.trackEvent('image_uploaded',{file_type:(f.type||'').split('/')[1]||'unknown',width:w,height:h});
       }).catch(function(e){setStatus(u.status,'Could not load the enhancement engine: '+(e.message||e)+'. Refresh and try again.',1);});
     }).catch(function(){setStatus(u.status,'Could not decode this image \u2014 it may be corrupted, or an unsupported HEIC. Convert it with the HEIC to JPG tool first.',1);});
   }
@@ -1631,20 +1646,45 @@ INIT['ai-photo-enhancer']=function(panel){
     proxyOut=document.createElement('canvas');
     proxyOut.width=proxySrc.width;proxyOut.height=proxySrc.height;
     proxyOut.getContext('2d').drawImage(proxySrc,0,0);
-    window.EnhanceEngine.run({canvas:proxyOut,settings:settings,signal:signal})
-      .then(function(res){if(signal.cancelled)return;showCompare(res.canvas,res.engine,false);})
+    var scaled=window.EnhanceEngine.scaleSettings(settings,curStrength);
+    var stageEl=$('#enPvStage',panel),barEl=$('#enPvBar',panel),pctEl=$('#enPvPct',panel);
+    window.EnhanceEngine.run({canvas:proxyOut,settings:scaled,signal:signal,
+      onProgress:function(p,stage){
+        if(!stageEl)return; /* first run: progress elements not in DOM yet, that's fine */
+        stageEl.textContent=stage||'Enhancing\u2026';
+        barEl.style.width=Math.round(p*100)+'%';
+        pctEl.textContent=Math.round(p*100)+'%';
+      }})
+      .then(function(res){if(signal.cancelled)return;showCompare(res.canvas,res.engine,null);})
       .catch(function(){});
   }
 
   $('#enRun',panel).onclick=function(){
     if(!srcCanvas||running)return;
-    runPreview(); /* instant proxy result */
-    setStatus(u.status,'Enhanced preview ready \u2014 fine-tune with sliders, then Download for full resolution.');
+    u.results.classList.add('show');
+    u.results.innerHTML=
+      '<div class="tp-progress-wrap" role="status" aria-live="polite">'+
+        '<div class="tp-progress-stage" id="enPvStage">Applying AI enhancement\u2026</div>'+
+        '<div class="tp-progress-track"><div class="tp-progress-fill" id="enPvBar"></div></div>'+
+        '<div class="tp-progress-pct" id="enPvPct">0%</div>'+
+      '</div>';
+    runPreview();
   };
 
-  /* ── Compare stage (slider + zoom + pan + fullscreen + keys) ────── */
+  /* ── Compare stage (4 modes + zoom + pan + fullscreen + keys) ────── */
   var stageBuilt=false,zoom=1,_resizeH=null;
-  function showCompare(outCv,engineLabel){
+  var curCompareMode='split'; /* remembered for the rest of this session */
+  function summaryChecklist(s,find){
+    var LABELS={brightness:'Exposure corrected',contrast:'Contrast improved',shadows:'Shadows recovered',
+      highlights:'Highlights recovered',temperature:'White balance corrected',tint:'Color cast corrected',
+      vibrance:'Colors balanced',saturation:'Saturation enhanced',noise:'Noise reduced',
+      clarity:'Local contrast boosted',sharpness:'Sharpness increased',texture:'Texture recovered',
+      skinSmooth:'Skin tones optimized'};
+    var items=[];
+    Object.keys(LABELS).forEach(function(k){if(s[k])items.push(LABELS[k]);});
+    return items.length?items:(find||[]);
+  }
+  function showCompare(outCv,engineLabel,elapsedSec){
     freeUrls();
     Promise.all([
       new Promise(function(r){proxySrc.toBlob(function(b){r(b);},'image/png');}),
@@ -1653,92 +1693,203 @@ INIT['ai-photo-enhancer']=function(panel){
       if(!blobs[0]||!blobs[1])return;
       var befU=URL.createObjectURL(blobs[0]),aftU=URL.createObjectURL(blobs[1]);
       _urls.push(befU,aftU);
-      var meta='<p style="text-align:center;font-size:12.5px;color:var(--text-dim);margin-bottom:4px">Engine: '+engineLabel+' \u00b7 v'+(window.EnhanceEngine&&window.EnhanceEngine.version||'?')+'</p>'+
-        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:10px">Live preview at reduced resolution \u2014 Download processes the full '+srcCanvas.width+'\u00d7'+srcCanvas.height+' px image.</p>';
+      var scaled=window.EnhanceEngine.scaleSettings(settings,curStrength);
+      var presetLabel=$('#enPresets .active',panel)?$('#enPresets .active',panel).textContent:'Auto';
+      var strengthLabel=$('#enStrength .active',panel)?$('#enStrength .active',panel).textContent:'Balanced';
+      var fmtLabel=$('#enFmt',panel).value.split('/')[1].toUpperCase();
+      var checklist=summaryChecklist(scaled,analysis&&analysis.findings);
+      var meta=
+        '<div style="max-width:640px;margin:0 auto 10px;padding:12px 14px;border:1px solid var(--border-2);border-radius:12px;background:var(--bg-2);font-size:12px;color:var(--text-dim);display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px 14px">'+
+          '<div><b style="color:var(--text)">Engine</b><br>'+engineLabel+' \u00b7 v'+(window.EnhanceEngine&&window.EnhanceEngine.version||'?')+'</div>'+
+          '<div><b style="color:var(--text)">Preset</b><br>'+presetLabel+' \u00b7 '+strengthLabel+'</div>'+
+          '<div><b style="color:var(--text)">Resolution</b><br>'+srcCanvas.width+'\u00d7'+srcCanvas.height+'</div>'+
+          (elapsedSec!=null?'<div><b style="color:var(--text)">Processing time</b><br>'+elapsedSec.toFixed(1)+'s</div>':'<div><b style="color:var(--text)">Output</b><br>'+fmtLabel+'</div>')+
+        '</div>'+
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:10px">Live preview at reduced resolution \u2014 Download processes the full '+srcCanvas.width+'\u00d7'+srcCanvas.height+' px image.</p>'+
+        (checklist.length?'<div style="max-width:640px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+
+          checklist.map(function(c){return '<span style="font-size:11px;color:var(--p1);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.22);border-radius:99px;padding:4px 10px">\u2713 '+c+'</span>';}).join('')+
+        '</div>':'');
       u.results.innerHTML=meta+
-        '<div id="enWrap" style="max-width:640px;margin:0 auto;max-height:70vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;background:#000" tabindex="0" aria-label="Before and after comparison. Keys: plus and minus to zoom, zero to fit, F for fullscreen">'+
-          '<div id="enCmp" style="position:relative;width:100%">'+
-            '<img src="'+aftU+'" style="display:block;width:100%" alt="Enhanced photo" draggable="false">'+
-            '<div id="enBefW" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden"><img id="enBef" src="'+befU+'" style="display:block;height:100%" alt="Original photo" draggable="false"></div>'+
-            '<div id="enHand" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8)"></div>'+
-            '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">ORIGINAL</span>'+
-            '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">ENHANCED</span>'+
-          '</div>'+
-        '</div>'+
-        '<div style="max-width:640px;margin:10px auto 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center">'+
-          '<input type="range" id="enSlide" min="0" max="100" value="50" style="flex:1;min-width:150px" aria-label="Comparison divider position">'+
-          '<div class="seg" role="group" aria-label="Zoom"><button id="enZO" aria-label="Zoom out">\u2212</button><button id="enZF" aria-pressed="true">Fit</button><button id="enZI" aria-label="Zoom in">+</button></div>'+
-          '<button class="btn btn-ghost" id="enFS" aria-label="Fullscreen" style="padding:6px 12px">\u26F6</button>'+
-        '</div>'+
+        '<div style="display:flex;justify-content:center;margin-bottom:10px"><div class="seg" role="group" aria-label="Comparison mode">'+
+          '<button data-m="split" aria-pressed="false">Split</button>'+
+          '<button data-m="side" aria-pressed="false">Side by side</button>'+
+          '<button data-m="toggle" aria-pressed="false">Before/After</button>'+
+          '<button data-m="swipe" aria-pressed="false">Swipe</button>'+
+        '</div></div>'+
+        '<div id="enViewportArea"></div>'+
         '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
           '<button class="btn btn-primary" id="enDl">Download full resolution</button>'+
           '<button class="btn btn-ghost" id="enReset">Start over</button>'+
         '</div>'+
         '<div class="status" id="enDlSt" role="status" aria-live="polite"></div>';
-      var cmp=$('#enCmp',panel),befW=$('#enBefW',panel),bef=$('#enBef',panel),hand=$('#enHand',panel),wrap=$('#enWrap',panel);
-      function syncBef(){bef.style.width=cmp.clientWidth+'px';}
-      syncBef();
-      if(_resizeH)window.removeEventListener('resize',_resizeH);
-      _resizeH=syncBef;window.addEventListener('resize',_resizeH);
-      $('#enSlide',panel).oninput=function(){befW.style.width=this.value+'%';hand.style.left=this.value+'%';};
-      function setZoom(z){zoom=Math.max(.5,Math.min(6,z));cmp.style.width=(zoom*100)+'%';syncBef();}
-      $('#enZI',panel).onclick=function(){setZoom(zoom*1.4);};
-      $('#enZO',panel).onclick=function(){setZoom(zoom/1.4);};
-      $('#enZF',panel).onclick=function(){setZoom(1);};
-      $('#enFS',panel).onclick=function(){
-        if(document.fullscreenElement){document.exitFullscreen();}
-        else if(wrap.requestFullscreen){wrap.requestFullscreen();}
-      };
-      wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15));}},{passive:false});
-      wrap.addEventListener('keydown',function(e){
-        if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoom*1.4);}
-        else if(e.key==='-'){e.preventDefault();setZoom(zoom/1.4);}
-        else if(e.key==='0'){e.preventDefault();setZoom(1);}
-        else if(e.key==='f'||e.key==='F'){e.preventDefault();$('#enFS',panel).click();}
-      });
+
+      var modeBtns=$$('.seg[aria-label="Comparison mode"] button',panel);
+      function paintMode(){modeBtns.forEach(function(b){var on=b.dataset.m===curCompareMode;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});}
+      modeBtns.forEach(function(b){b.onclick=function(){
+        curCompareMode=b.dataset.m;paintMode();renderViewport();
+        if(window.trackEvent)window.trackEvent('comparison_mode_used',{mode:curCompareMode});
+      };});
+      paintMode();
+
+      var ZOOM_STOPS=[{k:'fit',v:1,label:'Fit'},{k:'100',v:1,label:'100%'},{k:'200',v:2,label:'200%'},{k:'400',v:4,label:'400%'},{k:'800',v:8,label:'800%'}];
+      function renderViewport(){
+        var area=$('#enViewportArea',panel);
+        var zoomCtrl='<div style="max-width:640px;margin:10px auto 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">'+
+            '<div class="seg" role="group" aria-label="Zoom level">'+ZOOM_STOPS.map(function(z){return '<button data-z="'+z.k+'" aria-pressed="'+(z.k==='fit')+'">'+z.label+'</button>';}).join('')+'</div>'+
+            '<button class="btn btn-ghost" id="enFS" aria-label="Fullscreen" style="padding:6px 12px">\u26F6</button>'+
+          '</div>';
+        if(curCompareMode==='toggle'){
+          area.innerHTML=
+            '<div style="max-width:640px;margin:0 auto"><div id="enWrap" style="position:relative;border:1px solid var(--border-2);border-radius:14px;overflow:hidden;background:#000">'+
+              '<img id="enToggleA" src="'+aftU+'" style="display:block;width:100%" alt="Enhanced photo" draggable="false">'+
+              '<img id="enToggleB" src="'+befU+'" style="display:block;width:100%;position:absolute;inset:0;opacity:0;transition:opacity 120ms ease" alt="Original photo" draggable="false">'+
+              '<span id="enTag" style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">AFTER</span>'+
+            '</div><button class="btn btn-ghost" id="enHoldBtn" style="display:block;margin:10px auto 0" aria-label="Press and hold to see the original photo">Hold to see original</button></div>';
+          var hb=$('#enHoldBtn',panel),hB=$('#enToggleB',panel),hTag=$('#enTag',panel);
+          function showB(on){hB.style.opacity=on?'1':'0';hTag.textContent=on?'BEFORE':'AFTER';hTag.style.background=on?'rgba(0,0,0,.6)':'rgba(34,211,238,.85)';hTag.style.color=on?'#fff':'#04222a';}
+          hb.onpointerdown=function(e){e.preventDefault();showB(true);};
+          hb.onpointerup=hb.onpointerleave=hb.onpointercancel=function(){showB(false);};
+          hb.onkeydown=function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();showB(true);}};
+          hb.onkeyup=function(e){if(e.key===' '||e.key==='Enter'){showB(false);}};
+          return; /* zoom/pan doesn't apply to a single swapped image */
+        }
+        if(curCompareMode==='side'){
+          area.innerHTML=
+            '<div id="enWrap" style="max-width:900px;margin:0 auto;max-height:70vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;background:#000" tabindex="0" aria-label="Side by side comparison. Keys: plus and minus to zoom, zero to fit, F for fullscreen">'+
+              '<div id="enCmp" style="display:flex;gap:2px;width:100%">'+
+                '<div style="flex:1;position:relative"><img src="'+befU+'" style="display:block;width:100%" alt="Original photo" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">BEFORE</span></div>'+
+                '<div style="flex:1;position:relative"><img src="'+aftU+'" style="display:block;width:100%" alt="Enhanced photo" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">AFTER</span></div>'+
+              '</div>'+
+            '</div>'+zoomCtrl;
+          wireZoomPan();return;
+        }
+        /* split & swipe share the same overlay-divider DOM; swipe adds
+           drag-anywhere-on-the-image in addition to the slider, split
+           relies on the slider (or the handle) alone \u2014 genuinely
+           different primary interaction, same visual result either way. */
+        area.innerHTML=
+          '<div id="enWrap" style="max-width:640px;margin:0 auto;max-height:70vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;background:#000" tabindex="0" aria-label="Before and after comparison. Keys: plus and minus to zoom, zero to fit, F for fullscreen">'+
+            '<div id="enCmp" style="position:relative;width:100%">'+
+              '<img src="'+aftU+'" style="display:block;width:100%" alt="Enhanced photo" draggable="false">'+
+              '<div id="enBefW" style="position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden"><img id="enBef" src="'+befU+'" style="display:block;height:100%" alt="Original photo" draggable="false"></div>'+
+              '<div id="enHand" style="position:absolute;top:0;left:50%;width:2px;height:100%;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.8);cursor:ew-resize"></div>'+
+              '<span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:99px">BEFORE</span>'+
+              '<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">AFTER</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="max-width:640px;margin:10px auto 0"><input type="range" id="enSlide" min="0" max="100" value="50" style="width:100%" aria-label="Comparison divider position"></div>'+
+          zoomCtrl;
+        var cmp=$('#enCmp',panel),befW=$('#enBefW',panel),bef=$('#enBef',panel),hand=$('#enHand',panel);
+        function syncBef(){bef.style.width=cmp.clientWidth+'px';}
+        syncBef();
+        if(_resizeH)window.removeEventListener('resize',_resizeH);
+        _resizeH=syncBef;window.addEventListener('resize',_resizeH);
+        function setDivider(pct){pct=Math.max(0,Math.min(100,pct));befW.style.width=pct+'%';hand.style.left=pct+'%';$('#enSlide',panel).value=pct;}
+        $('#enSlide',panel).oninput=function(){setDivider(this.value);};
+        if(curCompareMode==='swipe'){
+          var dragging=false;
+          function pctFromEvent(e){var r=cmp.getBoundingClientRect();return (e.clientX-r.left)/r.width*100;}
+          cmp.addEventListener('pointerdown',function(e){dragging=true;setDivider(pctFromEvent(e));});
+          window.addEventListener('pointermove',function(e){if(dragging)setDivider(pctFromEvent(e));});
+          window.addEventListener('pointerup',function(){dragging=false;});
+        }
+        wireZoomPan();
+      }
+      function wireZoomPan(){
+        var cmp=$('#enCmp',panel),wrap=$('#enWrap',panel);
+        if(!cmp||!wrap)return;
+        function setZoom(z,stopKey){
+          zoom=Math.max(.5,Math.min(8,z));cmp.style.width=(zoom*100)+'%';
+          var bef=$('#enBef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
+          $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.z===stopKey));});
+          if(window.trackEvent)window.trackEvent('zoom_usage',{zoom:Math.round(zoom*100)+'%',mode:curCompareMode});
+        }
+        $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){
+          b.onclick=function(){var stop=ZOOM_STOPS.filter(function(z){return z.k===b.dataset.z;})[0];setZoom(stop.v,stop.k);};
+        });
+        var fs=$('#enFS',panel);
+        if(fs)fs.onclick=function(){if(document.fullscreenElement){document.exitFullscreen();}else if(wrap.requestFullscreen){wrap.requestFullscreen();}};
+        wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15),'');}},{passive:false});
+        wrap.addEventListener('keydown',function(e){
+          if(e.key==='+'||e.key==='='){e.preventDefault();setZoom(zoom*1.4,'');}
+          else if(e.key==='-'){e.preventDefault();setZoom(zoom/1.4,'');}
+          else if(e.key==='0'){e.preventDefault();setZoom(1,'fit');}
+          else if(e.key==='f'||e.key==='F'){e.preventDefault();if(fs)fs.click();}
+        });
+      }
+      renderViewport();
       $('#enDl',panel).onclick=downloadFull;
       $('#enReset',panel).onclick=function(){resetAll();};
+      setStatus(u.status,'Enhanced preview ready \u2014 fine-tune with sliders, then Download for full resolution.');
     });
   }
 
   /* ── Full-resolution processing on Download ─────────────────────── */
   function downloadFull(){
     if(!srcCanvas||running)return;
+    if(window.trackEvent)window.trackEvent('download_clicked',{preset:curPreset,strength:curStrength});
     var st=$('#enDlSt',panel)||u.status;
     var signal={cancelled:false};running=signal;
     var btn=$('#enDl',panel);btn.disabled=true;
-    st.className='status show';
-    st.innerHTML='Processing full resolution\u2026 <span id="enPct">0%</span> <button class="btn btn-ghost" id="enCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
-    if(window.trackEvent)window.trackEvent('tool_process_started',{preset:curPreset});
+    st.className='status show';st.setAttribute('role','status');st.setAttribute('aria-live','polite');
+    st.innerHTML=
+      '<div class="tp-progress-wrap">'+
+        '<div class="tp-progress-stage" id="enFullStage">Preparing full resolution\u2026</div>'+
+        '<div class="tp-progress-track"><div class="tp-progress-fill" id="enFullBar"></div></div>'+
+        '<div class="tp-progress-pct" id="enFullPct">0%</div>'+
+      '</div>'+
+      '<div style="text-align:center;margin-top:8px"><button class="btn btn-ghost" id="enCancel" style="padding:4px 12px;font-size:12px">Cancel</button></div>';
+    if(window.trackEvent)window.trackEvent('tool_process_started',{preset:curPreset,strength:curStrength});
     var _t0=performance.now();
     $('#enCancel',panel).onclick=function(){signal.cancelled=true;};
     fullOut=document.createElement('canvas');
     fullOut.width=srcCanvas.width;fullOut.height=srcCanvas.height;
     fullOut.getContext('2d').drawImage(srcCanvas,0,0);
+    var scaled=window.EnhanceEngine.scaleSettings(settings,curStrength);
     window.EnhanceEngine.run({
-      canvas:fullOut,settings:settings,signal:signal,
-      onProgress:function(p,msg){var el=$('#enPct',panel);if(el)el.textContent=Math.round(p*100)+'%'+(msg?' \u00b7 '+msg:'');}
+      canvas:fullOut,settings:scaled,signal:signal,
+      onProgress:function(p,msg){
+        var bar=$('#enFullBar',panel),pct=$('#enFullPct',panel),stage=$('#enFullStage',panel);
+        if(bar)bar.style.width=Math.round(p*100)+'%';
+        if(pct)pct.textContent=Math.round(p*100)+'%';
+        if(stage&&msg)stage.textContent=msg;
+      }
     }).then(function(res){
       running=null;
-      if(signal.cancelled){st.textContent='Cancelled.';btn.disabled=false;return;}
+      if(signal.cancelled){setStatus(st,'Cancelled \u2014 your photo is still here, adjust and try again.');btn.disabled=false;return;}
       var fmt=$('#enFmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
       var c=res.canvas;
       if(fmt==='image/jpeg'){var f2=document.createElement('canvas');f2.width=c.width;f2.height=c.height;var fx=f2.getContext('2d');fx.fillStyle='#fff';fx.fillRect(0,0,f2.width,f2.height);fx.drawImage(c,0,0);c=f2;}
       c.toBlob(function(b){
         btn.disabled=false;
-        if(!b){st.textContent='Export failed \u2014 try PNG.';return;}
+        if(!b){setStatus(st,'Export failed \u2014 try PNG instead.',1);return;}
         var nm=srcName+'-enhanced.'+ext;
         download(b,nm);
-        st.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
+        var elapsed=Math.round((performance.now()-_t0)/100)/10;
+        st.innerHTML='<p style="margin:0 0 10px">Saved '+nm+' \u2014 '+c.width+'\u00d7'+c.height+' \u00b7 '+fmtBytes(b.size)+' \u00b7 '+ext.toUpperCase()+' \u00b7 '+elapsed+'s</p>'+
+          '<p style="font-size:12px;color:var(--text-faint);margin:0 0 10px">\u2728 Continue editing</p>'+
+          '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
+            '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/ai-image-upscaler">AI Image Upscaler</a>'+
+            '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/background-remover">Background Remover</a>'+
+            '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/ai-object-remover">AI Object Remover</a>'+
+            '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/image-compressor">Image Compressor</a>'+
+          '</div>';
         if(window.trackEvent){
-          var elapsed=Math.round((performance.now()-_t0)/100)/10;
-          window.trackEvent('tool_process_completed',{preset:curPreset,engine:res.engine,processing_time:elapsed});
-          window.trackEvent('ai_enhance_completed',{preset:curPreset,engine:res.engine,processing_time:elapsed});
+          window.trackEvent('tool_process_completed',{preset:curPreset,strength:curStrength,engine:res.engine,processing_time:elapsed});
+          window.trackEvent('ai_enhance_completed',{preset:curPreset,strength:curStrength,engine:res.engine,processing_time:elapsed});
         }
       },fmt,fmt==='image/png'?undefined:.92);
     }).catch(function(e){
       running=null;btn.disabled=false;
-      st.textContent=(e&&e.message==='cancelled')?'Cancelled.':'Processing failed: '+(e&&e.message||e);
+      if(e&&e.message==='cancelled'){setStatus(st,'Cancelled \u2014 your photo is still here, adjust and try again.');return;}
+      /* Preserve the image and offer Retry rather than resetting the
+         session \u2014 srcCanvas/settings are untouched above, so Retry just
+         calls downloadFull() again with everything still in place. */
+      st.className='status show err';st.setAttribute('role','status');st.setAttribute('aria-live','polite');
+      st.innerHTML='<p style="margin:0 0 8px">Processing failed: '+(e&&e.message||e)+'</p>'+
+        '<button class="btn btn-primary" id="enRetry" style="padding:6px 14px;font-size:12.5px">Retry</button>';
+      $('#enRetry',panel).onclick=downloadFull;
+      if(window.trackEvent)window.trackEvent('tool_error',{error_message:String((e&&e.message)||e).slice(0,150)});
     });
   }
 
@@ -1749,6 +1900,7 @@ INIT['ai-photo-enhancer']=function(panel){
     if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
     srcCanvas=proxySrc=proxyOut=fullOut=null;analysis=null;settings={};
     curPreset='auto';paintPresets('auto');writeSliders({});
+    curStrength='balanced';$$('#enStrength button',panel).forEach(function(b){var on=b.dataset.s==='balanced';b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
     $('#enRun',panel).disabled=true;
     u.results.innerHTML='';u.results.classList.remove('show');
     u.drop.style.display='';setStatus(u.status,'');
@@ -2000,10 +2152,10 @@ INIT['ai-object-remover']=function(panel){
         '</div><div class="status" id="orSt2" role="status" aria-live="polite"></div>'+
         '<p style="text-align:center;font-size:12px;color:var(--text-faint);margin:16px 0 6px">\u2728 Continue editing</p>'+
         '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
-          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/ai-photo-enhancer">AI Photo Enhancer</a>'+
-          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/ai-image-upscaler">AI Image Upscaler</a>'+
-          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/background-remover">Background Remover</a>'+
-          '<a class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px" href="/image-compressor">Image Compressor</a>'+
+          '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/ai-photo-enhancer">AI Photo Enhancer</a>'+
+          '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/ai-image-upscaler">AI Image Upscaler</a>'+
+          '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/background-remover">Background Remover</a>'+
+          '<a class="btn btn-ghost tp-continue-edit" style="font-size:12.5px;padding:6px 12px" href="/image-compressor">Image Compressor</a>'+
         '</div>';
       function renderView(){
         var rv=$('#orResView',panel);

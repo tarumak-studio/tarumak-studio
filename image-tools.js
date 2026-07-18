@@ -1847,9 +1847,14 @@ INIT['ai-photo-enhancer']=function(panel){
   }
   document.addEventListener('paste',onPaste);
 
+  /* Version-pinned URL — same fix as the other two AI tools' engines,
+     after a real deployment problem confirmed a stale cache serving a
+     valid-but-old file never triggers a catch-only retry. Bump this
+     whenever enhancer-engine.js's own version bumps. */
+  var EN_ENGINE_V='2.0';
   function loadEngine(){
-    return _loadScript('/enhancer-engine.js','EnhanceEngine').catch(function(){
-      return _loadScript('/enhancer-engine.js?r='+Date.now(),'EnhanceEngine');
+    return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V,'EnhanceEngine').catch(function(){
+      return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V+'&r='+Date.now(),'EnhanceEngine');
     });
   }
 
@@ -2176,8 +2181,8 @@ INIT['ai-object-remover']=function(panel){
 
   /* ── mask snapshots: alpha channel only, memory-capped ───────────── */
   function snapCap(){var mp=imgCv?imgCv.width*imgCv.height/1e6:0;return mp>6?3:8;}
-  function maskAlpha(){var d=maskCv.getContext('2d').getImageData(0,0,maskCv.width,maskCv.height).data;var a=new Uint8Array(d.length/4);for(var i=0;i<a.length;i++)a[i]=d[i*4+3];return a;}
-  function restoreAlpha(a){var ctx=maskCv.getContext('2d');var id=ctx.getImageData(0,0,maskCv.width,maskCv.height);for(var i=0;i<a.length;i++){id.data[i*4]=255;id.data[i*4+1]=40;id.data[i*4+2]=70;id.data[i*4+3]=a[i];}ctx.putImageData(id,0,0);}
+  function maskAlpha(){var d=maskCv.getContext('2d',{willReadFrequently:true}).getImageData(0,0,maskCv.width,maskCv.height).data;var a=new Uint8Array(d.length/4);for(var i=0;i<a.length;i++)a[i]=d[i*4+3];return a;}
+  function restoreAlpha(a){var ctx=maskCv.getContext('2d',{willReadFrequently:true});var id=ctx.getImageData(0,0,maskCv.width,maskCv.height);for(var i=0;i<a.length;i++){id.data[i*4]=255;id.data[i*4+1]=40;id.data[i*4+2]=70;id.data[i*4+3]=a[i];}ctx.putImageData(id,0,0);}
   function pushUndo(){try{undoStack.push(maskAlpha());if(undoStack.length>snapCap())undoStack.shift();redoStack=[];paintHistory();}catch(e){}}
   function paintHistory(){$('#orUndo',panel).disabled=!undoStack.length;$('#orRedo',panel).disabled=!redoStack.length;}
   $('#orUndo',panel).onclick=function(){if(!undoStack.length)return;redoStack.push(maskAlpha());restoreAlpha(undoStack.pop());paintHistory();};
@@ -2234,7 +2239,7 @@ INIT['ai-object-remover']=function(panel){
 
     function toPx(e){var r=imgCv.getBoundingClientRect();return{x:(e.clientX-r.left)*(imgCv.width/r.width),y:(e.clientY-r.top)*(imgCv.height/r.height),scale:imgCv.width/r.width};}
     function dab(x,y,scale){
-      var ctx=maskCv.getContext('2d');
+      var ctx=maskCv.getContext('2d',{willReadFrequently:true});
       var rad=brush.size*scale/2;
       ctx.save();
       if(brush.erase)ctx.globalCompositeOperation='destination-out';
@@ -2268,7 +2273,7 @@ INIT['ai-object-remover']=function(panel){
       last=p;
     });
     function endStroke(e){
-      if(rectStart&&rectEl){var p=toPx(e);var ctx=maskCv.getContext('2d');
+      if(rectStart&&rectEl){var p=toPx(e);var ctx=maskCv.getContext('2d',{willReadFrequently:true});
         ctx.fillStyle='rgba(255,40,70,1)';
         if(brush.erase)ctx.globalCompositeOperation='destination-out';
         ctx.fillRect(Math.min(rectStart.x,p.x),Math.min(rectStart.y,p.y),Math.abs(p.x-rectStart.x),Math.abs(p.y-rectStart.y));
@@ -2279,7 +2284,7 @@ INIT['ai-object-remover']=function(panel){
     stage.addEventListener('pointerup',endStroke);
     stage.addEventListener('pointercancel',endStroke);
 
-    $('#orClear',panel).onclick=function(){pushUndo();maskCv.getContext('2d').clearRect(0,0,maskCv.width,maskCv.height);};
+    $('#orClear',panel).onclick=function(){pushUndo();maskCv.getContext('2d',{willReadFrequently:true}).clearRect(0,0,maskCv.width,maskCv.height);};
     function setZoom(z){zoom=Math.max(.5,Math.min(6,z));stage.style.width=(zoom*100)+'%';}
     $('#orZI',panel).onclick=function(){setZoom(zoom*1.4);};
     $('#orZO',panel).onclick=function(){setZoom(zoom/1.4);};
@@ -2299,9 +2304,16 @@ INIT['ai-object-remover']=function(panel){
     });
   }
 
+  /* Version-pinned URL, not just a fallback retry — the same fix applied
+     to the AI Image Upscaler after a real deployment problem: a stale
+     CDN/browser cache serving old-but-valid content returns a normal
+     200, which _loadScript treats as success, so a catch-only retry
+     never gets a chance to fire. Bump ENGINE_V here whenever
+     objectremover-engine.js's own version bumps. */
+  var OR_ENGINE_V='3.1';
   function loadEngine(){
-    return _loadScript('/objectremover-engine.js','ObjectRemoveEngine').catch(function(){
-      return _loadScript('/objectremover-engine.js?r='+Date.now(),'ObjectRemoveEngine');
+    return _loadScript('/objectremover-engine.js?v='+OR_ENGINE_V,'ObjectRemoveEngine').catch(function(){
+      return _loadScript('/objectremover-engine.js?v='+OR_ENGINE_V+'&r='+Date.now(),'ObjectRemoveEngine');
     });
   }
 

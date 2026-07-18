@@ -186,7 +186,7 @@
   function denoiseAsync(canvas, strength, onP, signal) {
     return new Promise(function (res, rej) {
       if (!strength) { res(); return; }
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d, src;
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; src = d.slice(0); }
       catch (e) { res(); return; }
@@ -240,12 +240,12 @@
   function clarityAsync(canvas, amount, onP, signal) {
     return new Promise(function (res, rej) {
       if (!amount) { res(); return; }
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var small = document.createElement('canvas');
       small.width = Math.max(1, Math.round(w / 8)); small.height = Math.max(1, Math.round(h / 8));
       small.getContext('2d').drawImage(canvas, 0, 0, small.width, small.height);
       var blurCv = document.createElement('canvas'); blurCv.width = w; blurCv.height = h;
-      var bx = blurCv.getContext('2d');
+      var bx = blurCv.getContext('2d', { willReadFrequently: true });
       bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high';
       bx.drawImage(small, 0, 0, w, h);
       var id, d, bd;
@@ -373,7 +373,7 @@
      halo/ringing on smooth gradients). */
   function unsharpAsync(canvas, amount, threshold, onP, signal) {
     return new Promise(function (res, rej) {
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d, blur;
       try {
         id = ctx.getImageData(0, 0, w, h); d = id.data;

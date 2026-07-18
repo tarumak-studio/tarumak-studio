@@ -36,7 +36,7 @@
     var maxEdge = 640, s = Math.min(1, maxEdge / Math.max(canvas.width, canvas.height));
     var w = Math.max(1, Math.round(canvas.width * s)), h = Math.max(1, Math.round(canvas.height * s));
     var p = document.createElement('canvas'); p.width = w; p.height = h;
-    var px = p.getContext('2d'); px.drawImage(canvas, 0, 0, w, h);
+    var px = p.getContext('2d', { willReadFrequently: true }); px.drawImage(canvas, 0, 0, w, h);
     var d;
     try { d = px.getImageData(0, 0, w, h).data; }
     catch (e) { return { settings: {}, findings: ['analysis unavailable'], stats: {} }; }
@@ -128,7 +128,7 @@
 
   function tonePass(canvas, s, onP, signal) {
     return new Promise(function (res, rej) {
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d;
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; }
       catch (e) { rej(new Error('image memory readback failed')); return; }
@@ -180,7 +180,7 @@
   function denoisePass(canvas, strength, onP, signal) {
     return new Promise(function (res, rej) {
       if (!strength) { res(); return; }
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d, src;
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; src = d.slice(0); }
       catch (e) { res(); return; }
@@ -222,13 +222,13 @@
   function clarityPass(canvas, amount, onP, signal) {
     return new Promise(function (res, rej) {
       if (!amount) { res(); return; }
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var small = document.createElement('canvas');
       small.width = Math.max(1, Math.round(w / 8)); small.height = Math.max(1, Math.round(h / 8));
       var sx = small.getContext('2d');
       sx.drawImage(canvas, 0, 0, small.width, small.height);
       var blur = document.createElement('canvas'); blur.width = w; blur.height = h;
-      var bx = blur.getContext('2d');
+      var bx = blur.getContext('2d', { willReadFrequently: true });
       bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high';
       bx.drawImage(small, 0, 0, w, h);
       var id, d, bd;
@@ -263,7 +263,7 @@
       var amount = (sharp || 0) / 100 * 0.9 + (texture || 0) / 100 * 0.35;
       if (amount <= 0) { res(); return; }
       var threshold = texture > 0 ? 1 : 3;
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d, blur;
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; blur = new Uint8ClampedArray(d.length); }
       catch (e) { res(); return; }
@@ -353,7 +353,7 @@
   function skinSmoothPass(canvas, strength, onP, signal) {
     return new Promise(function (res, rej) {
       if (!strength) { res(); return; }
-      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d', { willReadFrequently: true });
       var id, d, src;
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; src = d.slice(0); }
       catch (e) { res(); return; }

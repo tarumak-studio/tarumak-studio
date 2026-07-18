@@ -513,10 +513,10 @@
       var q = QUALITY[opts.quality] || QUALITY.balanced;
       var w = canvas.width, h = canvas.height;
       return new Promise(function (resolve, reject) {
-        var ctx = canvas.getContext('2d'), id, d;
+        var ctx = canvas.getContext('2d', { willReadFrequently: true }), id, d;
         try { id = ctx.getImageData(0, 0, w, h); d = id.data; }
         catch (e) { reject(new Error('image memory readback failed')); return; }
-        var mctx = maskCv.getContext('2d'), md;
+        var mctx = maskCv.getContext('2d', { willReadFrequently: true }), md;
         try { md = mctx.getImageData(0, 0, w, h).data; }
         catch (e) { reject(new Error('mask readback failed')); return; }
         var mask = new Uint8Array(w * h), any = 0;
@@ -684,7 +684,7 @@
   var ORDER = ['cloudflare-ai', 'fal', 'replicate', 'openai', 'browser-caf'];
 
   window.ObjectRemoveEngine = {
-    version: '3.0',
+    version: '3.1',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},
@@ -720,5 +720,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[object-remover] engine v3.0 loaded'); } catch (e) {}
+  try { console.log('[object-remover] engine v3.1 loaded'); } catch (e) {}
 })();

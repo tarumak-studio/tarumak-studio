@@ -1468,6 +1468,7 @@ INIT['ai-image-upscaler']=function(panel){
       u.results.innerHTML=
       /* Enhancement summary card */
       '<div style="max-width:620px;margin:0 auto 12px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2)">'+
+        '<div style="text-align:center;margin-bottom:10px"><span style="display:inline-block;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:99px;'+(isNeural?'background:rgba(34,211,238,.14);color:var(--p1);border:1px solid rgba(34,211,238,.3)':'background:rgba(167,139,250,.14);color:#a78bfa;border:1px solid rgba(167,139,250,.3)')+'">'+(isNeural?'\u26A1 Neural AI Engine':'\u2699 '+engineLabel+' (non-neural)')+'</span></div>'+
         '<div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;margin-bottom:10px">'+
           '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-faint)">Original</div><div style="font-size:14px;font-weight:700">'+srcCanvas.width+'\u00d7'+srcCanvas.height+'</div></div>'+
           '<div style="color:var(--p1);font-size:18px" aria-hidden="true">\u2192</div>'+
@@ -1509,12 +1510,13 @@ INIT['ai-image-upscaler']=function(panel){
       };});
       paintMode();
 
-      var ZOOM_STOPS=[{k:'fit',v:1,label:'Fit'},{k:'100',v:1,label:'100%'},{k:'200',v:2,label:'200%'},{k:'400',v:4,label:'400%'}];
       function renderViewport(){
         var area=$('#upViewportArea',panel);
+        var ZOOM_STOPS=[{k:'fit',label:'Fit'},{k:'100',label:'100%'},{k:'200',label:'200%'},{k:'400',label:'400%'}];
         var zoomCtrl='<div style="max-width:620px;margin:10px auto 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">'+
-            '<div class="seg" role="group" aria-label="Zoom level">'+ZOOM_STOPS.map(function(z){return '<button data-z="'+z.k+'" aria-pressed="'+(z.k==='fit')+'">'+z.label+'</button>';}).join('')+'<button data-z="reset" aria-label="Reset zoom">Reset</button></div>'+
-          '</div>';
+            '<div class="seg" role="group" aria-label="Zoom level">'+ZOOM_STOPS.map(function(z){return '<button data-z="'+z.k+'" aria-pressed="'+(z.k==='100')+'">'+z.label+'</button>';}).join('')+'<button data-z="reset" aria-label="Reset zoom">Reset</button></div>'+
+          '</div>'+
+          '<p style="text-align:center;font-size:11px;color:var(--text-faint);max-width:480px;margin:8px auto 0">At <b>Fit</b>, both images are shown scaled to the same small size, so extra resolution isn\u2019t visible \u2014 that\u2019s true of any upscaler, not just this one. Use <b>100%\u2013400%</b> (or Ctrl+scroll) to see real pixel detail.</p>';
         if(curCompareMode==='side'){
           area.innerHTML=
             '<div id="upzoomwrap" style="max-width:900px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'" tabindex="0" aria-label="Side by side comparison">'+
@@ -1523,7 +1525,7 @@ INIT['ai-image-upscaler']=function(panel){
                 '<div style="flex:1;position:relative"><img src="'+afterUrl+'" style="display:block;width:100%" alt="AI upscaled" draggable="false"><span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;background:rgba(34,211,238,.85);color:#04222a;padding:3px 8px;border-radius:99px">'+factor+'\u00d7 UPSCALED</span></div>'+
               '</div>'+
             '</div>'+zoomCtrl;
-          wireZoom();return;
+          wireZoom(ZOOM_STOPS);return;
         }
         area.innerHTML=
           '<div id="upzoomwrap" style="max-width:620px;margin:0 auto;max-height:66vh;overflow:auto;border:1px solid var(--border-2);border-radius:14px;'+CHK+'" tabindex="0" aria-label="Before and after slider comparison">'+
@@ -1551,21 +1553,34 @@ INIT['ai-image-upscaler']=function(panel){
         slide.oninput=function(){befw.style.width=this.value+'%';hand.style.left=this.value+'%';};
         slide.addEventListener('pointerdown',function(){hand.style.boxShadow='0 0 16px 2px rgba(34,211,238,.95)';});
         slide.addEventListener('pointerup',function(){hand.style.boxShadow='0 0 8px rgba(34,211,238,.8)';});
-        wireZoom();
+        wireZoom(ZOOM_STOPS);
       }
-      function wireZoom(){
+      function wireZoom(ZOOM_STOPS){
         var cmp=$('#upcmp',panel),wrap=$('#upzoomwrap',panel);
         if(!cmp||!wrap)return;
+        /* Zoom is now an ABSOLUTE scale against the real output pixel
+           width, not a percentage of the ~620px display container —
+           that was the actual bug: "Fit" and "100%" previously computed
+           to the exact same value, because both set cmp's width as a
+           percentage of its container rather than of the true image
+           resolution. "100%" now means one real output pixel per screen
+           pixel; "Fit" is computed fresh each time from the container's
+           current width so it still behaves like a sane default size,
+           it just no longer collides with 100%. */
         function setZoom(z,stopKey){
-          zoom=Math.max(.5,Math.min(4,z));cmp.style.width=(zoom*100)+'%';
+          zoom=Math.max(.25,Math.min(4,z));
+          cmp.style.width=Math.round(outCanvas.width*zoom)+'px';
           var bef=$('#upbef',panel);if(bef)bef.style.width=cmp.clientWidth+'px';
           $$('.seg[aria-label="Zoom level"] button[data-z]',panel).forEach(function(b){if(b.dataset.z!=='reset')b.setAttribute('aria-pressed',String(b.dataset.z===stopKey));});
           if(window.trackEvent)window.trackEvent('zoom_usage',{zoom:Math.round(zoom*100)+'%',mode:curCompareMode,tool:'ai-image-upscaler'});
         }
+        function fitZoom(){return Math.min(1,wrap.clientWidth/outCanvas.width);}
         $$('.seg[aria-label="Zoom level"] button',panel).forEach(function(b){
           b.onclick=function(){
-            if(b.dataset.z==='reset'){setZoom(1,'fit');return;}
-            var stop=ZOOM_STOPS.filter(function(z){return z.k===b.dataset.z;})[0];setZoom(stop.v,stop.k);
+            if(b.dataset.z==='reset'){setZoom(1,'100');return;}
+            if(b.dataset.z==='fit'){setZoom(fitZoom(),'fit');return;}
+            var mul={'100':1,'200':2,'400':4}[b.dataset.z]||1;
+            setZoom(mul,b.dataset.z);
           };
         });
         /* Both images zoom together by construction — they're one DOM
@@ -1575,6 +1590,19 @@ INIT['ai-image-upscaler']=function(panel){
            inherently synchronized, never two separate transforms to
            keep in sync by hand. */
         wrap.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15),'');}},{passive:false});
+        /* Default to real 100% (actual output pixels), not Fit — at Fit,
+           any upscaler looks like it did nothing, because the extra
+           resolution is scaled back out to match the display container.
+           Showing true pixels by default is what actually answers "did
+           this improve anything?" without an extra click first. Centered
+           via rAF (after layout settles) rather than left at the
+           top-left corner, which for a typical photo is background, not
+           the subject. */
+        setZoom(1,'100');
+        requestAnimationFrame(function(){
+          wrap.scrollLeft=Math.max(0,(cmp.scrollWidth-wrap.clientWidth)/2);
+          wrap.scrollTop=Math.max(0,(cmp.scrollHeight-wrap.clientHeight)/2);
+        });
       }
       renderViewport();
       $('#updl',panel).onclick=function(){

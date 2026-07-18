@@ -1259,7 +1259,7 @@ INIT['ai-image-upscaler']=function(panel){
       var bar=$('#upUpBar',panel),stage=$('#upUpStage',panel),pct=$('#upUpPct',panel);
       if(bar){bar.style.width='55%';stage.textContent='Reading image data\u2026';pct.textContent=w+'\u00d7'+h+' px';}
       srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
-      srcCanvas.getContext('2d').drawImage(img,0,0);
+      srcCanvas.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0);
       /* A fully-transparent input has nothing to upscale. The most common
          way this happens in practice: re-uploading a failed (blank) download
          from an earlier run. Catch it here, say so plainly, don't proceed. */
@@ -1815,7 +1815,7 @@ INIT['ai-photo-enhancer']=function(panel){
       if(!w||!h)throw new Error('could not decode');
       if(w*h>MAX_INPUT_PX){setStatus(u.status,'Image is '+Math.round(w*h/1e6)+' MP \u2014 the maximum is 25 MP. Resize it first with the Image Resizer.',1);return;}
       srcCanvas=document.createElement('canvas');srcCanvas.width=w;srcCanvas.height=h;
-      srcCanvas.getContext('2d').drawImage(img,0,0);
+      srcCanvas.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0);
       if(isBlank(srcCanvas)){srcCanvas=null;$('#enRun',panel).disabled=true;setStatus(u.status,'This image is completely transparent (empty) \u2014 nothing to enhance. Please upload your original photo.',1);return;}
       /* proxy for live preview */
       var s=Math.min(1,PROXY_EDGE/Math.max(w,h));
@@ -1871,7 +1871,7 @@ INIT['ai-photo-enhancer']=function(panel){
     var signal={cancelled:false};previewRun=signal;
     proxyOut=document.createElement('canvas');
     proxyOut.width=proxySrc.width;proxyOut.height=proxySrc.height;
-    proxyOut.getContext('2d').drawImage(proxySrc,0,0);
+    proxyOut.getContext('2d',{willReadFrequently:true}).drawImage(proxySrc,0,0);
     var scaled=window.EnhanceEngine.scaleSettings(settings,curStrength);
     var stageEl=$('#enPvStage',panel),barEl=$('#enPvBar',panel),pctEl=$('#enPvPct',panel);
     window.EnhanceEngine.run({canvas:proxyOut,settings:scaled,signal:signal,
@@ -2070,7 +2070,7 @@ INIT['ai-photo-enhancer']=function(panel){
     $('#enCancel',panel).onclick=function(){signal.cancelled=true;};
     fullOut=document.createElement('canvas');
     fullOut.width=srcCanvas.width;fullOut.height=srcCanvas.height;
-    fullOut.getContext('2d').drawImage(srcCanvas,0,0);
+    fullOut.getContext('2d',{willReadFrequently:true}).drawImage(srcCanvas,0,0);
     var scaled=window.EnhanceEngine.scaleSettings(settings,curStrength);
     window.EnhanceEngine.run({
       canvas:fullOut,settings:scaled,signal:signal,
@@ -2327,7 +2327,7 @@ INIT['ai-object-remover']=function(panel){
     $('#orCancel',panel).onclick=function(){signal.cancelled=true;};
     if(window.trackEvent)window.trackEvent('tool_process_started',{quality:quality});
     outCv=document.createElement('canvas');outCv.width=imgCv.width;outCv.height=imgCv.height;
-    outCv.getContext('2d').drawImage(imgCv,0,0);
+    outCv.getContext('2d',{willReadFrequently:true}).drawImage(imgCv,0,0);
     var _t0=performance.now();
     loadEngine().then(function(){
       return window.ObjectRemoveEngine.run({

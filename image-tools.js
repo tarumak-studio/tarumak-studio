@@ -1372,12 +1372,20 @@ INIT['ai-image-upscaler']=function(panel){
       });
     }
 
-    _loadScript('/upscaler-engine.js','UpscaleEngine').catch(function(){
-      /* One retry with a cache-busting query string: covers the case where
-         a CDN edge or browser is still holding a bad/partial cached copy
-         from a prior deploy, rather than a true 404. If this also fails,
-         the file genuinely isn't reachable and we say so plainly. */
-      return _loadScript('/upscaler-engine.js?r='+Date.now(),'UpscaleEngine');
+    /* Version-pinned URL, not just a fallback retry: the previous version
+       only added a cache-busting query string AFTER a failed load — but a
+       stale CDN/browser cache serving old-but-valid content returns a
+       normal 200, which _loadScript treats as success, so that retry path
+       never fires. A version in the URL itself means the URL changes
+       whenever the engine changes, so a cache can't serve last version's
+       file under this version's request — it's a genuinely different URL.
+       Bump ENGINE_V here whenever upscaler-engine.js's own version bumps. */
+    var ENGINE_V='4.0';
+    _loadScript('/upscaler-engine.js?v='+ENGINE_V,'UpscaleEngine').catch(function(){
+      /* Still-rare fallback: a timestamp buster for the case even the
+         versioned URL is somehow blocked (e.g. an overzealous proxy
+         rule), not the primary defense anymore. */
+      return _loadScript('/upscaler-engine.js?v='+ENGINE_V+'&r='+Date.now(),'UpscaleEngine');
     }).then(function(){
       return window.UpscaleEngine.run({
         canvas:srcCanvas,scale:factor,signal:signal,

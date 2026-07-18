@@ -176,6 +176,13 @@
      mutates in place). Gated by EDGE so real detail is never touched \u2014
      only pixels close to their local median (speckle noise) are pulled
      toward it. */
+  /* Shared numeric sort comparator — defined once, not re-created as a
+     closure on every pixel (Array.prototype.sort's default comparator
+     does STRING comparison, which is wrong for multi-digit pixel
+     values, so a real comparator is required; it just doesn't need to
+     be a fresh function literal every call). */
+  function sortNum(a, b) { return a - b; }
+
   function denoiseAsync(canvas, strength, onP, signal) {
     return new Promise(function (res, rej) {
       if (!strength) { res(); return; }
@@ -184,9 +191,8 @@
       try { id = ctx.getImageData(0, 0, w, h); d = id.data; src = d.slice(0); }
       catch (e) { res(); return; }
       var mix = Math.min(1, strength / 100), EDGE = 40;
-      var BAND = Math.max(32, Math.round(1200000 / w)), y = 1;
+      var BAND = Math.max(12, Math.round(250000 / w)), y = 1;
       var win = new Array(9);
-      function med9(arr) { arr.sort(function (a, b2) { return a - b2; }); return arr[4]; }
       function tick() {
         if (signal && signal.cancelled) { rej(new Error('cancelled')); return; }
         var end = Math.min(h - 1, y + BAND);
@@ -194,11 +200,24 @@
           for (var x = 1; x < w - 1; x++) {
             var i = (yy * w + x) * 4;
             for (var c = 0; c < 3; c++) {
-              var k = 0;
+              var k = 0, mn = 255, mx = 0;
               for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-                win[k++] = src[((yy + dy) * w + (x + dx)) * 4 + c];
+                var v = src[((yy + dy) * w + (x + dx)) * 4 + c];
+                win[k++] = v;
+                if (v < mn) mn = v; if (v > mx) mx = v;
               }
-              var m = med9(win.slice());
+              /* Cheap pre-check, no allocation: if this 3x3 neighbourhood
+                 is already near-uniform, there is nothing to denoise here
+                 — skip the sort entirely. This is the common case across
+                 most of any real photo (flat sky, skin, walls, blur), and
+                 it's what actually made this pass slow: a full sort was
+                 running on EVERY pixel-channel regardless of whether the
+                 neighbourhood had any noise at all. Sorting win IN PLACE
+                 (no .slice() clone) below only runs for the genuinely
+                 speckled minority. */
+              if (mx - mn < 6) continue;
+              win.sort(sortNum);
+              var m = win[4];
               if (Math.abs(src[i + c] - m) < EDGE) d[i + c] = src[i + c] + (m - src[i + c]) * mix;
             }
           }
@@ -319,11 +338,18 @@
             step();
           }
           var noisePx = denoiseWork.width * denoiseWork.height;
-          if (noisePx > 12000000) {
-            /* Denoise cost scales with source size directly (not the
-               enlarged output) \u2014 above this it's multi-second work most
-               users won't perceive at final zoom; skip it honestly rather
-               than silently eat the time budget. */
+          if (noisePx > 3000000) {
+            /* Lowered from 12MP after a real, confirmed failure: an 11MP
+               image triggered Chrome's "Page Unresponsive" dialog with
+               this pass enabled — actual evidence, not a guess, that
+               12MP was never a safe ceiling for this cost in practice.
+               3MP is deliberately conservative with real margin below
+               the smallest size that's actually failed, not just below
+               the one confirmed failure. Skipping means this specific
+               image relies on resize + clarity + sharpen only — still a
+               real improvement over the original baseline, just without
+               the pre-resize noise cleanup on anything but genuinely
+               small images. */
             if (opts.onProgress) opts.onProgress(0.15, 'Reconstructing detail');
             afterDenoise();
           } else {
@@ -440,7 +466,7 @@
   var PROVIDER_ORDER = ['cloudflare-ai', 'replicate', 'fal', 'browser-neural', 'browser-classical'];
 
   window.UpscaleEngine = {
-    version: '4.0',
+    version: '4.1',
     providers: PROVIDERS,
     remoteConfig: REMOTE,
     lastErrors: {},            /* provider id -> why it fell through (diagnostics) */
@@ -468,5 +494,5 @@
       return attempt(0);
     }
   };
-  try { console.log('[upscaler] engine v4.0 loaded — CDN URLs verified against upscalerjs.com docs'); } catch (e) {}
+  try { console.log('[upscaler] engine v4.1 loaded — CDN URLs verified against upscalerjs.com docs'); } catch (e) {}
 })();

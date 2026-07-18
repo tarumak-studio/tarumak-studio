@@ -1278,9 +1278,17 @@ INIT['ai-image-upscaler']=function(panel){
       if(w>900||h>900){var s=900/Math.max(w,h);pv=document.createElement('canvas');pv.width=Math.round(w*s);pv.height=Math.round(h*s);var px=pv.getContext('2d');px.imageSmoothingQuality='high';px.drawImage(srcCanvas,0,0,pv.width,pv.height);}
       if(bar){bar.style.width='100%';}
       var mp=(w*h/1e6).toFixed(1);
-      var estSec=Math.max(1,Math.round(w*h/6000000));
+      /* No time estimate shown here anymore: the previous formula
+         (~2s for this exact image) was off by roughly 135x against a
+         real, confirmed run (270s, severe enough to trigger Chrome's
+         own "Page Unresponsive" warning) — actual time depends heavily
+         on which engine ends up running and real device performance,
+         neither knowable in advance. A confidently wrong number is
+         worse than no number; large-image handling is a live area of
+         work, said plainly instead of guessed at. */
+      var sizeNote=mp>8?' \u2014 large photos may take a while to process; you can Cancel at any time.':'';
       u.results.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-dim);margin:8px 0 4px">'+w+' \u00d7 '+h+' px \u00b7 '+mp+' MP \u00b7 '+fmtBytes(f.size)+'</p>'+
-        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:0 0 12px">Estimated processing time: ~'+estSec+'s at 2\u00d7 \u2014 ready. Choose a factor and press <strong>Upscale</strong>.</p>'+
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:0 0 12px">Ready'+sizeNote+' \u2014 choose a factor and press <strong>Upscale</strong>.</p>'+
         '<div style="max-width:420px;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--border-2);'+CHK+'"><img src="'+pv.toDataURL('image/png')+'" style="display:block;width:100%" alt="Preview of uploaded image"></div>';
       setStatus(u.status,'');
     }).catch(function(){setStatus(u.status,'Could not read this image \u2014 the file may be corrupted, or your browser can\u2019t decode this format.',1);});
@@ -1380,7 +1388,7 @@ INIT['ai-image-upscaler']=function(panel){
        whenever the engine changes, so a cache can't serve last version's
        file under this version's request — it's a genuinely different URL.
        Bump ENGINE_V here whenever upscaler-engine.js's own version bumps. */
-    var ENGINE_V='4.0';
+    var ENGINE_V='4.1';
     _loadScript('/upscaler-engine.js?v='+ENGINE_V,'UpscaleEngine').catch(function(){
       /* Still-rare fallback: a timestamp buster for the case even the
          versioned URL is somehow blocked (e.g. an overzealous proxy

@@ -65,6 +65,27 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .search-pop.show{display:block}
 .search-pop a{display:flex;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:9px;font-size:13.5px;color:var(--text-dim);cursor:pointer}
 .search-pop a:hover{background:var(--surface-2);color:var(--text)}
+
+/* Command-palette search modal — the header search box is now a trigger
+   for this, not a live input itself. Reuses .hsr-ico/.hsr-name/.chip/
+   .hs-noresult from the existing dropdown so results look identical in
+   both places; only the container changes. */
+.cmdk-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;padding:12vh 20px 20px;background:rgba(5,8,16,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.cmdk-overlay.show{display:flex}
+.cmdk-panel{width:100%;max-width:640px;background:var(--bg-2);border:1px solid var(--border);border-radius:16px;box-shadow:0 24px 60px -12px rgba(0,0,0,.55);overflow:hidden;animation:cmdkIn .16s var(--ease,ease-out)}
+@keyframes cmdkIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.cmdk-input-row{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border);color:var(--text-faint)}
+.cmdk-input-row svg{flex:none}
+#cmdkInput{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:16px;font-family:inherit}
+#cmdkInput::placeholder{color:var(--text-faint)}
+.cmdk-close{flex:none;font-size:11px;color:var(--text-faint);border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:var(--surface-2);cursor:pointer}
+.cmdk-close:hover{color:var(--text);border-color:var(--border-2)}
+.cmdk-results{max-height:min(60vh,440px);overflow:auto;padding:8px}
+.cmdk-results a{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 12px;border-radius:10px;font-size:14px;color:var(--text-dim);cursor:pointer}
+.cmdk-results a:hover,.cmdk-results a.active{background:var(--surface-2);color:var(--text)}
+.cmdk-hint{padding:10px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text-faint);display:flex;gap:14px}
+@media (max-width:640px){.cmdk-overlay{padding:8vh 12px 12px}}
+@media (prefers-reduced-motion:reduce){.cmdk-panel{animation:none}}
 .search-pop .chip{font-family:var(--fm);font-size:10px}
 .btn{font-family:var(--fb);font-weight:600;font-size:13.5px;border:none;cursor:pointer;border-radius:11px;padding:0 18px;height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.22s var(--ease);white-space:nowrap;text-decoration:none}
 .btn-primary{background:var(--grad);color:#06121a;box-shadow:0 8px 20px -10px var(--p2),inset 0 1px 0 rgba(255,255,255,.28)}

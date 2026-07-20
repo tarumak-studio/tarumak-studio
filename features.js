@@ -104,33 +104,76 @@ if(_gs)_gs.addEventListener('input',e=>{
 });
 /* grid initialised by route() boot call in app.js */
 
-/* ---------- nav search ---------- */
-const navSearch=$('#navSearch'),navPop=$('#navPop');
-let navActiveIndex=-1;
-navSearch.addEventListener('input',()=>{
-  navActiveIndex=-1;
-  const raw=navSearch.value;
-  const t=raw.toLowerCase().trim();
-  if(!t){navPop.classList.remove('show');return;}
-  const list=matchTools(raw,8);
-  if(!list.length){
-    const suggestions=['background-remover','image-compressor','pdf-merger','json-formatter']
-      .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
-    navPop.innerHTML=
-      '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(raw)+'&rdquo;</span></div>'+
-      suggestions.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+x[1]+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
-  } else {
-    const normTerm=normalizeSearchTerm(raw);
-    navPop.innerHTML=list.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+highlightMatch(x[1],normTerm)+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+/* ---------- reusable search-input wiring ----------
+   Extracted from what was previously navSearch-only logic, so the new
+   command-palette modal gets the exact same matching, highlighting and
+   keyboard navigation without duplicating it. Behavior for navSearch
+   itself is unchanged — this is a refactor, not a rewrite. */
+function wireSearchInput(inputEl,popEl){
+  let activeIndex=-1;
+  function render(){
+    activeIndex=-1;
+    const raw=inputEl.value;
+    const t=raw.toLowerCase().trim();
+    if(!t){popEl.classList.remove('show');popEl.innerHTML='';return;}
+    const list=matchTools(raw,8);
+    if(!list.length){
+      const suggestions=['background-remover','image-compressor','pdf-merger','json-formatter']
+        .map(s=>bySlug(s)).filter(Boolean).slice(0,4);
+      popEl.innerHTML=
+        '<div class="hs-noresult"><span class="hs-noresult-msg">No matches for &ldquo;'+escapeHtml(raw)+'&rdquo;</span></div>'+
+        suggestions.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+x[1]+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+    } else {
+      const normTerm=normalizeSearchTerm(raw);
+      popEl.innerHTML=list.map((x,i)=>'<a data-i="'+i+'" href="/'+x[0]+'"><span class="hsr-ico">'+ICON[x[2]]+'</span><span class="hsr-name">'+highlightMatch(x[1],normTerm)+'</span><span class="chip">'+x[4][0]+'</span></a>').join('');
+    }
+    popEl.classList.add('show');
   }
-  navPop.classList.add('show');});
-navSearch.addEventListener('keydown',e=>{
-  const items=navPop.querySelectorAll('a[data-i]');
-  if(e.key==='ArrowDown'){e.preventDefault();navActiveIndex=Math.min(navActiveIndex+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===navActiveIndex));}
-  else if(e.key==='ArrowUp'){e.preventDefault();navActiveIndex=Math.max(navActiveIndex-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===navActiveIndex));}
-  else if(e.key==='Enter'){const target=navActiveIndex>=0?items[navActiveIndex]:items[0];if(target)target.click();}
-});
+  inputEl.addEventListener('input',render);
+  inputEl.addEventListener('keydown',e=>{
+    const items=popEl.querySelectorAll('a[data-i]');
+    if(e.key==='ArrowDown'){e.preventDefault();activeIndex=Math.min(activeIndex+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===activeIndex));}
+    else if(e.key==='ArrowUp'){e.preventDefault();activeIndex=Math.max(activeIndex-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===activeIndex));}
+    else if(e.key==='Enter'){const target=activeIndex>=0?items[activeIndex]:items[0];if(target)target.click();}
+  });
+  return {clear(){inputEl.value='';popEl.innerHTML='';popEl.classList.remove('show');}};
+}
+
+/* ---------- nav search (header trigger — opens the modal below) ---------- */
+const navSearch=$('#navSearch'),navPop=$('#navPop');
+wireSearchInput(navSearch,navPop);
 document.addEventListener('click',e=>{if(!e.target.closest('.search'))navPop.classList.remove('show');});
+
+/* ---------- Cmd+K command-palette modal ----------
+   The header search box (#navSearch) is a read-only trigger, not a live
+   input — clicking it, or pressing Cmd/Ctrl+K anywhere on the site,
+   opens this instead. Real typing happens in #cmdkInput. Same matching
+   engine as the header dropdown, via wireSearchInput above. */
+const cmdkOverlay=$('#cmdkOverlay'),cmdkInput=$('#cmdkInput'),cmdkResults=$('#cmdkResults');
+let _cmdkApi=null,_cmdkReturnFocus=null;
+if(cmdkOverlay&&cmdkInput&&cmdkResults){
+  _cmdkApi=wireSearchInput(cmdkInput,cmdkResults);
+  function openCmdk(){
+    _cmdkReturnFocus=document.activeElement;
+    cmdkOverlay.classList.add('show');
+    document.body.style.overflow='hidden';
+    _cmdkApi.clear();
+    cmdkInput.focus();
+    if(window.trackEvent)window.trackEvent('search_opened',{trigger:'cmdk'});
+  }
+  function closeCmdk(){
+    cmdkOverlay.classList.remove('show');
+    document.body.style.overflow='';
+    if(_cmdkReturnFocus&&_cmdkReturnFocus.focus)_cmdkReturnFocus.focus();
+  }
+  window._openCmdk=openCmdk; /* exposed for the keydown handler below */
+  navSearch.addEventListener('click',openCmdk);
+  navSearch.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCmdk();}});
+  cmdkOverlay.addEventListener('click',e=>{if(e.target===cmdkOverlay)closeCmdk();});
+  const cmdkCloseBtn=$('#cmdkClose');
+  if(cmdkCloseBtn)cmdkCloseBtn.onclick=closeCmdk;
+  window._closeCmdk=closeCmdk;
+}
 
 /* ---------- theme / header / menu ---------- */
 const root=document.documentElement,tIcon=$('#themeIcon');
@@ -230,10 +273,10 @@ if(topBtn)topBtn.onclick=()=>scrollTo({top:0,behavior:'smooth'});
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){
     e.preventDefault();
-    const ns=$('#navSearch');
-    if(ns){ns.focus();ns.select();}
+    if(window._openCmdk)window._openCmdk();
   }
   if(e.key==='Escape'){
+    if(cmdkOverlay&&cmdkOverlay.classList.contains('show')){if(window._closeCmdk)window._closeCmdk();return;}
     navPop.classList.remove('show');
     const ns=$('#navSearch');if(ns&&ns===document.activeElement)ns.blur();
   }

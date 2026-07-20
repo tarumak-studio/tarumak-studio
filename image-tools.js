@@ -1523,6 +1523,8 @@ INIT['ai-image-upscaler']=function(panel){
       '<div id="upViewportArea"></div>'+
       '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
         '<button class="btn btn-primary" id="updl">Download '+outCanvas.width+'\u00d7'+outCanvas.height+' '+$('#upfmt',panel).value.split('/')[1].toUpperCase()+' (~'+fmtBytes(estBytes)+')</button>'+
+        '<button class="btn btn-ghost" id="upcopy">Copy</button>'+
+        (canShareFiles()?'<button class="btn btn-ghost" id="upshare">Share</button>':'')+
         '<button class="btn btn-ghost" id="upreset">Start over</button>'+
       '</div>'+
       '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:14px 0 4px">\u2728 Continue editing</p>'+
@@ -1681,6 +1683,26 @@ INIT['ai-image-upscaler']=function(panel){
         },fmt,fmt==='image/png'?undefined:.92);
       };
       $('#upreset',panel).onclick=function(){reset(true);};
+      var upCopyBtn=$('#upcopy',panel);
+      if(upCopyBtn)upCopyBtn.onclick=function(){
+        var orig=upCopyBtn.textContent;
+        copyCanvasToClipboard(outCanvas).then(function(){
+          if(window.trackEvent)window.trackEvent('copy_clicked',{tool:'ai-image-upscaler'});
+          upCopyBtn.textContent='Copied!';setTimeout(function(){upCopyBtn.textContent=orig;},1600);
+        }).catch(function(){
+          setStatus(u.status,'Copy isn\u2019t supported in this browser \u2014 use Download instead.',1);
+        });
+      };
+      var upShareBtn=$('#upshare',panel);
+      if(upShareBtn)upShareBtn.onclick=function(){
+        var fmt=$('#upfmt',panel).value,ext=fmt==='image/png'?'png':fmt==='image/webp'?'webp':'jpg';
+        shareCanvas(outCanvas,srcName+'-upscaled-'+factor+'x.'+ext,'AI Image Upscaler result').then(function(){
+          if(window.trackEvent)window.trackEvent('share_clicked',{tool:'ai-image-upscaler'});
+        }).catch(function(e){
+          if(e&&e.name==='AbortError')return; /* user cancelled the share sheet — not an error */
+          setStatus(u.status,'Sharing isn\u2019t available here \u2014 use Download instead.',1);
+        });
+      };
       /* Re-enable so the same image can be re-run at a different factor */
       $('#uprun',panel).disabled=false;
       setStatus(u.status,'Done \u2014 drag the slider to compare, Ctrl+scroll to zoom.');
@@ -1945,8 +1967,11 @@ INIT['ai-photo-enhancer']=function(panel){
         '<div id="enViewportArea"></div>'+
         '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
           '<button class="btn btn-primary" id="enDl">Download full resolution</button>'+
+          '<button class="btn btn-ghost" id="enCopy">Copy</button>'+
+          (canShareFiles()?'<button class="btn btn-ghost" id="enShare">Share</button>':'')+
           '<button class="btn btn-ghost" id="enReset">Start over</button>'+
         '</div>'+
+        '<p style="text-align:center;font-size:11px;color:var(--text-faint);margin:6px 0 0">Copy and Share use the preview shown above \u2014 Download processes full resolution.</p>'+
         '<div class="status" id="enDlSt" role="status" aria-live="polite"></div>';
 
       var modeBtns=$$('.seg[aria-label="Comparison mode"] button',panel);
@@ -2046,6 +2071,25 @@ INIT['ai-photo-enhancer']=function(panel){
       renderViewport();
       $('#enDl',panel).onclick=downloadFull;
       $('#enReset',panel).onclick=function(){resetAll();};
+      var enCopyBtn=$('#enCopy',panel);
+      if(enCopyBtn)enCopyBtn.onclick=function(){
+        var orig=enCopyBtn.textContent;
+        copyCanvasToClipboard(proxyOut).then(function(){
+          if(window.trackEvent)window.trackEvent('copy_clicked',{tool:'ai-photo-enhancer'});
+          enCopyBtn.textContent='Copied!';setTimeout(function(){enCopyBtn.textContent=orig;},1600);
+        }).catch(function(){
+          setStatus(u.status,'Copy isn\u2019t supported in this browser \u2014 use Download instead.',1);
+        });
+      };
+      var enShareBtn=$('#enShare',panel);
+      if(enShareBtn)enShareBtn.onclick=function(){
+        shareCanvas(proxyOut,srcName+'-enhanced-preview.png','AI Photo Enhancer result').then(function(){
+          if(window.trackEvent)window.trackEvent('share_clicked',{tool:'ai-photo-enhancer'});
+        }).catch(function(e){
+          if(e&&e.name==='AbortError')return;
+          setStatus(u.status,'Sharing isn\u2019t available here \u2014 use Download instead.',1);
+        });
+      };
       setStatus(u.status,'Enhanced preview ready \u2014 fine-tune with sliders, then Download for full resolution.');
     });
   }
@@ -2380,6 +2424,8 @@ INIT['ai-object-remover']=function(panel){
         '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
           '<div class="ctrl"><label for="orFmt">Format</label><select id="orFmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>'+
           '<button class="btn btn-primary" id="orDl">Download</button>'+
+          '<button class="btn btn-ghost" id="orCopy">Copy</button>'+
+          (canShareFiles()?'<button class="btn btn-ghost" id="orShare">Share</button>':'')+
           '<button class="btn btn-ghost" id="orMore">\u270e Remove more</button>'+
           '<button class="btn btn-ghost" id="orReset">Start over</button>'+
         '</div><div class="status" id="orSt2" role="status" aria-live="polite"></div>'+
@@ -2465,6 +2511,25 @@ INIT['ai-object-remover']=function(panel){
           download(b,nm);
           st2.className='status show';st2.textContent='Saved '+nm+' ('+fmtBytes(b.size)+').';
         },fmt,fmt==='image/png'?undefined:.92);
+      };
+      var orCopyBtn=$('#orCopy',panel);
+      if(orCopyBtn)orCopyBtn.onclick=function(){
+        var orig=orCopyBtn.textContent;
+        copyCanvasToClipboard(outCv).then(function(){
+          if(window.trackEvent)window.trackEvent('copy_clicked',{tool:'ai-object-remover'});
+          orCopyBtn.textContent='Copied!';setTimeout(function(){orCopyBtn.textContent=orig;},1600);
+        }).catch(function(){
+          var st2=$('#orSt2',panel);st2.className='status show err';st2.textContent='Copy isn\u2019t supported in this browser \u2014 use Download instead.';
+        });
+      };
+      var orShareBtn=$('#orShare',panel);
+      if(orShareBtn)orShareBtn.onclick=function(){
+        shareCanvas(outCv,srcName+'-removed.png','AI Object Remover result').then(function(){
+          if(window.trackEvent)window.trackEvent('share_clicked',{tool:'ai-object-remover'});
+        }).catch(function(e){
+          if(e&&e.name==='AbortError')return;
+          var st2=$('#orSt2',panel);st2.className='status show err';st2.textContent='Sharing isn\u2019t available here \u2014 use Download instead.';
+        });
       };
       $('#orMore',panel).onclick=function(){
         /* continue editing on the RESULT: it becomes the new source */

@@ -43,7 +43,7 @@ const HERO_MAP = {
   'exif-remover':       { type: 'stripMetadata' },
   'qr-code-generator':  { type: 'qr' },
   'background-remover': { type: 'comparison' },
-  'ai-image-upscaler':  { type: 'comparison' },
+  'ai-image-upscaler':  { type: 'dimension', from: '1024 \u00d7 1024', to: '2048 \u00d7 2048', note: '2\u00d7 or 4\u00d7' },
   'ai-photo-enhancer':  { type: 'comparison' },
   'ai-object-remover':  { type: 'comparison' },
   'ocr-image-to-text':  { type: 'ocr' },

@@ -487,6 +487,7 @@ function resolveMeta(t) {
   const features = flagship && flagship.features ? flagship.features : seededPick(catDef.featurePool, 6, seed + 7);
   const useCases = flagship && flagship.useCases ? flagship.useCases : seededPick(catDef.useCasePool, 4, seed + 13);
   const howTo = flagship && flagship.howTo ? flagship.howTo : howtoSteps(t, cat);
+  const howAIWorks = (flagship && flagship.howAIWorks) || null;
   const tips = (flagship && flagship.tips) || catDef.tipsPool || [];
   const mistakes = (flagship && flagship.mistakes) || catDef.mistakePool || [];
   const comparisonIntro = (flagship && flagship.comparisonIntro) || (catDef.comparisonIntro ? fillTemplate(catDef.comparisonIntro, vars) : null);
@@ -504,7 +505,7 @@ function resolveMeta(t) {
      the call site in buildPage(). Nothing else on this page depends on
      the removed `hero`/`heroVariant` fields (checked against the whole
      repo before removing them). */
-  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, tips, mistakes, comparisonIntro, ctaVerb, variant, accent, workflowSteps };
+  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, howAIWorks, tips, mistakes, comparisonIntro, ctaVerb, variant, accent, workflowSteps };
 }
 
 /* ── 5. Hero rendering — now fully delegated to hero-render.js, driven
@@ -576,6 +577,21 @@ function renderHowTo(meta) {
       <p class="tp-sub">${meta.howTo.length} step${meta.howTo.length === 1 ? '' : 's'}, no learning curve.</p>
       <ol class="tp-steps">
         ${meta.howTo.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
+      </ol>
+    </section>`;
+}
+function renderHowAIWorks(meta) {
+  /* Distinct from renderHowTo: that section is about what YOU click.
+     This one is about what the tool actually does after you click it —
+     only rendered for tools with a real, specific process worth
+     explaining (set via TOOL_META.howAIWorks), never invented generically
+     for tools where "how it works" would just restate the feature list. */
+  if (!meta.howAIWorks || !meta.howAIWorks.length) return '';
+  return `<section class="tp-sec" aria-labelledby="tp-aihow">
+      <h2 id="tp-aihow">How the AI works</h2>
+      <p class="tp-sub">What actually happens after you press the button.</p>
+      <ol class="tp-steps">
+        ${meta.howAIWorks.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
       </ol>
     </section>`;
 }
@@ -730,6 +746,7 @@ function renderSection(key, meta) {
     case 'benefits': return renderBenefits(meta);
     case 'benefits3': return renderBenefits(meta, 3);
     case 'howto': return renderHowTo(meta);
+    case 'howaiworks': return renderHowAIWorks(meta);
     case 'usecases': return renderUseCases(meta);
     case 'tips': return renderTips(meta);
     case 'comparison': return meta.comparisonIntro ? `<section class="tp-sec" aria-label="Comparison">${renderComparison(meta)}</section>` : '';
@@ -888,6 +905,8 @@ ${CHROME_TOP}
       <div class="tp-col-main">
 
     ${middleHTML}
+
+    ${renderHowAIWorks(meta)}
 
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>

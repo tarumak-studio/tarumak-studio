@@ -222,6 +222,108 @@ const WORKFLOW_NEXT = {
 ──────────────────────────────────────────────────────────────── */
 const TOOL_META = {
 
+  'ai-image-upscaler': {
+    accent: '#22d3ee',
+    benefits: [
+      ['zap', 'Real neural AI when your browser supports it', 'Runs an ESRGAN super-resolution model via TensorFlow.js directly in your browser. For large photos, it downscales to a size the model can process quickly, runs genuine AI detail recovery on that, then resizes to your exact target \u2014 real neural enhancement, not skipped for being large.'],
+      ['layers', 'Honest fallback, not a silent downgrade', 'If your browser can\u2019t run the neural model, a multi-pass reconstruction \u2014 noise cleanup, local-contrast recovery, edge-aware sharpening \u2014 runs instead, clearly labeled as non-AI. It never claims to be the neural engine when it isn\u2019t.'],
+      ['monitor', 'Nothing uploaded', 'The only network activity is downloading the AI model file itself, once. Your image is processed and never leaves your device.'],
+      ['gem', 'Full-resolution output, no catch', 'No watermark, no forced downscale, no premium wall on the 4\u00d7 factor.']
+    ],
+    features: ['ESRGAN neural upscaling in-browser', '2\u00d7 and 4\u00d7 scale factors', 'Multi-pass classical fallback engine', 'Real-time engine indicator (shows which one ran)', 'PNG, JPG and WEBP output', 'No sign-up required'],
+    useCases: [
+      ['Client delivery', 'Enlarge a final image without redoing the shoot or the render.'],
+      ['E-commerce listings', 'Product photos that need to be sharp at a larger display size.'],
+      ['Old or small source photos', 'Bring a low-resolution scan or an old digital photo up to a usable size.'],
+      ['Print-ready assets', 'Increase pixel dimensions before a print job that needs more resolution than the original file has.']
+    ],
+    tips: [
+      '2\u00d7 is the safer choice for photos with fine detail like hair, text or fabric weave \u2014 4\u00d7 asks the model to invent more, which occasionally shows.',
+      'The neural engine needs WebGL. If your browser or device blocks it, the classical fallback still improves detail \u2014 just through denoise and sharpening rather than learned pattern recovery.',
+      'Check which engine actually ran in the result summary \u2014 it\u2019s stated plainly, not hidden.'
+    ],
+    mistakes: [
+      'Expecting 4\u00d7 to look like a photo genuinely taken at that resolution \u2014 upscaling recovers plausible detail, it doesn\u2019t recreate information the camera never captured.',
+      'Upscaling an already out-of-focus or heavily compressed source and expecting a sharp result \u2014 no upscaler can reverse severe original blur or JPEG artifacting.',
+      'Running very large source images at 4\u00d7 on an older device \u2014 processing time scales with output pixel count; try 2\u00d7 first on anything already above a few megapixels.'
+    ],
+    howAIWorks: [
+      ['Check what your browser can run', 'The tool checks whether your browser supports the neural model at usable speed. Most modern desktop and mobile browsers do.'],
+      ['Recover real detail with AI', 'A neural network trained specifically for upscaling \u2014 called ESRGAN \u2014 examines patterns like edges and textures in your photo and generates plausible new pixels to fill in the added resolution.'],
+      ['Fall back honestly if it can\u2019t', 'If the neural model isn\u2019t available, a multi-pass classical pipeline runs instead \u2014 cleaning noise, boosting local contrast, and sharpening edges. It\u2019s labeled plainly as the non-AI engine, never presented as the neural one.'],
+      ['Match your exact target size', 'The result is resized precisely to your chosen 2\u00d7 or 4\u00d7 dimensions before you download it.']
+    ],
+    ctaVerb: 'Upscale another image'
+  },
+
+  'ai-photo-enhancer': {
+    accent: '#22d3ee',
+    benefits: [
+      ['zap', 'Analyzes your actual photo, not a fixed filter', 'Measures your photo\u2019s real exposure, contrast, color balance, noise level and sharpness on your device, then corrects specifically what\u2019s off \u2014 rather than applying the same look to every image.'],
+      ['gem', 'A deliberate lift, even on a good photo', 'A photo that measures fine can still look flat next to nothing. A moderate clarity and color boost is applied even then \u2014 tuned to look intentional, not invisible, without oversharpening or oversaturating.'],
+      ['layers', 'Strength control tied to real math', 'Subtle through Maximum scales the stylistic adjustments \u2014 contrast, vibrance, clarity, sharpness. Corrective fixes, like a genuinely too-dark exposure, are never scaled down by mistake.'],
+      ['monitor', 'Processed on your device', 'Runs entirely in your browser. Nothing is uploaded to enhance it.']
+    ],
+    features: ['Real histogram, noise and sharpness analysis', 'Auto plus 7 tuned presets', 'Subtle to Maximum strength control', 'Skin-tone-aware Portrait smoothing', 'PNG, JPG and WEBP output', 'No sign-up required'],
+    useCases: [
+      ['Phone photos before sharing', 'Fix exposure and color balance on a photo taken quickly, without opening a full editor.'],
+      ['Old or faded photos', 'The Old Photo preset targets fading, low contrast, noise and yellow tint specifically.'],
+      ['Product and portrait shots', 'Dedicated presets tune the correction for what the photo actually is.'],
+      ['Batch prep for a gallery or listing', 'A consistent, quick pass across several photos before publishing.']
+    ],
+    tips: [
+      'Auto works well for most photos \u2014 switch to a preset only when the subject clearly matches it, like Portrait for faces or Old Photo for scans.',
+      'If a result feels heavier than expected on an already-decent photo, try Subtle strength rather than assuming the tool got it wrong \u2014 Balanced is tuned to add a deliberate, visible lift by design.',
+      'Portrait mode\u2019s skin smoothing is a colour-range heuristic, not face detection \u2014 it works best on genuinely photographic skin tones, not illustration or heavily stylized photos.'
+    ],
+    mistakes: [
+      'Expecting Portrait mode to reshape or retouch facial features \u2014 it only lightly softens skin-toned pixels by colour; it can\u2019t find or edit an eye, a jawline, or anything structural.',
+      'Assuming a subtle-looking result means the tool didn\u2019t work \u2014 check the enhancement summary, which lists exactly what was corrected.',
+      'Running Maximum strength as a default \u2014 it\u2019s intentionally the strongest setting; Balanced is the tuned, recommended starting point.'
+    ],
+    howAIWorks: [
+      ['Analyze your specific photo', 'The tool measures your photo\u2019s actual exposure, contrast, color balance, noise and sharpness \u2014 real pixel analysis, not a guess about what a typical photo needs.'],
+      ['Correct what\u2019s actually wrong', 'Based on that analysis, it lifts shadows, recovers blown highlights, corrects color casts and reduces noise \u2014 but only where your photo genuinely needs it.'],
+      ['Add a deliberate finishing lift', 'A moderate clarity and color boost is applied on top of the correction, tuned to read as an intentional improvement rather than disappear next to the original.'],
+      ['Respect your strength setting', 'Your Subtle through Maximum choice scales the stylistic adjustments up or down. Corrective fixes, like a genuinely too-dark exposure, stay accurate regardless of that setting.']
+    ],
+    ctaVerb: 'Enhance another photo'
+  },
+
+  'ai-object-remover': {
+    accent: '#22d3ee',
+    benefits: [
+      ['zap', 'Reconstructs structure, not just blur', 'The algorithm reads lines, edges and texture at the boundary of your selection and propagates that structure inward \u2014 straight lines that continue through the removed area stay straight, rather than smearing.'],
+      ['gem', 'Checks its own work', 'After filling the selection, an automatic pass re-examines the result for leftover artifacts and touches them up before showing you the output.'],
+      ['layers', 'Undo history while you work', 'Paint over the wrong area and undo it \u2014 no need to start over from the original image.'],
+      ['monitor', 'Processed on your device', 'Nothing is uploaded. The image and the mask you paint both stay on your device.']
+    ],
+    features: ['Structure-propagation fill algorithm', 'Automatic artifact-refinement pass', 'Brush and rectangle selection tools', 'Undo and redo history', 'PNG, JPG and WEBP output', 'No sign-up required'],
+    useCases: [
+      ['Distracting background elements', 'A stray person, wire, or object that pulls focus from the actual subject.'],
+      ['Watermarks and timestamps', 'Clean up an old photo or a screenshot before reusing it.'],
+      ['Product photography touch-ups', 'Remove a stand, clip, or reflection left in frame.'],
+      ['Real estate and listing photos', 'Clear small clutter without re-shooting.']
+    ],
+    tips: [
+      'Paint slightly beyond the object\u2019s actual edges, not just the object itself \u2014 a mask that hugs the edge too tightly can leave a faint outline behind.',
+      'For objects on a patterned or textured background, a careful, deliberate brush stroke gives the algorithm more surrounding context to reconstruct from.',
+      'Working in smaller sections on a large object tends to look more convincing than one very large single-pass removal.'
+    ],
+    mistakes: [
+      'Trying to remove something covering most of the frame in one pass \u2014 above roughly 60% of the image, there isn\u2019t enough surrounding context left to reconstruct convincingly; the tool will say so rather than produce a bad result.',
+      'Expecting a removal over a highly unique background \u2014 a face, a specific object \u2014 to recreate the literal thing that was behind it. The algorithm reconstructs plausible structure, not a memory of what was actually there.',
+      'Skipping a zoomed-in check of the result \u2014 soft seams are sometimes only visible at real pixel size, not in a shrunk-to-fit preview.'
+    ],
+    howAIWorks: [
+      ['You mark what to remove', 'Paint over the object with the brush or rectangle tool. Nothing happens to the rest of the image \u2014 only the area you select.'],
+      ['Detect the surrounding structure', 'The algorithm reads the lines, edges and texture right at the boundary of your selection to understand what should logically continue through it.'],
+      ['Reconstruct the region', 'It fills the selection by propagating that surrounding structure inward, rather than blurring or smearing nearby pixels together.'],
+      ['Check and refine automatically', 'A second pass re-examines the result for leftover artifacts and touches them up before showing you the output.']
+    ],
+    ctaVerb: 'Remove another object'
+  },
+
   'background-remover': {
     hero: 'compare', heroVariant: 'checkerboard', variant: 'C', accent: '#22d3ee',
     benefits: [

@@ -1083,7 +1083,7 @@ console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfIte
    is always safe regardless of the guard above. */
 module.exports = {
   esc, trimDesc, pageTitle, fillTemplate, relCard, mergeFaq, generalFaq,
-  TOOL_CSS, SITE, TODAY, CAT, CAT_PAGE, ICON,
+  TOOL_CSS, SITE, TODAY, CAT, CAT_PAGE, ICON, BENEFIT_ICON,
   TOOLS, TOOLS_BY_SLUG, ARTICLES, TOOL_ARTICLES, FAQ, WORKFLOW_NEXT,
   getChrome, withActiveNav,
   renderSuggestedWorkflow, renderFooterRecs, renderPeopleAlsoUse, renderRecentlyAdded

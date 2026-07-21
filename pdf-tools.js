@@ -523,7 +523,7 @@ INIT['pdf-to-excel']=function(panel){
      serving old-but-valid content returns a normal 200, which never
      triggers a catch-only retry. Bump PTE_ENGINE_V whenever
      pdftoexcel-engine.js's own version bumps. */
-  var PTE_ENGINE_V='2.0';
+  var PTE_ENGINE_V='2.1';
   function loadEngine(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V,'PdfToExcelEngine').catch(function(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V+'&r='+Date.now(),'PdfToExcelEngine');});}
 
   async function openPdf(buf,password){
@@ -644,7 +644,25 @@ INIT['pdf-to-excel']=function(panel){
         var words=(ocrResult.data&&ocrResult.data.words)||[];
         items=engine.fromOcrWords(words,renderScale);
       }else{
-        items=engine.fromPdfTextContent(info.textContent,info.page.getViewport({scale:1}).height);
+        var realFontNames={};
+        try{
+          await info.page.getOperatorList(); /* triggers pdf.js's own font resource loading into page.commonObjs */
+          var seenAliases={};
+          info.textContent.items.forEach(function(it){seenAliases[it.fontName]=true;});
+          Object.keys(seenAliases).forEach(function(alias){
+            try{
+              var fontObj=info.page.commonObjs.get(alias);
+              /* Defensive: pdf.js's internal Font object shape isn't
+                 identically documented across versions. Try the fields
+                 most consistently reported to carry the real PostScript
+                 name; if none are usable, this alias just gets no
+                 bold/italic detection rather than a guess or a crash. */
+              var realName=(fontObj&&(fontObj.name||fontObj.fallbackName||fontObj.loadedName))||'';
+              if(realName)realFontNames[alias]=realName;
+            }catch(e){/* object not resolved for this alias — leave it out, honest no-detection fallback */}
+          });
+        }catch(e){/* getOperatorList failed — proceed without real names rather than fail the whole page */}
+        items=engine.fromPdfTextContent(info.textContent,info.page.getViewport({scale:1}).height,realFontNames);
       }
       var blocks=engine.reconstructPageBlocks(items,sens);
       var realBlocks=blocks.filter(function(b){return b.grid.length;});

@@ -253,19 +253,32 @@
   }
 
   /* ── pdf.js text items -> normalized {text,x,y,w,h,fontName,fontSize},
-     top-down Y. fontName/fontSize come along now (previously dropped) so
-     bold/italic/heading-size detection has something real to work from —
-     see isBoldFont/isItalicFont below. ── */
-  function fromPdfTextContent(textContent, viewportHeight) {
+     top-down Y.
+
+     IMPORTANT CORRECTION (found via a real test file, confirmed against
+     pdf.js's own API docs and issue tracker): item.fontName is NOT the
+     PDF's actual font name — pdf.js's own docs describe it as "Font name
+     used by PDF.js for converted font", an internal alias like
+     "g_d0_f1". Running isBoldFont() against that alias can never work;
+     it was checking the wrong string. The real name has to come from
+     page.commonObjs.get(item.fontName), resolved by the caller (pdf.js
+     needs the page's font resources loaded first, which this pure
+     engine file has no access to) and passed in as realFontNames — a
+     plain {alias: realName} map. When no map is given, or an alias
+     isn't in it, this now honestly falls back to no bold/italic
+     detection for that run rather than silently checking an alias that
+     was never going to match. */
+  function fromPdfTextContent(textContent, viewportHeight, realFontNames) {
     return textContent.items
       .filter(function (it) { return it.str && it.str.trim(); })
       .map(function (it) {
         var tx = it.transform;
         var x = tx[4], yBottomUp = tx[5];
+        var realName = (realFontNames && realFontNames[it.fontName]) || '';
         return {
           text: it.str, x: x, y: viewportHeight - yBottomUp,
           w: it.width || 0, h: it.height || Math.abs(tx[3]) || 10,
-          fontName: it.fontName || '', fontSize: Math.abs(tx[3]) || 10
+          fontName: realName, fontSize: Math.abs(tx[3]) || 10
         };
       });
   }
@@ -335,7 +348,7 @@
   }
 
   window.PdfToExcelEngine = {
-    version: '2.0',
+    version: '2.1',
     clusterRows: clusterRows,
     mergeWordRuns: mergeWordRuns,
     detectColumnBoundaries: detectColumnBoundaries,
@@ -352,5 +365,5 @@
     fromOcrWords: fromOcrWords,
     isScannedPage: isScannedPage
   };
-  try { console.log('[pdf-to-excel] engine v2.0 loaded'); } catch (e) {}
+  try { console.log('[pdf-to-excel] engine v2.1 loaded'); } catch (e) {}
 })();

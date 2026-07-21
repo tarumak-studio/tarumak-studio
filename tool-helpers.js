@@ -78,7 +78,11 @@ function dz(panel,o){o=o||{};
 
 async function renderPage(pdf,num,scale){const page=await pdf.getPage(num);const vp=page.getViewport({scale:scale});
   const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
-  await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+  /* willReadFrequently: this canvas gets handed to Tesseract.recognize()
+     by OCR-using callers, which reads it back via getImageData — same
+     first-call-locks-it-in pattern fixed three times earlier this
+     session in the other engines' own canvases. */
+  await page.render({canvasContext:c.getContext('2d',{willReadFrequently:true}),viewport:vp}).promise;
   const v1=page.getViewport({scale:1});return {canvas:c,w:v1.width,h:v1.height};}
 
 function noInit(panel){panel.innerHTML='<div class="note">This tool is being finalized.</div>';}

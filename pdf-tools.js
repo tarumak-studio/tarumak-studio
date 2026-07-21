@@ -466,6 +466,17 @@ INIT['pdf-reader']=function(panel){
 INIT['pdf-to-excel']=function(panel){
   var MAX_BYTES=60*1024*1024, MAX_PAGES=60;
   var XLSX_CDN='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  /* xlsx-js-style: a well-established fork that adds real cell-style
+     WRITING (bold, borders, fills) on top of the same SheetJS API.
+     The official "xlsx" package above is Community Edition, which
+     explicitly does not support writing styles \u2014 SheetJS's own docs
+     reserve that for their paid Pro tier. This isn't guessed at: styling
+     genuinely requires this different library, not a config flag on the
+     one already in use. If it fails to load for any reason, conversion
+     falls back to the plain library and the tool says so honestly
+     rather than silently shipping an unstyled file while claiming
+     otherwise. */
+  var XLSX_STYLED_CDN='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
   var TESS_CDN='https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js';
   var SENS={
     tight:{yTolerance:2,xTolerance:6,wordGap:2},
@@ -484,6 +495,11 @@ INIT['pdf-to-excel']=function(panel){
       '<button data-s="balanced" class="active" aria-pressed="true">Balanced</button>'+
       '<button data-s="loose" aria-pressed="false">Loose</button>'+
     '</div></div>'+
+    '<div class="ctrl"><label for="pteFmt">Output</label><select id="pteFmt">'+
+      '<option value="xlsx-styled">Excel (.xlsx) \u2014 Preserve formatting</option>'+
+      '<option value="xlsx-plain">Excel (.xlsx) \u2014 Data only</option>'+
+      '<option value="csv">CSV \u2014 Plain data</option>'+
+    '</select></div>'+
     '<div class="ctrl-spacer"></div>'+
     '<button class="btn btn-primary" id="pteRun" disabled>Convert to Excel</button>';
   var sensKey='balanced';
@@ -502,7 +518,13 @@ INIT['pdf-to-excel']=function(panel){
   });
 
   function loadLib(cdn,glob){return _loadScript(cdn,glob).catch(function(){return _loadScript(cdn+'?r='+Date.now(),glob);});}
-  function loadEngine(){return _loadScript('/pdftoexcel-engine.js','PdfToExcelEngine').catch(function(){return _loadScript('/pdftoexcel-engine.js?r='+Date.now(),'PdfToExcelEngine');});}
+  /* Version-pinned URL — same fix applied to the other three engines
+     this session after a real, confirmed stale-cache incident: a cache
+     serving old-but-valid content returns a normal 200, which never
+     triggers a catch-only retry. Bump PTE_ENGINE_V whenever
+     pdftoexcel-engine.js's own version bumps. */
+  var PTE_ENGINE_V='2.0';
+  function loadEngine(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V,'PdfToExcelEngine').catch(function(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V+'&r='+Date.now(),'PdfToExcelEngine');});}
 
   async function openPdf(buf,password){
     return await pdfjsLib.getDocument({data:buf,password:password}).promise;
@@ -559,48 +581,76 @@ INIT['pdf-to-excel']=function(panel){
       runBtn.disabled=false;running=null;return;
     }
     var st=u.status;st.className='status show';st.setAttribute('role','status');st.setAttribute('aria-live','polite');
-    st.innerHTML='Preparing\u2026 <span id="ptePct">0%</span> <button class="btn btn-ghost" id="pteCancel" style="padding:2px 10px;font-size:12px;margin-left:8px">Cancel</button>';
+    st.innerHTML='<div class="tp-progress-wrap" style="max-width:480px"><div class="tp-progress-stage" id="pteStage">Preparing\u2026</div><div class="tp-progress-track"><div class="tp-progress-fill" id="pteBar"></div></div><div class="tp-progress-pct" id="ptePct">0%</div><button class="btn btn-ghost" id="pteCancel" style="margin-top:10px">Cancel</button></div>';
     $('#pteCancel',panel).onclick=function(){signal.cancelled=true;};
-    function prog(p,msg){var el=$('#ptePct',panel);if(el)el.textContent=Math.round(p*100)+'%'+(msg?' \u00b7 '+msg:'');}
+    var stageEl=$('#pteStage',panel),barEl=$('#pteBar',panel),pctEl=$('#ptePct',panel);
+    function prog(p,msg){var pct=Math.round(p*100);if(barEl)barEl.style.width=pct+'%';if(pctEl)pctEl.textContent=pct+'%';if(msg&&stageEl)stageEl.textContent=msg;}
 
-    var engine,XLSXLib;
-    try{
-      prog(0.02,'Loading table-reconstruction engine');
-      engine=await loadEngine();
-    }catch(e){setStatus(st,'Could not load the conversion engine. Refresh and try again.',1);runBtn.disabled=false;running=null;return;}
+    var engine;
+    try{ prog(0.02,'Loading table-reconstruction engine'); engine=await loadEngine(); }
+    catch(e){setStatus(st,'Could not load the conversion engine. Refresh and try again.',1);runBtn.disabled=false;running=null;return;}
 
-    var sens=SENS[sensKey]||SENS.balanced;
-    var sheets=[],anyTableFound=false,scannedPagesUsed=0;
-
-    for(var i=1;i<=pdf.numPages;i++){
+    /* ── Pass 1: real analysis, not a fake spinner ─────────────────────
+       Reads each page's actual text content once (cheap \u2014 no OCR, no
+       rendering yet) so we can tell the user something true about the
+       document \u2014 page count, which pages are scanned \u2014 before the
+       heavier work starts. The textContent fetched here is reused in
+       pass 2, so this doesn't cost a second fetch per page. */
+    prog(0.04,'Reading PDF\u2026');
+    var pageInfos=[];
+    for(var pi=1;pi<=pdf.numPages;pi++){
       if(signal.cancelled){setStatus(st,'Cancelled.');runBtn.disabled=false;running=null;return;}
-      prog((i-1)/pdf.numPages*0.85+0.05,'Page '+i+' of '+pdf.numPages);
-      var page=await pdf.getPage(i);
-      var textContent=await page.getTextContent();
-      var items;
-      if(engine.isScannedPage(textContent)){
-        /* Scanned page: render + OCR. Real Tesseract.js recognition, not a
-           fallback text guess \u2014 same engine/CDN as the OCR Image to Text tool. */
+      prog(0.04+(pi/pdf.numPages)*0.10,'Analyzing page '+pi+' of '+pdf.numPages);
+      var pg=await pdf.getPage(pi);
+      var tc=await pg.getTextContent();
+      pageInfos.push({page:pg,textContent:tc,scanned:engine.isScannedPage(tc)});
+    }
+    var scannedCount=pageInfos.filter(function(p){return p.scanned;}).length;
+    st.innerHTML='<div style="max-width:480px;margin:0 auto;text-align:left;font-size:13px;color:var(--text-dim)">'+
+      '<div style="margin-bottom:4px">\u2713 '+pdf.numPages+' page'+(pdf.numPages===1?'':'s')+' detected</div>'+
+      '<div style="margin-bottom:4px">\u2713 '+(scannedCount?scannedCount+' page'+(scannedCount===1?'':'s')+' will use OCR (scanned)':'No OCR needed \u2014 all pages have real text')+'</div>'+
+      '<div style="margin-bottom:10px" id="pteAnalysisTables">\u2713 Reconstructing tables\u2026</div>'+
+      '<div class="tp-progress-track"><div class="tp-progress-fill" id="pteBar" style="width:14%"></div></div>'+
+      '<div class="tp-progress-pct" id="ptePct" style="text-align:left">14%</div>'+
+      '</div>';
+    barEl=$('#pteBar',panel);pctEl=$('#ptePct',panel);
+
+    /* ── Pass 2: real reconstruction, page by page ─────────────────────
+       Uses reconstructPageBlocks (not the older single-grid
+       reconstructTable) so a page with two genuinely separate tables
+       gets two blocks instead of one misaligned grid. */
+    var sens=SENS[sensKey]||SENS.balanced;
+    var pageBlocks=[]; /* [{pageNum, blocks:[{grid,fmt,merges}], ocr}] */
+    var anyTableFound=false,scannedPagesUsed=0,warnings=[];
+
+    for(var i=0;i<pageInfos.length;i++){
+      if(signal.cancelled){setStatus(st,'Cancelled.');runBtn.disabled=false;running=null;return;}
+      var pnum=i+1;
+      prog(0.14+(i/pageInfos.length)*0.55,'Detecting tables \u2014 page '+pnum+' of '+pdf.numPages);
+      var info=pageInfos[i], items;
+      if(info.scanned){
         scannedPagesUsed++;
-        try{ if(!window.Tesseract){ prog((i-1)/pdf.numPages*0.85+0.05,'Loading OCR engine for page '+i); await loadLib(TESS_CDN,'Tesseract'); } }
-        catch(e){ sheets.push({name:'Page '+i,grid:[['(OCR engine failed to load \u2014 no text extracted for this scanned page)']],merges:[]}); continue; }
+        try{ if(!window.Tesseract){ prog(0.14+(i/pageInfos.length)*0.55,'Loading OCR engine'); await loadLib(TESS_CDN,'Tesseract'); } }
+        catch(e){ pageBlocks.push({pageNum:pnum,blocks:[{grid:[['(OCR engine failed to load \u2014 no text extracted for this scanned page)']],fmt:[[{}]],merges:[]}]}); warnings.push('Page '+pnum+': OCR engine failed to load.'); continue; }
         var renderScale=2;
-        var rp=await renderPage(pdf,i,renderScale);
+        var rp=await renderPage(pdf,pnum,renderScale);
         var ocrResult;
         try{
           ocrResult=await Tesseract.recognize(rp.canvas,'eng',{logger:function(m){
-            if(m.status==='recognizing text'&&!signal.cancelled){prog((i-1)/pdf.numPages*0.85+0.05,'OCR page '+i+' \u2014 '+Math.round((m.progress||0)*100)+'%');}
+            if(m.status==='recognizing text'&&!signal.cancelled){prog(0.14+(i/pageInfos.length)*0.55,'OCR page '+pnum+' \u2014 '+Math.round((m.progress||0)*100)+'%');}
           }});
-        }catch(e){ sheets.push({name:'Page '+i,grid:[['(OCR failed for this page)']],merges:[]}); continue; }
+        }catch(e){ pageBlocks.push({pageNum:pnum,blocks:[{grid:[['(OCR failed for this page)']],fmt:[[{}]],merges:[]}]}); warnings.push('Page '+pnum+': OCR failed.'); continue; }
         if(signal.cancelled){setStatus(st,'Cancelled.');runBtn.disabled=false;running=null;return;}
         var words=(ocrResult.data&&ocrResult.data.words)||[];
         items=engine.fromOcrWords(words,renderScale);
       }else{
-        items=engine.fromPdfTextContent(textContent,page.getViewport({scale:1}).height);
+        items=engine.fromPdfTextContent(info.textContent,info.page.getViewport({scale:1}).height);
       }
-      var result=engine.reconstructTable(items,sens);
-      if(result.grid.length)anyTableFound=true;
-      sheets.push({name:'Page '+i,grid:result.grid,merges:result.merges});
+      var blocks=engine.reconstructPageBlocks(items,sens);
+      var realBlocks=blocks.filter(function(b){return b.grid.length;});
+      if(realBlocks.length)anyTableFound=true;
+      if(!realBlocks.length)warnings.push('Page '+pnum+': no table-like content found.');
+      pageBlocks.push({pageNum:pnum,blocks:realBlocks.length?realBlocks:[{grid:[],fmt:[],merges:[]}]});
     }
 
     if(!anyTableFound){
@@ -608,74 +658,151 @@ INIT['pdf-to-excel']=function(panel){
       runBtn.disabled=false;running=null;return;
     }
 
-    prog(0.92,'Building spreadsheet');
-    try{XLSXLib=await loadLib(XLSX_CDN,'XLSX');}
-    catch(e){setStatus(st,'Could not load the spreadsheet engine. Refresh and try again.',1);runBtn.disabled=false;running=null;return;}
-
-    var wb=XLSXLib.utils.book_new();
-    sheets.forEach(function(s){
-      if(!s.grid.length){s.grid=[['(No table detected on this page)']];}
-      var ws=XLSXLib.utils.aoa_to_sheet(s.grid.map(function(row){return row.map(function(cellText){
-        var c=engine.classifyCell(cellText);
-        return c.type==='n'?c.value:c.value;
-      });}));
-      /* Coerce numeric cells to real number type so Excel right-aligns and
-         can sum them \u2014 aoa_to_sheet already infers numbers reasonably,
-         but we re-apply our own classifier explicitly so currency symbols
-         we stripped are reflected (aoa_to_sheet alone would leave "$12.50"
-         as text since it can't parse the currency prefix). */
-      s.grid.forEach(function(row,r){row.forEach(function(cellText,c){
-        var cls=engine.classifyCell(cellText);
-        if(cls.type==='n'){
-          var addr=XLSXLib.utils.encode_cell({r:r,c:c});
-          ws[addr]={t:'n',v:cls.value};
-        }
-      });});
-      (s.merges||[]).forEach(function(m){
-        ws['!merges']=ws['!merges']||[];
-        ws['!merges'].push({s:{r:m.row,c:m.fromCol},e:{r:m.row,c:m.toCol}});
-      });
-      var colCount=s.grid.reduce(function(mx,row){return Math.max(mx,row.length);},1);
-      var widths=[];
-      for(var c=0;c<colCount;c++){
-        var maxLen=4;
-        s.grid.forEach(function(row){if(row[c]&&String(row[c]).length>maxLen)maxLen=String(row[c]).length;});
-        widths.push({wch:Math.min(40,maxLen+2)});
-      }
-      ws['!cols']=widths;
-      var safeName=(s.name||'Sheet').slice(0,31).replace(/[\\/*?:\[\]]/g,'-');
-      XLSXLib.utils.book_append_sheet(wb,ws,safeName);
+    /* ── Repeated header/footer detection across the whole document ─── */
+    prog(0.72,'Checking for repeated headers and footers');
+    var firstLast=pageBlocks.map(function(pb){
+      var firstBlock=pb.blocks[0],lastBlock=pb.blocks[pb.blocks.length-1];
+      var firstRow=(firstBlock&&firstBlock.grid[0])?firstBlock.grid[0].join(' '):'';
+      var lastRow=(lastBlock&&lastBlock.grid.length)?lastBlock.grid[lastBlock.grid.length-1].join(' '):'';
+      return {first:firstRow,last:lastRow};
     });
+    var furniture=engine.detectRepeatedFurniture(firstLast);
+    var furnitureExcluded=0;
+    if(furniture.headers.length||furniture.footers.length){
+      pageBlocks.forEach(function(pb){
+        pb.blocks.forEach(function(b){
+          if(b.grid.length&&furniture.headers.indexOf(b.grid[0].join(' '))!==-1){b.grid.shift();b.fmt.shift();furnitureExcluded++;}
+          if(b.grid.length&&furniture.footers.indexOf(b.grid[b.grid.length-1].join(' '))!==-1){b.grid.pop();b.fmt.pop();furnitureExcluded++;}
+        });
+      });
+      warnings.push('Excluded '+furnitureExcluded+' repeated header/footer row(s) found on multiple pages.');
+    }
 
-    prog(1,'Done');
-    var wbBlob;
-    try{
-      var wbArr=XLSXLib.write(wb,{bookType:'xlsx',type:'array'});
-      wbBlob=new Blob([wbArr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    }catch(e){setStatus(st,'Failed to build the spreadsheet file: '+(e.message||e),1);runBtn.disabled=false;running=null;return;}
+    /* ── Load the output library the user's format choice actually needs.
+       CSV needs no spreadsheet library at all. Styled XLSX tries
+       xlsx-js-style first (real bold/border writing); if that fails to
+       load for any reason, falls back to the plain library and the
+       quality report says so honestly \u2014 it does not silently ship an
+       unstyled file while claiming formatting was preserved. */
+    var outFmt=$('#pteFmt',panel).value;
+    var XLSXLib=null,stylesActuallyApplied=false;
+    if(outFmt!=='csv'){
+      prog(0.78,'Loading spreadsheet engine');
+      if(outFmt==='xlsx-styled'){
+        try{ XLSXLib=await loadLib(XLSX_STYLED_CDN,'XLSX'); stylesActuallyApplied=true; }
+        catch(e){
+          warnings.push('Formatting engine failed to load \u2014 exported without bold/border styling.');
+          try{ XLSXLib=await loadLib(XLSX_CDN,'XLSX'); }
+          catch(e2){setStatus(st,'Could not load the spreadsheet engine. Refresh and try again.',1);runBtn.disabled=false;running=null;return;}
+        }
+      } else {
+        try{ XLSXLib=await loadLib(XLSX_CDN,'XLSX'); }
+        catch(e){setStatus(st,'Could not load the spreadsheet engine. Refresh and try again.',1);runBtn.disabled=false;running=null;return;}
+      }
+    }
 
-    var baseName=(file.name||'document').replace(/\.pdf$/i,'');
-    var outName=baseName+'.xlsx';
+    prog(0.88,'Reconstructing spreadsheet');
+    var totalTables=0,totalMerges=0;
+    pageBlocks.forEach(function(pb){pb.blocks.forEach(function(b){if(b.grid.length){totalTables++;totalMerges+=(b.merges||[]).length;}});});
+
+    var wbBlob,outName,baseName=(file.name||'document').replace(/\.pdf$/i,'');
+
+    if(outFmt==='csv'){
+      /* CSV: one file, blocks/pages joined with a blank line \u2014 no
+         formatting concept applies, so no library, no styling questions. */
+      prog(0.95,'Generating CSV');
+      var csvLines=[];
+      pageBlocks.forEach(function(pb){
+        pb.blocks.forEach(function(b){
+          if(!b.grid.length)return;
+          b.grid.forEach(function(row){csvLines.push(row.map(function(cell){
+            var c=String(cell==null?'':cell);
+            return /[",\n]/.test(c) ? '"'+c.replace(/"/g,'""')+'"' : c;
+          }).join(','));});
+          csvLines.push('');
+        });
+      });
+      wbBlob=new Blob([csvLines.join('\n')],{type:'text/csv'});
+      outName=baseName+'.csv';
+    } else {
+      var wb=XLSXLib.utils.book_new();
+      pageBlocks.forEach(function(pb){
+        var combinedGrid=[],combinedFmt=[],merges=[];
+        pb.blocks.forEach(function(b,bi){
+          if(!b.grid.length)return;
+          if(combinedGrid.length){ combinedGrid.push([]); combinedFmt.push([]); } /* blank-row gap between separate tables on one page */
+          var rowOffset=combinedGrid.length;
+          b.grid.forEach(function(row,r){combinedGrid.push(row);combinedFmt.push(b.fmt[r]||[]);});
+          (b.merges||[]).forEach(function(m){merges.push({row:m.row+rowOffset,fromCol:m.fromCol,toCol:m.toCol});});
+        });
+        if(!combinedGrid.length)combinedGrid=[['(No table detected on this page)']];
+        var ws=XLSXLib.utils.aoa_to_sheet(combinedGrid.map(function(row){return row.map(function(cellText){
+          var c=engine.classifyCell(cellText);return c.value;
+        });}));
+        combinedGrid.forEach(function(row,r){row.forEach(function(cellText,c){
+          var cls=engine.classifyCell(cellText);
+          var addr=XLSXLib.utils.encode_cell({r:r,c:c});
+          var fmtCell=(combinedFmt[r]||[])[c]||{};
+          var cellObj=ws[addr]||{t:'s',v:''};
+          if(cls.type==='n'){cellObj={t:'n',v:cls.value};}
+          if(stylesActuallyApplied&&(fmtCell.bold||fmtCell.italic)){
+            cellObj.s={font:{bold:!!fmtCell.bold,italic:!!fmtCell.italic},border:{top:{style:'thin',color:{rgb:'DDDDDD'}},bottom:{style:'thin',color:{rgb:'DDDDDD'}},left:{style:'thin',color:{rgb:'DDDDDD'}},right:{style:'thin',color:{rgb:'DDDDDD'}}}};
+          } else if(stylesActuallyApplied&&cellText){
+            cellObj.s={border:{top:{style:'thin',color:{rgb:'EEEEEE'}},bottom:{style:'thin',color:{rgb:'EEEEEE'}},left:{style:'thin',color:{rgb:'EEEEEE'}},right:{style:'thin',color:{rgb:'EEEEEE'}}}};
+          }
+          ws[addr]=cellObj;
+        });});
+        merges.forEach(function(m){ws['!merges']=ws['!merges']||[];ws['!merges'].push({s:{r:m.row,c:m.fromCol},e:{r:m.row,c:m.toCol}});});
+        var colCount=combinedGrid.reduce(function(mx,row){return Math.max(mx,row.length);},1);
+        var widths=[];
+        for(var c=0;c<colCount;c++){
+          var maxLen=4;
+          combinedGrid.forEach(function(row){if(row[c]&&String(row[c]).length>maxLen)maxLen=String(row[c]).length;});
+          widths.push({wch:Math.min(40,maxLen+2)});
+        }
+        ws['!cols']=widths;
+        var safeName=('Page '+pb.pageNum).slice(0,31).replace(/[\\/*?:\[\]]/g,'-');
+        XLSXLib.utils.book_append_sheet(wb,ws,safeName);
+      });
+
+      prog(0.97,'Optimizing formatting');
+      try{
+        var wbArr=XLSXLib.write(wb,{bookType:'xlsx',type:'array'});
+        wbBlob=new Blob([wbArr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      }catch(e){setStatus(st,'Failed to build the spreadsheet file: '+(e.message||e),1);runBtn.disabled=false;running=null;return;}
+      outName=baseName+'.xlsx';
+    }
+
+    prog(1,'Preparing download');
     running=null;runBtn.disabled=false;
+    var elapsed=Math.round((performance.now()-_t0)/100)/10;
 
+    /* ── Quality report: real numbers only, no invented statistics ───── */
     u.results.classList.add('show');
     u.results.innerHTML=
-      '<p style="text-align:center;font-size:13px;color:var(--text-dim);margin-bottom:12px">'+
-        pdf.numPages+' page(s) processed'+(scannedPagesUsed?' \u00b7 '+scannedPagesUsed+' via OCR':'')+
-        ' \u00b7 '+sheets.length+' sheet(s) created</p>'+
+      '<div style="max-width:460px;margin:0 auto 14px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2);font-size:13px;color:var(--text-dim)">'+
+        '<div style="font-weight:700;color:var(--text);margin-bottom:8px">Conversion report</div>'+
+        '<div>Pages processed: '+pdf.numPages+'</div>'+
+        '<div>Tables extracted: '+totalTables+'</div>'+
+        '<div>Worksheets created: '+(outFmt==='csv'?'(single CSV file)':pageBlocks.length)+'</div>'+
+        '<div>OCR used: '+(scannedPagesUsed?'Yes ('+scannedPagesUsed+' page'+(scannedPagesUsed===1?'':'s')+')':'No')+'</div>'+
+        '<div>Formatting preserved: '+(outFmt==='csv'?'N/A (plain data format)':stylesActuallyApplied?'Yes':'No')+'</div>'+
+        '<div>Merged cells recreated: '+totalMerges+'</div>'+
+        (warnings.length?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><b style="color:var(--text)">Notes</b><br>'+warnings.join('<br>')+'</div>':'')+
+      '</div>'+
       '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
-        '<button class="btn btn-primary" id="pteDl">Download .xlsx</button>'+
+        '<button class="btn btn-primary" id="pteDl">Download '+outName.split('.').pop().toUpperCase()+'</button>'+
         '<button class="btn btn-ghost" id="pteReset">Start over</button>'+
       '</div>';
     $('#pteDl',panel).onclick=function(){
       download(wbBlob,outName);
-      if(window.trackEvent)window.trackEvent('tool_process_completed',{pages:pdf.numPages,sheets:sheets.length,processing_time:Math.round((performance.now()-_t0)/100)/10});
+      if(window.trackEvent)window.trackEvent('tool_process_completed',{pages:pdf.numPages,tables:totalTables,ocr_used:!!scannedPagesUsed,formatting_preserved:stylesActuallyApplied,processing_time:elapsed});
       setStatus(st,'Saved '+outName+'.');
     };
     $('#pteReset',panel).onclick=function(){
       file=null;u.results.innerHTML='';u.results.classList.remove('show');
       u.drop.style.display='';$('#pteRun',panel).disabled=true;setStatus(u.status,'');
     };
-    setStatus(st,'Converted '+pdf.numPages+' page(s) into '+sheets.length+' sheet(s).');
+    setStatus(st,'Converted '+pdf.numPages+' page(s), '+totalTables+' table(s) found.');
   }
 };

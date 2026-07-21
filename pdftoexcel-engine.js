@@ -65,8 +65,15 @@
         if (last && (it.x - (last.x + last.w)) <= wordGap) {
           last.text += ' ' + it.text;
           last.w = (it.x + it.w) - last.x;
+          if (isBoldFont(it.fontName)) last.bold = true;
+          if (isItalicFont(it.fontName)) last.italic = true;
+          if (it.fontSize) last.maxFontSize = Math.max(last.maxFontSize || 0, it.fontSize);
         } else {
-          runs.push({ text: it.text, x: it.x, w: it.w, y: it.y });
+          runs.push({
+            text: it.text, x: it.x, w: it.w, y: it.y,
+            bold: isBoldFont(it.fontName), italic: isItalicFont(it.fontName),
+            maxFontSize: it.fontSize || 0
+          });
         }
       });
       return { yAvg: row.yAvg, items: runs };
@@ -101,7 +108,12 @@
      "Total" and "Cost" both under one wide header) are joined with a
      space rather than one silently overwriting the other. ── */
   function buildGrid(rows, columnXs) {
-    return rows.map(function (row) {
+    var fmt = rows.map(function () {
+      var r = new Array(columnXs.length);
+      for (var i = 0; i < r.length; i++) r[i] = { bold: false, italic: false, maxFontSize: 0 };
+      return r;
+    });
+    var grid = rows.map(function (row, rIdx) {
       var cells = new Array(columnXs.length);
       for (var i = 0; i < cells.length; i++) cells[i] = '';
       row.items.forEach(function (it) {
@@ -111,9 +123,13 @@
           if (d < bestDist) { bestDist = d; bestIdx = c; }
         }
         cells[bestIdx] = cells[bestIdx] ? cells[bestIdx] + ' ' + it.text : it.text;
+        if (it.bold) fmt[rIdx][bestIdx].bold = true;
+        if (it.italic) fmt[rIdx][bestIdx].italic = true;
+        if (it.maxFontSize) fmt[rIdx][bestIdx].maxFontSize = Math.max(fmt[rIdx][bestIdx].maxFontSize, it.maxFontSize);
       });
       return cells;
     });
+    return { grid: grid, fmt: fmt };
   }
 
   /* ── Cell type classification ────────────────────────────────────────
@@ -161,11 +177,12 @@
     var yTol = opts.yTolerance || 3;
     var xTol = opts.xTolerance || 8;
     var wordGap = opts.wordGap != null ? opts.wordGap : 3;
-    if (!items.length) return { grid: [], merges: [] };
+    if (!items.length) return { grid: [], fmt: [], merges: [] };
     var rows = clusterRows(items, yTol);
     rows = mergeWordRuns(rows, wordGap);
     var colXs = detectColumnBoundaries(rows, xTol);
-    var grid = buildGrid(rows, colXs);
+    var built = buildGrid(rows, colXs);
+    var grid = built.grid, fmt = built.fmt;
     var colCounts = {};
     grid.forEach(function (row) {
       var n = row.reduce(function (c, v) { return c + (v ? 1 : 0); }, 0);
@@ -176,18 +193,96 @@
       if (colCounts[k] > best) { best = colCounts[k]; typical = +k; }
     });
     var merges = detectMergeRows(grid, typical);
-    return { grid: grid, merges: merges, columnCount: colXs.length };
+    return { grid: grid, fmt: fmt, merges: merges, columnCount: colXs.length };
   }
 
-  /* ── pdf.js text items -> normalized {text,x,y,w,h}, top-down Y ─────── */
+  /* ── Multi-table-per-page detection ──────────────────────────────────
+     reconstructTable (above) treats every item on a page as ONE table.
+     That's wrong when a page genuinely has two independent tables with
+     real vertical space between them — say, a summary table then a
+     detail table below it. This detects those breaks and processes each
+     block separately, so unrelated tables never get merged into one
+     misaligned grid. Added as a NEW function, not a change to
+     reconstructTable itself — existing callers are unaffected. */
+  function splitRowsIntoBlocks(rows, gapMultiplier, minAbsoluteGap) {
+    if (rows.length < 3) return [rows];
+    var gaps = [];
+    for (var i = 1; i < rows.length; i++) gaps.push(rows[i].yAvg - rows[i - 1].yAvg);
+    var sorted = gaps.slice().sort(function (a, b) { return a - b; });
+    var median = sorted[Math.floor(sorted.length / 2)] || 12;
+    var threshold = Math.max(median * (gapMultiplier || 2.5), minAbsoluteGap || 24);
+    var blocks = [], current = [rows[0]];
+    for (var j = 1; j < rows.length; j++) {
+      if (gaps[j - 1] > threshold) { blocks.push(current); current = []; }
+      current.push(rows[j]);
+    }
+    blocks.push(current);
+    return blocks;
+  }
+
+  /* Shared by both single- and multi-table paths: rows (already
+     clustered + word-merged) -> {grid, fmt, merges, columnCount}. This
+     is exactly what reconstructTable did inline; factored out so
+     reconstructPageBlocks can call it once per detected table block
+     without duplicating the column-detection/grid-build/merge-detect
+     logic a second time. */
+  function tableFromRows(rows) {
+    var colXs = detectColumnBoundaries(rows, 8);
+    var built = buildGrid(rows, colXs);
+    var grid = built.grid, fmt = built.fmt;
+    var colCounts = {};
+    grid.forEach(function (row) {
+      var n = row.reduce(function (c, v) { return c + (v ? 1 : 0); }, 0);
+      colCounts[n] = (colCounts[n] || 0) + 1;
+    });
+    var typical = 0, best = -1;
+    Object.keys(colCounts).forEach(function (k) { if (colCounts[k] > best) { best = colCounts[k]; typical = +k; } });
+    var merges = detectMergeRows(grid, typical);
+    return { grid: grid, fmt: fmt, merges: merges, columnCount: colXs.length };
+  }
+
+  function reconstructPageBlocks(items, opts) {
+    opts = opts || {};
+    var yTol = opts.yTolerance || 3;
+    var wordGap = opts.wordGap != null ? opts.wordGap : 3;
+    if (!items.length) return [];
+    var rows = clusterRows(items, yTol);
+    rows = mergeWordRuns(rows, wordGap);
+    var blocks = splitRowsIntoBlocks(rows, opts.gapMultiplier, opts.minAbsoluteGap);
+    return blocks.map(function (blockRows) { return tableFromRows(blockRows); });
+  }
+
+  /* ── pdf.js text items -> normalized {text,x,y,w,h,fontName,fontSize},
+     top-down Y. fontName/fontSize come along now (previously dropped) so
+     bold/italic/heading-size detection has something real to work from —
+     see isBoldFont/isItalicFont below. ── */
   function fromPdfTextContent(textContent, viewportHeight) {
     return textContent.items
       .filter(function (it) { return it.str && it.str.trim(); })
       .map(function (it) {
         var tx = it.transform;
         var x = tx[4], yBottomUp = tx[5];
-        return { text: it.str, x: x, y: viewportHeight - yBottomUp, w: it.width || 0, h: it.height || Math.abs(tx[3]) || 10 };
+        return {
+          text: it.str, x: x, y: viewportHeight - yBottomUp,
+          w: it.width || 0, h: it.height || Math.abs(tx[3]) || 10,
+          fontName: it.fontName || '', fontSize: Math.abs(tx[3]) || 10
+        };
       });
+  }
+
+  /* ── Bold/italic from the PDF's own embedded font name ───────────────
+     pdf.js exposes the font's internal PostScript-ish name (e.g.
+     "g_d0_f1" is a subset alias, but the ORIGINAL family name — the one
+     that actually says "Bold"/"Italic" — is available on many PDFs via
+     this same field once pdf.js resolves it; when it isn't (some
+     subsetted fonts genuinely don't expose a readable name), this simply
+     returns false rather than guessing. Never invents a name PDF didn't
+     provide. */
+  function isBoldFont(fontName) {
+    return /bold|black|heavy|semibold|extrabold/i.test(fontName || '');
+  }
+  function isItalicFont(fontName) {
+    return /italic|oblique/i.test(fontName || '');
   }
 
   /* ── Tesseract word boxes -> the same normalized shape, converted from
@@ -214,8 +309,33 @@
     return total < 8;
   }
 
+  /* ── Repeated header/footer detection across pages ───────────────────
+     Real page furniture — a letterhead line, "Page 3 of 12" — repeats
+     essentially verbatim at the same position (first or last row) on
+     most pages of a multi-page document. Genuine table data almost
+     never does that (different rows on every page). Requires at least
+     3 pages and the text to repeat on a real majority, not just twice,
+     to avoid flagging a genuinely repeated DATA value (e.g. the same
+     company name heading every table) as furniture. Returns the exact
+     text strings to exclude, not page/row indices — callers filter by
+     matching text, which is robust even if page ordering changes. */
+  function detectRepeatedFurniture(perPageFirstLast) {
+    if (perPageFirstLast.length < 3) return { headers: [], footers: [] };
+    function majorityRepeated(strs) {
+      var counts = {};
+      strs.forEach(function (s) { var k = (s || '').trim(); if (k) counts[k] = (counts[k] || 0) + 1; });
+      var out = [];
+      Object.keys(counts).forEach(function (k) { if (counts[k] >= Math.ceil(strs.length * 0.6)) out.push(k); });
+      return out;
+    }
+    return {
+      headers: majorityRepeated(perPageFirstLast.map(function (p) { return p.first; })),
+      footers: majorityRepeated(perPageFirstLast.map(function (p) { return p.last; }))
+    };
+  }
+
   window.PdfToExcelEngine = {
-    version: '1.0',
+    version: '2.0',
     clusterRows: clusterRows,
     mergeWordRuns: mergeWordRuns,
     detectColumnBoundaries: detectColumnBoundaries,
@@ -223,9 +343,14 @@
     classifyCell: classifyCell,
     detectMergeRows: detectMergeRows,
     reconstructTable: reconstructTable,
+    reconstructPageBlocks: reconstructPageBlocks,
+    splitRowsIntoBlocks: splitRowsIntoBlocks,
+    detectRepeatedFurniture: detectRepeatedFurniture,
+    isBoldFont: isBoldFont,
+    isItalicFont: isItalicFont,
     fromPdfTextContent: fromPdfTextContent,
     fromOcrWords: fromOcrWords,
     isScannedPage: isScannedPage
   };
-  try { console.log('[pdf-to-excel] engine v1.0 loaded'); } catch (e) {}
+  try { console.log('[pdf-to-excel] engine v2.0 loaded'); } catch (e) {}
 })();

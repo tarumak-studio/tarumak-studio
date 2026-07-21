@@ -11,17 +11,16 @@
 const fs = require('fs');
 const {
   esc, trimDesc, relCard, TOOL_CSS, SITE, TODAY,
-  TOOLS_BY_SLUG, TOOL_ARTICLES, ARTICLES,
+  TOOLS_BY_SLUG, TOOL_ARTICLES, ARTICLES, BENEFIT_ICON,
   getChrome, withActiveNav,
 } = require('./build-tool-pages.js');
 const { SITE_NAME, LAST_UPDATED, TARUMAK_PROFILE, COMPARISONS } = require('./comparison-content.js');
 
 const { CHROME_TOP, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, NAV_RESPONSIVE_SCRIPT } = getChrome();
-/* Comparisons live under "Tools" in the header's active-state sense —
-   there's no dedicated nav item for them (adding one would touch the
-   site-wide header for a section that starts at 3 pages), and 'all' is
-   the same choice category pages already make for the same reason. */
-const CHROME_ACTIVE = withActiveNav(CHROME_TOP, 'all');
+/* Compare now has its own top-level nav item (added after independent
+   review — see the architecture note in the delivery), so it gets its
+   own active-state key rather than borrowing 'all' (Tools) as before. */
+const CHROME_ACTIVE = withActiveNav(CHROME_TOP, 'compare');
 
 const CORE_TOOLS = ['background-remover', 'ai-object-remover', 'ai-photo-enhancer', 'ai-image-upscaler', 'image-compressor']
   .map(s => TOOLS_BY_SLUG[s]).filter(Boolean);
@@ -67,6 +66,9 @@ const COMPARISON_CSS = `
 /* .cmp-related-row lives in the shared TOOL_CSS now (both page types
    embed it) so tool pages linking back to comparisons get it too,
    without redefining it here. */
+.cmp-cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.cmp-cat-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.cmp-cat-block h3{font-size:14px;margin-bottom:10px}
 @media (max-width:640px){.cmp-choice-grid,.cmp-adv-grid{grid-template-columns:1fr}}
 `;
 
@@ -262,11 +264,111 @@ console.log(`Wrote ${written} comparison pages`);
    page lists tools. Anyone landing here (or a future nav link) sees
    the full set and it grows automatically as COMPARISONS grows. */
 const hubUrl = `${SITE}/compare`;
+
+/* Data-driven category grouping — reads cfg.category off each real
+   comparison entry. A category only appears here once it has at least
+   one real comparison; no placeholder "coming soon" categories, so this
+   never shows more than genuinely exists yet. Scales automatically as
+   comparison-content.js grows — no code change needed to add a category. */
+const CATEGORY_GROUPS = {};
+COMPARISONS.forEach(c => {
+  const cat = c.category || 'Other';
+  (CATEGORY_GROUPS[cat] = CATEGORY_GROUPS[cat] || []).push(c);
+});
+
+const HUB_FAQ = [
+  ['How do you choose which comparisons to write?', `We start with the tools people already search for as alternatives to Tarumak Studio's own tools \u2014 Remove.bg, TinyPNG and similar well-known services in each category. As Tarumak Studio adds more tools, more comparisons get added to match.`],
+  ['Are these comparisons sponsored?', `No. Tarumak Studio doesn't accept payment from the companies it's compared against, and every comparison explicitly says so on the page. Where a competitor genuinely does something better, the comparison says that too.`],
+  ['How is each comparison actually put together?', `By using each tool's real, current public offering \u2014 checking their own documented pricing, privacy policy and feature list directly, cross-checking against multiple independent sources, and being explicit whenever a specific claim (like an exact price) may have changed since publication. We don't run our own formal speed benchmarks and don't present invented numbers as measured results.`],
+  ['Can I suggest a comparison?', `Yes \u2014 use the Contact page. Requests for tools a lot of people are actually comparing against are the ones most likely to get written next.`],
+];
+
+function renderHubHero() {
+  return `<section class="cmp-hero">
+      <h1 class="cmp-vs">How ${esc(SITE_NAME)} Compares</h1>
+      <p class="cmp-q">Honest, detailed comparisons \u2014 not marketing pages. If another tool is the better fit for what you need, we say so.</p>
+      <div class="cmp-meta-row"><span>${COMPARISONS.length} comparison${COMPARISONS.length === 1 ? '' : 's'} published</span><span>Independent \u2014 never sponsored</span><span>Updated ${esc(LAST_UPDATED)}</span></div>
+    </section>`;
+}
+
+function renderAllComparisons() {
+  return `<section class="tp-sec" aria-labelledby="hub-all">
+      <h2 id="hub-all">All comparisons</h2>
+      <p class="tp-sub">Every comparison Tarumak Studio has published, newest first.</p>
+      <div class="tp-related">
+        ${COMPARISONS.slice().reverse().map(c => `<a class="tp-rel-card" href="/${c.slug}"><h3>${esc(SITE_NAME)} vs ${esc(c.competitor)}</h3><p>${esc(c.heroQuestion)}</p><span class="tp-rel-cta">Read comparison \u2192</span></a>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+function renderBrowseByCategory() {
+  const cats = Object.keys(CATEGORY_GROUPS);
+  if (!cats.length) return '';
+  return `<section class="tp-sec" aria-labelledby="hub-cat">
+      <h2 id="hub-cat">Browse by category</h2>
+      <p class="tp-sub">Comparisons grouped by what they're actually about.</p>
+      <div class="cmp-cat-grid">
+        ${cats.map(cat => `<div class="cmp-cat-block"><h3>${esc(cat)}</h3><div class="cmp-related-row">${CATEGORY_GROUPS[cat].map(c => `<a href="/${c.slug}">vs ${esc(c.competitor)}</a>`).join('')}</div></div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+function renderComparedAgainst() {
+  return `<section class="tp-sec" aria-labelledby="hub-against">
+      <h2 id="hub-against">Compared against</h2>
+      <div class="cmp-related-row">${COMPARISONS.map(c => `<a href="/${c.slug}">${esc(c.competitor)}</a>`).join('')}</div>
+    </section>`;
+}
+
+function renderHowWeTest() {
+  const factors = [
+    ['shield', 'Privacy & data handling', 'Where does the file actually go \u2014 does it ever leave the device? We check each tool\u2019s own privacy documentation and how the product is architected, not just its marketing copy.'],
+    ['layers', 'Real feature use, not a spec sheet', 'We use each tool\u2019s actual free, publicly available offering ourselves \u2014 what a real visitor can do today, not a features list a company published.'],
+    ['gem', 'Pricing, checked at the source', 'Free-tier limits and paid pricing are checked directly against the competitor\u2019s own current pricing page, not assumed from memory or an older review.'],
+    ['monitor', 'Accessibility & browser support', 'Whether a tool works with a keyboard, a screen reader, and a normal range of current browsers \u2014 not just whether it looks fine in one browser on one device.'],
+    ['zap', 'Ease of use', 'How many steps, clicks, or account requirements stand between opening the page and getting a finished result.'],
+    ['heart', 'Transparency about limitations', 'Every comparison lists real limitations on the Tarumak Studio side too \u2014 no comparison here is written to guarantee we win.'],
+  ];
+  return `<section class="tp-sec" aria-labelledby="hub-how">
+      <h2 id="hub-how">How we test</h2>
+      <p class="tp-sub">The evaluation framework behind every comparison \u2014 stated honestly, not as a marketing claim.</p>
+      <div class="tp-benefits">
+        ${factors.map(([icon, title, body]) => `<div class="tp-benefit">${BENEFIT_ICON[icon] || ''}<h3>${esc(title)}</h3><p>${esc(body)}</p></div>`).join('\n        ')}
+      </div>
+    </section>`;
+}
+
+function renderWhyTrust() {
+  return `<section class="cmp-verdict">
+      <h2>Why trust these comparisons</h2>
+      <p>Every comparison on this page follows the same rule: Tarumak Studio's own limitations are listed as plainly as the competitor's. These pages exist to help you pick the right tool for your actual situation \u2014 including a competitor, when that's genuinely the better fit \u2014 not to win an argument. Nothing here is sponsored, and every factual claim about a competitor is checked against their own current documentation rather than assumed.</p>
+    </section>`;
+}
+
+function renderHubFAQ() {
+  return `<section class="tp-sec tp-faq" aria-labelledby="hub-faq-h">
+      <h2 id="hub-faq-h">Frequently asked questions</h2>
+      ${HUB_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n      ')}
+    </section>`;
+}
+
+function renderHubRelatedTools() {
+  return `<section class="tp-sec" aria-labelledby="hub-tools">
+      <h2 id="hub-tools">Related tools</h2>
+      <div class="tp-related">${CORE_TOOLS.map(t => relCard(t)).join('\n      ')}</div>
+    </section>`;
+}
+
 const hubSchema = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'WebPage', '@id': hubUrl + '#page', url: hubUrl, name: `${SITE_NAME} Comparisons \u2014 See How We Stack Up`, description: `Honest, detailed comparisons between ${SITE_NAME} and other popular tools.`, isPartOf: { '@id': SITE + '/#website' }, dateModified: TODAY },
+    { '@type': 'CollectionPage', '@id': hubUrl + '#page', url: hubUrl, name: `${SITE_NAME} Comparisons \u2014 See How We Stack Up`, description: `Honest, detailed comparisons between ${SITE_NAME} and other popular tools.`, isPartOf: { '@id': SITE + '/#website' }, dateModified: TODAY },
+    {
+      '@type': 'ItemList', '@id': hubUrl + '#list', name: `${SITE_NAME} comparison pages`,
+      itemListElement: COMPARISONS.map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/${c.slug}`, name: `${SITE_NAME} vs ${c.competitor}` })),
+    },
     { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: 'Compare' }] },
+    { '@type': 'FAQPage', mainEntity: HUB_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
   ],
 };
 const hubHTML = `<!doctype html>
@@ -276,6 +378,12 @@ const hubHTML = `<!doctype html>
 <title>${SITE_NAME} Comparisons \u2014 See How We Stack Up</title>
 <meta name="description" content="Honest, detailed comparisons between ${SITE_NAME} and other popular image and PDF tools \u2014 privacy, pricing, and features, side by side.">
 <link rel="canonical" href="${hubUrl}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${SITE_NAME} Comparisons \u2014 See How We Stack Up">
+<meta property="og:description" content="Honest, detailed comparisons between ${SITE_NAME} and other popular tools \u2014 privacy, pricing and features, side by side.">
+<meta property="og:url" content="${hubUrl}">
+<meta property="og:image" content="${SITE}/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 ${HEAD_LINKS}
 <style>${TOOL_CSS}${COMPARISON_CSS}</style>
 <script type="application/ld+json">${JSON.stringify(hubSchema)}</script>
@@ -285,15 +393,14 @@ ${CHROME_ACTIVE}
 <main>
   <div class="tp-wrap">
     <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="crumb-current" aria-current="page">Compare</span></nav>
-    <section class="cmp-hero">
-      <h1 class="cmp-vs">How ${esc(SITE_NAME)} Compares</h1>
-      <p class="cmp-q">Honest, detailed comparisons \u2014 not marketing pages. If another tool is the better fit for what you need, we say so.</p>
-    </section>
-    <section class="tp-sec">
-      <div class="tp-related">
-        ${COMPARISONS.map(c => `<a class="tp-rel-card" href="/${c.slug}"><h3>${esc(SITE_NAME)} vs ${esc(c.competitor)}</h3><p>${esc(c.heroQuestion)}</p><span class="tp-rel-cta">Read comparison \u2192</span></a>`).join('\n        ')}
-      </div>
-    </section>
+    ${renderHubHero()}
+    ${renderAllComparisons()}
+    ${renderBrowseByCategory()}
+    ${renderComparedAgainst()}
+    ${renderHowWeTest()}
+    ${renderWhyTrust()}
+    ${renderHubFAQ()}
+    ${renderHubRelatedTools()}
   </div>
 </main>
 ${FOOTER}

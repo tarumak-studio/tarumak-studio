@@ -38,6 +38,7 @@ const TARUMAK_PROFILE = {
 const COMPARISONS = [
   {
     slug: 'tarumak-vs-removebg',
+    category: 'Background Removal',
     competitor: 'Remove.bg',
     competitorUrl: 'https://www.remove.bg',
     tarumakTool: 'background-remover', /* which Tarumak tool this maps to, for internal linking + How It Works reuse */
@@ -111,6 +112,7 @@ const COMPARISONS = [
 
   {
     slug: 'tarumak-vs-tinypng',
+    category: 'Image Compression',
     competitor: 'TinyPNG',
     competitorUrl: 'https://tinypng.com',
     tarumakTool: 'image-compressor',
@@ -179,6 +181,7 @@ const COMPARISONS = [
 
   {
     slug: 'tarumak-vs-canva-bg-remover',
+    category: 'Background Removal',
     competitor: 'Canva Background Remover',
     competitorUrl: 'https://www.canva.com',
     tarumakTool: 'background-remover',

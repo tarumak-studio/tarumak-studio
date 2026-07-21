@@ -349,6 +349,7 @@ const TOOL_META = {
       'Expecting a perfect result on very fine, wind-blown hair or semi-transparent fabric \u2014 genuinely hard cases for any segmentation model, not just this one.',
       'Flattening onto a background immediately, then needing a different one later.'
     ],
+    relatedComparisons: ['tarumak-vs-removebg', 'tarumak-vs-canva-bg-remover'],
     ctaVerb: 'Remove another background'
   },
 
@@ -374,6 +375,7 @@ const TOOL_META = {
       ['Compress and compare the sizes', 'The before/after file size is shown directly \u2014 adjust the slider again if you want to push it further.'],
       ['Download the result', 'The compressed file is ready instantly \u2014 it never left your device during processing.']
     ],
+    relatedComparisons: ['tarumak-vs-tinypng'],
     ctaVerb: 'Compress another image'
   },
 

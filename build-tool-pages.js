@@ -188,6 +188,11 @@ for (const cat of Object.keys(CAT_JS)) {
 
 /* ── 2. Chrome: from the shared header-chrome module ──────────────── */
 const { getChrome, withActiveNav } = require('./header-chrome.js');
+/* Pure data, no dependencies of its own — safe to require here without
+   any circularity risk (comparison-content.js never requires this file). */
+const { COMPARISONS } = require('./comparison-content.js');
+const COMPARISONS_BY_SLUG = {};
+COMPARISONS.forEach(c => { COMPARISONS_BY_SLUG[c.slug] = c; });
 const { renderHero } = require('./hero-render.js');
 const { trustLine } = require('./trust-blocks.js');
 const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
@@ -318,6 +323,9 @@ const TOOL_CSS = `
 .tp-steps{list-style:none;display:grid;gap:10px;counter-reset:step}
 .tp-step{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
 .tp-step-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(34,211,238,.13);color:var(--p1);font-family:var(--fd);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.cmp-related-row{display:flex;gap:10px;flex-wrap:wrap}
+.cmp-related-row a{border:1px solid var(--border);border-radius:99px;padding:8px 16px;font-size:13px;color:var(--text-dim);background:var(--surface);text-decoration:none}
+.cmp-related-row a:hover{color:var(--text);border-color:var(--border-2)}
 .tp-step h3{font-size:14.5px;font-weight:700;margin-bottom:3px}
 .tp-step p{font-size:13px;color:var(--text-dim);line-height:1.55}
 .tp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
@@ -488,6 +496,7 @@ function resolveMeta(t) {
   const useCases = flagship && flagship.useCases ? flagship.useCases : seededPick(catDef.useCasePool, 4, seed + 13);
   const howTo = flagship && flagship.howTo ? flagship.howTo : howtoSteps(t, cat);
   const howAIWorks = (flagship && flagship.howAIWorks) || null;
+  const relatedComparisons = (flagship && flagship.relatedComparisons) || null;
   const tips = (flagship && flagship.tips) || catDef.tipsPool || [];
   const mistakes = (flagship && flagship.mistakes) || catDef.mistakePool || [];
   const comparisonIntro = (flagship && flagship.comparisonIntro) || (catDef.comparisonIntro ? fillTemplate(catDef.comparisonIntro, vars) : null);
@@ -505,7 +514,7 @@ function resolveMeta(t) {
      the call site in buildPage(). Nothing else on this page depends on
      the removed `hero`/`heroVariant` fields (checked against the whole
      repo before removing them). */
-  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, howAIWorks, tips, mistakes, comparisonIntro, ctaVerb, variant, accent, workflowSteps };
+  return { slug, name, cat, desc, chips, isFileTool, benefits, features, useCases, howTo, howAIWorks, relatedComparisons, tips, mistakes, comparisonIntro, ctaVerb, variant, accent, workflowSteps };
 }
 
 /* ── 5. Hero rendering — now fully delegated to hero-render.js, driven
@@ -593,6 +602,18 @@ function renderHowAIWorks(meta) {
       <ol class="tp-steps">
         ${meta.howAIWorks.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
       </ol>
+    </section>`;
+}
+function renderRelatedComparisonsLinks(meta) {
+  /* Only present for tools a comparison page actually references —
+     most tools have no comparison yet, and that's fine; this is
+     additive, not a gap to fill for every tool. */
+  if (!meta.relatedComparisons || !meta.relatedComparisons.length) return '';
+  const items = meta.relatedComparisons.map(s => COMPARISONS_BY_SLUG[s]).filter(Boolean);
+  if (!items.length) return '';
+  return `<section class="tp-sec" aria-labelledby="tp-cmp">
+      <h2 id="tp-cmp">How ${esc(meta.name)} compares</h2>
+      <div class="cmp-related-row">${items.map(c => `<a href="/${c.slug}">vs ${esc(c.competitor)}</a>`).join('')}</div>
     </section>`;
 }
 function renderFeatures(meta) {
@@ -908,6 +929,8 @@ ${CHROME_TOP}
 
     ${renderHowAIWorks(meta)}
 
+    ${renderRelatedComparisonsLinks(meta)}
+
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>
       <p class="tp-sub">About ${esc(name)} and how Tarumak Studio works.</p>
@@ -996,6 +1019,14 @@ ${NAV_RESPONSIVE_SCRIPT}
 }
 
 /* ── 9. Generate all pages ─────────────────────────────────────── */
+/* Guarded so this file can be require()'d for its reusable render
+   helpers (by build-comparison-pages.js) without the side effect of
+   regenerating all 70 tool pages + sitemaps + index.html on every
+   require. Running it directly — `node build-tool-pages.js`, which is
+   how the real build pipeline invokes it — is completely unaffected:
+   require.main === module is true in that case, same as before this
+   guard existed. */
+if (require.main === module) {
 let written = 0;
 const variantCounts = {};
 for (const t of TOOLS) {
@@ -1044,3 +1075,16 @@ idx = idx.replace(/https:\/\/tarumakstudio\.com\/#\/t\//g, 'https://tarumakstudi
 idx = idx.replace(/"numberOfItems":\s*\d+/, '"numberOfItems": ' + TOOLS.length);
 fs.writeFileSync('index.html', idx);
 console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}`);
+} /* end require.main guard */
+
+/* ── 12. Exports for other build scripts (e.g. build-comparison-pages.js) ─
+   Everything here is a pure function or a constant computed above —
+   nothing in this export list has side effects, so requiring this file
+   is always safe regardless of the guard above. */
+module.exports = {
+  esc, trimDesc, pageTitle, fillTemplate, relCard, mergeFaq, generalFaq,
+  TOOL_CSS, SITE, TODAY, CAT, CAT_PAGE, ICON,
+  TOOLS, TOOLS_BY_SLUG, ARTICLES, TOOL_ARTICLES, FAQ, WORKFLOW_NEXT,
+  getChrome, withActiveNav,
+  renderSuggestedWorkflow, renderFooterRecs, renderPeopleAlsoUse, renderRecentlyAdded
+};

@@ -2254,6 +2254,94 @@ footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(i
 .cat-faq details{transition:background .2s var(--ease)}
 .cat-faq details:hover,.cat-faq details[open]{background:var(--surface-2)}
 .cat-section-title{letter-spacing:-.6px}
+
+/* ── Category Landing Page System ─────────────────────────────────────
+   Fixes a real, previously-existing gap: .cat-wrap/.cat-eyebrow/.cat-h1/
+   .cat-lead had zero CSS anywhere in the codebase before this — the
+   "flat hero" complaint had a literal, concrete cause. Everything below
+   is additive: reuses the established --p1-style per-category accent
+   pattern already proven on the homepage's .cat-card[data-cat] system
+   (same 5 colors: cyan/violet/green/orange/lime), rather than inventing
+   a second palette. */
+.cat-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.cat-eyebrow{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:22px}
+.cat-h1{font-family:var(--fd);font-size:clamp(32px,5.5vw,52px);font-weight:700;letter-spacing:-1.4px;margin:12px 0 14px;max-width:16ch}
+.cat-lead{font-size:15px;line-height:1.75;color:var(--text-dim);max-width:74ch;margin:28px 0}
+
+/* Hero: illustration slot (a soft radial glow tinted to the category's
+   own accent, plus the icon) sits beside the title/subtitle/stat-cards —
+   a real personality treatment without hand-drawn artwork per category,
+   which isn't achievable honestly within a CSS-only system. */
+.cat-hero-row{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start}
+.cat-hero-copy{min-width:0}
+.cat-hero-sub{font-size:16px;color:var(--text-dim);line-height:1.7;max-width:56ch;margin-bottom:4px}
+.cat-hero-illust{position:relative;width:150px;height:150px;border-radius:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--cat-accent-bg,rgba(34,211,238,.08));border:1px solid var(--cat-accent-border,rgba(34,211,238,.18));overflow:hidden}
+.cat-hero-illust::before{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 20%,var(--cat-accent,#22d3ee) 0%,transparent 60%);opacity:.22;animation:catGlowDrift 8s ease-in-out infinite alternate}
+.cat-hero-illust svg{width:58px;height:58px;color:var(--cat-accent,#22d3ee);position:relative}
+@keyframes catGlowDrift{from{transform:translate(-6%,-4%) scale(1)}to{transform:translate(6%,4%) scale(1.12)}}
+@media (max-width:760px){.cat-hero-row{grid-template-columns:1fr}.cat-hero-illust{width:96px;height:96px;order:-1}.cat-hero-illust svg{width:38px;height:38px}}
+@media (prefers-reduced-motion:reduce){.cat-hero-illust::before{animation:none}}
+
+/* Stat cards — replacing the previous plain-number row with a real card
+   treatment, per the brief's explicit ask ("visual cards instead of
+   plain numbers"). */
+.cat-stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:22px 0}
+.cat-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 14px;text-align:center;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+.cat-stat-card:hover{border-color:var(--cat-accent-border,var(--border-2));transform:translateY(-2px)}
+.cat-stat-card .n{font-family:var(--fd);font-size:24px;font-weight:700;color:var(--cat-accent,var(--p1))}
+.cat-stat-card .l{font-size:11.5px;color:var(--text-faint);margin-top:2px}
+
+/* Featured tools: larger cards with a badge, distinct from the plain
+   grid below — "highlight the most important tools", not every tool at
+   equal visual weight. */
+.cat-featured-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:18px 0 8px}
+.cat-featured-tool{position:relative;display:block;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 20px;text-decoration:none;transition:transform .22s var(--ease),border-color .22s var(--ease),box-shadow .22s var(--ease)}
+.cat-featured-tool:hover{transform:translateY(-3px);border-color:var(--cat-accent-border,var(--border-2));box-shadow:0 20px 40px -18px rgba(0,0,0,.45)}
+.cat-featured-tool .badge{position:absolute;top:16px;right:16px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:3px 9px;border-radius:99px;background:var(--cat-accent-bg,rgba(34,211,238,.12));color:var(--cat-accent,var(--p1))}
+.cat-featured-tool h3{font-size:17px;margin:0 0 6px;padding-right:70px}
+.cat-featured-tool p{font-size:13px;color:var(--text-dim);line-height:1.55;margin:0 0 14px}
+.cat-featured-tool .cta{font-size:12.5px;font-weight:600;color:var(--cat-accent,var(--p1));display:inline-flex;align-items:center;gap:5px}
+.cat-featured-tool:hover .cta svg{transform:translateX(3px)}
+.cat-featured-tool .cta svg{transition:transform .2s var(--ease);width:13px;height:13px}
+
+/* Smart-grouped tool sections — replacing the single giant grid. */
+.cat-group{margin:34px 0}
+.cat-group-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.cat-group-head h2{font-size:19px;font-weight:700}
+.cat-group-head .count{font-size:12px;color:var(--text-faint)}
+.cat-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+
+/* Workflow chain — a horizontal sequence of tools with arrows between
+   them, reusing the same visual language as .tp-step (numbered circle)
+   rather than inventing a third numbering treatment. */
+.cat-workflow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:16px}
+.cat-workflow-step{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;text-decoration:none;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+.cat-workflow-step:hover{border-color:var(--cat-accent-border,var(--border-2));transform:translateY(-2px)}
+.cat-workflow-step .wf-n{width:22px;height:22px;border-radius:50%;background:var(--cat-accent-bg,rgba(34,211,238,.13));color:var(--cat-accent,var(--p1));font-family:var(--fd);font-weight:700;font-size:11.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cat-workflow-step span:last-child{font-size:13.5px;font-weight:600}
+.cat-workflow-arrow{color:var(--text-faint);flex-shrink:0}
+@media (max-width:640px){.cat-workflow{flex-direction:column;align-items:stretch}.cat-workflow-arrow{transform:rotate(90deg);align-self:center}}
+
+/* Insight cards — reuses the exact .tp-benefit visual language already
+   proven on tool pages (same padding/border/radius), rather than a
+   fourth card style. */
+.cat-insight{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.cat-insight h3{font-size:15px;margin-bottom:8px}
+.cat-insight p{font-size:13px;color:var(--text-dim);line-height:1.6}
+
+/* Trust row \u2014 compact inline checklist. */
+.cat-trust-row{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.cat-trust-row span{font-size:12.5px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:6px 14px;display:flex;align-items:center;gap:6px}
+.cat-trust-row span::before{content:"\2713";color:var(--cat-accent,var(--p1));font-weight:700}
+
+/* Client-side filter bar \u2014 no page reload, wired in features.js. */
+.cat-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:20px 0}
+.cat-filter-bar input{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13.5px}
+.cat-filter-bar input:focus-visible{outline:2px solid var(--cat-accent,var(--p1));outline-offset:1px}
+.cat-filter-chip{border:1px solid var(--border);border-radius:99px;padding:6px 14px;font-size:12.5px;color:var(--text-dim);background:var(--surface);cursor:pointer}
+.cat-filter-chip.active{background:var(--cat-accent-bg,rgba(34,211,238,.14));color:var(--cat-accent,var(--p1));border-color:var(--cat-accent-border,transparent)}
+.cat-group[hidden],.cat-tool-card[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.cat-stat-card,.cat-featured-tool,.cat-workflow-step{transition:none}}
 @media (prefers-reduced-motion:reduce){
   .cat-tool-card:hover,.cat-article-card:hover{transform:none}
   .cat-featured-card:hover svg,.cat-tool-card:hover .cat-arrow{transform:none}

@@ -112,6 +112,75 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--p1);box-shadow:0 0 10px var(--p1)}
 h1.headline{font-family:var(--fd);font-weight:700;font-size:clamp(34px,5vw,54px);line-height:1.05;letter-spacing:-1.5px;margin-bottom:20px}
 h1.headline .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ── Hero headline word-cycle micro-animation ─────────────────────────
+   Pure CSS, no JS timer — three copies of the same 6s keyframe, phase-
+   shifted with animation-delay (0s / .95s / 1.9s). Because all three
+   share one exact duration, the stagger never drifts, however long the
+   page stays open. Timeline per word: rise 0-225ms, peak hold
+   225-350ms, fall 350-550ms (550ms total, inside the 400-600ms spec),
+   then a real 400ms silent gap before the next word starts at 950ms —
+   matching the brief's per-word numbers exactly. The 2450ms-6000ms tail
+   is the idle pause before the loop repeats; stretched a bit past the
+   literal "2-3s" spec to land the whole loop inside the requested 6-8s
+   total, since the two numbers in the brief don't both fit at once and
+   the total-loop figure was the more explicit, bolded requirement.
+
+   Glow uses a radial-gradient opacity fade, not filter:blur — the brief
+   explicitly asks to avoid filters, and this reads as "soft glow"
+   without the compositing cost. Only transform, opacity and
+   background-position animate; none affect layout. */
+h1.headline .hw{position:relative;display:inline-block;transform:translateY(0) scale(1);background-size:180% 100%;background-position:0% 50%;animation:heroWordCycle 6s var(--ease) infinite}
+h1.headline .hw::before{content:"";position:absolute;inset:-10px -6px;border-radius:12px;background:radial-gradient(ellipse at center,color-mix(in srgb,var(--p1) 42%,transparent) 0%,transparent 72%);opacity:0;z-index:-1;pointer-events:none;animation:heroWordGlow 6s var(--ease) infinite}
+h1.headline .hw[data-word="developers"]{animation-delay:.95s}
+h1.headline .hw[data-word="developers"]::before{animation-delay:.95s}
+h1.headline .hw[data-word="marketers"]{animation-delay:1.9s}
+h1.headline .hw[data-word="marketers"]::before{animation-delay:1.9s}
+@keyframes heroWordCycle{
+  0%,100%{transform:translateY(0) scale(1);background-position:0% 50%}
+  3.75%{transform:translateY(-3px) scale(1.018);background-position:70% 50%}
+  5.83%{transform:translateY(-3px) scale(1.02);background-position:100% 50%}
+  9.17%{transform:translateY(0) scale(1);background-position:0% 50%}
+}
+@keyframes heroWordGlow{
+  0%,100%{opacity:0}
+  3.75%{opacity:.75}
+  5.83%{opacity:1}
+  9.17%{opacity:0}
+}
+@media (prefers-reduced-motion:reduce){
+  h1.headline .hw{animation:heroWordCycleReduced 6s ease-in-out infinite}
+  h1.headline .hw::before{animation:none;display:none}
+  @keyframes heroWordCycleReduced{
+    0%,100%{opacity:.82}
+    5%{opacity:1}
+    9%{opacity:.82}
+  }
+}
+
+/* Small synced icon accent — additive, next to the eyebrow. Chosen
+   deliberately over repurposing the existing AI-demo illustration on
+   the right: that panel already cycles through real tool states
+   (Background Remover, Enhancer, Upscaler, Object Remover) and replacing
+   or overlaying it with audience motifs would mean redesigning an
+   existing, working feature — which conflicts with "do not redesign the
+   hero." This gives genuine word-synced illustration without that
+   tradeoff. Same three-copy, same delays, same 6s period as the words
+   above, so it's phase-perfect with the text, not just visually similar
+   timing. */
+.hero-copy{position:relative}
+.hw-icon-badge{position:absolute;top:-2px;right:-38px;width:26px;height:26px}
+.hw-icon-badge svg{position:absolute;inset:0;width:26px;height:26px;color:var(--p1);opacity:0;animation:heroIconFade 6s var(--ease) infinite}
+.hw-icon-badge svg:nth-child(2){animation-delay:.95s}
+.hw-icon-badge svg:nth-child(3){animation-delay:1.9s}
+@keyframes heroIconFade{
+  0%,100%{opacity:0}
+  3.75%{opacity:.55}
+  5.83%{opacity:1}
+  9.17%{opacity:0}
+}
+@media (max-width:760px){.hw-icon-badge{display:none}}
+@media (prefers-reduced-motion:reduce){.hw-icon-badge{display:none}}
 .sub{font-size:14px;color:var(--text-dim);max-width:520px;margin-bottom:20px}
 .hero-cta{display:flex;gap:13px;flex-wrap:wrap}
 .btn-lg{height:50px;font-size:15px;border-radius:13px;padding:0 24px}

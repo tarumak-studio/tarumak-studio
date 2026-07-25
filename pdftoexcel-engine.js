@@ -57,12 +57,23 @@
      xTolerance used for column clustering — they answer different
      questions ("is this the same word-cluster" vs "is this the same
      column across rows"). */
+  /* wordGap accepts either a fixed number (existing behavior, exactly as
+     before) or the string 'auto', which scales the gap to each row's own
+     font size instead of using one constant for every row. A fixed 3pt
+     gap works for typical 10-12pt body text but is too tight for a large
+     18pt name or heading, where normal single-space gaps are
+     proportionally wider — exactly the case that caused "Marco" and
+     "Torres" to stay two separate runs instead of merging into one name
+     during testing. 'auto' is opt-in so nothing that already depends on
+     a fixed gap changes behavior. */
   function mergeWordRuns(rows, wordGap) {
+    var auto = wordGap === 'auto';
     return rows.map(function (row) {
       var runs = [];
+      var rowGap = auto ? autoGapForRow(row) : wordGap;
       row.items.forEach(function (it) {
         var last = runs[runs.length - 1];
-        if (last && (it.x - (last.x + last.w)) <= wordGap) {
+        if (last && (it.x - (last.x + last.w)) <= rowGap) {
           last.text += ' ' + it.text;
           last.w = (it.x + it.w) - last.x;
           if (isBoldFont(it.fontName)) last.bold = true;
@@ -78,6 +89,11 @@
       });
       return { yAvg: row.yAvg, items: runs };
     });
+  }
+  function autoGapForRow(row) {
+    var maxSize = 10;
+    row.items.forEach(function (it) { if (it.fontSize) maxSize = Math.max(maxSize, it.fontSize); });
+    return Math.max(3, maxSize * 0.32);
   }
 
   /* ── Column detection: cluster X-start positions across ALL rows into
@@ -172,6 +188,227 @@
   /* ── Orchestration: positioned items -> grid, given tunable tolerances
      (Best/Balanced/Fast quality tiers translate to tolerance choices at
      the call site, not different algorithms). ── */
+  /* ── Document classification ──────────────────────────────────────
+     HONESTY NOTE: this is rule-based structural analysis, not a trained
+     classifier. It answers a narrower, defensible question — "does this
+     page look grid-like, card-like, or prose-like?" — using signals we
+     can actually measure (item count, column-alignment strength, font-
+     size spread, line length). It does NOT attempt to distinguish
+     semantically similar layouts that share the same visual structure
+     (e.g. "invoice" vs "price list" vs "bank statement" all look like
+     the same grid-of-numbers signature; "brochure" vs "magazine" vs
+     "manual" all look like the same multi-column-prose signature). We
+     return four honestly-distinguishable buckets, each mapped to a
+     genuinely different reconstruction strategy, plus a qualitative
+     confidence (based on how many signals agree, not a manufactured
+     percentage) and the actual reasons — shown to the user, not hidden. */
+  function classifyPage(items, pageWidth) {
+    if (!items.length) return { type: 'mixed', confidence: 'low', reasons: ['No text detected on this page.'] };
+    var reasons = [];
+    var n = items.length;
+    var sizes = items.map(function (it) { return it.fontSize || 10; }).sort(function (a, b) { return a - b; });
+    var medianSize = sizes[Math.floor(sizes.length / 2)];
+    var minSize = sizes[0];
+    var maxSize = sizes[sizes.length - 1];
+    /* Compared against minSize, not medianSize: with a small sample, a
+       title split across multiple items (a first name and last name as
+       two separate text items, for instance) can itself dominate the
+       item count and pull the median toward the large size rather than
+       the body-text size, masking a real dominant title. minSize stays
+       anchored to the smallest text on the page regardless of how many
+       items share the large size. */
+    var hasLargeTitle = maxSize >= minSize * 1.4 && maxSize >= 14;
+
+    var rows = mergeWordRuns(clusterRows(items, 3), 'auto');
+    var colXs = detectColumnBoundaries(rows, 8);
+    /* Real table signal: does a SMALL set of X-positions get hit by a
+       MEANINGFUL share of distinct rows, not just "this row happens to
+       have more than one word"? A name like "Marco Torres" and a price
+       row like "Widget    $12.99" both have 2+ items per row — the
+       difference is that a real table column recurs at the same X
+       across many different rows, while prose word-starts don't. */
+    var rowsHittingCol = colXs.map(function (cx) {
+      var count = 0;
+      rows.forEach(function (row) {
+        if (row.items.some(function (it) { return Math.abs(it.x - cx) <= 8; })) count++;
+      });
+      return count;
+    });
+    /* The leftmost column is almost always just the shared left margin —
+       every left-aligned block of text has one, table or not, so on its
+       own it's not evidence of a grid. Only count column 2 onward:
+       finding via testing (the brief's own business-card example) that
+       counting the margin column let a plain left-aligned card trip the
+       table threshold. */
+    var nonMarginHits = rowsHittingCol.slice(1);
+    var realColumns = nonMarginHits.filter(function (c) { return rows.length && (c / rows.length) >= 0.3; }).length;
+    /* Require a real minimum sample size before trusting a "recurring
+       column" statistic — with only a handful of rows, 30% is just one
+       or two rows, which coincidental alignment can satisfy by chance
+       (found during testing: short, unrelated second-words on a business
+       card landing within the clustering tolerance of each other). */
+    var strongTable = realColumns >= 2 && colXs.length <= 12 && rows.length >= 6;
+    var columnAlignmentScore = rows.length ? Math.max.apply(null, rowsHittingCol.concat([0])) / rows.length : 0;
+
+    var totalChars = items.reduce(function (s, it) { return s + (it.text || '').length; }, 0);
+    var avgLineLen = rows.length ? totalChars / rows.length : 0;
+    var isVeryShort = n <= 30 && rows.length <= 14;
+
+    /* Card-likelihood is checked first and on its own merits, not merely
+       as a "table signal absent" fallback — a very short document with a
+       dominant large title is distinctive enough that it shouldn't be
+       overridden by a borderline/coincidental table signal, which is
+       exactly the failure mode a small row count makes possible. */
+    if (isVeryShort && hasLargeTitle) {
+      reasons.push(n + ' text items total \u2014 a very short document.');
+      reasons.push('A dominant large title/name (font size ' + Math.round(maxSize) + 'pt vs a ' + Math.round(medianSize) + 'pt median) suggests a name or heading, not a data grid.');
+      if (realColumns === 0) reasons.push('No column position repeats across multiple rows.');
+      var conf = (n <= 18 && maxSize >= minSize * 1.8 && !strongTable) ? 'high' : 'medium';
+      return { type: 'card', confidence: conf, reasons: reasons };
+    }
+    if (strongTable) {
+      reasons.push(realColumns + ' column position(s) each recur across at least 30% of rows.');
+      reasons.push(colXs.length + ' distinct column positions detected overall.');
+      var conf2 = columnAlignmentScore >= 0.7 ? 'high' : 'medium';
+      return { type: 'table', confidence: conf2, reasons: reasons };
+    }
+    if (avgLineLen >= 45 && rows.length >= 6) {
+      reasons.push('Long average line length (' + Math.round(avgLineLen) + ' characters) with no recurring column alignment \u2014 reads like continuous prose.');
+      var conf3 = (avgLineLen >= 60 && realColumns === 0) ? 'high' : 'medium';
+      return { type: 'report', confidence: conf3, reasons: reasons };
+    }
+    reasons.push('No single pattern (grid, short card, or long-form prose) dominated strongly enough to classify confidently.');
+    return { type: 'mixed', confidence: 'low', reasons: reasons };
+  }
+
+  /* ── Paragraph-block grouping ──────────────────────────────────────
+     The reconstruction path for 'card' and 'report' pages, and the
+     direct fix for the exact bug the brief opens with: a name, handle,
+     title line and quote getting torn across unrelated grid cells
+     (A4/A5/A6/B6) because the table-grid path assumes everything is a
+     table row. This instead groups consecutive rows into logical blocks
+     — a new block starts on a real Y-gap (a paragraph/section break) or
+     a real jump in font size (a new heading) — and emits ONE block per
+     output row, with the full text joined and wrapped, rather than
+     splitting it across columns it was never meant to occupy. */
+  function groupIntoParagraphBlocks(rows, opts) {
+    opts = opts || {};
+    var gapMult = opts.gapMultiplier || 1.8;
+    if (!rows.length) return [];
+    var gaps = [];
+    for (var i = 1; i < rows.length; i++) gaps.push(rows[i].yAvg - rows[i - 1].yAvg);
+    var sorted = gaps.slice().sort(function (a, b) { return a - b; });
+    var median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 14;
+    var threshold = Math.max(median * gapMult, median + 6);
+
+    var blocks = [];
+    var current = { rows: [rows[0]], maxFontSize: maxRowFontSize(rows[0]) };
+    for (var j = 1; j < rows.length; j++) {
+      var prevSize = current.maxFontSize;
+      var thisSize = maxRowFontSize(rows[j]);
+      var bigGap = gaps[j - 1] > threshold;
+      var fontJump = prevSize && thisSize && (thisSize / prevSize >= 1.35 || prevSize / thisSize >= 1.35);
+      if (bigGap || fontJump) {
+        blocks.push(current);
+        current = { rows: [rows[j]], maxFontSize: thisSize };
+      } else {
+        current.rows.push(rows[j]);
+        current.maxFontSize = Math.max(current.maxFontSize, thisSize);
+      }
+    }
+    blocks.push(current);
+
+    return blocks.map(function (b) {
+      var lineTexts = b.rows.map(function (row) { return row.items.map(function (it) { return it.text; }).join(' '); });
+      var anyBold = b.rows.some(function (row) { return row.items.some(function (it) { return it.bold; }); });
+      var anyItalic = b.rows.some(function (row) { return row.items.some(function (it) { return it.italic; }); });
+      return { text: lineTexts.join('\n'), lineCount: lineTexts.length, bold: anyBold, italic: anyItalic, fontSize: b.maxFontSize };
+    });
+  }
+  function maxRowFontSize(row) {
+    var m = 0;
+    row.items.forEach(function (it) { if (it.maxFontSize) m = Math.max(m, it.maxFontSize); });
+    return m;
+  }
+
+  /* ── Multi-column reading order ────────────────────────────────────
+     Detects a real gap in the page's X-position histogram (e.g. a
+     two-column brochure/report) and, when found, splits items into
+     column groups so each column reads top-to-bottom on its own before
+     moving to the next column — rather than naively sorting by Y alone,
+     which would interleave two unrelated columns' sentences together.
+     Only splits when the gap is genuinely wide (a real column gutter,
+     not just uneven word spacing); a normal single-column page returns
+     unchanged. */
+  function detectReadingColumns(items, pageWidth) {
+    if (!items.length || !pageWidth) return [items];
+    var xs = items.map(function (it) { return it.x; }).sort(function (a, b) { return a - b; });
+    var gutterMin = pageWidth * 0.06;
+    var bestGap = 0, bestSplit = null;
+    for (var i = 1; i < xs.length; i++) {
+      var gap = xs[i] - xs[i - 1];
+      if (gap > bestGap) { bestGap = gap; bestSplit = (xs[i] + xs[i - 1]) / 2; }
+    }
+    if (bestGap < gutterMin || bestSplit === null) return [items];
+    var left = items.filter(function (it) { return it.x < bestSplit; });
+    var right = items.filter(function (it) { return it.x >= bestSplit; });
+    /* A genuine 2-column layout has multiple independent ROWS flowing on
+       each side — not just 3+ items, which one wide line (a single row
+       whose content happens to reach further right than usual) can
+       satisfy on its own. Found via testing: a short business card with
+       one long line was being split into fake "columns" this way,
+       silently scrambling unrelated fields together on reconstruction. */
+    var leftRowCount = countDistinctRows(left);
+    var rightRowCount = countDistinctRows(right);
+    /* 8, not 3 — found via testing that 3 is trivially satisfied by any
+       left-aligned multi-word document (the shared margin plus a few
+       varying second-word positions easily produces 3+ "rows" on each
+       side of some split point, even with no real second column at
+       all). Requiring 8 means a short document (a business card, at
+       isVeryShort's <=14-row ceiling) structurally cannot trigger a
+       split, while a genuinely long two-column page still can. */
+    if (leftRowCount < 8 || rightRowCount < 8) return [items];
+    return [left, right];
+  }
+  function countDistinctRows(items) {
+    var ys = items.map(function (it) { return it.y; }).sort(function (a, b) { return a - b; });
+    var count = 0, lastY = null;
+    ys.forEach(function (y) { if (lastY === null || Math.abs(y - lastY) > 3) { count++; lastY = y; } });
+    return count;
+  }
+
+  function blocksToGrid(blocks) {
+    var grid = [], fmt = [];
+    blocks.forEach(function (b) {
+      grid.push([b.text]);
+      fmt.push([{ bold: b.bold, italic: b.italic, maxFontSize: b.fontSize }]);
+    });
+    return { grid: grid, fmt: fmt, merges: [], columnCount: 1 };
+  }
+
+  /* ── Smart reconstruction: the actual "Smart Auto" / "Preserve Visual
+     Layout" engine. Classifies the page, detects real multi-column
+     layout, and routes each column to the strategy that actually fits
+     it — table grid for table-like content, paragraph blocks (readable,
+     unsplit sentences) for card/report/mixed content. Returns one
+     {grid,fmt,merges} per detected column IN READING ORDER (left column
+     fully, then right column), plus the classification actually used,
+     so callers can show it to the user rather than hide the reasoning. */
+  function reconstructSmart(items, pageWidth, opts) {
+    opts = opts || {};
+    var yTol = opts.yTolerance || 3, wordGap = opts.wordGap != null ? opts.wordGap : 'auto';
+    var classification = classifyPage(items, pageWidth);
+    var columnGroups = detectReadingColumns(items, pageWidth);
+    var multiColumn = columnGroups.length > 1;
+    var results = columnGroups.map(function (colItems) {
+      var rows = mergeWordRuns(clusterRows(colItems, yTol), wordGap);
+      if (classification.type === 'table') return tableFromRows(rows);
+      var blocks = groupIntoParagraphBlocks(rows, opts);
+      return blocksToGrid(blocks);
+    });
+    return { classification: classification, multiColumn: multiColumn, results: results };
+  }
+
   function reconstructTable(items, opts) {
     opts = opts || {};
     var yTol = opts.yTolerance || 3;
@@ -348,7 +585,7 @@
   }
 
   window.PdfToExcelEngine = {
-    version: '2.1',
+    version: '3.0',
     clusterRows: clusterRows,
     mergeWordRuns: mergeWordRuns,
     detectColumnBoundaries: detectColumnBoundaries,
@@ -363,7 +600,12 @@
     isItalicFont: isItalicFont,
     fromPdfTextContent: fromPdfTextContent,
     fromOcrWords: fromOcrWords,
-    isScannedPage: isScannedPage
+    isScannedPage: isScannedPage,
+    classifyPage: classifyPage,
+    groupIntoParagraphBlocks: groupIntoParagraphBlocks,
+    detectReadingColumns: detectReadingColumns,
+    reconstructSmart: reconstructSmart,
+    blocksToGrid: blocksToGrid
   };
-  try { console.log('[pdf-to-excel] engine v2.1 loaded'); } catch (e) {}
+  try { console.log('[pdf-to-excel] engine v3.0 loaded'); } catch (e) {}
 })();

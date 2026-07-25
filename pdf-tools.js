@@ -490,6 +490,13 @@ INIT['pdf-to-excel']=function(panel){
 
   u.controls.className='controls';
   u.controls.innerHTML=
+    '<div class="ctrl"><label for="pteMode">Reconstruction</label><select id="pteMode">'+
+      '<option value="smart">Smart Auto (recommended)</option>'+
+      '<option value="visual">Preserve Visual Layout</option>'+
+      '<option value="grid">Editable Spreadsheet</option>'+
+      '<option value="tables">Tables Only</option>'+
+      '<option value="text">Text Only</option>'+
+    '</select></div>'+
     '<div class="ctrl"><label>Table detection</label><div class="seg" id="pteSens" role="group" aria-label="Table detection sensitivity">'+
       '<button data-s="tight" aria-pressed="false">Tight</button>'+
       '<button data-s="balanced" class="active" aria-pressed="true">Balanced</button>'+
@@ -523,7 +530,7 @@ INIT['pdf-to-excel']=function(panel){
      serving old-but-valid content returns a normal 200, which never
      triggers a catch-only retry. Bump PTE_ENGINE_V whenever
      pdftoexcel-engine.js's own version bumps. */
-  var PTE_ENGINE_V='2.1';
+  var PTE_ENGINE_V='3.0';
   function loadEngine(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V,'PdfToExcelEngine').catch(function(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V+'&r='+Date.now(),'PdfToExcelEngine');});}
 
   async function openPdf(buf,password){
@@ -620,6 +627,8 @@ INIT['pdf-to-excel']=function(panel){
        reconstructTable) so a page with two genuinely separate tables
        gets two blocks instead of one misaligned grid. */
     var sens=SENS[sensKey]||SENS.balanced;
+    var reconMode=$('#pteMode',panel).value||'smart';
+    var pageClassifications=[];
     var pageBlocks=[]; /* [{pageNum, blocks:[{grid,fmt,merges}], ocr}] */
     var anyTableFound=false,scannedPagesUsed=0,warnings=[];
 
@@ -664,10 +673,47 @@ INIT['pdf-to-excel']=function(panel){
         }catch(e){/* getOperatorList failed — proceed without real names rather than fail the whole page */}
         items=engine.fromPdfTextContent(info.textContent,info.page.getViewport({scale:1}).height,realFontNames);
       }
-      var blocks=engine.reconstructPageBlocks(items,sens);
-      var realBlocks=blocks.filter(function(b){return b.grid.length;});
+      var pageWidth=info.page.getViewport({scale:1}).width;
+      var realBlocks, pageClassification=null;
+      if(reconMode==='text'){
+        /* Text Only: the simplest path — no grid, no classification, just
+           reading-order lines joined into one block per page. Genuinely
+           different processing, not a relabeled table dump. */
+        var rows=engine.mergeWordRuns(engine.clusterRows(items,sens.yTolerance||3),'auto');
+        var lines=rows.map(function(r){return r.items.map(function(it){return it.text;}).join(' ');});
+        realBlocks=lines.length?[{grid:lines.map(function(l){return [l];}),fmt:lines.map(function(){return [{}];}),merges:[]}]:[];
+      }else if(reconMode==='grid'){
+        /* Editable Spreadsheet: always the table-grid path, regardless of
+           what the page looks like — optimized for editing/formulas, not
+           visual fidelity. This is the tool's original, pre-v3.0 behavior. */
+        var gblocks=engine.reconstructPageBlocks(items,sens);
+        realBlocks=gblocks.filter(function(b){return b.grid.length;});
+      }else{
+        /* smart / visual / tables all go through classification. */
+        var smart=engine.reconstructSmart(items,pageWidth,sens);
+        pageClassification=smart.classification;
+        if(reconMode==='tables'){
+          /* Tables Only: keep exactly the result groups classification
+             actually called 'table'; genuinely skip everything else
+             rather than showing it anyway under a different label. */
+          realBlocks=(smart.classification.type==='table')?smart.results.filter(function(b){return b.grid.length;}):[];
+        }else if(reconMode==='visual'){
+          /* Preserve Visual Layout: always the paragraph-block path,
+             even on pages classifyPage would call borderline-table —
+             this mode's entire point is prioritizing a readable,
+             unsplit reconstruction over grid precision. */
+          var visRows=engine.mergeWordRuns(engine.clusterRows(items,sens.yTolerance||3),'auto');
+          var visBlocks=engine.groupIntoParagraphBlocks(visRows,sens);
+          var vg=engine.blocksToGrid(visBlocks);
+          realBlocks=vg.grid.length?[vg]:[];
+        }else{
+          /* smart: exactly what classification recommended. */
+          realBlocks=smart.results.filter(function(b){return b.grid.length;});
+        }
+      }
       if(realBlocks.length)anyTableFound=true;
-      if(!realBlocks.length)warnings.push('Page '+pnum+': no table-like content found.');
+      if(!realBlocks.length)warnings.push('Page '+pnum+': no '+(reconMode==='tables'?'table-like ':'')+'content found.');
+      if(pageClassification)pageClassifications.push({pageNum:pnum,classification:pageClassification});
       pageBlocks.push({pageNum:pnum,blocks:realBlocks.length?realBlocks:[{grid:[],fmt:[],merges:[]}]});
     }
 
@@ -795,11 +841,36 @@ INIT['pdf-to-excel']=function(panel){
     running=null;runBtn.disabled=false;
     var elapsed=Math.round((performance.now()-_t0)/100)/10;
 
+    /* ── Document-type summary: honest and qualitative. No fabricated
+       precision like "98% confidence" — this is rule-based structural
+       analysis (see classifyPage's own comments), not a trained
+       classifier, so it reports what it actually measured: which type
+       most pages matched, how confident that call is (High/Medium/Low,
+       based on how many signals agreed), and the real reasons why —
+       shown to the user, not hidden behind an invented number. */
+    var classificationSummaryHTML='';
+    if(pageClassifications.length){
+      var typeCounts={};
+      pageClassifications.forEach(function(pc){typeCounts[pc.classification.type]=(typeCounts[pc.classification.type]||0)+1;});
+      var majorityType=Object.keys(typeCounts).sort(function(a,b){return typeCounts[b]-typeCounts[a];})[0];
+      var majorityEntry=pageClassifications.filter(function(pc){return pc.classification.type===majorityType;})[0];
+      var typeLabels={card:'Short document / card-style layout',table:'Table-structured document',report:'Long-form / prose document',mixed:'Mixed layout (no single pattern dominated)'};
+      var confLabels={high:'High',medium:'Medium',low:'Low'};
+      var varied=Object.keys(typeCounts).length>1;
+      classificationSummaryHTML='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+        '<div>Detected type: <b style="color:var(--text)">'+(typeLabels[majorityType]||majorityType)+'</b></div>'+
+        '<div>Confidence: '+(confLabels[majorityEntry.classification.confidence]||majorityEntry.classification.confidence)+
+          (varied?' (varied across pages \u2014 showing the majority)':'')+'</div>'+
+        '<div style="font-size:12px;color:var(--text-faint);margin-top:4px">'+majorityEntry.classification.reasons.join(' ')+'</div>'+
+      '</div>';
+    }
+
     /* ── Quality report: real numbers only, no invented statistics ───── */
     u.results.classList.add('show');
     u.results.innerHTML=
       '<div style="max-width:460px;margin:0 auto 14px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2);font-size:13px;color:var(--text-dim)">'+
         '<div style="font-weight:700;color:var(--text);margin-bottom:8px">Conversion report</div>'+
+        classificationSummaryHTML+
         '<div>Pages processed: '+pdf.numPages+'</div>'+
         '<div>Tables extracted: '+totalTables+'</div>'+
         '<div>Worksheets created: '+(outFmt==='csv'?'(single CSV file)':pageBlocks.length)+'</div>'+

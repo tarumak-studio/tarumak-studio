@@ -1057,6 +1057,14 @@ function route(){
        #/p/{page}   -> /{page}             #tools  -> /tools        */
   var _h=location.hash||'';
   if(_h==='#/blog'||_h==='#/blog/'||_h==='/blog'){window.location.replace('/blog');return;}
+  /* #/blog/{slug} was previously missed here — it doesn't match the
+     bare #/blog check above, so it fell through every redirect rule
+     and reached the old openBlog(slug)/buildArticlePage() path further
+     down, which is still live and can itself emit or navigate to
+     /article-{slug}.html. Found during a technical SEO audit tracing
+     exactly which hash patterns still reach that legacy code. */
+  var _bs=_h.match(/^#\/blog\/(.+)$/);
+  if(_bs){window.location.replace('/article-'+_bs[1]);return;}
   var _t=_h.match(/^#\/t\/([a-z0-9-]+)$/);
   if(_t){window.location.replace('/'+_t[1]);return;}
   var _c=_h.match(/^#\/(image|pdf|converter|marketing|developer)$/);

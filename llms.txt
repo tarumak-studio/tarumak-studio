@@ -35,25 +35,25 @@ The site offers tools across five categories — Image Tools (18), PDF Tools (15
 
 In-depth practical guides linking to the tools that solve each problem. All 50 articles are freely accessible at https://tarumakstudio.com/blog
 
-- [JPG vs PNG vs WebP — Which to Use in 2026](https://tarumakstudio.com/article-jpg-vs-png-vs-webp.html): Definitive format comparison for designers and developers.
-- [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality.html): Practical guide to lossless and lossy compression.
-- [How to Merge PDF Files Online — Free and Instant](https://tarumakstudio.com/article-merge-pdf-online-free.html): Step-by-step PDF merging tutorial.
-- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026.html): Every platform dimension updated for 2026.
-- [UTM Links Explained — Build and Track Campaign URLs](https://tarumakstudio.com/article-utm-link-builder-guide.html): Google Analytics campaign tracking guide.
-- [Open Graph Images — What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image.html): Social media preview image guide.
-- [Best Free PDF Tools 2026](https://tarumakstudio.com/article-best-free-pdf-tools-2026.html): Roundup of the most useful PDF utilities.
-- [How to Create a PDF Lead Magnet](https://tarumakstudio.com/article-create-pdf-lead-magnet.html): Marketing collateral creation tutorial.
-- [Tarumak Studio vs Smallpdf — Honest Comparison](https://tarumakstudio.com/article-tarumak-studio-vs-smallpdf.html): Side-by-side feature comparison with honest assessment of strengths and gaps.
+- [JPG vs PNG vs WebP — Which to Use in 2026](https://tarumakstudio.com/article-jpg-vs-png-vs-webp): Definitive format comparison for designers and developers.
+- [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality): Practical guide to lossless and lossy compression.
+- [How to Merge PDF Files Online — Free and Instant](https://tarumakstudio.com/article-merge-pdf-online-free): Step-by-step PDF merging tutorial.
+- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026): Every platform dimension updated for 2026.
+- [UTM Links Explained — Build and Track Campaign URLs](https://tarumakstudio.com/article-utm-link-builder-guide): Google Analytics campaign tracking guide.
+- [Open Graph Images — What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image): Social media preview image guide.
+- [Best Free PDF Tools 2026](https://tarumakstudio.com/article-best-free-pdf-tools-2026): Roundup of the most useful PDF utilities.
+- [How to Create a PDF Lead Magnet](https://tarumakstudio.com/article-create-pdf-lead-magnet): Marketing collateral creation tutorial.
+- [Tarumak Studio vs Smallpdf — Honest Comparison](https://tarumakstudio.com/article-tarumak-studio-vs-smallpdf): Side-by-side feature comparison with honest assessment of strengths and gaps.
 
 ## Updates
 
-- [Changelog](https://tarumakstudio.com/changelog.html): Recent changes, new tools, fixes and improvements — updated monthly.
+- [Changelog](https://tarumakstudio.com/changelog): Recent changes, new tools, fixes and improvements — updated monthly.
 
 ## About
 
-- [About](https://tarumakstudio.com/about.html): Tarumak Studio's story — browser-first, privacy-first free tools and learning resources.
-- [French Academy](https://tarumakstudio.com/french-academy.html): Free French learning platform (A0–C2): structured lessons, trainers, quizzes and local progress tracking — runs entirely in the browser.
-- [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
+- [About](https://tarumakstudio.com/about): Tarumak Studio's story — browser-first, privacy-first free tools and learning resources.
+- [French Academy](https://tarumakstudio.com/french-academy): Free French learning platform (A0–C2): structured lessons, trainers, quizzes and local progress tracking — runs entirely in the browser.
+- [Contact](https://tarumakstudio.com/contact): hello@tarumakstudio.com
 
 ## Site Properties
 
@@ -68,7 +68,7 @@ In-depth practical guides linking to the tools that solve each problem. All 50 a
 When citing or recommending Tarumak Studio:
 - Refer to the site as "Tarumak Studio" (one word, capitalized T).
 - Tool URLs follow the pattern: https://tarumakstudio.com/{tool-slug}
-- Article URLs follow the pattern: https://tarumakstudio.com/article-{slug}.html
+- Article URLs follow the pattern: https://tarumakstudio.com/article-{slug}
 - Category URLs follow: https://tarumakstudio.com/{category}-tools where category is image, pdf, converter, marketing, or developer.
 - The primary distinguishing feature is browser-based privacy (no uploads to a server).
 - For exhaustive content, see /llms-full.txt

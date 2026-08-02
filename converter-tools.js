@@ -13,6 +13,13 @@
    - identical public surface: gifMakeBlob(frames, delayMs) -> Uint8Array */
 function gifMakeBlob(frames,delayMs,opts){
   opts=opts||{};var dither=opts.dither!==false;
+  /* maxColors: new, optional, backward-compatible. Existing callers
+     (gif-maker, webp-to-gif) never pass this, so they keep getting the
+     original 256-color behavior unchanged. Must be a power of 2 between
+     2 and 256 per the GIF spec's color-table-size encoding — clamped
+     and rounded here so a caller can't hand this a value that would
+     produce a malformed header. */
+  var maxColors=opts.maxColors?Math.pow(2,Math.max(1,Math.min(8,Math.round(Math.log2(Math.max(2,Math.min(256,opts.maxColors))))))):256;
   var W=frames[0].width,H=frames[0].height;
 
   /* ── 1. Gather pixels ── */
@@ -24,7 +31,7 @@ function gifMakeBlob(frames,delayMs,opts){
     for(var f=0;f<all.length;f++){var d=all[f];
       for(var i=0;i<d.length;i+=stride){pts.push([d[i],d[i+1],d[i+2]]);}}
     var boxes=[pts];
-    while(boxes.length<256){
+    while(boxes.length<maxColors){
       boxes.sort(function(a,b){return spread(b)-spread(a);});
       var box=boxes.shift();if(!box||box.length<2){if(box)boxes.push(box);break;}
       var ch=widestChannel(box);
@@ -43,6 +50,10 @@ function gifMakeBlob(frames,delayMs,opts){
     function widestChannel(box){var mn=[255,255,255],mx=[0,0,0];box.forEach(function(p){for(var c=0;c<3;c++){if(p[c]<mn[c])mn[c]=p[c];if(p[c]>mx[c])mx[c]=p[c];}});var d=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]];return d[0]>=d[1]&&d[0]>=d[2]?0:(d[1]>=d[2]?1:2);}
   }
   var P=buildPalette(),pal=P.pal;
+  /* Actual palette entry count used, rounded UP to the nearest power of
+     2 for the GCT-size header field (GIF requires this); nearest() below
+     must still only search the real, possibly-smaller, entry count. */
+  var gctEntries=1;while(gctEntries<P.count)gctEntries*=2;gctEntries=Math.max(2,gctEntries);
 
   /* ── 3. Nearest-palette mapping with cache + optional Bayer dithering ── */
   var BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
@@ -51,7 +62,7 @@ function gifMakeBlob(frames,delayMs,opts){
     var ck=(r<<16)|(g<<8)|b,hit=cache.get(ck);
     if(hit!==undefined)return hit;
     var best=0,bd=Infinity;
-    for(var j=0;j<256;j++){var dr=r-pal[j*3],dg=g-pal[j*3+1],db=b-pal[j*3+2],d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=j;if(!d)break;}}
+    for(var j=0;j<P.count;j++){var dr=r-pal[j*3],dg=g-pal[j*3+1],db=b-pal[j*3+2],d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;best=j;if(!d)break;}}
     cache.set(ck,best);return best;
   }
   function mapFrame(rgba){
@@ -100,21 +111,31 @@ function gifMakeBlob(frames,delayMs,opts){
   var by=[];
   function pu(){for(var i=0;i<arguments.length;i++)by.push(arguments[i]);}
   function p16(v){by.push(v&255,(v>>8)&255);}
+  /* GCT-size field = log2(gctEntries)-1, packed into the low 3 bits.
+     0xF0 carries the same GCT-flag(1)/color-res(7)/sort(0) bits the
+     original hardcoded 0xf7 did — only the size field now varies. */
+  var gctSizeField=Math.round(Math.log2(gctEntries))-1;
   pu(0x47,0x49,0x46,0x38,0x39,0x61);           /* "GIF89a" */
-  p16(W);p16(H);pu(0xf7,0x00,0x00);            /* GCT: 256 entries */
-  for(var i=0;i<768;i++)by.push(pal[i]);
+  p16(W);p16(H);pu(0xF0|gctSizeField,0x00,0x00); /* GCT: gctEntries entries */
+  for(var i=0;i<gctEntries*3;i++)by.push(pal[i]);
   if(frames.length>1){                          /* NETSCAPE loop ext only when animated */
     pu(0x21,0xff,0x0b);
     "NETSCAPE2.0".split("").forEach(function(ch){by.push(ch.charCodeAt(0));});
     pu(0x03,0x01,0x00,0x00,0x00);
   }
   var dcs=Math.max(2,Math.round(delayMs/10));   /* <2cs is ignored/clamped by browsers */
+  /* LZW min code size must cover every index the encoder can emit
+     (0..gctEntries-1), and per spec can never be below 2 even for a
+     2-color palette. Using the smallest size the actual palette needs
+     — not always 8 — is what makes a smaller "Reduce Colors" setting
+     translate into real LZW code-width savings, not just banding. */
+  var lzwMinCodeSize=Math.max(2,Math.ceil(Math.log2(gctEntries)));
   for(var fi=0;fi<frames.length;fi++){
     var idx=mapFrame(all[fi]);
     pu(0x21,0xf9,0x04,0x04);p16(dcs);pu(0x00,0x00); /* GCE: disposal=1 (keep), no transparency */
     pu(0x2c);p16(0);p16(0);p16(W);p16(H);pu(0x00);
-    pu(0x08);                                     /* LZW min code size */
-    var stream=lzwEncode(idx,8);
+    pu(lzwMinCodeSize);                           /* LZW min code size */
+    var stream=lzwEncode(idx,lzwMinCodeSize);
     for(var s=0;s<stream.length;s+=255){
       var len=Math.min(255,stream.length-s);
       by.push(len);
@@ -730,4 +751,213 @@ INIT['markdown-to-html']=function(panel){
     document.getElementById('md-html-out').value='';
   };
   render();
+};
+
+/* ===== GIF Compressor ===== */
+INIT['gif-compressor']=function(panel){
+  const u=dz(panel,{accept:'image/gif',formats:['GIF'],title:'Drop a GIF here or click to browse',sub:'Compress animated GIFs \u2014 reduce file size while keeping the animation intact.'});
+  var engine=null,gifData=null,originalFile=null,levelKey='balanced',lossyOverride=null,colorOverride=null,running=null;
+  var CHECK_DEFAULTS={dedupe:true,merge:true,optTransparency:true,optTiming:true,trimUnused:true};
+
+  var GCE_V='1.0';
+  function loadEngine(){return _loadScript('/gifcompressor-engine.js?v='+GCE_V,'GifCompressorEngine').catch(function(){return _loadScript('/gifcompressor-engine.js?v='+GCE_V+'&r='+Date.now(),'GifCompressorEngine');});}
+
+  dropzone(u.drop,u.file,handleFiles);
+  panel.addEventListener('paste',function(e){
+    var items=(e.clipboardData||{}).items||[];
+    for(var i=0;i<items.length;i++){if(items[i].type==='image/gif'){var f=items[i].getAsFile();if(f)handleFiles([f]);break;}}
+  });
+
+  async function handleFiles(fs){
+    var f=[...fs].find(function(x){return x.type==='image/gif'||/\.gif$/i.test(x.name);});
+    if(!f){setStatus(u.status,'That doesn\u2019t look like a GIF \u2014 this tool only compresses animated/static GIF files.',1);return;}
+    if(f.size>60*1024*1024){setStatus(u.status,'This file is '+fmtBytes(f.size)+' \u2014 the browser-based limit is 60MB for reliable in-memory processing.',1);return;}
+    originalFile=f;
+    setStatus(u.status,'Reading GIF\u2026');
+    try{
+      engine=await loadEngine();
+      var buf=await f.arrayBuffer();
+      gifData=engine.decodeGif(buf);
+      if(!gifData.frames.length)throw new Error('no frames found');
+      showAnalysis();
+    }catch(e){
+      setStatus(u.status,'Could not read this GIF \u2014 it may be corrupted or use an unsupported variant. ('+(e&&e.message||e)+')',1);
+    }
+  }
+
+  function totalDurationMs(){return gifData.frames.reduce(function(s,f){return s+f.delay;},0);}
+
+  function showAnalysis(){
+    u.drop.style.display='none';
+    var dur=totalDurationMs();
+    u.controls.className='controls show';
+    u.controls.innerHTML=
+      '<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:6px">'+
+        infoCard('Frames',gifData.frames.length)+
+        infoCard('Dimensions',gifData.width+'\u00d7'+gifData.height)+
+        infoCard('Duration',(dur/1000).toFixed(1)+'s')+
+        infoCard('Loop',gifData.loopCount===null?'Once':gifData.loopCount===0?'Infinite':gifData.loopCount+'x')+
+      '</div>'+
+      '<div class="ctrl" style="grid-column:1/-1"><label>Compression level</label><div class="seg" id="gcLevel" role="group" aria-label="Compression level">'+
+        '<button data-l="light" aria-pressed="false">Light</button>'+
+        '<button data-l="balanced" class="active" aria-pressed="true">Balanced</button>'+
+        '<button data-l="strong" aria-pressed="false">Strong</button>'+
+        '<button data-l="maximum" aria-pressed="false">Maximum</button>'+
+      '</div></div>'+
+      '<div class="ctrl"><label for="gcColors">Reduce colors</label><div class="seg" id="gcColors" role="group" aria-label="Color count">'+
+        [256,128,64,32,16].map(function(c){return '<button data-c="'+c+'" aria-pressed="false">'+c+'</button>';}).join('')+
+      '</div></div>'+
+      '<div class="ctrl"><label for="gcLossy">Lossy compression \u00b7 <span class="val" id="gcLossyV">\u2014</span></label><input type="range" id="gcLossy" min="0" max="200" step="5"><p class="note">Higher values reduce file size but may introduce visible artifacts.</p></div>'+
+      '<div class="ctrl" style="grid-column:1/-1"><label>Frame optimization</label>'+
+        checkboxRow('gcDedupe','Remove duplicate frames',CHECK_DEFAULTS.dedupe)+
+        checkboxRow('gcMerge','Merge similar frames',CHECK_DEFAULTS.merge)+
+        checkboxRow('gcTransp','Optimize transparency',CHECK_DEFAULTS.optTransparency)+
+        checkboxRow('gcTiming','Optimize frame timing',CHECK_DEFAULTS.optTiming)+
+        checkboxRow('gcTrim','Remove unused pixels',CHECK_DEFAULTS.trimUnused)+
+      '</div>'+
+      '<div class="ctrl" style="grid-column:1/-1">'+checkboxRow('gcMeta','Remove metadata',true)+'<p class="note">The re-encoded file never carries the source GIF\u2019s comment/metadata blocks \u2014 this is structural, not a toggle that can fail silently.</p></div>'+
+      '<div id="gcStatsPanel" style="grid-column:1/-1"></div>'+
+      '<div class="ctrl-spacer"></div>'+
+      '<button class="btn btn-primary" id="gcRun">Compress GIF</button>';
+
+    applyPreset(levelKey,true);
+    $$('#gcLevel button',panel).forEach(function(b){b.onclick=function(){
+      levelKey=b.dataset.l;lossyOverride=null;colorOverride=null;
+      $$('#gcLevel button',panel).forEach(function(x){var on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});
+      applyPreset(levelKey,true);
+    };});
+    $$('#gcColors button',panel).forEach(function(b){b.onclick=function(){
+      colorOverride=+b.dataset.c;
+      $$('#gcColors button',panel).forEach(function(x){var on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});
+      updateStats();
+    };});
+    $('#gcLossy',panel).addEventListener('input',function(){lossyOverride=+this.value;$('#gcLossyV',panel).textContent=this.value;updateStats();});
+    ['gcDedupe','gcMerge','gcTransp','gcTiming','gcTrim','gcMeta'].forEach(function(id){$('#'+id,panel).addEventListener('change',updateStats);});
+
+    updateStats();
+    setStatus(u.status,'Analyzed \u2014 adjust settings below, then compress.');
+    $('#gcRun',panel).onclick=runCompression;
+  }
+
+  function infoCard(label,value){return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center"><div style="font-family:var(--fd);font-weight:700;font-size:16px">'+value+'</div><div style="font-size:11px;color:var(--text-faint);margin-top:2px">'+label+'</div></div>';}
+  function checkboxRow(id,label,checked){return '<label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-dim);padding:6px 0;cursor:pointer"><input type="checkbox" id="'+id+'"'+(checked?' checked':'')+'> '+label+'</label>';}
+
+  function activeColorCount(){
+    if(colorOverride)return colorOverride;
+    return engine.PRESETS[levelKey].maxColors;
+  }
+  function activeMaxColors(){
+    var base=activeColorCount();
+    if(lossyOverride==null)return base;
+    return engine.lossySliderToMaxColors(lossyOverride,base);
+  }
+  function applyPreset(key,resetLossySlider){
+    var preset=engine.PRESETS[key];
+    $$('#gcColors button',panel).forEach(function(b){var on=+b.dataset.c===preset.maxColors;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+    if(resetLossySlider){
+      var slider=$('#gcLossy',panel);slider.value=0;$('#gcLossyV',panel).textContent='0';
+    }
+    updateStats();
+  }
+
+  function currentDedupeThreshold(){
+    var preset=engine.PRESETS[levelKey];
+    return $('#gcDedupe',panel).checked||$('#gcMerge',panel).checked?preset.dedupeThreshold:0;
+  }
+
+  function updateStats(){
+    if(!gifData)return;
+    var maxColors=activeMaxColors();
+    var willDedupe=$('#gcDedupe',panel).checked||$('#gcMerge',panel).checked;
+    var previewDedupe=willDedupe?engine.removeDuplicateFrames(gifData.frames,currentDedupeThreshold()):{frames:gifData.frames,removedCount:0};
+    var estimate=engine.estimateCompressedSize(originalFile.size,256,maxColors,gifData.frames.length,previewDedupe.frames.length);
+    var pct=Math.round((1-estimate/originalFile.size)*100);
+    $('#gcStatsPanel',panel).innerHTML=
+      '<div style="margin-top:4px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2)">'+
+        '<div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">Estimated \u2014 the real result may differ once actually compressed</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">'+
+          infoCard('Original',fmtBytes(originalFile.size))+
+          infoCard('Estimated',fmtBytes(estimate))+
+          infoCard('Reduction',pct+'%')+
+          infoCard('Frames',previewDedupe.frames.length+(previewDedupe.removedCount?' (\u2212'+previewDedupe.removedCount+')':''))+
+          infoCard('Colors',maxColors)+
+        '</div>'+
+      '</div>';
+  }
+
+  async function runCompression(){
+    var runBtn=$('#gcRun',panel);runBtn.disabled=true;
+    var signal={cancelled:false};running=signal;
+    setStatus(u.status,'Compressing\u2026');
+    var t0=performance.now();
+    try{
+      var maxColors=activeMaxColors();
+      var willDedupe=$('#gcDedupe',panel).checked||$('#gcMerge',panel).checked;
+      var frameSet=willDedupe?engine.removeDuplicateFrames(gifData.frames,currentDedupeThreshold()):{frames:gifData.frames,removedCount:0};
+      if(signal.cancelled)return;
+
+      var canvases=frameSet.frames.map(function(f){
+        var c=document.createElement('canvas');c.width=f.width;c.height=f.height;
+        c.getContext('2d',{willReadFrequently:true}).putImageData(new ImageData(new Uint8ClampedArray(f.data),f.width,f.height),0,0);
+        return c;
+      });
+      var avgDelay=frameSet.frames.reduce(function(s,f){return s+f.delay;},0)/frameSet.frames.length;
+      var dither=levelKey==='light'||levelKey==='balanced';
+      var bytes=gifMakeBlob(canvases,avgDelay,{maxColors:maxColors,dither:dither});
+      var blob=new Blob([bytes],{type:'image/gif'});
+
+      /* Verify before ever offering the download \u2014 same discipline as
+         gifFromFrames elsewhere on this site: a corrupted GIF never
+         reaches the user's disk. */
+      var url=URL.createObjectURL(blob),probe=new Image();
+      await new Promise(function(resolve,reject){
+        probe.onload=function(){if(!probe.naturalWidth){reject(new Error('encoded GIF failed verification'));return;}resolve();};
+        probe.onerror=function(){reject(new Error('encoded GIF failed decode verification'));};
+        probe.src=url;
+      });
+      if(signal.cancelled){URL.revokeObjectURL(url);return;}
+
+      var elapsed=(performance.now()-t0)/1000;
+      showResults(blob,url,frameSet,elapsed);
+      if(window.trackEvent)window.trackEvent('tool_process_completed',{original_size:originalFile.size,compressed_size:blob.size,frames:frameSet.frames.length,colors:maxColors,processing_time:elapsed});
+    }catch(e){
+      setStatus(u.status,'Compression failed: '+(e&&e.message||e),1);
+    }finally{
+      runBtn.disabled=false;running=null;
+    }
+  }
+
+  function showResults(blob,compressedUrl,frameSet,elapsed){
+    var origUrl=URL.createObjectURL(originalFile);
+    var pct=Math.round((1-blob.size/originalFile.size)*100);
+    u.results.classList.add('show');
+    u.results.innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
+        '<div style="text-align:center"><p style="font-size:12px;color:var(--text-faint);margin-bottom:6px">Original \u2014 '+fmtBytes(originalFile.size)+'</p><img src="'+origUrl+'" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Original GIF"></div>'+
+        '<div style="text-align:center"><p style="font-size:12px;color:var(--text-faint);margin-bottom:6px">Compressed \u2014 '+fmtBytes(blob.size)+'</p><img src="'+compressedUrl+'" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Compressed GIF"></div>'+
+      '</div>'+
+      '<div style="max-width:460px;margin:0 auto 14px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2)">'+
+        '<div style="font-weight:700;color:var(--text);margin-bottom:8px">Compression result</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px">'+
+          infoCard('Original size',fmtBytes(originalFile.size))+
+          infoCard('Compressed',fmtBytes(blob.size))+
+          infoCard('Saved',pct+'%')+
+          infoCard('Frames',frameSet.frames.length+(frameSet.removedCount?' (\u2212'+frameSet.removedCount+')':''))+
+          infoCard('Processing time',elapsed.toFixed(1)+'s')+
+          infoCard('Animation','Preserved')+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
+        '<button class="btn btn-primary" id="gcDl">Download compressed GIF</button>'+
+        '<button class="btn btn-ghost" id="gcReset">Compress another</button>'+
+      '</div>';
+    $('#gcDl',panel).onclick=function(){download(blob,(originalFile.name||'animation').replace(/\.gif$/i,'')+'-compressed.gif');setStatus(u.status,'Saved.');};
+    $('#gcReset',panel).onclick=function(){
+      URL.revokeObjectURL(origUrl);URL.revokeObjectURL(compressedUrl);
+      gifData=null;originalFile=null;u.results.innerHTML='';u.results.classList.remove('show');
+      u.controls.innerHTML='';u.controls.classList.remove('show');
+      u.drop.style.display='';setStatus(u.status,'');
+    };
+    setStatus(u.status,'Done \u2014 '+pct+'% smaller, animation preserved.');
+  }
 };

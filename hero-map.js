@@ -72,6 +72,7 @@ const HERO_MAP = {
   'html-to-pdf':        { type: 'formatConvert', from: 'HTML', to: 'PDF' },
   'gif-maker':          { type: 'assemble', mode: 'gif' },
   'gif-to-webp':        { type: 'formatConvert', from: 'GIF', to: 'WebP', note: 'smaller' },
+  'gif-compressor':     { type: 'sizeReduction', from: '8.4 MB', to: '2.1 MB', saved: '\u221275%' },
   'webp-to-gif':        { type: 'formatConvert', from: 'WebP', to: 'GIF' },
   'color-picker':       { type: 'eyedropper' },
   'image-collage':      { type: 'assemble', mode: 'grid' },

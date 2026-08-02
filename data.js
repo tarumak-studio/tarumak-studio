@@ -362,6 +362,7 @@ const AI_SUMMARY={
   'gif-maker':'This free GIF maker combines multiple JPG, PNG, or WebP images into an animated GIF with adjustable frame delay, processed in-browser.',
   'gif-to-webp':'This free GIF to WebP converter changes animated GIFs to modern animated WebP format, producing files 50-60% smaller, processed in-browser.',
   'webp-to-gif':'This free WebP to GIF converter changes animated WebP files to animated GIF for older platform compatibility, processed in-browser.',
+  'gif-compressor':'This free GIF compressor reduces animated GIF file size by cutting the color palette, removing duplicate frames, and applying lossy compression \u2014 while keeping the animation intact, processed entirely in your browser.',
   'color-picker':'This free color picker reads pixel-perfect HEX, RGB, and HSL values from any pixel in an uploaded image, processed in-browser.',
   'image-collage':'This free image collage maker combines multiple photos into grid layouts (2-4 cells) with adjustable spacing, exportable as JPG or PNG.',
   'favicon-generator':'This free favicon generator outputs all standard sizes (16x16, 32x32, 48x48, 180x180, 192x192, 512x512) for websites and PWA manifests.',
@@ -495,6 +496,7 @@ const TOOLS=[
  ['gif-maker','GIF Maker','converter','Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.',['IMG→GIF']],
  ['gif-to-webp','GIF to WebP Converter','converter','Convert animated GIF to WebP online for smaller file sizes and better web performance. Keeps all animation frames.',['GIF→WEBP']],
  ['webp-to-gif','WebP to GIF Converter','converter','Convert animated WebP to GIF for wider compatibility with older browsers, email clients and social platforms.',['WEBP→GIF']],
+ ['gif-compressor','GIF Compressor','converter','Compress animated GIFs online for free. Reduce file size while preserving animation \u2014 browser-based, privacy-first, no uploads.',['GIF Compress']],
  ['color-picker','Color Picker from Image','converter','Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.',['HEX','RGB']],
  ['image-collage','Image Collage Maker','converter','Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.',['JPG','PNG']],
  ['favicon-generator','Favicon Generator','converter','Generate favicons for your website from any image. Creates all required sizes (16x16 to 512x512) — free, instant.',['ICO','PNG']],
@@ -648,6 +650,16 @@ FAQ['ai-object-remover']=[["How does the removal work?","You paint a mask over u
 FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
 FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
 FAQ['webp-to-gif']=[['Does it keep animation?','This converts a still WebP into a single-frame GIF. Decoding animated WebP frames is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+FAQ['gif-compressor']=[
+  ['How much can GIFs be compressed?','It depends heavily on the source — a GIF with a lot of flat color and repeated frames can shrink dramatically (often 60–80%+) at the Balanced or Strong setting; a GIF that\'s already tightly optimized, or full of noisy photographic content, will compress less. The live stats panel gives an estimate before you commit, and the actual result is always shown after.'],
+  ['Will the animation be preserved?','Yes — frame count (minus any duplicates you choose to remove), timing, and loop behavior are all preserved. Removing a duplicate frame adds its display time to the frame it matched, so total animation duration doesn\'t change.'],
+  ['Can transparent GIFs be compressed?','Transparency is read and preserved during decoding. Very fine partial-transparency effects some GIFs simulate can be affected by aggressive color reduction, the same way they would be with any GIF re-encode.'],
+  ['Does it work offline?','Yes, once the page and its compression engine have loaded once, compression itself needs no network connection — decoding, palette reduction, and re-encoding all happen in your browser.'],
+  ['What\'s the maximum file size?','60MB — set by what a browser tab can reliably hold in memory while decoding every frame, not an artificial account-tier limit.'],
+  ['Does quality decrease?','Reducing colors and increasing lossy compression are real trade-offs — smaller files can show visible banding or dithering at aggressive settings. Light and Balanced are built to be close to invisible on typical GIFs; Strong and Maximum prioritize file size and will show more visible compromise.'],
+  ['Can I compress multiple GIFs?','One at a time currently. Batch compression is a planned addition — see the tool\'s roadmap.'],
+  ['Is my GIF uploaded anywhere?','No — decoding, analysis, and re-encoding all happen locally in your browser using a from-scratch GIF encoder/decoder built for this site. The file never leaves your device.']
+];
 
 TOOL_ARTICLES['background-remover']=[ 'remove-background-image-free' ];
 TOOL_ARTICLES['ocr-image-to-text']=[ 'exif-data-privacy-guide' ];

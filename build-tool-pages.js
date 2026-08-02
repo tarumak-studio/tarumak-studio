@@ -34,6 +34,16 @@ const vm = require('vm');
 
 const SITE = 'https://tarumakstudio.com';
 const TODAY = new Date().toISOString().slice(0, 10);
+/* Cache-busting for the 5 core tool-logic scripts, shared across every
+   tool page. These previously had NO version pin at all — unlike the
+   lazy-loaded engines (pdftoexcel-engine.js etc.), which is exactly
+   backwards, since these are the files most likely to change during
+   active development. Confirmed via a real incident: a fix shipped to
+   converter-tools.js, verified correct in the source, but a user's
+   browser kept showing the old behavior — the tell was the OLD code's
+   exact label wording appearing after the fix was already deployed.
+   Bump this on ANY change to ANY of the 5 files below. */
+const CORE_JS_V = '1.0';
 const BUILD_DATE = new Date(TODAY + 'T00:00:00Z');
 
 /* ── 1. Capture data from data.js + blog-data.js + tool-content.js ── */
@@ -1003,11 +1013,11 @@ ${CDN_TAGS}
 <script src="/utils.js" defer></script>
 <script src="/tool-helpers.js" defer></script>
 <script src="/data.js" defer></script>
-<script src="/pdf-tools.js" defer></script>
-<script src="/image-tools.js" defer></script>
-<script src="/converter-tools.js" defer></script>
-<script src="/marketing-tools.js" defer></script>
-<script src="/developer-tools.js" defer></script>
+<script src="/pdf-tools.js?v=${CORE_JS_V}" defer></script>
+<script src="/image-tools.js?v=${CORE_JS_V}" defer></script>
+<script src="/converter-tools.js?v=${CORE_JS_V}" defer></script>
+<script src="/marketing-tools.js?v=${CORE_JS_V}" defer></script>
+<script src="/developer-tools.js?v=${CORE_JS_V}" defer></script>
 <script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
 ${NAV_RESPONSIVE_SCRIPT}

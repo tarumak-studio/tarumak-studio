@@ -894,13 +894,27 @@ INIT['gif-compressor']=function(panel){
       '</div>';
   }
 
+  function encodeAttempt(canvases,avgDelay,maxColors,dither){
+    var bytes=gifMakeBlob(canvases,avgDelay,{maxColors:maxColors,dither:dither});
+    return new Blob([bytes],{type:'image/gif'});
+  }
+
+  async function verifyGifBlob(blob){
+    var url=URL.createObjectURL(blob),probe=new Image();
+    await new Promise(function(resolve,reject){
+      probe.onload=function(){if(!probe.naturalWidth){reject(new Error('encoded GIF failed verification'));return;}resolve();};
+      probe.onerror=function(){reject(new Error('encoded GIF failed decode verification'));};
+      probe.src=url;
+    });
+    return url;
+  }
+
   async function runCompression(){
     var runBtn=$('#gcRun',panel);runBtn.disabled=true;
     var signal={cancelled:false};running=signal;
     setStatus(u.status,'Compressing\u2026');
     var t0=performance.now();
     try{
-      var maxColors=activeMaxColors();
       var willDedupe=$('#gcDedupe',panel).checked||$('#gcMerge',panel).checked;
       var frameSet=willDedupe?engine.removeDuplicateFrames(gifData.frames,currentDedupeThreshold()):{frames:gifData.frames,removedCount:0};
       if(signal.cancelled)return;
@@ -911,24 +925,43 @@ INIT['gif-compressor']=function(panel){
         return c;
       });
       var avgDelay=frameSet.frames.reduce(function(s,f){return s+f.delay;},0)/frameSet.frames.length;
-      var dither=levelKey==='light'||levelKey==='balanced';
-      var bytes=gifMakeBlob(canvases,avgDelay,{maxColors:maxColors,dither:dither});
-      var blob=new Blob([bytes],{type:'image/gif'});
 
-      /* Verify before ever offering the download \u2014 same discipline as
-         gifFromFrames elsewhere on this site: a corrupted GIF never
-         reaches the user's disk. */
-      var url=URL.createObjectURL(blob),probe=new Image();
-      await new Promise(function(resolve,reject){
-        probe.onload=function(){if(!probe.naturalWidth){reject(new Error('encoded GIF failed verification'));return;}resolve();};
-        probe.onerror=function(){reject(new Error('encoded GIF failed decode verification'));};
-        probe.src=url;
+      /* Dithering is OFF by default now, not tied to the compression
+         level. Found via a real user report: Bayer dithering trades
+         smoother color gradients for LZW-hostile, high-frequency pixel
+         noise — a real, understood mechanism, not a guess — which can
+         make flat-color graphic/text GIFs (a marketing banner, in the
+         case that surfaced this) compress WORSE than the unmodified
+         original. Compression is this tool's entire purpose, so the
+         safe default has to favor it; dithering trades away exactly
+         that for content it doesn't help. */
+      var startColors=activeMaxColors();
+      var attempts=[{colors:startColors,dither:false}];
+      /* Progressively more aggressive fallbacks, only used if the first
+         attempt doesn't actually beat the original — this is the real
+         safety net: never silently ship a "compressed" file that's
+         larger than what the user uploaded. */
+      [Math.max(2,Math.round(startColors/2)),Math.max(2,Math.round(startColors/4))].forEach(function(c){
+        if(c<startColors && attempts.every(function(a){return a.colors!==c;})) attempts.push({colors:c,dither:false});
       });
-      if(signal.cancelled){URL.revokeObjectURL(url);return;}
+
+      var best=null,bestUrl=null;
+      for(var i=0;i<attempts.length;i++){
+        if(signal.cancelled)return;
+        var blob=encodeAttempt(canvases,avgDelay,attempts[i].colors,attempts[i].dither);
+        if(!best||blob.size<best.size){
+          if(bestUrl)URL.revokeObjectURL(bestUrl);
+          best=blob;
+          bestUrl=await verifyGifBlob(blob);
+        }
+        if(best.size<originalFile.size)break; /* genuinely smaller — stop, no need to try harder */
+      }
+      if(signal.cancelled){if(bestUrl)URL.revokeObjectURL(bestUrl);return;}
 
       var elapsed=(performance.now()-t0)/1000;
-      showResults(blob,url,frameSet,elapsed);
-      if(window.trackEvent)window.trackEvent('tool_process_completed',{original_size:originalFile.size,compressed_size:blob.size,frames:frameSet.frames.length,colors:maxColors,processing_time:elapsed});
+      var actuallySmaller=best.size<originalFile.size;
+      showResults(best,bestUrl,frameSet,elapsed,actuallySmaller);
+      if(window.trackEvent)window.trackEvent('tool_process_completed',{original_size:originalFile.size,compressed_size:best.size,frames:frameSet.frames.length,attempts:attempts.length,beat_original:actuallySmaller,processing_time:elapsed});
     }catch(e){
       setStatus(u.status,'Compression failed: '+(e&&e.message||e),1);
     }finally{
@@ -936,28 +969,34 @@ INIT['gif-compressor']=function(panel){
     }
   }
 
-  function showResults(blob,compressedUrl,frameSet,elapsed){
+  function showResults(blob,compressedUrl,frameSet,elapsed,actuallySmaller){
     var origUrl=URL.createObjectURL(originalFile);
     var pct=Math.round((1-blob.size/originalFile.size)*100);
     u.results.classList.add('show');
+    var warningHTML=actuallySmaller?'':
+      '<div style="max-width:460px;margin:0 auto 14px;padding:14px 16px;border:1px solid rgba(255,180,80,.35);border-radius:14px;background:rgba(255,180,80,.08)">'+
+        '<div style="font-weight:700;color:var(--text);margin-bottom:6px">This GIF didn\u2019t compress smaller here</div>'+
+        '<p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">Tried several color-count settings and none beat the original\u2019s '+fmtBytes(originalFile.size)+' \u2014 this can happen when a GIF is already efficiently encoded, or when its content (flat colors, sharp text, simple graphics) doesn\u2019t benefit from further palette reduction the way photographic content does. Your original file is the better choice here \u2014 no need to download the result below.</p>'+
+      '</div>';
     u.results.innerHTML=
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
         '<div style="text-align:center"><p style="font-size:12px;color:var(--text-faint);margin-bottom:6px">Original \u2014 '+fmtBytes(originalFile.size)+'</p><img src="'+origUrl+'" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Original GIF"></div>'+
-        '<div style="text-align:center"><p style="font-size:12px;color:var(--text-faint);margin-bottom:6px">Compressed \u2014 '+fmtBytes(blob.size)+'</p><img src="'+compressedUrl+'" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Compressed GIF"></div>'+
+        '<div style="text-align:center"><p style="font-size:12px;color:var(--text-faint);margin-bottom:6px">'+(actuallySmaller?'Compressed':'Attempted')+' \u2014 '+fmtBytes(blob.size)+'</p><img src="'+compressedUrl+'" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Compressed GIF"></div>'+
       '</div>'+
+      warningHTML+
       '<div style="max-width:460px;margin:0 auto 14px;padding:14px 16px;border:1px solid var(--border-2);border-radius:14px;background:var(--bg-2)">'+
-        '<div style="font-weight:700;color:var(--text);margin-bottom:8px">Compression result</div>'+
+        '<div style="font-weight:700;color:var(--text);margin-bottom:8px">'+(actuallySmaller?'Compression result':'Result')+'</div>'+
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px">'+
           infoCard('Original size',fmtBytes(originalFile.size))+
-          infoCard('Compressed',fmtBytes(blob.size))+
-          infoCard('Saved',pct+'%')+
+          infoCard(actuallySmaller?'Compressed':'Result size',fmtBytes(blob.size))+
+          infoCard(actuallySmaller?'Saved':'Difference',(pct>=0?pct:'+'+Math.abs(pct))+'%')+
           infoCard('Frames',frameSet.frames.length+(frameSet.removedCount?' (\u2212'+frameSet.removedCount+')':''))+
           infoCard('Processing time',elapsed.toFixed(1)+'s')+
           infoCard('Animation','Preserved')+
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
-        '<button class="btn btn-primary" id="gcDl">Download compressed GIF</button>'+
+        '<button class="btn '+(actuallySmaller?'btn-primary':'btn-ghost')+'" id="gcDl">Download '+(actuallySmaller?'compressed GIF':'anyway')+'</button>'+
         '<button class="btn btn-ghost" id="gcReset">Compress another</button>'+
       '</div>';
     $('#gcDl',panel).onclick=function(){download(blob,(originalFile.name||'animation').replace(/\.gif$/i,'')+'-compressed.gif');setStatus(u.status,'Saved.');};

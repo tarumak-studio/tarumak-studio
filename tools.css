@@ -33,6 +33,29 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p1);box-
 .seg{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);padding:5px;border-radius:12px;flex-wrap:wrap}
 .seg button{border:none;background:transparent;color:var(--text-dim);font-family:var(--fb);font-weight:600;font-size:13px;padding:8px 14px;border-radius:9px;cursor:pointer;transition:.25s}
 .seg button.active{background:var(--grad);color:#06121a}
+
+/* ── Rich multi-section control panels (GIF Compressor and similar
+   tools with more than a couple of simple .ctrl fields) ──────────────
+   .controls itself is a flex row with align-items:flex-end and
+   flex-wrap:wrap — correct for a small row of same-height fields, but
+   it does NOT lay out predictably for a dense settings panel: a grid
+   of stat cards, a full-width selector, a two-column settings/checkbox
+   split, a stats summary, and an action button, all wanting their own
+   internal alignment. .tp-panel is one single flex-item (width:100%
+   makes .controls' own flex behavior a non-issue) with its own real
+   grid inside, so its rows and columns are actually predictable rather
+   than depending on flex-wrap reflow at arbitrary widths. */
+.tp-panel{width:100%;display:grid;gap:18px}
+.tp-panel-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.tp-panel-split{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.tp-panel-full{grid-column:1/-1}
+.tp-stat-mini{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center}
+.tp-stat-mini .n{font-family:var(--fd);font-weight:700;font-size:16px}
+.tp-stat-mini .l{font-size:11px;color:var(--text-faint);margin-top:2px}
+.tp-check-list{display:flex;flex-direction:column;gap:2px}
+.tp-check-list label{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-dim);padding:6px 0;cursor:pointer}
+.tp-check-list input{width:16px;height:16px;accent-color:var(--p2);flex-shrink:0}
+@media (max-width:640px){.tp-panel-split{grid-template-columns:1fr}}
 .results{display:none;flex-direction:column;gap:12px;margin-top:22px}
 .results.show{display:flex}
 .row{display:grid;grid-template-columns:54px 1fr auto;gap:14px;align-items:center;padding:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)}

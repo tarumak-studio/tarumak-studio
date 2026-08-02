@@ -792,33 +792,42 @@ INIT['gif-compressor']=function(panel){
     var dur=totalDurationMs();
     u.controls.className='controls show';
     u.controls.innerHTML=
-      '<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:6px">'+
-        infoCard('Frames',gifData.frames.length)+
-        infoCard('Dimensions',gifData.width+'\u00d7'+gifData.height)+
-        infoCard('Duration',(dur/1000).toFixed(1)+'s')+
-        infoCard('Loop',gifData.loopCount===null?'Once':gifData.loopCount===0?'Infinite':gifData.loopCount+'x')+
-      '</div>'+
-      '<div class="ctrl" style="grid-column:1/-1"><label>Compression level</label><div class="seg" id="gcLevel" role="group" aria-label="Compression level">'+
-        '<button data-l="light" aria-pressed="false">Light</button>'+
-        '<button data-l="balanced" class="active" aria-pressed="true">Balanced</button>'+
-        '<button data-l="strong" aria-pressed="false">Strong</button>'+
-        '<button data-l="maximum" aria-pressed="false">Maximum</button>'+
-      '</div></div>'+
-      '<div class="ctrl"><label for="gcColors">Reduce colors</label><div class="seg" id="gcColors" role="group" aria-label="Color count">'+
-        [256,128,64,32,16].map(function(c){return '<button data-c="'+c+'" aria-pressed="false">'+c+'</button>';}).join('')+
-      '</div></div>'+
-      '<div class="ctrl"><label for="gcLossy">Lossy compression \u00b7 <span class="val" id="gcLossyV">\u2014</span></label><input type="range" id="gcLossy" min="0" max="200" step="5"><p class="note">Higher values reduce file size but may introduce visible artifacts.</p></div>'+
-      '<div class="ctrl" style="grid-column:1/-1"><label>Frame optimization</label>'+
-        checkboxRow('gcDedupe','Remove duplicate frames',CHECK_DEFAULTS.dedupe)+
-        checkboxRow('gcMerge','Merge similar frames',CHECK_DEFAULTS.merge)+
-        checkboxRow('gcTransp','Optimize transparency',CHECK_DEFAULTS.optTransparency)+
-        checkboxRow('gcTiming','Optimize frame timing',CHECK_DEFAULTS.optTiming)+
-        checkboxRow('gcTrim','Remove unused pixels',CHECK_DEFAULTS.trimUnused)+
-      '</div>'+
-      '<div class="ctrl" style="grid-column:1/-1">'+checkboxRow('gcMeta','Remove metadata',true)+'<p class="note">The re-encoded file never carries the source GIF\u2019s comment/metadata blocks \u2014 this is structural, not a toggle that can fail silently.</p></div>'+
-      '<div id="gcStatsPanel" style="grid-column:1/-1"></div>'+
-      '<div class="ctrl-spacer"></div>'+
-      '<button class="btn btn-primary" id="gcRun">Compress GIF</button>';
+      '<div class="tp-panel">'+
+        '<div class="tp-panel-row tp-panel-full">'+
+          infoCard('Frames',gifData.frames.length)+
+          infoCard('Dimensions',gifData.width+'\u00d7'+gifData.height)+
+          infoCard('Duration',(dur/1000).toFixed(1)+'s')+
+          infoCard('Loop',gifData.loopCount===null?'Once':gifData.loopCount===0?'Infinite':gifData.loopCount+'x')+
+        '</div>'+
+        '<div class="ctrl tp-panel-full"><label>Compression level</label><div class="seg" id="gcLevel" role="group" aria-label="Compression level">'+
+          '<button data-l="light" aria-pressed="false">Light</button>'+
+          '<button data-l="balanced" class="active" aria-pressed="true">Balanced</button>'+
+          '<button data-l="strong" aria-pressed="false">Strong</button>'+
+          '<button data-l="maximum" aria-pressed="false">Maximum</button>'+
+        '</div></div>'+
+        '<div class="tp-panel-split">'+
+          '<div style="display:flex;flex-direction:column;gap:18px">'+
+            '<div class="ctrl"><label for="gcColors">Reduce colors</label><div class="seg" id="gcColors" role="group" aria-label="Color count">'+
+              [256,128,64,32,16].map(function(c){return '<button data-c="'+c+'" aria-pressed="false">'+c+'</button>';}).join('')+
+            '</div></div>'+
+            '<div class="ctrl"><label for="gcLossy">Lossy compression \u00b7 <span class="val" id="gcLossyV">\u2014</span></label><input type="range" id="gcLossy" min="0" max="200" step="5" style="width:100%"><p class="note">Higher values reduce file size but may introduce visible artifacts.</p></div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;gap:16px">'+
+            '<div class="ctrl"><label>Frame optimization</label><div class="tp-check-list">'+
+              checkboxRow('gcDedupe','Remove duplicate frames',CHECK_DEFAULTS.dedupe)+
+              checkboxRow('gcMerge','Merge similar frames',CHECK_DEFAULTS.merge)+
+              checkboxRow('gcTransp','Optimize transparency',CHECK_DEFAULTS.optTransparency)+
+              checkboxRow('gcTiming','Optimize frame timing',CHECK_DEFAULTS.optTiming)+
+              checkboxRow('gcTrim','Remove unused pixels',CHECK_DEFAULTS.trimUnused)+
+            '</div></div>'+
+            '<div class="ctrl"><div class="tp-check-list">'+checkboxRow('gcMeta','Remove metadata',true)+'</div><p class="note">The re-encoded file never carries the source GIF\u2019s comment/metadata blocks \u2014 this is structural, not a toggle that can fail silently.</p></div>'+
+          '</div>'+
+        '</div>'+
+        '<div id="gcStatsPanel" class="tp-panel-full"></div>'+
+        '<div class="tp-panel-full" style="display:flex;justify-content:flex-end">'+
+          '<button class="btn btn-primary" id="gcRun">Compress GIF</button>'+
+        '</div>'+
+      '</div>';
 
     applyPreset(levelKey,true);
     $$('#gcLevel button',panel).forEach(function(b){b.onclick=function(){
@@ -839,8 +848,8 @@ INIT['gif-compressor']=function(panel){
     $('#gcRun',panel).onclick=runCompression;
   }
 
-  function infoCard(label,value){return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center"><div style="font-family:var(--fd);font-weight:700;font-size:16px">'+value+'</div><div style="font-size:11px;color:var(--text-faint);margin-top:2px">'+label+'</div></div>';}
-  function checkboxRow(id,label,checked){return '<label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-dim);padding:6px 0;cursor:pointer"><input type="checkbox" id="'+id+'"'+(checked?' checked':'')+'> '+label+'</label>';}
+  function infoCard(label,value){return '<div class="tp-stat-mini"><div class="n">'+value+'</div><div class="l">'+label+'</div></div>';}
+  function checkboxRow(id,label,checked){return '<label><input type="checkbox" id="'+id+'"'+(checked?' checked':'')+'> '+label+'</label>';}
 
   function activeColorCount(){
     if(colorOverride)return colorOverride;

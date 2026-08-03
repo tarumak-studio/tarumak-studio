@@ -1083,8 +1083,18 @@ idx = idx.replace(/https:\/\/tarumakstudio\.com\/#\/t\//g, 'https://tarumakstudi
    at whatever number was last hand-written (the log printed intent, not
    result). Same silent-no-op class as the nav-panel splice. */
 idx = idx.replace(/"numberOfItems":\s*\d+/, '"numberOfItems": ' + TOOLS.length);
+/* Same class of bug as numberOfItems above, just not yet caught: the
+   hero eyebrow, meta description, og:description, twitter:description
+   and JSON-LD "description" strings all separately hardcode "NN+ free"
+   rather than reading TOOLS.length — found via a real, reproducible
+   case: adding gif-compressor changed TOOLS.length but every one of
+   these strings kept saying "69+" until this line existed. Matches
+   only the specific "\d+\+ free" phrasing these fields all share, not
+   any arbitrary number-plus-sign occurrence elsewhere on the page. */
+const beforePlus = (idx.match(/\d+\+ (?:free|browser)/g) || []).length;
+idx = idx.replace(/\d+\+ (free|browser)/g, TOOLS.length + '+ $1');
 fs.writeFileSync('index.html', idx);
-console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}`);
+console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}; ${beforePlus} "NN+ free" strings -> ${TOOLS.length}+ free`);
 } /* end require.main guard */
 
 /* ── 12. Exports for other build scripts (e.g. build-comparison-pages.js) ─

@@ -1093,8 +1093,16 @@ idx = idx.replace(/"numberOfItems":\s*\d+/, '"numberOfItems": ' + TOOLS.length);
    any arbitrary number-plus-sign occurrence elsewhere on the page. */
 const beforePlus = (idx.match(/\d+\+ (?:free|browser)/g) || []).length;
 idx = idx.replace(/\d+\+ (free|browser)/g, TOOLS.length + '+ $1');
+/* Same bug, third location: <span id="heroTrustCount">69</span> is the
+   static first-paint fallback before updateHeroCount() (app.js) counts
+   it up to the real TOOLS.length via JS. No "+" sign, so the regex
+   above correctly never matched it — found only by fetching the live
+   page and checking what a non-JS-executing crawler would actually
+   see, not by re-reading the source. Fixing the static fallback means
+   the count is right even before JS runs, not just after. */
+idx = idx.replace(/(id="heroTrustCount">)\d+(<\/span>)/, '$1' + TOOLS.length + '$2');
 fs.writeFileSync('index.html', idx);
-console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}; ${beforePlus} "NN+ free" strings -> ${TOOLS.length}+ free`);
+console.log(`index.html: ${beforeCount} hash tool URLs -> real URLs; numberOfItems -> ${TOOLS.length}; ${beforePlus} "NN+ free" strings -> ${TOOLS.length}+ free; heroTrustCount fallback -> ${TOOLS.length}`);
 } /* end require.main guard */
 
 /* ── 12. Exports for other build scripts (e.g. build-comparison-pages.js) ─

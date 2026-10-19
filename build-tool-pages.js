@@ -1068,11 +1068,19 @@ const pages = [
 ];
 fs.writeFileSync('sitemap-pages.xml', urlset(pages));
 
+/* Comparison pages have their own build script (build-comparison-pages.js)
+   which writes sitemap-comparisons.xml independently. This index must not
+   drop that child no matter which build script ran last, so it includes
+   it whenever the file is present on disk instead of hardcoding a fixed
+   list of three. */
+const sitemapChildren = ['tools', 'articles', 'pages'];
+if (fs.existsSync('sitemap-comparisons.xml')) sitemapChildren.push('comparisons');
+
 fs.writeFileSync('sitemap.xml',
   '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-  ['tools', 'articles', 'pages'].map(n => `  <sitemap><loc>${SITE}/sitemap-${n}.xml</loc><lastmod>${TODAY}</lastmod></sitemap>`).join('\n') +
+  sitemapChildren.map(n => `  <sitemap><loc>${SITE}/sitemap-${n}.xml</loc><lastmod>${TODAY}</lastmod></sitemap>`).join('\n') +
   '\n</sitemapindex>\n');
-console.log(`Sitemaps: index + tools(${TOOLS.length}) + articles(${articleFiles.length}) + pages(${pages.length})`);
+console.log(`Sitemaps: index(${sitemapChildren.join('+')}) + tools(${TOOLS.length}) + articles(${articleFiles.length}) + pages(${pages.length})`);
 
 /* ── 11. Same-deploy schema fix: homepage ItemList — unchanged ──── */
 let idx = fs.readFileSync('index.html', 'utf8');

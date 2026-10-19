@@ -68,7 +68,33 @@
     if (window._ga) window._ga(name, p);
   }
   window.trackEvent = trackEvent;
-
+ /* ── Global JS error monitoring ──────────────────────────────────
+     Every page on the site loads this file, so this one listener
+     covers all 140 pages' client-side tool code with no per-page
+     wiring needed. Fires a GA4 event (js_error) for both thrown
+     errors and rejected promises, with tool_name / tool_category /
+     device already auto-attached by trackEvent. Deduped per page load
+     so one noisy error path (e.g. a loop) can't flood GA4 with
+     thousands of identical events. */
+  var seenErrors = {};
+  function reportError(message, source, errType) {
+    var key = errType + ':' + message + ':' + source;
+    if (seenErrors[key]) return;
+    seenErrors[key] = true;
+    trackEvent('js_error', {
+      error_message: String(message).slice(0, 150),
+      error_source: String(source || '').replace(location.origin, '').slice(0, 150),
+      error_type: errType
+    });
+  }
+  window.addEventListener('error', function (e) {
+    reportError(e.message, e.filename ? e.filename + ':' + e.lineno : '', 'exception');
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var reason = e.reason;
+    var msg = (reason && (reason.message || String(reason))) || 'unhandled rejection';
+    reportError(msg, location.pathname, 'promise_rejection');
+  });
   /* ── Delegated click tracking ─────────────────────────────────────
      Everything below fires on real, already-crawlable <a href> links —
      analytics is added on top of normal navigation, never a replacement

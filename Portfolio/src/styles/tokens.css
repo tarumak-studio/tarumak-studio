@@ -1,0 +1,73 @@
+/* Design tokens. Everything visual on the site derives from these. */
+:root {
+  /* Palette primitives */
+  --ink: #0d0c0a;
+  --ink-raised: #181714;
+  --paper: #f3efe7;
+  --paper-raised: #e8e2d6;
+  --signal: #f0421c;
+  --signal-deep: #c9330f;
+
+  /* Type */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Times New Roman', serif;
+  --font-sans: 'Geist', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --text-lg: clamp(1.15rem, 1.05rem + 0.5vw, 1.45rem);
+  --text-xl: clamp(1.6rem, 1.2rem + 1.8vw, 2.75rem);
+  --text-2xl: clamp(2.5rem, 1.4rem + 5.2vw, 6rem);
+  --text-3xl: clamp(3rem, 1rem + 9.6vw, 10.5rem);
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --section: clamp(5rem, 11vw, 10.5rem);
+
+  /* Shape & motion */
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur: 420ms;
+  --dur-slow: 900ms;
+
+  --nav-h: 4.5rem;
+}
+
+/* Semantic tokens. `.tone-alt` flips a section to the opposite tone,
+   which is what gives the page its dark / light rhythm in both themes. */
+[data-theme='dark'],
+[data-theme='light'] .tone-alt {
+  --bg: var(--ink);
+  --surface: var(--ink-raised);
+  --fg: var(--paper);
+  --muted: #a8a295;
+  --line: rgba(243, 239, 231, 0.16);
+  --accent: var(--signal);
+  --accent-text: #ff6a45;
+  color-scheme: dark;
+}
+
+[data-theme='light'],
+[data-theme='dark'] .tone-alt {
+  --bg: var(--paper);
+  --surface: var(--paper-raised);
+  --fg: var(--ink);
+  --muted: #5f5a50;
+  --line: rgba(13, 12, 10, 0.16);
+  --accent: var(--signal);
+  --accent-text: var(--signal-deep);
+  color-scheme: light;
+}

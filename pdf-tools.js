@@ -103,25 +103,193 @@ INIT['pdf-splitter']=function(panel){
   });
 };
 
+/* ═══ PDF crypto + recompression (keeps text) ═══════════════════════
+   The original pdf-lib can't encrypt or decrypt, so Protect, Unlock and
+   Compress used to rebuild every page as a JPEG: text stopped being
+   selectable or searchable and text PDFs grew up to 13x. These three
+   tools now use @cantoo/pdf-lib, a maintained MIT fork of pdf-lib that
+   adds AES-256 encryption and password decryption. It is loaded only
+   when one of these tools runs. Its UMD build also registers itself as
+   window.PDFLib, so the loader stores it as window.PDFLibCrypto and puts
+   the original PDFLib back for every other tool. Pinned + SRI. */
+var PDF_CRYPTO_URL='https://cdn.jsdelivr.net/npm/@cantoo/pdf-lib@2.11.1/dist/pdf-lib.min.js';
+var PDF_CRYPTO_SRI='sha384-BcRbGROz3cx4LSKcOw2L5YxAxiJPWIEmXRMrYbXu87aSiU5uMQ4qB9v8FEjrBhhq';
+function loadPdfCrypto(){
+  if(window.PDFLibCrypto)return Promise.resolve(window.PDFLibCrypto);
+  if(loadPdfCrypto._p)return loadPdfCrypto._p;
+  loadPdfCrypto._p=new Promise(function(ok,fail){
+    var prev=window.PDFLib,s=document.createElement('script');
+    s.src=PDF_CRYPTO_URL;s.integrity=PDF_CRYPTO_SRI;s.crossOrigin='anonymous';s.referrerPolicy='no-referrer';
+    s.onload=function(){var lib=window.PDFLib;window.PDFLib=prev;
+      if(lib&&lib!==prev&&lib.PDFDocument){window.PDFLibCrypto=lib;ok(lib);}
+      else{loadPdfCrypto._p=null;fail(new Error('The PDF library did not load correctly.'));}};
+    s.onerror=function(){window.PDFLib=prev;loadPdfCrypto._p=null;
+      fail(new Error('Could not load the PDF library. Check your connection and try again.'));};
+    document.head.appendChild(s);
+  });
+  return loadPdfCrypto._p;
+}
+/* Open a PDF with pdf.js to verify an output file. Returns
+   {ok, needsPassword, pages, textItems}. */
+async function verifyPdf(bytes,password){
+  try{
+    const doc=await pdfjsLib.getDocument({data:new Uint8Array(bytes),password:password}).promise;
+    let text=0;
+    for(let i=1;i<=Math.min(doc.numPages,3);i++){text+=(await (await doc.getPage(i)).getTextContent()).items.length;}
+    return {ok:true,needsPassword:false,pages:doc.numPages,textItems:text};
+  }catch(e){
+    if(e&&e.name==='PasswordException')return {ok:false,needsPassword:true};
+    return {ok:false,needsPassword:false,error:e};
+  }
+}
+async function countTextItems(bytes,password){const v=await verifyPdf(bytes,password);return v.ok?v.textItems:0;}
+function baseName(f){return f.name.replace(/\.pdf$/i,'');}
+
 INIT['pdf-compressor']=function(panel){
-  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Best for image-heavy or scanned PDFs.'});
+  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Shrinks the photos inside your PDF. Text, links and layout stay exactly as they are.'});
+  let file=null;
+  dropzone(u.drop,u.file,fs=>{file=[...fs][0];if(!file)return;
+    u.results.innerHTML='';u.results.classList.remove('show');
+    u.controls.className='controls';
+    u.controls.innerHTML='<div class="ctrl"><label>Compression</label><div class="seg" id="q"><button data-q="0.5" data-px="1400">Strong</button><button class="active" data-q="0.65" data-px="2000">Balanced</button><button data-q="0.8" data-px="3000">Light</button></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Compress PDF</button>';
+    $('#q',panel).onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#q button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+    setStatus(u.status,'Ready — '+fmtBytes(file.size)+'.');
+    $('#go',panel).onclick=async()=>{const sel=$('#q button.active',panel);const q=parseFloat(sel.dataset.q),maxPx=parseInt(sel.dataset.px,10);
+      const go=$('#go',panel);go.disabled=true;u.results.innerHTML='';
+      try{
+        setStatus(u.status,'Loading the PDF library…');
+        const L=await loadPdfCrypto();
+        const inBytes=new Uint8Array(await file.arrayBuffer());
+        const probe=await L.PDFDocument.load(inBytes,{ignoreEncryption:true});
+        if(probe.isEncrypted){setStatus(u.status,'This PDF is password-protected. Unlock it first with PDF Unlock, then compress it.',1);return;}
+        const doc=await L.PDFDocument.load(inBytes);
+        const N=L.PDFName,ctx=doc.context;
+        const IMG=N.of('Image'),DCT=N.of('DCTDecode'),RGB=N.of('DeviceRGB'),GRAY=N.of('DeviceGray');
+        const jobs=[];
+        for(const [ref,obj] of ctx.enumerateIndirectObjects()){
+          if(!(obj instanceof L.PDFRawStream))continue;
+          const d=obj.dict;if(d.get(N.of('Subtype'))!==IMG)continue;
+          let f=d.get(N.of('Filter'));if(f instanceof L.PDFArray)f=f.size()===1?f.get(0):null;
+          if(f!==DCT)continue;
+          const cs=d.get(N.of('ColorSpace'));if(cs!==RGB&&cs!==GRAY)continue;   /* skip CMYK, ICC, indexed */
+          if(d.get(N.of('Decode'))||d.get(N.of('ImageMask')))continue;
+          jobs.push([ref,obj]);
+        }
+        let done=0,changed=0,before=0,after=0;
+        for(const [ref,obj] of jobs){
+          done++;setStatus(u.status,'Recompressing image '+done+' of '+jobs.length+'…');
+          const d=obj.dict,src=obj.contents;
+          let bmp;try{bmp=await createImageBitmap(new Blob([src],{type:'image/jpeg'}));}catch(e){continue;}
+          const hasMask=!!d.get(N.of('SMask'));
+          const s=hasMask?1:Math.min(1,maxPx/Math.max(bmp.width,bmp.height));
+          const w=Math.max(1,Math.round(bmp.width*s)),h=Math.max(1,Math.round(bmp.height*s));
+          const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+          x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(bmp,0,0,w,h);bmp.close&&bmp.close();
+          const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',q));
+          if(!blob)continue;
+          const out=new Uint8Array(await blob.arrayBuffer());
+          if(out.length>=src.length*0.9)continue;   /* not worth it: keep the original image */
+          d.set(N.of('Width'),L.PDFNumber.of(w));d.set(N.of('Height'),L.PDFNumber.of(h));
+          d.set(N.of('ColorSpace'),RGB);d.set(N.of('BitsPerComponent'),L.PDFNumber.of(8));
+          d.set(N.of('Filter'),DCT);d.delete(N.of('DecodeParms'));d.set(N.of('Length'),L.PDFNumber.of(out.length));
+          ctx.assign(ref,L.PDFRawStream.of(d,out));
+          changed++;before+=src.length;after+=out.length;
+        }
+        setStatus(u.status,'Saving…');
+        const outBytes=await doc.save({useObjectStreams:true});
+        const check=await verifyPdf(outBytes);
+        if(!check.ok||check.pages!==doc.getPageCount()){setStatus(u.status,'Something went wrong while compressing. Your original file is unchanged.',1);return;}
+        if(outBytes.length>=file.size){
+          setStatus(u.status,changed?'This PDF is already well optimised — the compressed copy wasn’t smaller, so keep your original.':'Nothing to shrink — this PDF has no JPEG photos that can be recompressed, so keep your original.');
+          return;}
+        const pct=Math.round((1-outBytes.length/file.size)*100);
+        const blob=new Blob([outBytes],{type:'application/pdf'});const nm=baseName(file)+'-compressed.pdf';
+        u.results.classList.add('show');
+        row(u.results,null,nm,fmtBytes(file.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(outBytes.length)+' <span class="save">-'+pct+'%</span>',()=>download(blob,nm));
+        setStatus(u.status,'Done — '+pct+'% smaller'+(changed?' ('+changed+' image'+(changed>1?'s':'')+' recompressed)':'')+'. Text stays selectable.');
+      }catch(e){setStatus(u.status,'Could not compress this PDF: '+(e.message||e),1);}
+      finally{go.disabled=false;}};
+  });
+};
+
+INIT['pdf-password-protect']=function(panel){
+  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Adds a password with AES-256 encryption. Text, links and layout stay as they are.'});
   let file=null;
   dropzone(u.drop,u.file,fs=>{file=[...fs][0];if(!file)return;
     u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label>Quality</label><div class="seg" id="q"><button data-s="0.4" data-r="1">Strong</button><button class="active" data-s="0.6" data-r="1.3">Balanced</button><button data-s="0.82" data-r="1.6">Light</button></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Compress PDF</button>';
-    $('#q',panel).onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#q button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');};
-    setStatus(u.status,'Ready — '+fmtBytes(file.size)+'.');
-    $('#go',panel).onclick=async()=>{const sel=$('#q button.active',panel);const jpegQ=parseFloat(sel.dataset.s),scale=parseFloat(sel.dataset.r);
-      setStatus(u.status,'Compressing… this can take a moment.');
-      try{const pdf=await pdfjsDoc(file);const {jsPDF}=window.jspdf;let doc=null;
-        for(let i=1;i<=pdf.numPages;i++){const r=await renderPage(pdf,i,scale);const img=r.canvas.toDataURL('image/jpeg',jpegQ);
-          const w=r.w,h=r.h,o=w>h?'l':'p';if(i===1)doc=new jsPDF({unit:'pt',format:[w,h],orientation:o});else doc.addPage([w,h],o);
-          doc.addImage(img,'JPEG',0,0,w,h);}
-        const blob=doc.output('blob');u.results.classList.add('show');u.results.innerHTML='';
-        const pct=Math.max(0,Math.round((1-blob.size/file.size)*100));
-        row(u.results,null,'compressed.pdf',fmtBytes(file.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+(pct>0?' <span class="save">-'+pct+'%</span>':''),()=>download(blob,'compressed.pdf'));
-        setStatus(u.status,pct>0?('Done — '+pct+'% smaller.'):'Done — this PDF was already well optimized.');}
-      catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}};
+    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password</label><input type="password" id="pw" placeholder="Enter a password" autocomplete="new-password"></div><div class="ctrl"><label for="pw2">Confirm</label><input type="password" id="pw2" placeholder="Repeat password" autocomplete="new-password"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Protect PDF</button>';
+    setStatus(u.status,'Ready — '+file.name+'.');
+    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value,pw2=$('#pw2',panel).value;
+      if(!pw){setStatus(u.status,'Enter a password.',1);return;}
+      if(pw!==pw2){setStatus(u.status,'Passwords do not match.',1);return;}
+      if(pw.length<6){setStatus(u.status,'Use at least 6 characters — short passwords are easy to guess.',1);return;}
+      const go=$('#go',panel);go.disabled=true;
+      try{
+        setStatus(u.status,'Loading the PDF library…');
+        const L=await loadPdfCrypto();
+        const inBytes=new Uint8Array(await file.arrayBuffer());
+        const probe=await L.PDFDocument.load(inBytes,{ignoreEncryption:true});
+        if(probe.isEncrypted){setStatus(u.status,'This PDF already has a password or restrictions. Unlock it first with PDF Unlock if you want to change the password.',1);return;}
+        setStatus(u.status,'Encrypting…');
+        const doc=await L.PDFDocument.load(inBytes);
+        doc.encrypt({userPassword:pw,ownerPassword:pw});   /* AES-256 (PDF 2.0 revision 6) */
+        const out=await doc.save();
+        /* Verify: must need the password, open with it, and keep its text */
+        const locked=await verifyPdf(out);
+        const opened=await verifyPdf(out,pw);
+        if(!locked.needsPassword||!opened.ok){setStatus(u.status,'Could not create a protected copy of this PDF. Your file was not changed.',1);return;}
+        const nm=baseName(file)+'-protected.pdf';
+        download(new Blob([out],{type:'application/pdf'}),nm);
+        setStatus(u.status,'Done — '+nm+' now needs your password to open. Encrypted with AES-256; text stays selectable. Keep the password safe: it can’t be recovered.');
+      }catch(e){setStatus(u.status,'Could not protect this PDF: '+(e.message||e),1);}
+      finally{go.disabled=false;}};
+  });
+};
+
+INIT['pdf-unlock']=function(panel){
+  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Creates an unlocked copy. If the file needs a password to open, enter it below.'});
+  let file=null;
+  dropzone(u.drop,u.file,async fs=>{file=[...fs][0];if(!file)return;
+    u.controls.className='controls';
+    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password (if required to open)</label><input type="password" id="pw" placeholder="Leave blank if none" style="width:220px" autocomplete="current-password"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Unlock PDF</button>';
+    setStatus(u.status,'Ready — '+file.name+'.');
+    /* 1) decrypt with @cantoo/pdf-lib, which keeps text; 2) verify the
+       copy opens with no password; 3) only if the fork can't handle this
+       file's encryption, fall back to rebuilding pages as images (and say so). */
+    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value;const go=$('#go',panel);go.disabled=true;
+      try{
+        setStatus(u.status,'Loading the PDF library…');
+        const L=await loadPdfCrypto();
+        const buf=new Uint8Array(await file.arrayBuffer());
+        const probe=await L.PDFDocument.load(buf,{ignoreEncryption:true});
+        if(!probe.isEncrypted){setStatus(u.status,'This PDF has no password or restrictions, so there is nothing to unlock.');return;}
+        const pre=await verifyPdf(buf,pw||undefined);
+        if(pre.needsPassword){
+          setStatus(u.status,pw?'That password is not correct. Check it and try again.':'This PDF needs its password to open. Enter it above, then press Unlock PDF.',1);
+          const f=$('#pw',panel);if(f)f.focus();return;}
+        setStatus(u.status,'Decrypting…');
+        let out=null,keptText=true;
+        try{
+          const doc=await L.PDFDocument.load(buf,{password:pw});
+          out=await doc.save();
+          const chk=await verifyPdf(out);
+          if(!chk.ok||chk.pages!==pre.pages)out=null;
+        }catch(e){out=null;}
+        if(!out){
+          keptText=false;
+          const pdf=await pdfjsLib.getDocument({data:buf.slice(0),password:pw||undefined}).promise;const {jsPDF}=window.jspdf;let doc=null;
+          for(let i=1;i<=pdf.numPages;i++){setStatus(u.status,'Rebuilding page '+i+' of '+pdf.numPages+'…');
+            const r=await renderPage(pdf,i,1.6);const img=r.canvas.toDataURL('image/jpeg',.9);
+            const w=r.w,h=r.h,o=w>h?'l':'p';if(i===1)doc=new jsPDF({unit:'pt',format:[w,h],orientation:o});else doc.addPage([w,h],o);doc.addImage(img,'JPEG',0,0,w,h);}
+          out=new Uint8Array(await doc.output('arraybuffer'));
+          const chk=await verifyPdf(out);
+          if(!chk.ok||chk.pages!==pdf.numPages){setStatus(u.status,'Could not create an unlocked copy of this PDF. Your file was not changed.',1);return;}
+        }
+        const nm=baseName(file)+'-unlocked.pdf';
+        download(new Blob([out],{type:'application/pdf'}),nm);
+        setStatus(u.status,keptText?'Done — '+nm+' opens without a password. Text, links and layout are unchanged.':'Done — unlocked copy created. This file uses an encryption type that couldn’t be removed directly, so pages were rebuilt as images and text in the copy is not selectable.');
+      }catch(e){setStatus(u.status,'Could not unlock this PDF: '+(e.message||e),1);}
+      finally{go.disabled=false;}};
   });
 };
 
@@ -154,67 +322,6 @@ INIT['pdf-to-text']=function(panel){
       $('#dl',panel).onclick=()=>download(new Blob([$('#out',panel).value],{type:'text/plain'}),'extracted-text.txt');
       setStatus(u.status,all.trim()?('Extracted text from '+pdf.numPages+' page(s).'):'No selectable text found — this looks like a scanned PDF.');}
     catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}});
-};
-
-INIT['pdf-password-protect']=function(panel){
-  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Set a password that will be required to open the file.'});
-  let file=null;
-  dropzone(u.drop,u.file,fs=>{file=[...fs][0];if(!file)return;
-    u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password</label><input type="password" id="pw" placeholder="Enter a password"></div><div class="ctrl"><label for="pw2">Confirm</label><input type="password" id="pw2" placeholder="Repeat password"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Protect PDF</button>';
-    setStatus(u.status,'Ready — '+file.name+'.');
-    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value,pw2=$('#pw2',panel).value;
-      if(!pw){setStatus(u.status,'Enter a password.',1);return;}if(pw!==pw2){setStatus(u.status,'Passwords do not match.',1);return;}
-      setStatus(u.status,'Encrypting…');
-      try{const pdf=await pdfjsDoc(file);const {jsPDF}=window.jspdf;let doc=null;
-        for(let i=1;i<=pdf.numPages;i++){const r=await renderPage(pdf,i,1.6);const img=r.canvas.toDataURL('image/jpeg',.85);
-          const w=r.w,h=r.h,o=w>h?'l':'p';
-          if(i===1)doc=new jsPDF({unit:'pt',format:[w,h],orientation:o,encryption:{userPassword:pw,ownerPassword:pw,userPermissions:['print','copy']}});
-          else doc.addPage([w,h],o);doc.addImage(img,'JPEG',0,0,w,h);}
-        download(doc.output('blob'),'protected.pdf');setStatus(u.status,'Done — the PDF now asks for your password to open.');}
-      catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}};
-  });
-};
-
-INIT['pdf-unlock']=function(panel){
-  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Creates an unlocked copy. If the file needs a password to open, enter it below.'});
-  let file=null;
-  dropzone(u.drop,u.file,async fs=>{file=[...fs][0];if(!file)return;
-    u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label for="pw">Password (if required to open)</label><input type="password" id="pw" placeholder="Leave blank if none" style="width:220px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Unlock PDF</button>';
-    setStatus(u.status,'Ready — '+file.name+'.');
-    /* pdf-lib cannot decrypt. Loading with ignoreEncryption and saving
-       produced a file that was STILL encrypted while we reported
-       success. Now: (1) detect encryption, (2) open with pdf.js using the
-       password if one is needed, (3) rebuild an unlocked copy page by
-       page, (4) verify the copy opens with no password before saying
-       it worked. */
-    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value;setStatus(u.status,'Checking the PDF…');
-      try{const buf=await file.arrayBuffer();
-        let encrypted=false;
-        try{await PDFLib.PDFDocument.load(buf.slice(0));}
-        catch(inner){if(/encrypt/i.test((inner&&(inner.name+' '+inner.message))||''))encrypted=true;else throw inner;}
-        if(!encrypted){setStatus(u.status,'This PDF has no password or restrictions, so there is nothing to unlock.');return;}
-        let pdf;
-        try{pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf.slice(0)),password:pw||undefined}).promise;}
-        catch(e){
-          if(e&&e.name==='PasswordException'){
-            setStatus(u.status,pw?'That password is not correct. Check it and try again.':'This PDF needs its password to open. Enter it above, then press Unlock PDF.',1);
-            const f=$('#pw',panel);if(f)f.focus();return;}
-          throw e;}
-        const {jsPDF}=window.jspdf;let doc=null;
-        for(let i=1;i<=pdf.numPages;i++){setStatus(u.status,'Rebuilding page '+i+' of '+pdf.numPages+'…');
-          const r=await renderPage(pdf,i,1.6);const img=r.canvas.toDataURL('image/jpeg',.9);
-          const w=r.w,h=r.h,o=w>h?'l':'p';if(i===1)doc=new jsPDF({unit:'pt',format:[w,h],orientation:o});else doc.addPage([w,h],o);doc.addImage(img,'JPEG',0,0,w,h);}
-        const out=doc.output('blob');
-        /* Verify: the copy must open without any password */
-        try{const chk=await pdfjsLib.getDocument({data:new Uint8Array(await out.arrayBuffer())}).promise;
-          if(chk.numPages!==pdf.numPages)throw new Error('page count mismatch');}
-        catch(v){setStatus(u.status,'Could not create an unlocked copy of this PDF. Your file was not changed.',1);return;}
-        download(out,file.name.replace(/\.pdf$/i,'')+'-unlocked.pdf');
-        setStatus(u.status,'Done — unlocked copy created ('+pdf.numPages+' page'+(pdf.numPages>1?'s':'')+'). Pages were rebuilt as images, so text in the copy is not selectable.');}
-      catch(e){setStatus(u.status,'Could not unlock this PDF: '+(e.message||e),1);}};
-  });
 };
 
 INIT['pdf-page-rotator']=function(panel){

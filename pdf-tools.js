@@ -3,6 +3,20 @@
 
 const PSIZE={a4:[595.28,841.89],letter:[612,792]};
 
+/* Load a PDF with pdf-lib WITHOUT ignoreEncryption. pdf-lib cannot
+   decrypt, and ignoring encryption silently produced blank pages
+   (Merger) or broken files (Split, Rotate, Remove, Organize). An
+   encrypted file now gets a clear message pointing to PDF Unlock. */
+async function pdfLibLoad(buf,name){
+  try{return await PDFLib.PDFDocument.load(buf);}
+  catch(e){
+    if(/encrypt/i.test((e&&(e.name+' '+e.message))||'')){
+      const err=new Error((name?'\u201c'+name+'\u201d':'This PDF')+' is password-protected or has restrictions. Unlock it first with PDF Unlock (tarumakstudio.com/pdf-unlock), then try again.');
+      err.encrypted=true;throw err;}
+    throw e;}
+}
+function pdfErrMsg(e){return e&&e.encrypted?e.message:'Could not read this PDF: '+((e&&e.message)||e);}
+
 function parseRanges(str,max){
   const out=new Set();
   String(str||'').split(',').forEach(p=>{p=p.trim();if(!p)return;
@@ -58,18 +72,18 @@ INIT['pdf-merger']=function(panel){
   dropzone(u.drop,u.file,fs=>{[...fs].forEach(f=>{if((f.type||'').indexOf('pdf')>-1||/\.pdf$/i.test(f.name))files.push(f);});refresh();});
   go.onclick=async()=>{if(files.length<2)return;setStatus(u.status,'Merging '+files.length+' files…');go.disabled=true;
     try{const out=await PDFLib.PDFDocument.create();
-      for(const f of files){const src=await PDFLib.PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});
+      for(const f of files){setStatus(u.status,'Reading '+f.name+'…');const src=await pdfLibLoad(await f.arrayBuffer(),f.name);
         const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(p=>out.addPage(p));}
       download(new Blob([await out.save()],{type:'application/pdf'}),'merged.pdf');
       setStatus(u.status,'Merged into one PDF ('+out.getPageCount()+' pages).');}
-    catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}finally{go.disabled=false;}};
+    catch(e){setStatus(u.status,e&&e.encrypted?e.message+' Nothing was merged.':'Failed: '+(e.message||e),1);}finally{go.disabled=false;}};
 };
 
 INIT['pdf-splitter']=function(panel){
   const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Extract a page range into one PDF, or split every page out separately.'});
   let buf=null,count=0;
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
-    const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
+    let d;try{d=await pdfLibLoad(buf,f.name);}catch(e){buf=null;u.controls.innerHTML='';setStatus(u.status,pdfErrMsg(e),1);return;}count=d.getPageCount();
     u.controls.className='controls';
     u.controls.innerHTML='<div class="seg" id="md"><button class="active" data-m="range">Extract range</button><button data-m="each">Split every page</button></div>'+
       '<div class="ctrl" id="rg"><label for="rng">Pages (e.g. 1-3, 5)</label><input type="text" id="rng" value="1-'+count+'" style="width:160px"></div>'+
@@ -78,10 +92,10 @@ INIT['pdf-splitter']=function(panel){
     const seg=$('#md',panel);seg.onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#md button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');$('#rg',panel).style.display=b.dataset.m==='range'?'flex':'none';};
     $('#go',panel).onclick=async()=>{const mode=$('#md button.active',panel).dataset.m;
       try{if(mode==='range'){const idx=parseRanges($('#rng',panel).value,count);if(!idx.length){setStatus(u.status,'Enter a valid page range.',1);return;}
-          const src=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});const out=await PDFLib.PDFDocument.create();
+          const src=await pdfLibLoad(buf);const out=await PDFLib.PDFDocument.create();
           const cp=await out.copyPages(src,idx.map(n=>n-1));cp.forEach(p=>out.addPage(p));
           download(new Blob([await out.save()],{type:'application/pdf'}),'split-pages.pdf');setStatus(u.status,'Extracted '+idx.length+' page(s).');}
-        else{u.results.classList.add('show');u.results.innerHTML='';const src=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});
+        else{u.results.classList.add('show');u.results.innerHTML='';const src=await pdfLibLoad(buf);
           for(let i=0;i<count;i++){const out=await PDFLib.PDFDocument.create();const[p]=await out.copyPages(src,[i]);out.addPage(p);
             const blob=new Blob([await out.save()],{type:'application/pdf'});row(u.results,null,'page-'+(i+1)+'.pdf','Page '+(i+1),()=>download(blob,'page-'+(i+1)+'.pdf'));}
           setStatus(u.status,count+' single-page PDFs ready below.');}}
@@ -207,14 +221,14 @@ INIT['pdf-page-rotator']=function(panel){
   const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Rotate the whole document or just specific pages.'});
   let buf=null,count=0;
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
-    const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
+    let d;try{d=await pdfLibLoad(buf,f.name);}catch(e){buf=null;u.controls.innerHTML='';setStatus(u.status,pdfErrMsg(e),1);return;}count=d.getPageCount();
     u.controls.className='controls';
     u.controls.innerHTML='<div class="ctrl"><label>Rotate by</label><div class="seg" id="ang"><button class="active" data-a="90">90&deg;</button><button data-a="180">180&deg;</button><button data-a="270">270&deg;</button></div></div><div class="ctrl"><label for="rng">Pages (blank = all)</label><input type="text" id="rng" placeholder="e.g. 1-3, 5" style="width:150px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Rotate PDF</button>';
     $('#ang',panel).onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#ang button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');};
     setStatus(u.status,'Loaded '+count+' pages.');
     $('#go',panel).onclick=async()=>{const ang=parseInt($('#ang button.active',panel).dataset.a,10);
       const rv=$('#rng',panel).value.trim();const target=rv?parseRanges(rv,count):null;
-      try{const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});const pages=d.getPages();
+      try{const d=await pdfLibLoad(buf);const pages=d.getPages();
         pages.forEach((p,i)=>{if(!target||target.indexOf(i+1)>-1){const cur=p.getRotation().angle||0;p.setRotation(PDFLib.degrees((cur+ang)%360));}});
         download(new Blob([await d.save()],{type:'application/pdf'}),'rotated.pdf');
         setStatus(u.status,'Rotated '+(target?target.length:count)+' page(s) by '+ang+' degrees.');}
@@ -226,14 +240,14 @@ INIT['pdf-page-remover']=function(panel){
   const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'List the pages you want to delete.'});
   let buf=null,count=0;
   dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
-    const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});count=d.getPageCount();
+    let d;try{d=await pdfLibLoad(buf,f.name);}catch(e){buf=null;u.controls.innerHTML='';setStatus(u.status,pdfErrMsg(e),1);return;}count=d.getPageCount();
     u.controls.className='controls';
     u.controls.innerHTML='<div class="ctrl"><label for="rng">Pages to remove (of '+count+')</label><input type="text" id="rng" placeholder="e.g. 2, 4-6" style="width:200px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Remove pages</button>';
     setStatus(u.status,'Loaded '+count+' pages.');
     $('#go',panel).onclick=async()=>{const rem=parseRanges($('#rng',panel).value,count);
       if(!rem.length){setStatus(u.status,'Enter which pages to remove.',1);return;}
       if(rem.length>=count){setStatus(u.status,'You cannot remove every page.',1);return;}
-      try{const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});
+      try{const d=await pdfLibLoad(buf);
         rem.slice().sort((a,b)=>b-a).forEach(n=>d.removePage(n-1));
         download(new Blob([await d.save()],{type:'application/pdf'}),'edited.pdf');
         setStatus(u.status,'Removed '+rem.length+' page(s) — '+d.getPageCount()+' remain.');}
@@ -244,7 +258,9 @@ INIT['pdf-page-remover']=function(panel){
 INIT['pdf-organizer']=function(panel){
   const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Drag pages to reorder. Hover a page to rotate or delete it.'});
   let buf=null;
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();setStatus(u.status,'Rendering thumbnails…');
+  dropzone(u.drop,u.file,async fs=>{const f=[...fs][0];if(!f)return;buf=await f.arrayBuffer();
+    try{await pdfLibLoad(buf.slice(0),f.name);}catch(e){buf=null;u.results.innerHTML='';u.controls.innerHTML='';setStatus(u.status,pdfErrMsg(e),1);return;}
+    setStatus(u.status,'Rendering thumbnails…');
     const pdf=await pdfjsDoc(f);let order=[];for(let i=1;i<=pdf.numPages;i++)order.push({n:i,rot:0});
     const grid=document.createElement('div');grid.className='page-grid';
     u.controls.className='controls';u.controls.innerHTML='<div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Export PDF</button>';
@@ -272,7 +288,7 @@ INIT['pdf-organizer']=function(panel){
       grid.appendChild(card);});}
     paint();setStatus(u.status,pdf.numPages+' pages loaded — drag to reorder.');
     $('#go',panel).onclick=async()=>{setStatus(u.status,'Building PDF…');
-      try{const src=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});const out=await PDFLib.PDFDocument.create();
+      try{const src=await pdfLibLoad(buf);const out=await PDFLib.PDFDocument.create();
         for(const it of order){const[p]=await out.copyPages(src,[it.n-1]);if(it.rot){const cur=p.getRotation().angle||0;p.setRotation(PDFLib.degrees((cur+it.rot)%360));}out.addPage(p);}
         download(new Blob([await out.save()],{type:'application/pdf'}),'organized.pdf');setStatus(u.status,'Exported '+order.length+' page(s).');}
       catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}};

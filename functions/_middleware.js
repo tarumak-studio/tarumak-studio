@@ -27,6 +27,26 @@ const PATH_REDIRECTS = {
   '/svg-to-png.html': '/png-to-svg',
 };
 
+/* Internal files that live in the repo root but must not be public:
+ * working notes/reports (*.md), diffs, Node build scripts and their
+ * build-time inputs, the AI-search Worker source, and test pages.
+ * Pages serves everything in the output folder, so they are blocked
+ * here with the normal 404 page. Runtime files (tool bundles, engines,
+ * llms.txt, robots.txt, ai-catalog.json) are NOT in this list. */
+const BLOCKED_FILES = new Set([
+  '/header-chrome.js', '/resync-chrome.js', '/category-content.js',
+  '/comparison-content.js', '/tool-content.js', '/hero-render.js',
+  '/trust-blocks.js', '/recommend-prototype.js', '/worker.js',
+  '/hero-showcase', '/hero-showcase.html', '/upscaler-test', '/upscaler-test.html',
+]);
+function isBlocked(pathname) {
+  const p = decodeURIComponent(pathname);
+  if (BLOCKED_FILES.has(p)) return true;
+  if (/^\/[^/]+\.(md|diff)$/i.test(p)) return true;
+  if (/^\/build-[^/]*\.js$/i.test(p)) return true;
+  return false;
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
 
@@ -34,6 +54,19 @@ export async function onRequest(context) {
     url.hostname = 'tarumakstudio.com';
     url.protocol = 'https:';
     return Response.redirect(url.toString(), 301);
+  }
+
+  if (isBlocked(url.pathname)) {
+    let body = 'Not found';
+    let type = 'text/plain; charset=utf-8';
+    try {
+      const page = await context.env.ASSETS.fetch(new URL('/404', url.origin));
+      if (page.ok) { body = await page.text(); type = 'text/html; charset=utf-8'; }
+    } catch (e) { /* fall back to plain text */ }
+    return new Response(body, {
+      status: 404,
+      headers: { 'Content-Type': type, 'X-Robots-Tag': 'noindex', 'Cache-Control': 'no-store' },
+    });
   }
 
   const target = PATH_REDIRECTS[url.pathname];

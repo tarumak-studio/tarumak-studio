@@ -11,7 +11,8 @@
 # - Content-Security-Policy is REPORT-ONLY for now: it blocks nothing and
 #   only logs violations to the browser console. Watch the console on a
 #   preview deploy, add any missing host, then rename the header to
-#   Content-Security-Policy to enforce it.
+#   Content-Security-Policy to enforce it. 'unsafe-eval' is required by
+#   the Background Remover's AI runtime (seen on a preview deploy).
 /*
   Strict-Transport-Security: max-age=31536000
   X-Frame-Options: DENY
@@ -19,7 +20,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=()
   ! Access-Control-Allow-Origin
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://staticimgly.com https://tessdata.projectnaptha.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://staticimgly.com https://tessdata.projectnaptha.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
 
 # Disable caching for HTML pages so deploys take effect immediately
 

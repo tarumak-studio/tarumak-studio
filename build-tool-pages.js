@@ -163,7 +163,8 @@ const CAT_JS = { image: 'image-tools.js', pdf: 'pdf-tools.js', converter: 'conve
 const FILE_MARKER = /type=.file.|dropzone\(|\bdz\(|accept\s*[:=]/;
 const CAT_SRC = {};
 for (const cat of Object.keys(CAT_JS)) CAT_SRC[cat] = fs.readFileSync(CAT_JS[cat], 'utf8');
-const ALL_CAT_SRC = Object.values(CAT_SRC).join('\n');
+/* tool-helpers.js holds factories shared by several bundles (imgConv, imagesToPdfTool) */
+const ALL_CAT_SRC = Object.values(CAT_SRC).join('\n') + '\n' + fs.readFileSync('tool-helpers.js', 'utf8');
 function factoryBody(fname) {
   const m = ALL_CAT_SRC.match(new RegExp('function\\s+' + fname + '\\s*\\('));
   if (!m) return null;
@@ -204,8 +205,9 @@ const { COMPARISONS } = require('./comparison-content.js');
 const COMPARISONS_BY_SLUG = {};
 COMPARISONS.forEach(c => { COMPARISONS_BY_SLUG[c.slug] = c; });
 const { renderHero } = require('./hero-render.js');
+const { LIBS: CDN_LIBS, TOOL_DEPS } = require('./tool-deps.js'); /* run build-tool-deps.js first */
 const { trustLine } = require('./trust-blocks.js');
-const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, CDN_TAGS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
+const { CHROME_TOP: CHROME_TOP_BASE, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT } = getChrome();
 const CHROME_TOP = withActiveNav(CHROME_TOP_BASE, 'all');
 console.log(`Chrome: header+menu ${CHROME_TOP.length}c, footer ${FOOTER.length}c, links ${HEAD_LINKS ? 'ok' : 'MISSING'}`);
 
@@ -804,6 +806,20 @@ function schemaGraph(t, faqPairs) {
 }
 
 /* ── 8. Page assembly ──────────────────────────────────────────── */
+/* Only the CDN libraries and bundles this tool uses (tool-deps.js). */
+function toolDeps(slug) {
+  if (!TOOL_DEPS[slug]) throw new Error('tool-deps.js has no entry for ' + slug + ' — run: node build-tool-deps.js');
+  return TOOL_DEPS[slug];
+}
+function toolLibTags(slug) {
+  return toolDeps(slug).libs.map(k => `<script src="${CDN_LIBS[k].src}" integrity="${CDN_LIBS[k].sri}" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+`).join('');
+}
+function toolBundleTags(slug) {
+  return toolDeps(slug).bundles.map(b => `<script src="/${b}?v=${CORE_JS_V}" defer></script>
+`).join('');
+}
+
 function buildPage(t) {
   const [slug, name, cat, desc, chips] = t;
   const url = `${SITE}/${slug}`;
@@ -1007,17 +1023,11 @@ ${FOOTER}
   });
 })();
 </script>
-${CDN_TAGS}
-<script src="/config.js" defer></script>
+${toolLibTags(slug)}<script src="/config.js" defer></script>
 <script src="/utils.js" defer></script>
 <script src="/tool-helpers.js" defer></script>
 <script src="/data.js" defer></script>
-<script src="/pdf-tools.js?v=${CORE_JS_V}" defer></script>
-<script src="/image-tools.js?v=${CORE_JS_V}" defer></script>
-<script src="/converter-tools.js?v=${CORE_JS_V}" defer></script>
-<script src="/marketing-tools.js?v=${CORE_JS_V}" defer></script>
-<script src="/developer-tools.js?v=${CORE_JS_V}" defer></script>
-<script src="/features.js" defer></script>
+${toolBundleTags(slug)}<script src="/features.js" defer></script>
 ${MEGA_MENU_SCRIPT}
 ${NAV_RESPONSIVE_SCRIPT}
 <script src="/tool-hero.js" defer></script>

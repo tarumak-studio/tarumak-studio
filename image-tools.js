@@ -1,56 +1,5 @@
 /* TARUMAK STUDIO — image-tools.js  (15 image tools) */
 
-function imgConv(outType,ext,opt){opt=opt||{};
-  var lossy=(outType==='image/jpeg'||outType==='image/webp');
-  return function(panel){
-  const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||[ext.toUpperCase()],sub:'Convert as many images as you like — all processed locally.'});
-  /* Quality control for lossy outputs; PNG stays lossless (no slider). */
-  if(lossy){
-    u.controls.className='controls';
-    u.controls.innerHTML='<div class="ctrl"><label for="cq">Quality · <span class="val" id="cqv">92%</span></label><input type="range" id="cq" min="50" max="100" value="92" style="width:150px"></div>';
-    var qEl=$('#cq',panel),qvEl=$('#cqv',panel);qEl.oninput=function(){qvEl.textContent=qEl.value+'%';};
-  }
-  var made=[]; /* {blob,name} for Download-all */
-  function refreshActions(){
-    u.actions.innerHTML='';
-    if(made.length>1){
-      var b=document.createElement('button');b.className='btn btn-primary';b.style.cssText='margin-top:6px';
-      b.textContent='Download all ('+made.length+')';
-      b.onclick=function(){made.forEach(function(m,i){setTimeout(function(){download(m.blob,m.name);},i*250);});};
-      u.actions.appendChild(b);
-    }
-  }
-  dropzone(u.drop,u.file,async fs=>{
-    const list=[...fs].filter(f=>(f.type||'').startsWith('image/')||/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name||''));
-    if(!list.length){setStatus(u.status,'No images found — drop PNG, JPG or WebP files.',1);return;}
-    u.results.innerHTML='';u.results.classList.add('show');made=[];u.actions.innerHTML='';
-    var q=lossy?(parseInt($('#cq',panel).value,10)/100):undefined;
-    var ok=0,fail=0;
-    for(let idx=0;idx<list.length;idx++){
-      const f=list[idx];
-      setStatus(u.status,'Converting '+(idx+1)+' / '+list.length+' — '+f.name);
-      try{
-        const img=await readImg(f);
-        const c=document.createElement('canvas');
-        c.width=img.naturalWidth||img.width||512;c.height=img.naturalHeight||img.height||512;
-        const x=c.getContext('2d');
-        /* Only paint a background for formats that can't hold alpha (JPG).
-           PNG/WebP outputs preserve the source's transparency. */
-        if(opt.bg){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}
-        x.imageSmoothingQuality='high';x.drawImage(img,0,0);
-        const blob=await new Promise((res,rej)=>{c.toBlob(b=>b?res(b):rej(new Error('encode failed')),outType,q);});
-        const nm=f.name.replace(/\.[^.]+$/,'')+'.'+ext;
-        made.push({blob:blob,name:nm});ok++;
-        row(u.results,c.toDataURL('image/jpeg',.4),nm,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' · '+ext.toUpperCase(),()=>download(blob,nm));
-      }catch(e){
-        fail++;
-        row(u.results,'',f.name,'Could not convert this file · '+(e.message||'unknown error'),function(){});
-      }
-    }
-    refreshActions();
-    setStatus(u.status,'Done — '+ok+' converted'+(fail?', '+fail+' failed':'')+'.');
-  });
-};}
 
 /* Shared limits for canvas-based image tools. Browsers refuse canvases
    beyond roughly 16k px per side or ~268M px in area; toBlob() then
@@ -208,7 +157,6 @@ INIT['webp-to-jpg']=imgConv('image/jpeg','jpg',{accept:'image/webp',bg:'#fff'});
 INIT['png-to-webp']=imgConv('image/webp','webp',{accept:'image/png'});
 INIT['webp-to-png']=imgConv('image/png','png',{accept:'image/webp'});
 INIT['exif-remover']=imgConv('image/jpeg','jpg',{accept:'image/jpeg,image/png,image/webp',bg:'#fff',formats:['JPG']});
-INIT['gif-to-webp']=imgConv('image/webp','webp',{accept:'image/gif',formats:['WEBP']});
 
 
 
@@ -218,35 +166,8 @@ INIT['svg-to-png']=svgConv('image/png','png',null);
 INIT['svg-to-jpg']=svgConv('image/jpeg','jpg','#fff');
 
 INIT['image-to-pdf']=imagesToPdfTool({outName:'image'});
-INIT['jpg-to-pdf']=imagesToPdfTool({accept:'image/jpeg',formats:['JPG&#8594;PDF'],outName:'jpg'});
-INIT['png-to-pdf']=imagesToPdfTool({accept:'image/png',formats:['PNG&#8594;PDF'],outName:'png'});
-INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos into one PDF — drag in as many as you like.'});
 
 /* ---------- Scan to PDF (camera + files) -------------------------- */
-INIT['scan-to-pdf']=function(panel){
-  panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
-    '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
-    '<div class="controls" id="opts"><div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button></div>'+
-    '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
-  const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
-  let files=[],stream=null,video=null;
-  function refresh(){listRows(res,files,f=>f._nm||f.name||'scan');make.disabled=!files.length;}
-  cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';
-  $('#open',cam).onclick=async()=>{
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.srcObject=stream;
-      pv.className='preview show';pv.innerHTML='';pv.appendChild(video);
-      cam.innerHTML='<button class="btn btn-primary" id="snap">Capture page</button><button class="btn btn-ghost" id="stop">Stop camera</button><div class="ctrl-spacer"></div>';
-      $('#snap',cam).onclick=()=>{const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
-        c.toBlob(b=>{b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
-      $('#stop',cam).onclick=()=>{stream.getTracks().forEach(t=>t.stop());pv.className='preview';pv.innerHTML='';cam.innerHTML='<button class="btn btn-ghost" id="open2">Open camera</button><div class="ctrl-spacer"></div>';$('#open2',cam).onclick=$('#open',cam)&&null;};
-    }catch(e){setStatus(st,'Camera unavailable — drop image scans below instead.',1);}
-  };
-  dropzone($('#d_drop',panel),$('#d_file',panel),fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
-  make.onclick=async()=>{if(!files.length)return;setStatus(st,'Building PDF…');make.disabled=true;
-    try{download(await buildImagesPdf(files,$('#ps',panel).value),'scan.pdf');setStatus(st,'PDF created with '+files.length+' page(s).');}
-    catch(e){setStatus(st,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
-};
 
 INIT['watermark-image']=function(panel){
   const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',formats:['JPG','PNG','WEBP'],sub:'Then type your watermark text.'});
@@ -294,29 +215,6 @@ INIT['qr-code-generator']=function(panel){
 /* ═══════════════════════════════════════════════════════════
    SHARED SCRIPT LOADER
    ═══════════════════════════════════════════════════════════ */
-function _loadScript(src, glob) {
-  return new Promise(function(ok, fail) {
-    if (glob && window[glob]) { ok(window[glob]); return; }
-    if (document.querySelector('script[src="' + src + '"]')) {
-      var n = 0, iv = setInterval(function() {
-        if (glob && window[glob]) { clearInterval(iv); ok(window[glob]); }
-        else if (++n > 120) { clearInterval(iv); fail(new Error('Timeout: ' + glob)); }
-      }, 250);
-      return;
-    }
-    var s = document.createElement('script');
-    s.src = src;
-    s.onload = function() {
-      if (!glob) { ok(null); return; }
-      var n = 0, iv = setInterval(function() {
-        if (window[glob]) { clearInterval(iv); ok(window[glob]); }
-        else if (++n > 40) { clearInterval(iv); ok(null); }
-      }, 100);
-    };
-    s.onerror = function() { fail(new Error('Failed to load: ' + src)); };
-    document.head.appendChild(s);
-  });
-}
 
 /* ═══════════════════════════════════════════════════════════
    BACKGROUND REMOVER  —  region-growing flood fill v3

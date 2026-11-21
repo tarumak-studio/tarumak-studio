@@ -981,7 +981,7 @@ ${CHROME_TOP}
 ${FOOTER}
 
 <div id="cookie-bar" role="region" aria-label="Cookie consent">
-  <p>We use localStorage to remember your theme preference and recently-used tools. No cookies are set. No personal data is collected. <a href="/cookie-policy">Cookie Policy</a> \u00b7 <a href="/privacy-policy">Privacy Policy</a></p>
+  <p>We’d like to use Google Analytics cookies to count visits and see which tools are used. They’re only set if you accept. Your files are never uploaded. <a href="/cookie-policy">Cookie Policy</a> · <a href="/privacy-policy">Privacy Policy</a></p>
   <div class="cb-btns">
     <button class="cb-decline" id="cb-decline">Decline</button>
     <button class="cb-accept" id="cb-accept">Accept</button>
@@ -1008,7 +1008,6 @@ ${FOOTER}
 })();
 </script>
 ${CDN_TAGS}
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ER0G4HSYQV"></script>
 <script src="/config.js" defer></script>
 <script src="/utils.js" defer></script>
 <script src="/tool-helpers.js" defer></script>

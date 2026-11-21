@@ -52,41 +52,136 @@ function imgConv(outType,ext,opt){opt=opt||{};
   });
 };}
 
+/* Shared limits for canvas-based image tools. Browsers refuse canvases
+   beyond roughly 16k px per side or ~268M px in area; toBlob() then
+   returns null, which used to produce an empty "downloaded" file. */
+var IMG_MAX_SIDE=16384, IMG_MAX_AREA=16384*16384;
+function imgSizeProblem(w,h){
+  if(!(w>=1&&h>=1))return 'Width and height must be at least 1 px.';
+  if(w>IMG_MAX_SIDE||h>IMG_MAX_SIDE)return 'Maximum size is '+IMG_MAX_SIDE.toLocaleString()+' px per side.';
+  if(w*h>IMG_MAX_AREA)return 'That size is too large for the browser to create. Try smaller dimensions.';
+  return '';
+}
+function hasTransparency(img){
+  try{
+    const s=Math.min(1,512/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.naturalWidth*s));c.height=Math.max(1,Math.round(img.naturalHeight*s));
+    const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);
+    const d=x.getImageData(0,0,c.width,c.height).data;
+    for(let i=3;i<d.length;i+=4)if(d[i]<250)return true;
+  }catch(e){}
+  return false;
+}
+
 INIT['image-compressor']=function(panel){
   const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',multiple:true,formats:['JPG','PNG','WEBP'],sub:'Compress one image or many at once.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="q">Quality · <span class="val" id="qv">75%</span></label><input type="range" id="q" min="10" max="100" value="75"></div><div class="ctrl"><label for="of">Output</label><select id="of"><option value="image/jpeg">JPG (smallest)</option><option value="image/webp">WebP</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Compress images</button>';
+  u.controls.innerHTML='<div class="ctrl"><label for="q">Quality · <span class="val" id="qv">75%</span></label><input type="range" id="q" min="10" max="100" value="75"></div><div class="ctrl"><label for="of">Output</label><select id="of"><option value="auto">Auto (JPG, or WebP if transparent)</option><option value="image/jpeg">JPG (smallest)</option><option value="image/webp">WebP (keeps transparency)</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Compress images</button>';
   let imgs=[];const q=$('#q',panel),qv=$('#qv',panel);q.oninput=()=>qv.textContent=q.value+'%';
-  dropzone(u.drop,u.file,fs=>{imgs=[...fs].filter(f=>/image\/(png|jpeg|webp)/.test(f.type));if(imgs.length)setStatus(u.status,imgs.length+' image(s) ready — set quality and compress.');});
-  $('#run',panel).onclick=async()=>{if(!imgs.length){setStatus(u.status,'Drop some images first.',1);return;}u.results.innerHTML='';u.results.classList.add('show');
-    const type=$('#of',panel).value,ql=q.value/100,ext=type==='image/webp'?'webp':'jpg';
-    for(const f of imgs){const img=await readImg(f);const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}x.drawImage(img,0,0);const blob=await new Promise(r=>c.toBlob(r,type,ql));const saved=Math.max(0,Math.round((1-blob.size/f.size)*100));row(u.results,c.toDataURL('image/jpeg',.4),f.name,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' <span class="save">−'+saved+'%</span>',()=>download(blob,f.name.replace(/\.[^.]+$/,'')+'-min.'+ext));}
-    setStatus(u.status,'Done — '+imgs.length+' image(s) compressed.');};
+  let made=[];
+  dropzone(u.drop,u.file,fs=>{imgs=[...fs].filter(f=>/image\/(png|jpeg|webp)/.test(f.type));if(imgs.length)setStatus(u.status,imgs.length+' image(s) ready — set quality and compress.');else setStatus(u.status,'No JPG, PNG or WebP images found.',1);});
+  $('#run',panel).onclick=async()=>{if(!imgs.length){setStatus(u.status,'Drop some images first.',1);return;}
+    u.results.innerHTML='';u.results.classList.add('show');u.actions.innerHTML='';made=[];
+    const choice=$('#of',panel).value,ql=q.value/100;
+    let kept=0,flattened=0,failed=0,saved=0,total=0;
+    for(let n=0;n<imgs.length;n++){const f=imgs[n];
+      setStatus(u.status,'Compressing '+(n+1)+' / '+imgs.length+' — '+f.name);
+      try{
+        const img=await readImg(f);
+        const alpha=(f.type!=='image/jpeg')&&hasTransparency(img);
+        const type=choice==='auto'?(alpha?'image/webp':'image/jpeg'):choice;
+        const ext=type==='image/webp'?'webp':'jpg';
+        const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');
+        if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);if(alpha)flattened++;}
+        x.drawImage(img,0,0);
+        const blob=await new Promise(r=>c.toBlob(r,type,ql));
+        if(!blob)throw new Error('the browser could not encode this image');
+        const thumb=c.toDataURL('image/jpeg',.4);
+        total+=f.size;
+        if(blob.size>=f.size){
+          /* Never hand back a bigger file. */
+          kept++;
+          made.push({blob:f,name:f.name});
+          row(u.results,thumb,f.name,fmtBytes(f.size)+' · already optimised — compressing made it '+fmtBytes(blob.size)+', so the original is kept',()=>download(f,f.name));
+        }else{
+          const pct=Math.round((1-blob.size/f.size)*100);saved+=f.size-blob.size;
+          const nm=f.name.replace(/\.[^.]+$/,'')+'-min.'+ext;
+          made.push({blob:blob,name:nm});
+          row(u.results,thumb,nm,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' <span class="save">−'+pct+'%</span>'+(type==='image/jpeg'&&alpha?' · transparency filled with white':''),()=>download(blob,nm));
+        }
+      }catch(e){failed++;row(u.results,'',f.name,'Could not compress this file · '+(e.message||'unknown error'),function(){});}
+    }
+    if(made.length>1){const b=document.createElement('button');b.className='btn btn-primary';b.style.marginTop='6px';b.textContent='Download all ('+made.length+')';
+      b.onclick=()=>made.forEach((m,i)=>setTimeout(()=>download(m.blob,m.name),i*250));u.actions.appendChild(b);}
+    const parts=['Done — '+(imgs.length-failed)+' image(s) processed'];
+    if(saved>0)parts.push(fmtBytes(saved)+' saved ('+Math.round(saved/total*100)+'%)');
+    if(kept)parts.push(kept+' already optimised, kept as is');
+    if(flattened)parts.push(flattened+' had transparency filled with white (choose WebP to keep it)');
+    if(failed)parts.push(failed+' failed');
+    setStatus(u.status,parts.join(' · ')+'.',failed&&failed===imgs.length);};
 };
 
 INIT['image-resizer']=function(panel){
-  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',formats:['JPG','PNG','WEBP'],sub:'Resize a single image to any size.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="w">Width</label><input type="number" id="w" min="1" style="width:104px"></div><div class="ctrl"><label for="h">Height</label><input type="number" id="h" min="1" style="width:104px"></div><div class="ctrl"><label for="sc">Scale</label><select id="sc" style="width:96px"><option value="">Custom</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="2">200%</option></select></div><div class="ctrl"><label for="fm">Format</label><select id="fm" style="width:104px"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div><label class="lock"><input type="checkbox" id="lk" checked> Lock ratio</label><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Resize &amp; download</button>';
-  let img=null,ratio=1;const W=$('#w',panel),H=$('#h',panel),lk=$('#lk',panel),sc=$('#sc',panel),fm=$('#fm',panel);
-  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!f)return;readImg(f).then(im=>{img=im;ratio=im.naturalWidth/im.naturalHeight;W.value=im.naturalWidth;H.value=im.naturalHeight;paint();});});
-  function paint(){if(!img)return;const c=document.createElement('canvas');c.width=Math.max(1,W.value|0);c.height=Math.max(1,H.value|0);const x=c.getContext('2d');if(fm.value==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}x.imageSmoothingQuality='high';x.drawImage(img,0,0,c.width,c.height);u.results.innerHTML='';u.results.classList.add('show');const w=document.createElement('div');w.className='preview show';w.appendChild(c);u.results.appendChild(w);u.results._c=c;}
-  W.addEventListener('input',()=>{sc.value='';if(lk.checked)H.value=Math.round(W.value/ratio);paint();});
-  H.addEventListener('input',()=>{sc.value='';if(lk.checked)W.value=Math.round(H.value*ratio);paint();});
-  sc.addEventListener('change',()=>{if(!img||!sc.value)return;W.value=Math.round(img.naturalWidth*sc.value);H.value=Math.round(img.naturalHeight*sc.value);paint();});
-  fm.addEventListener('change',paint);
-  $('#run',panel).onclick=()=>{const c=u.results._c;if(!c){setStatus(u.status,'Drop an image first.',1);return;}const ext=fm.value.split('/')[1].replace('jpeg','jpg');c.toBlob(b=>download(b,'resized-'+c.width+'x'+c.height+'.'+ext),fm.value,.92);};
+  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',multiple:true,formats:['JPG','PNG','WEBP'],sub:'Resize one image, or many at once to the same width or scale.'});
+  u.controls.innerHTML='<div class="ctrl"><label for="w">Width</label><input type="number" id="w" min="1" max="'+IMG_MAX_SIDE+'" style="width:104px"></div><div class="ctrl"><label for="h">Height</label><input type="number" id="h" min="1" max="'+IMG_MAX_SIDE+'" style="width:104px"></div><div class="ctrl"><label for="sc">Scale</label><select id="sc" style="width:96px"><option value="">Custom</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="2">200%</option></select></div><div class="ctrl"><label for="fm">Format</label><select id="fm" style="width:104px"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div><label class="lock"><input type="checkbox" id="lk" checked> Lock ratio</label><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Resize &amp; download</button>';
+  let files=[],imgs=[],ratio=1;const W=$('#w',panel),H=$('#h',panel),lk=$('#lk',panel),sc=$('#sc',panel),fm=$('#fm',panel),run=$('#run',panel);
+  function dims(im){
+    /* Size for one image. Batch rule: scale applies per image; with the
+       ratio locked, each image gets the chosen width and its own height. */
+    const s=parseFloat(sc.value);
+    if(s)return[Math.round(im.naturalWidth*s),Math.round(im.naturalHeight*s)];
+    const w=parseInt(W.value,10),h=parseInt(H.value,10);
+    if(imgs.length>1&&lk.checked)return[w,Math.round(w*im.naturalHeight/im.naturalWidth)];
+    return[w,h];
+  }
+  function check(){
+    const d=dims(imgs[0]);const p=imgs.map(im=>imgSizeProblem.apply(null,dims(im))).find(Boolean)||'';
+    run.disabled=!!p;
+    if(p)setStatus(u.status,p,1);
+    else setStatus(u.status,imgs.length>1?(imgs.length+' images · first one becomes '+d[0]+'×'+d[1]+(lk.checked&&!sc.value?' (each keeps its own proportions)':'')):('Output: '+d[0]+'×'+d[1]+' px'));
+    return !p;
+  }
+  function paint(){if(!imgs.length)return;if(!check())return;
+    /* Preview at most 900 px wide; full size is rendered on download. */
+    const d=dims(imgs[0]);const s=Math.min(1,900/d[0]);
+    const c=document.createElement('canvas');c.width=Math.max(1,Math.round(d[0]*s));c.height=Math.max(1,Math.round(d[1]*s));
+    const x=c.getContext('2d');if(fm.value==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}x.imageSmoothingQuality='high';x.drawImage(imgs[0],0,0,c.width,c.height);
+    u.results.innerHTML='';u.results.classList.add('show');const w=document.createElement('div');w.className='preview show';w.appendChild(c);u.results.appendChild(w);}
+  dropzone(u.drop,u.file,async fs=>{files=[...fs].filter(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!files.length){setStatus(u.status,'No JPG, PNG or WebP images found.',1);return;}
+    imgs=[];for(const f of files){try{imgs.push(await readImg(f));}catch(e){}}
+    if(!imgs.length){setStatus(u.status,'Could not read these images.',1);return;}
+    ratio=imgs[0].naturalWidth/imgs[0].naturalHeight;W.value=imgs[0].naturalWidth;H.value=imgs[0].naturalHeight;sc.value='';
+    run.textContent=imgs.length>1?'Resize '+imgs.length+' images':'Resize & download';paint();});
+  W.addEventListener('input',()=>{sc.value='';if(lk.checked&&W.value)H.value=Math.round(W.value/ratio);paint();});
+  H.addEventListener('input',()=>{sc.value='';if(lk.checked&&H.value)W.value=Math.round(H.value*ratio);paint();});
+  sc.addEventListener('change',()=>{if(!imgs.length||!sc.value)return;W.value=Math.round(imgs[0].naturalWidth*sc.value);H.value=Math.round(imgs[0].naturalHeight*sc.value);paint();});
+  fm.addEventListener('change',paint);lk.addEventListener('change',paint);
+  run.onclick=async()=>{if(!imgs.length){setStatus(u.status,'Drop an image first.',1);return;}if(!check())return;
+    const type=fm.value,ext=type.split('/')[1].replace('jpeg','jpg');const out=[];
+    for(let i=0;i<imgs.length;i++){const im=imgs[i],d=dims(im);
+      setStatus(u.status,'Resizing '+(i+1)+' / '+imgs.length+'…');
+      const c=document.createElement('canvas');c.width=d[0];c.height=d[1];const x=c.getContext('2d');
+      if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,d[0],d[1]);}x.imageSmoothingQuality='high';x.drawImage(im,0,0,d[0],d[1]);
+      const b=await new Promise(r=>c.toBlob(r,type,.92));
+      if(!b){setStatus(u.status,'Your browser could not create a '+d[0]+'×'+d[1]+' image. Try a smaller size.',1);return;}
+      const base=files[i].name.replace(/\.[^.]+$/,'');out.push({b:b,n:(imgs.length>1?base+'-':'resized-')+d[0]+'x'+d[1]+'.'+ext});}
+    out.forEach((o,i)=>setTimeout(()=>download(o.b,o.n),i*250));
+    setStatus(u.status,'Done — '+out.length+' image'+(out.length>1?'s':'')+' resized.');};
 };
 
 INIT['image-cropper']=function(panel){
   const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',formats:['JPG','PNG','WEBP'],sub:'Then drag the box to crop.'});
   u.controls.innerHTML='<div class="ctrl"><label>Aspect ratio</label><div class="seg" id="ar"><button class="active" data-r="0">Free</button><button data-r="1">1:1</button><button data-r="1.3333">4:3</button><button data-r="1.7778">16:9</button><button data-r="1.5">3:2</button></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Crop &amp; download</button>';
-  let img=null,scl=1,arr=0;
-  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!f)return;readImg(f).then(im=>{img=im;draw();});});
+  let img=null,scl=1,arr=0,srcType='image/png',srcName='image';
+  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!f)return;srcType=f.type;srcName=f.name.replace(/\.[^.]+$/,'');readImg(f).then(im=>{img=im;draw();});});
   function draw(){u.results.innerHTML='';u.results.classList.add('show');const maxW=Math.min(660,u.results.clientWidth-2||660);scl=Math.min(1,maxW/img.naturalWidth);
     const stage=document.createElement('div');stage.className='crop-stage';const cv=document.createElement('canvas');cv.width=Math.round(img.naturalWidth*scl);cv.height=Math.round(img.naturalHeight*scl);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
     const box=document.createElement('div');box.className='crop-box';box.innerHTML='<span class="h tl"></span><span class="h tr"></span><span class="h bl"></span><span class="h br"></span>';
     stage.appendChild(cv);stage.appendChild(box);u.results.appendChild(stage);u._cv=cv;u._box=box;u._stage=stage;
-    const bw=cv.width*.6,bh=arr?bw/arr:cv.height*.6;setBox((cv.width-bw)/2,(cv.height-bh)/2,bw,Math.min(bh,cv.height));wire();}
-  function setBox(x,y,w,h){const cv=u._cv,box=u._box;x=Math.max(0,Math.min(x,cv.width-w));y=Math.max(0,Math.min(y,cv.height-h));box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=h+'px';}
+    let bw=cv.width*.6,bh=arr?bw/arr:cv.height*.6;if(arr&&bh>cv.height*.9){bh=cv.height*.9;bw=bh*arr;}setBox((cv.width-bw)/2,(cv.height-bh)/2,bw,bh);wire();}
+  function setBox(x,y,w,h){const cv=u._cv,box=u._box;
+    /* Keep the box inside the image and, for a fixed ratio, keep the ratio while shrinking it to fit. */
+    if(arr){if(w>cv.width){w=cv.width;h=w/arr;}if(h>cv.height){h=cv.height;w=h*arr;}}else{w=Math.min(w,cv.width);h=Math.min(h,cv.height);}
+    x=Math.max(0,Math.min(x,cv.width-w));y=Math.max(0,Math.min(y,cv.height-h));box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=h+'px';}
   function gb(){const b=u._box;return{x:parseFloat(b.style.left),y:parseFloat(b.style.top),w:parseFloat(b.style.width),h:parseFloat(b.style.height)};}
   function wire(){const box=u._box,stage=u._stage,cv=u._cv;let mode=null,sx,sy,st;
     const pt=e=>{const r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
@@ -100,7 +195,10 @@ INIT['image-cropper']=function(panel){
       w=Math.max(24,w);h=Math.max(24,h);if(x<0){w+=x;x=0;}if(y<0){h+=y;y=0;}if(x+w>cv.width)w=cv.width-x;if(y+h>cv.height)h=cv.height-y;setBox(x,y,w,h);});
     box.addEventListener('pointerup',()=>mode=null);}
   $('#ar',panel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#ar button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');arr=parseFloat(b.dataset.r);if(u._box){const g=gb();setBox(g.x,g.y,g.w,arr?g.w/arr:g.h);}});
-  $('#run',panel).onclick=()=>{if(!img){setStatus(u.status,'Drop an image first.',1);return;}const g=gb(),s=1/scl;const c=document.createElement('canvas');c.width=Math.round(g.w*s);c.height=Math.round(g.h*s);c.getContext('2d').drawImage(img,g.x*s,g.y*s,g.w*s,g.h*s,0,0,c.width,c.height);c.toBlob(b=>download(b,'cropped.png'),'image/png');};
+  $('#run',panel).onclick=()=>{if(!img){setStatus(u.status,'Drop an image first.',1);return;}const g=gb(),s=1/scl;const c=document.createElement('canvas');c.width=Math.round(g.w*s);c.height=Math.round(g.h*s);const cx=c.getContext('2d');if(srcType==='image/jpeg'){cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);}cx.drawImage(img,g.x*s,g.y*s,g.w*s,g.h*s,0,0,c.width,c.height);
+    /* Keep the source format: a cropped JPG photo stays a JPG instead of becoming a much larger PNG. */
+    const ext=srcType==='image/jpeg'?'jpg':srcType==='image/webp'?'webp':'png';
+    c.toBlob(b=>{if(!b){setStatus(u.status,'Could not create the cropped image.',1);return;}download(b,srcName+'-cropped.'+ext);setStatus(u.status,'Cropped to '+c.width+'×'+c.height+' px.');},srcType,.92);};
 };
 
 INIT['jpg-to-png']=imgConv('image/png','png',{accept:'image/jpeg'});
@@ -258,7 +356,7 @@ INIT['background-remover'] = function(panel) {
        tool announces it and auto-falls back to Solid mode.
      ═══════════════════════════════════════════════════════════════ */
 
-  var IMGLY_CDN = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1/+esm';
+  var IMGLY_CDN = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
   var CHECKER = 'background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/18px 18px;';
 
   panel.innerHTML =

@@ -125,9 +125,39 @@ INIT['json-formatter']=function(panel){
     try{JSON.parse(t);document.getElementById('jf-status').innerHTML='<span style="color:#22c55e">✓ Valid JSON</span>';return true;}
     catch(e){document.getElementById('jf-status').textContent='';const _espan=document.createElement('span');_espan.style.color='#ef4444';_espan.textContent='✗ '+e.message;document.getElementById('jf-status').appendChild(_espan);return false;}
   }
+  /* Lossless re-indent. JSON.parse turns 12345678901234567890 into
+     12345678901234567000 (doubles hold ~15-17 digits), so formatting via
+     parse+stringify silently corrupted IDs and precise decimals. Instead,
+     validate with JSON.parse, then re-emit the ORIGINAL tokens with new
+     whitespace: numbers and string escapes stay exactly as written. */
+  function reformat(src,indent){
+    var out='',depth=0,i=0,n=src.length;
+    function nl(){return indent?'\n'+indent.repeat(depth):'';}
+    while(i<n){
+      var c=src[i];
+      if(c===' '||c==='\n'||c==='\r'||c==='\t'){i++;continue;}
+      if(c==='"'){var j=i+1;while(j<n&&src[j]!=='"'){if(src[j]==='\\')j++;j++;}out+=src.slice(i,j+1);i=j+1;continue;}
+      if(c==='{'||c==='['){
+        var k=i+1;while(k<n&&/[ \n\r\t]/.test(src[k]))k++;
+        var close=c==='{'?'}':']';
+        if(src[k]===close){out+=c+close;i=k+1;continue;}
+        depth++;out+=c+nl();i++;continue;}
+      if(c==='}'||c===']'){depth--;out+=nl()+c;i++;continue;}
+      if(c===','){out+=','+nl();i++;continue;}
+      if(c===':'){out+=indent?': ':':';i++;continue;}
+      var e=i;while(e<n&&!/[ \n\r\t,\]\}:]/.test(src[e]))e++;
+      out+=src.slice(i,e);i=e;
+    }
+    return out;
+  }
+  function apply(indent){
+    var el=document.getElementById('jf-in');
+    if(!el.value.trim()){document.getElementById('jf-status').innerHTML='<span style="color:var(--text-dim)">Paste some JSON first.</span>';return;}
+    if(validate())el.value=reformat(el.value.trim(),indent);
+  }
   document.getElementById('jf-in').addEventListener('input',validate);
-  document.getElementById('jf-fmt').onclick=function(){if(validate()){try{document.getElementById('jf-in').value=JSON.stringify(JSON.parse(document.getElementById('jf-in').value),null,2);}catch(e){}}};
-  document.getElementById('jf-min').onclick=function(){if(validate()){try{document.getElementById('jf-in').value=JSON.stringify(JSON.parse(document.getElementById('jf-in').value));}catch(e){}}};
+  document.getElementById('jf-fmt').onclick=function(){apply('  ');};
+  document.getElementById('jf-min').onclick=function(){apply('');};
   document.getElementById('jf-clear').onclick=function(){document.getElementById('jf-in').value='';document.getElementById('jf-status').innerHTML='';};
   document.getElementById('jf-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('jf-in').value).then(function(){toast('Copied!','ok');});};
 };
@@ -145,12 +175,30 @@ INIT['meta-tag-gen']=function(panel){
     +'<button class="btn" id="mt-copy" style="display:none;margin-top:8px">Copy HTML</button>';
   document.getElementById('mt-title').oninput=function(){document.getElementById('mt-title-c').textContent=this.value.length;};
   document.getElementById('mt-desc').oninput=function(){document.getElementById('mt-desc-c').textContent=this.value.length;};
+  /* Every value is HTML-escaped: a title like  Tom's "Best" Tools
+     used to produce content="Tom's "Best" Tools", which is broken HTML. */
+  function escA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   document.getElementById('mt-gen').onclick=function(){
-    var t=document.getElementById('mt-title').value,d=document.getElementById('mt-desc').value,u=document.getElementById('mt-url').value,i=document.getElementById('mt-img').value;
-    var html='<!-- Primary Meta Tags -->\n<title>'+t+'</title>\n<meta name="title" content="'+t+'">\n<meta name="description" content="'+d+'">\n\n<!-- Open Graph -->\n<meta property="og:type" content="website">\n<meta property="og:url" content="'+u+'">\n<meta property="og:title" content="'+t+'">\n<meta property="og:description" content="'+d+'">\n'+(i?'<meta property="og:image" content="'+i+'">\n':'')+'<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n\n<!-- Twitter Card -->\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:url" content="'+u+'">\n<meta name="twitter:title" content="'+t+'">\n<meta name="twitter:description" content="'+d+'">\n'+(i?'<meta name="twitter:image" content="'+i+'">\n':'');
-    document.getElementById('mt-out').value=html;
-    document.getElementById('mt-out').style.display='block';
-    document.getElementById('mt-copy').style.display='inline-block';
+    var g=function(id){return document.getElementById(id).value.trim();};
+    var t=g('mt-title'),d=g('mt-desc'),u=g('mt-url'),i=g('mt-img');
+    var out=document.getElementById('mt-out'),copy=document.getElementById('mt-copy');
+    if(!t||!d){
+      out.style.display='none';copy.style.display='none';
+      toast(!t&&!d?'Enter a page title and a meta description':(!t?'Enter a page title':'Enter a meta description'),'err');
+      document.getElementById(!t?'mt-title':'mt-desc').focus();return;}
+    var T=escA(t),D=escA(d),U=escA(u),I=escA(i);
+    var lines=['<!-- Primary Meta Tags -->','<title>'+T+'</title>','<meta name="description" content="'+D+'">'];
+    if(u)lines.push('<link rel="canonical" href="'+U+'">');
+    lines.push('','<!-- Open Graph -->','<meta property="og:type" content="website">');
+    if(u)lines.push('<meta property="og:url" content="'+U+'">');
+    lines.push('<meta property="og:title" content="'+T+'">','<meta property="og:description" content="'+D+'">');
+    if(i)lines.push('<meta property="og:image" content="'+I+'">','<meta property="og:image:width" content="1200">','<meta property="og:image:height" content="630">');
+    lines.push('','<!-- Twitter / X Card -->','<meta name="twitter:card" content="'+(i?'summary_large_image':'summary')+'">');
+    lines.push('<meta name="twitter:title" content="'+T+'">','<meta name="twitter:description" content="'+D+'">');
+    if(i)lines.push('<meta name="twitter:image" content="'+I+'">');
+    out.value=lines.join('\n')+'\n';
+    out.style.display='block';
+    copy.style.display='inline-block';
   };
   document.getElementById('mt-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('mt-out').value).then(function(){toast('Meta tags copied!','ok');});};
 };
@@ -204,25 +252,56 @@ INIT['lorem-ipsum']=function(panel){
 
 /* 9 — Color Converter */
 INIT['color-converter']=function(panel){
-  function hexToRgb(hex){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return{r,g,b};}
-  function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;var max=Math.max(r,g,b),min=Math.min(r,g,b),h,s,l=(max+min)/2;if(max===min){h=s=0;}else{var d=max-min;s=l>.5?d/(2-max-min):d/(max+min);h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4;h/=6;}return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};}
-  panel.innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:16px"><input type="color" id="cc-pick" value="#6366f1" style="width:60px;height:48px;border-radius:10px;border:1px solid var(--border);cursor:pointer"><label style="font-size:13px;color:var(--text-dim)">Pick any color →</label></div>'
+  /* Type a colour in any CSS format (HEX, RGB/RGBA, HSL/HSLA or a named
+     colour) or use the picker; every format updates. The browser's own
+     CSS parser does the parsing, so anything valid in CSS works. */
+  function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;var max=Math.max(r,g,b),min=Math.min(r,g,b),h,s,l=(max+min)/2;if(max===min){h=s=0;}else{var d=max-min;s=l>.5?d/(2-max-min):d/(max+min);h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4;h/=6;}return{h:Math.round(h*360)%360,s:Math.round(s*100),l:Math.round(l*100)};}
+  function rgbToHsb(r,g,b){r/=255;g/=255;b/=255;var max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,h=0;if(d){h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4;h/=6;}return{h:Math.round(h*360)%360,s:Math.round(max?d/max*100:0),b:Math.round(max*100)};}
+  function hex2(n){return n.toString(16).padStart(2,'0');}
+  function parse(str){
+    str=String(str||'').trim();if(!str)return null;
+    if(/^[0-9a-f]{3}([0-9a-f]{3})?([0-9a-f]{2})?$/i.test(str))str='#'+str;
+    var probe=document.createElement('span');probe.style.color='';probe.style.color=str;
+    if(!probe.style.color)return null;
+    document.body.appendChild(probe);var cs=getComputedStyle(probe).color;probe.remove();
+    var m=cs.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?/);
+    if(!m)return null;
+    var a=m[4]===undefined?1:(/%$/.test(m[4])?parseFloat(m[4])/100:parseFloat(m[4]));
+    return{r:Math.round(+m[1]),g:Math.round(+m[2]),b:Math.round(+m[3]),a:Math.round(a*1000)/1000};
+  }
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  panel.innerHTML='<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px">'
+    +'<input type="color" id="cc-pick" value="#6366f1" aria-label="Colour picker" style="width:60px;height:48px;border-radius:10px;border:1px solid var(--border);cursor:pointer">'
+    +'<div style="flex:1;min-width:200px"><label for="cc-in" style="font-size:12px;color:var(--text-dim)">Type or paste a colour</label>'
+    +'<input type="text" id="cc-in" value="#6366F1" placeholder="#6366f1, rgb(99 102 241), hsl(239 84% 67%), tomato" autocomplete="off" spellcheck="false" style="width:100%;margin-top:4px;font-family:var(--fm)"></div></div>'
+    +'<div id="cc-err" role="alert" style="font-size:12px;color:#ef4444;min-height:18px;margin-bottom:8px"></div>'
     +'<div id="cc-vals" style="display:grid;grid-template-columns:1fr;gap:8px"></div>';
-  function update(){
-    var hex=document.getElementById('cc-pick').value;
-    var rgb=hexToRgb(hex);var hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
+  var pick=document.getElementById('cc-pick'),inp=document.getElementById('cc-in'),err=document.getElementById('cc-err'),vals=document.getElementById('cc-vals');
+  function render(c){
+    var hex='#'+hex2(c.r)+hex2(c.g)+hex2(c.b),hsl=rgbToHsl(c.r,c.g,c.b),hsb=rgbToHsb(c.r,c.g,c.b),A=c.a<1;
+    var HEX=(hex+(A?hex2(Math.round(c.a*255)):'')).toUpperCase();
     var formats=[
-      {label:'HEX',value:hex.toUpperCase()},
-      {label:'RGB',value:'rgb('+rgb.r+', '+rgb.g+', '+rgb.b+')'},
-      {label:'HSL',value:'hsl('+hsl.h+'deg, '+hsl.s+'%, '+hsl.l+'%)'},
-      {label:'CSS Variable',value:'--color: '+hex.toUpperCase()+';'},
+      {label:'HEX',value:HEX},
+      {label:A?'RGBA':'RGB',value:A?'rgba('+c.r+', '+c.g+', '+c.b+', '+c.a+')':'rgb('+c.r+', '+c.g+', '+c.b+')'},
+      {label:A?'HSLA':'HSL',value:A?'hsla('+hsl.h+', '+hsl.s+'%, '+hsl.l+'%, '+c.a+')':'hsl('+hsl.h+', '+hsl.s+'%, '+hsl.l+'%)'},
+      {label:'HSB / HSV',value:hsb.h+'°, '+hsb.s+'%, '+hsb.b+'%'},
+      {label:'CSS Variable',value:'--color: '+HEX+';'}
     ];
-    document.getElementById('cc-vals').innerHTML=formats.map(function(f){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer" onclick="navigator.clipboard.writeText(\''+f.value+'\').then(function(){toast(\''+f.label+' copied!\',\'ok\');})"><div style="width:32px;height:32px;border-radius:6px;background:'+hex+';border:1px solid rgba(0,0,0,.1);flex-shrink:0"></div><div><div style="font-size:11px;color:var(--text-faint);font-family:var(--fm);text-transform:uppercase;letter-spacing:.5px">'+f.label+'</div><div style="font-family:var(--fm);font-size:14px;font-weight:600;color:var(--text);margin-top:2px">'+f.value+'</div></div><span style="margin-left:auto;font-size:11px;color:var(--text-faint)">copy</span></div>';
+    pick.value=hex;
+    var sw=A?'rgba('+c.r+','+c.g+','+c.b+','+c.a+')':hex;
+    vals.innerHTML=formats.map(function(f){
+      return '<button type="button" class="cc-row" data-v="'+esc(f.value)+'" data-l="'+esc(f.label)+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%"><span style="width:32px;height:32px;border-radius:6px;background:'+sw+';border:1px solid rgba(0,0,0,.1);flex-shrink:0"></span><span><span style="display:block;font-size:11px;color:var(--text-faint);font-family:var(--fm);text-transform:uppercase;letter-spacing:.5px">'+esc(f.label)+'</span><span style="display:block;font-family:var(--fm);font-size:14px;font-weight:600;color:var(--text);margin-top:2px">'+esc(f.value)+'</span></span><span style="margin-left:auto;font-size:11px;color:var(--text-faint)">copy</span></button>';
     }).join('');
   }
-  document.getElementById('cc-pick').oninput=update;
-  update();
+  vals.addEventListener('click',function(e){var b=e.target.closest('.cc-row');if(!b)return;
+    navigator.clipboard.writeText(b.dataset.v).then(function(){toast(b.dataset.l+' copied!','ok');}).catch(function(){toast('Copy failed — select the value and copy it manually','err');});});
+  inp.addEventListener('input',function(){
+    var c=parse(inp.value);
+    if(!inp.value.trim()){err.textContent='';return;}
+    if(!c){err.textContent='Not a colour the browser recognises. Try #6366f1, rgb(99, 102, 241), hsl(239, 84%, 67%) or a name like tomato.';return;}
+    err.textContent='';render(c);});
+  pick.addEventListener('input',function(){inp.value=pick.value.toUpperCase();err.textContent='';render(parse(pick.value));});
+  render(parse('#6366f1'));
 };
 
 /* 10 — URL Encoder/Decoder */

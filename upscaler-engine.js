@@ -40,10 +40,10 @@
      esrgan-medium = the quality/speed balance tier; native 4x model
      exists, so 4x is ONE real model pass, not two stacked 2x passes. */
   var NEURAL_CDN = {
-    tf:      'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js',
-    model2x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@latest/dist/umd/2x.min.js',
-    model4x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@latest/dist/umd/4x.min.js',
-    lib:     'https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js'
+    tf:      'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+    model2x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.11/dist/umd/2x.min.js',
+    model4x: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.11/dist/umd/4x.min.js',
+    lib:     'https://cdn.jsdelivr.net/npm/upscaler@1.0.0/dist/browser/umd/upscaler.min.js'
   };
   /* Neural input cap: patch-based inference cost grows with input area.
      Above ~4MP the wait becomes minutes — fall through to classical with

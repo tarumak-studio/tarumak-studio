@@ -290,7 +290,8 @@ to{opacity:1;transform:none}
 
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px">
   <h2 style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700;margin-bottom:20px;color:var(--text)">Send a message</h2>
-  <form id="contact-form" onsubmit="handleContact(event)">
+  <form id="contact-form" onsubmit="handleContact(event)" novalidate>
+    <div style="position:absolute;left:-9999px;height:0;overflow:hidden" aria-hidden="true"><label>Leave this empty <input type="text" name="cfwebsite" tabindex="-1" autocomplete="off"></label></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;margin-bottom:12px">
       <div>
         <label style="font-size:12px;color:var(--text-faint);display:block;margin-bottom:5px">Your name</label>
@@ -316,24 +317,61 @@ to{opacity:1;transform:none}
       <textarea id="cf-msg" required rows="5" placeholder="Tell me about your project or question..." style="width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:14px;resize:vertical;line-height:1.6"></textarea>
     </div>
     <button type="submit" id="cf-send" style="padding:12px 28px;border-radius:10px;background:linear-gradient(120deg,#22d3ee,#6366f1);color:#06121a;font-family:Space Grotesk,sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:.2s">Send Message →</button>
+    <div id="cf-status" role="status" aria-live="polite" style="display:none;margin-top:14px;font-size:14px"></div>
   </form>
   <div id="cf-success" style="display:none;padding:20px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;margin-top:14px;color:var(--tc-green);font-size:14px">
-    ✓ Message sent! I will reply within 24 hours.
+    ✓ Message sent! I will reply within 24 hours at the address you gave.
   </div>
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* Contact form. Messages go to Web3Forms, which emails them to the site owner.
+   The access key below is public by design (it can only send mail to the
+   address it was created for); restrict it to tarumakstudio.com in the
+   Web3Forms dashboard. Until a key is set, the form falls back to opening
+   the visitor's email app. */
+var CONTACT_ACCESS_KEY = '';
+var CONTACT_FALLBACK_TO = 'hello@tarumakstudio.com';
+function cfStatus(msg, ok){
+  var s = document.getElementById('cf-status');
+  s.textContent = msg; s.style.display = msg ? 'block' : 'none';
+  s.style.color = ok ? 'var(--tc-green)' : 'var(--bad)';
+}
 function handleContact(e){
   e.preventDefault();
-  var name=document.getElementById('cf-name').value;
-  var email=document.getElementById('cf-email').value;
-  var subject=document.getElementById('cf-subject').value;
-  var msg=document.getElementById('cf-msg').value;
-  var mailto='mailto:hello@tarumakstudio.com?subject='+encodeURIComponent('[Tarumak Studio] '+subject)+
-    '&body='+encodeURIComponent('From: '+name+' <'+email+'>\n\n'+msg);
-  window.location.href=mailto;
-  document.getElementById('contact-form').style.display='none';
-  document.getElementById('cf-success').style.display='block';
+  var f = document.getElementById('contact-form'), btn = document.getElementById('cf-send');
+  if (f.cfwebsite && f.cfwebsite.value) return;            /* honeypot: bots fill this in */
+  var name = document.getElementById('cf-name').value.trim();
+  var email = document.getElementById('cf-email').value.trim();
+  var subject = document.getElementById('cf-subject').value;
+  var msg = document.getElementById('cf-msg').value.trim();
+  if (!name || !email || !msg) { cfStatus('Please fill in your name, email and message.', false); return; }
+  if (!CONTACT_ACCESS_KEY) {
+    cfStatus('Opening your email app… if nothing opens, email ' + CONTACT_FALLBACK_TO + ' directly.', true);
+    window.location.href = 'mailto:' + CONTACT_FALLBACK_TO + '?subject=' + encodeURIComponent('[Tarumak Studio] ' + subject) +
+      '&body=' + encodeURIComponent('From: ' + name + ' <' + email + '>\n\n' + msg);
+    return;
+  }
+  btn.disabled = true; var label = btn.textContent; btn.textContent = 'Sending…'; cfStatus('', true);
+  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, 15000);
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST', signal: ctl.signal,
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      access_key: CONTACT_ACCESS_KEY, subject: '[Tarumak Studio] ' + subject,
+      from_name: 'Tarumak Studio contact form', name: name, email: email, message: msg, botcheck: ''
+    })
+  }).then(function(r){ return r.json().catch(function(){ return { success: false }; }); })
+    .then(function(d){
+      if (!d.success) throw new Error(d.message || 'failed');
+      f.style.display = 'none';
+      document.getElementById('cf-success').style.display = 'block';
+      if (window._ga) window._ga('contact_form_sent', { subject: subject });
+    })
+    .catch(function(){
+      cfStatus('Sorry, that did not send. Please try again, or email ' + CONTACT_FALLBACK_TO + ' directly.', false);
+    })
+    .then(function(){ clearTimeout(timer); btn.disabled = false; btn.textContent = label; });
 }
 </script>
   </div>

@@ -53,7 +53,7 @@ In-depth practical guides linking to the tools that solve each problem. All 50 a
 
 - [About](https://tarumakstudio.com/about): Tarumak Studio's story — browser-first, privacy-first free tools and learning resources.
 - [French Academy](https://tarumakstudio.com/french-academy): Free French learning platform (A0–C2): structured lessons, trainers, quizzes and local progress tracking — runs entirely in the browser.
-- [Contact](https://tarumakstudio.com/contact): hello@tarumakstudio.com
+- [Contact](https://tarumakstudio.com/contact): makenster@gmail.com
 
 ## Site Properties
 

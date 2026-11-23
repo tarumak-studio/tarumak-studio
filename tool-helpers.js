@@ -112,3 +112,101 @@ function noInit(panel){panel.innerHTML='<div class="note">This tool is being fin
     return true;
   };
 })();
+
+/* ════ Shared tool factories ═════════════════════════════════════════
+   Used by more than one category bundle, so they live here: each
+   *-tools.js bundle must run with only the shared files + itself. A
+   bundle that calls another bundle's function at load time would crash
+   on a page that loads just its own bundle. build-tool-deps.js checks
+   this rule and fails the build when it is broken. */
+const PSIZE={a4:[595.28,841.89],letter:[612,792]};
+
+function imagesToPdfTool(opt){opt=opt||{};return function(panel){
+  const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||['JPG','PNG','WEBP'],
+    title:opt.title||'Drop images here or click to browse',sub:opt.sub||'Pages appear in the order you add them — reorder below.'});
+  let files=[];
+  u.controls.className='controls';
+  u.controls.innerHTML='<div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button>';
+  const make=$('#make',panel);
+  function refresh(){listRows(u.results,files,f=>f._nm||f.name||'image');make.disabled=!files.length;}
+  dropzone(u.drop,u.file,fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
+  make.onclick=async()=>{if(!files.length)return;setStatus(u.status,'Building PDF from '+files.length+' image(s)…');make.disabled=true;
+    try{const blob=await buildImagesPdf(files,$('#ps',panel).value);download(blob,(opt.outName||'images')+'.pdf');setStatus(u.status,'PDF created with '+files.length+' page(s).');}
+    catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
+};}
+
+function imgConv(outType,ext,opt){opt=opt||{};
+  var lossy=(outType==='image/jpeg'||outType==='image/webp');
+  return function(panel){
+  const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||[ext.toUpperCase()],sub:'Convert as many images as you like — all processed locally.'});
+  /* Quality control for lossy outputs; PNG stays lossless (no slider). */
+  if(lossy){
+    u.controls.className='controls';
+    u.controls.innerHTML='<div class="ctrl"><label for="cq">Quality · <span class="val" id="cqv">92%</span></label><input type="range" id="cq" min="50" max="100" value="92" style="width:150px"></div>';
+    var qEl=$('#cq',panel),qvEl=$('#cqv',panel);qEl.oninput=function(){qvEl.textContent=qEl.value+'%';};
+  }
+  var made=[]; /* {blob,name} for Download-all */
+  function refreshActions(){
+    u.actions.innerHTML='';
+    if(made.length>1){
+      var b=document.createElement('button');b.className='btn btn-primary';b.style.cssText='margin-top:6px';
+      b.textContent='Download all ('+made.length+')';
+      b.onclick=function(){made.forEach(function(m,i){setTimeout(function(){download(m.blob,m.name);},i*250);});};
+      u.actions.appendChild(b);
+    }
+  }
+  dropzone(u.drop,u.file,async fs=>{
+    const list=[...fs].filter(f=>(f.type||'').startsWith('image/')||/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name||''));
+    if(!list.length){setStatus(u.status,'No images found — drop PNG, JPG or WebP files.',1);return;}
+    u.results.innerHTML='';u.results.classList.add('show');made=[];u.actions.innerHTML='';
+    var q=lossy?(parseInt($('#cq',panel).value,10)/100):undefined;
+    var ok=0,fail=0;
+    for(let idx=0;idx<list.length;idx++){
+      const f=list[idx];
+      setStatus(u.status,'Converting '+(idx+1)+' / '+list.length+' — '+f.name);
+      try{
+        const img=await readImg(f);
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth||img.width||512;c.height=img.naturalHeight||img.height||512;
+        const x=c.getContext('2d');
+        /* Only paint a background for formats that can't hold alpha (JPG).
+           PNG/WebP outputs preserve the source's transparency. */
+        if(opt.bg){x.fillStyle=opt.bg;x.fillRect(0,0,c.width,c.height);}
+        x.imageSmoothingQuality='high';x.drawImage(img,0,0);
+        const blob=await new Promise((res,rej)=>{c.toBlob(b=>b?res(b):rej(new Error('encode failed')),outType,q);});
+        const nm=f.name.replace(/\.[^.]+$/,'')+'.'+ext;
+        made.push({blob:blob,name:nm});ok++;
+        row(u.results,c.toDataURL('image/jpeg',.4),nm,fmtBytes(f.size)+' <span class="arrow">&#8594;</span> '+fmtBytes(blob.size)+' · '+ext.toUpperCase(),()=>download(blob,nm));
+      }catch(e){
+        fail++;
+        row(u.results,'',f.name,'Could not convert this file · '+(e.message||'unknown error'),function(){});
+      }
+    }
+    refreshActions();
+    setStatus(u.status,'Done — '+ok+' converted'+(fail?', '+fail+' failed':'')+'.');
+  });
+};}
+
+function _loadScript(src, glob) {
+  return new Promise(function(ok, fail) {
+    if (glob && window[glob]) { ok(window[glob]); return; }
+    if (document.querySelector('script[src="' + src + '"]')) {
+      var n = 0, iv = setInterval(function() {
+        if (glob && window[glob]) { clearInterval(iv); ok(window[glob]); }
+        else if (++n > 120) { clearInterval(iv); fail(new Error('Timeout: ' + glob)); }
+      }, 250);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function() {
+      if (!glob) { ok(null); return; }
+      var n = 0, iv = setInterval(function() {
+        if (window[glob]) { clearInterval(iv); ok(window[glob]); }
+        else if (++n > 40) { clearInterval(iv); ok(null); }
+      }, 100);
+    };
+    s.onerror = function() { fail(new Error('Failed to load: ' + src)); };
+    document.head.appendChild(s);
+  });
+}

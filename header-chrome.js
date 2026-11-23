@@ -19,7 +19,7 @@
  *
  * Usage:
  *   const { getChrome } = require('./header-chrome.js');
- *   const { CHROME_TOP, FOOTER, HEAD_LINKS, CDN_TAGS, TOOLS, CAT, CAT_META, ICON } = getChrome();
+ *   const { CHROME_TOP, FOOTER, HEAD_LINKS, TOOLS, CAT, CAT_META, ICON } = getChrome();
  */
 'use strict';
 const fs = require('fs');
@@ -59,14 +59,7 @@ function getChrome() {
   if (!captured || !captured.TOOLS) throw new Error('header-chrome: TOOLS capture from data.js failed');
   const { TOOLS, CAT, CAT_META, ICON, AI_STUDIO_SLUGS: AI_STUDIO_SLUGS_SRC } = captured;
 
-  /* ── CDN libraries, in the SPA's exact order — every page that mounts
-     a real tool (currently just tool pages) needs these; pages that
-     only need the header/search/theme do not load them at all, that
-     decision is the CALLER's, this module just makes them available. */
-  const CDN_TAGS = [...indexSrc.matchAll(/<script src="https:\/\/cdnjs\.cloudflare\.com[^>]*><\/script>/g)]
-    .map(m => m[0].includes(' defer') ? m[0] : m[0].replace('></script>', ' defer></script>'))
-    .join('\n');
-  if (!CDN_TAGS) throw new Error('header-chrome: CDN tags not found in index.html');
+  /* CDN libraries are per tool now: see tool-deps.js (build-tool-deps.js). */
 
   /* ── Header + mobile menu, harvested verbatim ── */
   function mustIdx(re, label) {
@@ -307,7 +300,7 @@ function getChrome() {
      boundary on purpose — same reasoning as FOOTER being separate. */
   const TOAST_RACK = '<div id="toast-rack" aria-live="polite" aria-atomic="false"></div>';
 
-  _cache = { CHROME_TOP, FOOTER, HEAD_LINKS, CDN_TAGS, TOOLS, CAT, CAT_META, ICON, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT };
+  _cache = { CHROME_TOP, FOOTER, HEAD_LINKS, TOOLS, CAT, CAT_META, ICON, MEGA_MENU_SCRIPT, TOAST_RACK, NAV_RESPONSIVE_SCRIPT };
   return _cache;
 }
 

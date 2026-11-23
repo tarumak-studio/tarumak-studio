@@ -36,7 +36,7 @@ const PATH_REDIRECTS = {
 const BLOCKED_FILES = new Set([
   '/header-chrome.js', '/resync-chrome.js', '/category-content.js',
   '/comparison-content.js', '/tool-content.js', '/hero-render.js',
-  '/trust-blocks.js', '/recommend-prototype.js', '/worker.js',
+  '/trust-blocks.js', '/tool-deps.js', '/recommend-prototype.js', '/worker.js',
   '/hero-showcase', '/hero-showcase.html', '/upscaler-test', '/upscaler-test.html',
 ]);
 function isBlocked(pathname) {

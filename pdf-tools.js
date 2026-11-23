@@ -1,7 +1,6 @@
 /* TARUMAK STUDIO — pdf-tools.js  (15 PDF tools)
-   PSIZE declared here and NOWHERE ELSE. */
+   PSIZE and imagesToPdfTool live in tool-helpers.js. */
 
-const PSIZE={a4:[595.28,841.89],letter:[612,792]};
 
 /* Load a PDF with pdf-lib WITHOUT ignoreEncryption. pdf-lib cannot
    decrypt, and ignoring encryption silently produced blank pages
@@ -27,41 +26,21 @@ function parseRanges(str,max){
   return [...out].sort((x,y)=>x-y);
 }
 
-/* PDF.js worker — MUST be configured or getDocument() silently falls back to a
-   "fake worker" that runs on the main thread: slow, janky, and it blocks the UI
-   during render. Set once, defensively, as soon as the library is present. */
-(function(){
-  try{
-    if(typeof pdfjsLib!=='undefined' && pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-  }catch(e){/* library not ready yet — pdfjsDoc() re-checks below */}
-})();
 
+/* PDF.js worker — MUST be configured or getDocument() fails or runs on the
+   main thread. pdf.js can arrive after this file (in-app tool view), so
+   every entry point calls this first. */
+function ensurePdfWorker(){
+  if(typeof pdfjsLib!=='undefined'&&pdfjsLib.GlobalWorkerOptions&&!pdfjsLib.GlobalWorkerOptions.workerSrc)
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+ensurePdfWorker();
 async function pdfjsDoc(file){
-  /* Re-assert the worker in case this file parsed before pdf.min.js finished. */
-  try{
-    if(typeof pdfjsLib!=='undefined' && pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-  }catch(e){}
+  ensurePdfWorker();
   const data=await file.arrayBuffer();
   return await pdfjsLib.getDocument({data:data}).promise;
 }
 
-function imagesToPdfTool(opt){opt=opt||{};return function(panel){
-  const u=dz(panel,{accept:opt.accept||'image/*',multiple:true,formats:opt.formats||['JPG','PNG','WEBP'],
-    title:opt.title||'Drop images here or click to browse',sub:opt.sub||'Pages appear in the order you add them — reorder below.'});
-  let files=[];
-  u.controls.className='controls';
-  u.controls.innerHTML='<div class="ctrl"><label for="ps">Page size</label><select id="ps"><option value="fit">Fit to image</option><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="make" disabled>Create PDF</button>';
-  const make=$('#make',panel);
-  function refresh(){listRows(u.results,files,f=>f._nm||f.name||'image');make.disabled=!files.length;}
-  dropzone(u.drop,u.file,fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
-  make.onclick=async()=>{if(!files.length)return;setStatus(u.status,'Building PDF from '+files.length+' image(s)…');make.disabled=true;
-    try{const blob=await buildImagesPdf(files,$('#ps',panel).value);download(blob,(opt.outName||'images')+'.pdf');setStatus(u.status,'PDF created with '+files.length+' page(s).');}
-    catch(e){setStatus(u.status,'Failed: '+(e.message||e),1);}finally{make.disabled=false;}};
-};}
 
 INIT['pdf-merger']=function(panel){
   const u=dz(panel,{accept:'application/pdf',multiple:true,formats:['PDF'],title:'Drop PDF files here or click to browse',sub:'Add two or more PDFs, then arrange the order below.'});
@@ -133,6 +112,7 @@ function loadPdfCrypto(){
    {ok, needsPassword, pages, textItems}. */
 async function verifyPdf(bytes,password){
   try{
+    ensurePdfWorker();
     const doc=await pdfjsLib.getDocument({data:new Uint8Array(bytes),password:password}).promise;
     let text=0;
     for(let i=1;i<=Math.min(doc.numPages,3);i++){text+=(await (await doc.getPage(i)).getTextContent()).items.length;}

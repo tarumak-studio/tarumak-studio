@@ -912,6 +912,8 @@ function buildToolArticles(slug){
 }
 
 function openTool(slug){const t=bySlug(slug);if(!t){showHome();return;}
+  /* The homepage doesn't load the tool bundles: every tool has its own page. */
+  if(!INIT[slug]){location.replace('/'+slug);return;}
   homeEl.hidden=true;toolEl.hidden=false;mm.classList.remove('open');
   setActiveNav('all');
   const cat=t[2],related=TOOLS.filter(x=>x[2]===cat&&x[0]!==slug).slice(0,3);

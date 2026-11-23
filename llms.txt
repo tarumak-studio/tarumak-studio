@@ -1,8 +1,8 @@
 # Tarumak Studio
 
-> Tarumak Studio is a collection of 66 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is independently built and maintained, with new tools added continuously including French Academy, a free browser-based French learning platform (A0–C2).
+> Tarumak Studio is a collection of 71 free browser-based tools for designers, marketers, and developers. All processing happens inside the user's browser — files are never uploaded to a server. The site is independently built and maintained, with new tools added continuously including French Academy, a free browser-based French learning platform (A0–C2).
 
-The site offers tools across five categories — Image Tools (18), PDF Tools (15), Converter Tools (10), Marketing Designer Tools (8), and Developer Tools (15) — plus 50 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
+The site offers tools across five categories — Image Tools (21), PDF Tools (16), Converter Tools (11), Marketing Designer Tools (8), and Developer Tools (15) — plus 50 in-depth blog articles covering practical guides for each tool category. Every tool runs entirely client-side using JavaScript APIs (Canvas, FileReader, pdf-lib, jsPDF), making the site privacy-first by design: nothing is sent to any server.
 
 ## Tool Categories
 

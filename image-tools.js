@@ -205,8 +205,16 @@ INIT['qr-code-generator']=function(panel){
   let type='url',qr=null;const mi=$('#mi',panel),ml=$('#ml',panel),mainB=$('#main',panel),wifiB=$('#wifi',panel),fg=$('#fg',panel),bg=$('#bg',panel),qbox=$('#qbox',panel),dl=$('#dl',panel);
   const cfg={url:['Website URL','https://example.com'],text:['Text content','Type anything…'],email:['Email address','name@email.com']};
   $('#ty',panel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#ty button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');type=b.dataset.t;if(type==='wifi'){mainB.style.display='none';wifiB.style.display='block';}else{mainB.style.display='block';wifiB.style.display='none';ml.textContent=cfg[type][0];mi.placeholder=cfg[type][1];}gen();});
-  function payload(){if(type==='wifi'){const s=$('#ssid',panel).value,p=$('#wp',panel).value,t=$('#wt',panel).value;if(!s)return'';return'WIFI:T:'+t+';S:'+s+';P:'+p+';;';}const v=mi.value.trim();if(!v)return'';return type==='email'?'mailto:'+v:v;}
-  function gen(){const data=payload();qbox.innerHTML='';if(!data){dl.disabled=true;qbox.innerHTML='<span style="color:#5a6180;font-size:13px;text-align:center;line-height:1.5">Enter your content and the QR code appears here.</span>';return;}qr=new QRCode(qbox,{text:data,width:460,height:460,colorDark:fg.value,colorLight:bg.value,correctLevel:QRCode.CorrectLevel.M});dl.disabled=false;}
+  function payload(){if(type==='wifi'){const s=$('#ssid',panel).value,p=$('#wp',panel).value,t=$('#wt',panel).value;if(!s)return'';const e=x=>x.replace(/([\\;,:"])/g,'\\$1');   /* the Wi-Fi QR format needs these escaped */
+    return'WIFI:T:'+t+';S:'+e(s)+';'+(t==='nopass'?'':'P:'+e(p)+';')+';';}const v=mi.value.trim();if(!v)return'';return type==='email'?'mailto:'+v:v;}
+  function gen(){const data=payload();qbox.innerHTML='';if(!data){dl.disabled=true;qbox.innerHTML='<span style="color:#5a6180;font-size:13px;text-align:center;line-height:1.5">Enter your content and the QR code appears here.</span>';return;}
+    /* Medium error correction, or low when the content needs the room. The library throws when it doesn't fit. */
+    let made=false;
+    for(const level of [QRCode.CorrectLevel.M,QRCode.CorrectLevel.L]){
+      try{qbox.innerHTML='';qr=new QRCode(qbox,{text:data,width:460,height:460,colorDark:fg.value,colorLight:bg.value,correctLevel:level});made=true;break;}catch(e){}
+    }
+    if(!made)qbox.innerHTML='<span role="alert" style="color:#c0262d;font-size:13px;text-align:center;line-height:1.5">That is too long for a QR code ('+data.length.toLocaleString()+' characters). Shorten it, or link to a page instead.</span>';
+    dl.disabled=!made;}
   panel.addEventListener('input',e=>{if(e.target.closest('#qwrap')){$('#fgh',panel).textContent=fg.value;$('#bgh',panel).textContent=bg.value;gen();}});
   dl.onclick=()=>{const src=qbox.querySelector('canvas')||qbox.querySelector('img');if(!src)return;const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle=bg.value;x.fillRect(0,0,512,512);const done=()=>c.toBlob(b=>download(b,'qr-code.png'),'image/png');const cv=qbox.querySelector('canvas');if(cv){x.drawImage(cv,16,16,480,480);done();}else{const i=new Image();i.onload=()=>{x.drawImage(i,16,16,480,480);done();};i.src=src.src;}};
   gen();

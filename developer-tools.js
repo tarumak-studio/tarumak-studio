@@ -15,15 +15,49 @@ INIT['word-counter']=function(panel){
     +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:22px;font-weight:700;color:var(--p1)" id="wc-paras">0</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">Paragraphs</div></div>'
     +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:22px;font-weight:700;color:var(--p1)" id="wc-time">0</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">Min read</div></div>'
     +'</div>';
+  var ABBR=/(?:^|[\s(])(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|fig|approx|dept|inc|ltd|co|e\.g|i\.e|[a-z])\.\s*$/i;
+  var NOSPACE=/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u;
+  function seg(kind,s){return Array.from(new Intl.Segmenter(undefined,{granularity:kind}).segment(s));}
+  var HAS_SEG=typeof Intl!=='undefined'&&!!Intl.Segmenter;
+  /* Words: split on spaces; scripts written without spaces use the browser's word segmenter. */
+  function countWords(t){
+    var n=0;
+    t.trim().split(/\s+/).forEach(function(w){
+      if(!w)return;
+      if(HAS_SEG&&NOSPACE.test(w))n+=seg('word',w).filter(function(x){return x.isWordLike;}).length;
+      else n++;
+    });
+    return n;
+  }
+  /* Characters as people see them: an emoji with a skin tone is 1, not 4. */
+  function countChars(t){
+    if(/^[\x00-\x7f]*$/.test(t))return t.length;
+    if(HAS_SEG&&t.length<=100000)return seg('grapheme',t).length;
+    return Array.from(t).length;
+  }
+  function countSentences(t){
+    /* a line break before a lowercase letter is a wrapped line, not a new sentence */
+    t=t.replace(/\n(?=\p{Ll})/gu,' ');
+    var parts=HAS_SEG?seg('sentence',t).map(function(x){return x.segment;}):t.split(/(?<=[.!?。؟।]["')\]]*)\s+|\n+/);
+    var n=0,carry='';
+    parts.forEach(function(p){
+      var s=carry+p;
+      if(ABBR.test(p)&&!/\n/.test(p)){carry=s;return;}
+      carry='';
+      if(/[\p{L}\p{N}]/u.test(s))n++;
+    });
+    if(/[\p{L}\p{N}]/u.test(carry))n++;
+    return n;
+  }
   function update(){
-    var t=document.getElementById('wc-txt').value;
-    var words=t.trim()===''?0:t.trim().split(/\s+/).length;
+    var t=document.getElementById('wc-txt').value,blank=t.trim()==='';
+    var words=blank?0:countWords(t);
     document.getElementById('wc-words').textContent=words;
-    document.getElementById('wc-chars').textContent=t.length;
-    document.getElementById('wc-chars-no').textContent=t.replace(/\s/g,'').length;
-    document.getElementById('wc-sents').textContent=t.trim()===''?0:(t.match(/[.!?]+/g)||[]).length;
-    document.getElementById('wc-paras').textContent=t.trim()===''?0:t.trim().split(/\n\s*\n/).length;
-    document.getElementById('wc-time').textContent=Math.max(1,Math.round(words/200));
+    document.getElementById('wc-chars').textContent=countChars(t);
+    document.getElementById('wc-chars-no').textContent=countChars(t.replace(/\s/g,''));
+    document.getElementById('wc-sents').textContent=blank?0:countSentences(t);
+    document.getElementById('wc-paras').textContent=blank?0:t.trim().split(/\n\s*\n/).length;
+    document.getElementById('wc-time').textContent=words?Math.max(1,Math.round(words/200)):0;
   }
   document.getElementById('wc-txt').addEventListener('input',update);
 };
@@ -44,20 +78,31 @@ INIT['password-generator']=function(panel){
     +'</div>'
     +'<div class="controls" style="margin-top:10px"><button class="btn btn-primary" id="pg-gen">Generate Password</button><button class="btn" id="pg-copy">Copy</button></div>'
     +'<div id="pg-strength" style="margin-top:12px;font-size:13px;color:var(--text-dim)"></div>';
+  /* Unbiased random index: discard values that would favour early characters. */
+  function randIndex(n){
+    var limit=Math.floor(4294967296/n)*n,a=new Uint32Array(1);
+    do{crypto.getRandomValues(a);}while(a[0]>=limit);
+    return a[0]%n;
+  }
   function gen(){
     var len=+document.getElementById('pg-len').value;
-    var chars='abcdefghijklmnopqrstuvwxyz';
-    if(document.getElementById('pg-up').checked)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    if(document.getElementById('pg-num').checked)chars+='0123456789';
-    if(document.getElementById('pg-sym').checked)chars+='!@#$%^&*()_+-=[]{}|;:,.<>?';
-    var pwd='';var arr=new Uint32Array(len);crypto.getRandomValues(arr);
-    for(var i=0;i<len;i++)pwd+=chars[arr[i]%chars.length];
+    var sets=['abcdefghijklmnopqrstuvwxyz'];
+    if(document.getElementById('pg-up').checked)sets.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+    if(document.getElementById('pg-num').checked)sets.push('0123456789');
+    if(document.getElementById('pg-sym').checked)sets.push('!@#$%^&*()_+-=[]{}|;:,.<>?');
+    var chars=sets.join(''),pwd;
+    /* Every selected type must appear. Redrawing the whole password keeps
+       all valid passwords equally likely (placing one of each would not). */
+    do{pwd='';for(var i=0;i<len;i++)pwd+=chars[randIndex(chars.length)];}
+    while(!sets.every(function(s){return Array.prototype.some.call(pwd,function(c){return s.indexOf(c)>-1;});}));
     document.getElementById('pg-out').textContent=pwd;
-    var s=len<12?'Weak':len<16?'Medium':len<24?'Strong':'Very Strong';
+    var bits=Math.floor(len*Math.log2(chars.length));
+    var s=bits<50?'Weak':bits<75?'Medium':bits<110?'Strong':'Very Strong';
     var colors={'Weak':'#ef4444','Medium':'#f59e0b','Strong':'#22c55e','Very Strong':'#22d3ee'};
-    document.getElementById('pg-strength').innerHTML='Strength: <strong style="color:'+colors[s]+'">'+s+'</strong>';
+    document.getElementById('pg-strength').innerHTML='Strength: <strong style="color:'+colors[s]+'">'+s+'</strong> · about '+bits+' bits of entropy';
   }
-  document.getElementById('pg-len').oninput=function(){document.getElementById('pg-len-v').textContent=this.value;};
+  document.getElementById('pg-len').oninput=function(){document.getElementById('pg-len-v').textContent=this.value;gen();};
+  ['pg-up','pg-num','pg-sym'].forEach(function(id){document.getElementById(id).onchange=gen;});
   document.getElementById('pg-gen').onclick=gen;
   document.getElementById('pg-copy').onclick=function(){var t=document.getElementById('pg-out').textContent;if(t&&t!=='Click Generate')navigator.clipboard.writeText(t).then(function(){toast('Password copied!','ok');});};
   gen();
@@ -98,16 +143,34 @@ INIT['base64-encoder']=function(panel){
     +'<label for="b64-in" style="font-size:12px;color:var(--text-dim)" id="b64-in-label">Text to encode</label>'
     +'<textarea id="b64-in" rows="6" placeholder="Enter text to encode..." style="width:100%;margin:6px 0 10px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<button class="btn btn-primary" id="b64-go" style="margin-bottom:10px">Encode →</button>'
+    +'<label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:8px" id="b64-url-l"><input type="checkbox" id="b64-url"> URL-safe output (- and _ instead of + and /, no padding)</label><div id="b64-msg" role="alert" style="font-size:13px;color:#ef4444;min-height:18px;margin-bottom:6px"></div>'
     +'<label for="b64-out" style="font-size:12px;color:var(--text-dim)">Result</label>'
     +'<textarea id="b64-out" rows="6" readonly style="width:100%;margin-top:6px;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<div class="controls" style="margin-top:10px"><button class="btn" id="b64-copy">Copy result</button><button class="btn" id="b64-swap">↑↓ Swap</button></div>';
   var mode='encode';
-  document.getElementById('b64-enc-btn').onclick=function(){mode='encode';this.classList.add('active');document.getElementById('b64-dec-btn').classList.remove('active');document.getElementById('b64-in-label').textContent='Text to encode';document.getElementById('b64-go').textContent='Encode →';};
-  document.getElementById('b64-dec-btn').onclick=function(){mode='decode';this.classList.add('active');document.getElementById('b64-enc-btn').classList.remove('active');document.getElementById('b64-in-label').textContent='Base64 to decode';document.getElementById('b64-go').textContent='Decode →';};
+  document.getElementById('b64-enc-btn').onclick=function(){mode='encode';this.classList.add('active');document.getElementById('b64-dec-btn').classList.remove('active');document.getElementById('b64-in-label').textContent='Text to encode';document.getElementById('b64-go').textContent='Encode →';document.getElementById('b64-url-l').style.display='flex';};
+  document.getElementById('b64-dec-btn').onclick=function(){mode='decode';this.classList.add('active');document.getElementById('b64-enc-btn').classList.remove('active');document.getElementById('b64-in-label').textContent='Base64 to decode';document.getElementById('b64-go').textContent='Decode →';document.getElementById('b64-url-l').style.display='none';};
   document.getElementById('b64-go').onclick=function(){
-    var inp=document.getElementById('b64-in').value;
-    try{document.getElementById('b64-out').value=mode==='encode'?btoa(unescape(encodeURIComponent(inp))):decodeURIComponent(escape(atob(inp)));}
-    catch(e){document.getElementById('b64-out').value='Error: '+e.message;}
+    var inp=document.getElementById('b64-in').value,out=document.getElementById('b64-out'),msg=document.getElementById('b64-msg');
+    out.value='';msg.textContent='';
+    if(!inp){msg.textContent=mode==='encode'?'Enter some text to encode.':'Paste some Base64 to decode.';return;}
+    if(mode==='encode'){
+      var bytes=new TextEncoder().encode(inp),bin='';
+      for(var i=0;i<bytes.length;i+=8192)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
+      var b=btoa(bin);
+      out.value=document.getElementById('b64-url').checked?b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''):b;
+      return;
+    }
+    /* Accept standard and URL-safe alphabets, line breaks, missing padding and data: URLs */
+    var s=inp.trim().replace(/^data:[^,]*;base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
+    var bad=s.match(/[^A-Za-z0-9+\/=]/);
+    if(bad){msg.textContent='This isn’t valid Base64: it contains “'+bad[0]+'”.';return;}
+    var core=s.replace(/=+$/,'');
+    if(!core||core.indexOf('=')>-1||core.length%4===1){msg.textContent='This isn’t valid Base64: it looks cut off or has = in the wrong place.';return;}
+    var raw;
+    try{raw=atob(core+'==='.slice(0,(4-core.length%4)%4));}catch(e){msg.textContent='This isn’t valid Base64.';return;}
+    try{out.value=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Uint8Array.from(raw,function(c){return c.charCodeAt(0);}));}
+    catch(e){msg.textContent='This is valid Base64, but the content isn’t text (it may be an image or another file), so it can’t be shown here.';}
   };
   document.getElementById('b64-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('b64-out').value).then(function(){toast('Copied!','ok');});};
   document.getElementById('b64-swap').onclick=function(){var t=document.getElementById('b64-out').value;document.getElementById('b64-in').value=t;document.getElementById('b64-out').value='';};
@@ -309,15 +372,27 @@ INIT['url-encoder']=function(panel){
   panel.innerHTML='<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn active" id="ue-enc-btn">Encode</button><button class="btn" id="ue-dec-btn">Decode</button></div>'
     +'<textarea id="ue-in" rows="6" placeholder="Enter text or URL to encode..." style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical"></textarea>'
     +'<div class="controls" style="margin:10px 0"><button class="btn btn-primary" id="ue-go">Encode →</button></div>'
+    +'<label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:8px" id="ue-full-l"><input type="checkbox" id="ue-full"> Full URL: keep : / ? & = # so the link still works</label><label style="font-size:13px;color:var(--text-dim);display:none;align-items:center;gap:6px;margin-bottom:8px" id="ue-plus-l"><input type="checkbox" id="ue-plus"> Treat + as a space (form data)</label><div id="ue-msg" role="alert" style="font-size:13px;color:#ef4444;min-height:18px;margin-bottom:6px"></div>'
     +'<textarea id="ue-out" rows="6" readonly style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-family:var(--fm);font-size:13px;resize:vertical"></textarea>'
     +'<div class="controls" style="margin-top:10px"><button class="btn" id="ue-copy">Copy result</button></div>';
   var mode='encode';
-  document.getElementById('ue-enc-btn').onclick=function(){mode='encode';this.classList.add('active');document.getElementById('ue-dec-btn').classList.remove('active');document.getElementById('ue-go').textContent='Encode →';};
-  document.getElementById('ue-dec-btn').onclick=function(){mode='decode';this.classList.add('active');document.getElementById('ue-enc-btn').classList.remove('active');document.getElementById('ue-go').textContent='Decode →';};
+  document.getElementById('ue-enc-btn').onclick=function(){mode='encode';this.classList.add('active');document.getElementById('ue-dec-btn').classList.remove('active');document.getElementById('ue-go').textContent='Encode →';document.getElementById('ue-full-l').style.display='flex';document.getElementById('ue-plus-l').style.display='none';};
+  document.getElementById('ue-dec-btn').onclick=function(){mode='decode';this.classList.add('active');document.getElementById('ue-enc-btn').classList.remove('active');document.getElementById('ue-go').textContent='Decode →';document.getElementById('ue-full-l').style.display='none';document.getElementById('ue-plus-l').style.display='flex';};
   document.getElementById('ue-go').onclick=function(){
-    var inp=document.getElementById('ue-in').value;
-    try{document.getElementById('ue-out').value=mode==='encode'?encodeURIComponent(inp):decodeURIComponent(inp);}
-    catch(e){document.getElementById('ue-out').value='Error: '+e.message;}
+    var inp=document.getElementById('ue-in').value,out=document.getElementById('ue-out'),msg=document.getElementById('ue-msg');
+    out.value='';msg.textContent='';
+    if(!inp){msg.textContent=mode==='encode'?'Enter some text or a URL to encode.':'Paste something to decode.';return;}
+    try{
+      if(mode==='encode')out.value=document.getElementById('ue-full').checked
+        ?encodeURI(inp).replace(/%25([0-9a-f]{2})/gi,'%$1')   /* keep escapes that are already there */
+        :encodeURIComponent(inp);
+      else out.value=decodeURIComponent(document.getElementById('ue-plus').checked?inp.replace(/\+/g,' '):inp);
+    }catch(e){
+      var m=inp.match(/%(?![0-9a-f]{2})/i);
+      msg.textContent=mode==='encode'?'This text contains a broken character that can’t be encoded.'
+        :m?'Can’t decode: the % at position '+(m.index+1)+' isn’t followed by two hex digits. A literal percent sign is written %25.'
+        :'Can’t decode: the percent codes don’t form valid UTF-8 text.';
+    }
   };
   document.getElementById('ue-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('ue-out').value).then(function(){toast('Copied!','ok');});};
 };
@@ -341,39 +416,74 @@ INIT['text-diff']=function(panel){
     +'<div id="diff-out" style="padding:14px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);font-family:monospace;font-size:13px;white-space:pre-wrap;line-height:1.7;min-height:80px;display:none"></div>'
     +'<style>.diff-add{background:rgba(34,197,94,.18);color:#4ade80;}.diff-del{background:rgba(239,68,68,.18);color:#f87171;text-decoration:line-through}</style>';
 
-  function wordDiff(a,b){
-    var wa=a.split(/(\s+)/),wb=b.split(/(\s+)/);
-    var m=wa.length,n=wb.length;
-    // LCS-based word diff
-    var dp=[];
-    for(var i=0;i<=m;i++){dp[i]=[];for(var j=0;j<=n;j++)dp[i][j]=0;}
-    for(var i=1;i<=m;i++)for(var j=1;j<=n;j++){if(wa[i-1]===wb[j-1])dp[i][j]=dp[i-1][j-1]+1;else dp[i][j]=Math.max(dp[i-1][j],dp[i][j-1]);}
-    var out=[],i=m,j=n;
-    while(i>0||j>0){
-      if(i>0&&j>0&&wa[i-1]===wb[j-1]){out.unshift({type:'same',val:wa[i-1]});i--;j--;}
-      else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){out.unshift({type:'add',val:wb[j-1]});j--;}
-      else{out.unshift({type:'del',val:wa[i-1]});i--;}
+  /* Myers diff: fast when texts are similar. Returns [type,token] pairs, or
+     null when the texts differ by more than maxD edits. */
+  function myers(a,b,maxD){
+    var s=0,ea=a.length,eb=b.length;
+    while(s<ea&&s<eb&&a[s]===b[s])s++;
+    while(ea>s&&eb>s&&a[ea-1]===b[eb-1]){ea--;eb--;}
+    var A=a.slice(s,ea),B=b.slice(s,eb),N=A.length,M=B.length,mid=[];
+    if(!N||!M){mid=A.map(function(t){return['del',t];}).concat(B.map(function(t){return['add',t];}));}
+    else{
+      var max=Math.min(N+M,maxD),off=max+1,V=new Int32Array(2*max+3),trace=[],found=-1;
+      for(var d=0;d<=max&&found<0;d++){
+        trace.push(V.slice(off-d-1,off+d+2));
+        for(var k=-d;k<=d;k+=2){
+          var x=(k===-d||(k!==d&&V[off+k-1]<V[off+k+1]))?V[off+k+1]:V[off+k-1]+1,y=x-k;
+          while(x<N&&y<M&&A[x]===B[y]){x++;y++;}
+          V[off+k]=x;
+          if(x>=N&&y>=M){found=d;break;}
+        }
+      }
+      if(found<0)return null;
+      var px=N,py=M;
+      for(var e=found;e>0;e--){
+        var T=trace[e],o=e+1,kk=px-py;
+        var pk=(kk===-e||(kk!==e&&T[o+kk-1]<T[o+kk+1]))?kk+1:kk-1;
+        var qx=T[o+pk],qy=qx-pk;
+        while(px>qx&&py>qy){px--;py--;mid.push(['same',A[px]]);}
+        if(pk===kk+1){py--;mid.push(['add',B[py]]);}else{px--;mid.push(['del',A[px]]);}
+      }
+      while(px>0&&py>0){px--;py--;mid.push(['same',A[px]]);}
+      mid.reverse();
     }
-    return out;
+    return a.slice(0,s).map(function(t){return['same',t];}).concat(mid,a.slice(ea).map(function(t){return['same',t];}));
   }
-
-  document.getElementById('diff-go').onclick=function(){
-    var a=document.getElementById('diff-a').value;
-    var b=document.getElementById('diff-b').value;
-    if(!a&&!b){document.getElementById('diff-stats').textContent='Enter text in both panels.';return;}
-    var diff=wordDiff(a,b);
-    var adds=diff.filter(function(d){return d.type==='add';}).length;
-    var dels=diff.filter(function(d){return d.type==='del';}).length;
-    document.getElementById('diff-stats').textContent='+'+adds+' additions · -'+dels+' deletions';
-    var html='';
-    diff.forEach(function(d){
-      var esc=d.val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      if(d.type==='same') html+=esc;
-      else if(d.type==='add') html+='<span class="diff-add">'+esc+'</span>';
-      else html+='<span class="diff-del">'+esc+'</span>';
+  function all(a,b){return a.map(function(t){return['del',t];}).concat(b.map(function(t){return['add',t];}));}
+  /* Lines first, then words inside each changed block. */
+  function compare(a,b){
+    var la=a?a.replace(/\r\n?/g,'\n').split('\n'):[],lb=b?b.replace(/\r\n?/g,'\n').split('\n'):[];
+    var lines=myers(la,lb,1500)||all(la,lb);
+    var st={la:0,ld:0,wa:0,wd:0},rows=[],dels=[],adds=[];
+    function flush(){
+      if(!dels.length&&!adds.length)return;
+      st.ld+=dels.length;st.la+=adds.length;
+      var parts;
+      if(dels.length&&adds.length){
+        var wa=dels.join('\n').split(/(\s+)/).filter(Boolean),wb=adds.join('\n').split(/(\s+)/).filter(Boolean);
+        parts=myers(wa,wb,1500)||all([dels.join('\n')],[adds.join('\n')]);
+      }else parts=dels.length?[['del',dels.join('\n')]]:[['add',adds.join('\n')]];
+      parts.forEach(function(p){var n=(p[1].match(/\S+/g)||[]).length;if(p[0]==='add')st.wa+=n;if(p[0]==='del')st.wd+=n;});
+      rows.push(parts);dels=[];adds=[];
+    }
+    lines.forEach(function(l){
+      if(l[0]==='del')dels.push(l[1]);else if(l[0]==='add')adds.push(l[1]);
+      else{flush();rows.push([['same',l[1]]]);}
     });
-    var out=document.getElementById('diff-out');
-    out.innerHTML=html;
+    flush();
+    return{rows:rows,st:st};
+  }
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function plural(n,w){return n+' '+w+(n===1?'':'s');}
+  document.getElementById('diff-go').onclick=function(){
+    var a=document.getElementById('diff-a').value,b=document.getElementById('diff-b').value;
+    var stats=document.getElementById('diff-stats'),out=document.getElementById('diff-out');
+    out.innerHTML='';out.style.display='none';
+    if(!a&&!b){stats.textContent='Enter text in both panels.';return;}
+    var r=compare(a,b),s=r.st;
+    if(!s.la&&!s.ld)stats.textContent='No differences: the texts are the same.';
+    else stats.textContent=plural(s.la,'line')+' added, '+plural(s.ld,'line')+' removed · '+plural(s.wa,'word')+' added, '+plural(s.wd,'word')+' removed (a changed line counts as one removed and one added)';
+    out.innerHTML=r.rows.map(function(parts){return parts.map(function(p){return p[0]==='same'?esc(p[1]):'<span class="diff-'+p[0]+'">'+(esc(p[1])||'⏎')+'</span>';}).join('');}).join('\n');
     out.style.display='block';
   };
   document.getElementById('diff-clear').onclick=function(){
@@ -505,17 +615,21 @@ INIT['slug-generator']=function(panel){
   document.getElementById('sg-hyp').onclick=function(){sep='-';this.classList.add('active');document.getElementById('sg-und').classList.remove('active');gen();};
   document.getElementById('sg-und').onclick=function(){sep='_';this.classList.add('active');document.getElementById('sg-hyp').classList.remove('active');gen();};
 
+  /* Letters that don't reduce to a-z by removing an accent */
+  var MAP={'ß':'ss','æ':'ae','œ':'oe','ø':'o','đ':'d','ð':'d','þ':'th','ł':'l','ı':'i','ħ':'h','ŋ':'ng',
+    'а':'a','б':'b','в':'v','г':'g','ґ':'g','д':'d','е':'e','ё':'yo','є':'ye','ж':'zh','з':'z','и':'i','і':'i','ї':'yi','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+    'α':'a','β':'v','γ':'g','δ':'d','ε':'e','ζ':'z','η':'i','θ':'th','ι':'i','κ':'k','λ':'l','μ':'m','ν':'n','ξ':'x','ο':'o','π':'p','ρ':'r','σ':'s','ς':'s','τ':'t','υ':'y','φ':'f','χ':'ch','ψ':'ps','ω':'o'};
+  function latin(s){
+    s=Array.from(s.toLowerCase().normalize('NFC')).map(function(c){return MAP[c]!==undefined?MAP[c]:c;}).join('');
+    return Array.from(s.normalize('NFD').replace(/[̀-ͯ]/g,'')).map(function(c){return MAP[c]!==undefined?MAP[c]:c;}).join('');
+  }
   function gen(){
-    var val=document.getElementById('sg-in').value;
-    var slug=val
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove accents
-      .replace(/[^a-z0-9\s-_]/g,'')
-      .trim()
-      .replace(/[\s_-]+/g,sep)
-      .replace(new RegExp('^['+sep+']+|['+sep+']+$','g'),'');
+    var base=latin(document.getElementById('sg-in').value).replace(/['’ʼ]/g,'');
+    var lost=/[^\x00-\x7f]/.test(base)&&/(?=[^\x00-\x7f])[\p{L}\p{N}]/u.test(base);
+    var slug=base.replace(/[^a-z0-9]+/g,sep).replace(new RegExp('^['+sep+']+|['+sep+']+$','g'),'');
     document.getElementById('sg-out').value=slug;
-    document.getElementById('sg-info').textContent=slug?slug.length+' chars':'';
+    document.getElementById('sg-info').textContent=(slug?slug.length+' chars':'')
+      +(lost?(slug?' · ':'')+'Some letters can’t be converted to a–z and were left out.'+(slug?'':' Type an English version of the title.'):'');
   }
   document.getElementById('sg-in').addEventListener('input',gen);
   document.getElementById('sg-copy').onclick=function(){
@@ -544,22 +658,36 @@ INIT['text-case-converter']=function(panel){
     +'<div class="controls" style="margin-top:10px"><button class="btn btn-primary" id="tc-copy">Copy result</button><button class="btn" id="tc-swap">Use as input ↑</button></div>';
 
   var small=['a','an','the','and','but','or','nor','for','yet','so','at','by','in','of','on','to','up','as','is'];
+  /* A word is letters/digits of any language, with apostrophes inside it (don't, McDonald's) */
+  var WORD=/[\p{L}\p{N}\p{M}]+(?:['’][\p{L}\p{M}]+)*/gu;
+  function cap(w){var c=Array.from(w);return c[0].toUpperCase()+c.slice(1).join('');}
+  /* Words for code styles: apostrophes dropped, camelCase and acronyms split, accents kept */
+  function parts(line){
+    return line.normalize('NFC').replace(/['’]/g,'')
+      .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu,'$1 $2').replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu,'$1 $2')
+      .toLowerCase().match(/[\p{L}\p{N}\p{M}]+/gu)||[];
+  }
+  function eachLine(fn){return function(s){return s.split('\n').map(function(l){return fn(parts(l));}).join('\n');};}
 
   var fns={
     'tc-up':function(s){return s.toUpperCase();},
     'tc-lo':function(s){return s.toLowerCase();},
-    'tc-ti':function(s){return s.toLowerCase().replace(/\b\w+/g,function(w){return small.includes(w)&&s.indexOf(w)>0?w:w.charAt(0).toUpperCase()+w.slice(1);});},
-    'tc-se':function(s){return s.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g,function(c){return c.toUpperCase();});},
-    'tc-ca':function(s){return s.toLowerCase().replace(/[^a-z0-9]+(\w)/g,function(_,c){return c.toUpperCase();});},
-    'tc-sn':function(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');},
-    'tc-ke':function(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');},
-    'tc-pa':function(s){return s.toLowerCase().replace(/(?:^|[^a-z0-9])(\w)/g,function(_,c){return c.toUpperCase();});}
+    'tc-ti':function(s){
+      s=s.toLowerCase();
+      return s.replace(WORD,function(w,i){
+        var start=/(^|\n|[.!?:]["'”’)]*)[^\p{L}\p{N}]*$/u.test(s.slice(Math.max(0,i-40),i))||i===0;
+        return small.includes(w)&&!start?w:cap(w);});},
+    'tc-se':function(s){return s.toLowerCase().replace(/(^[^\p{L}\p{N}]*|[.!?]["'”’)]*\s+[^\p{L}\p{N}]*|\n\s*\n[^\p{L}\p{N}]*)(\p{L})/gu,function(_,p,c){return p+c.toUpperCase();});},
+    'tc-ca':eachLine(function(w){return w.map(function(x,i){return i?cap(x):x;}).join('');}),
+    'tc-sn':eachLine(function(w){return w.join('_');}),
+    'tc-ke':eachLine(function(w){return w.join('-');}),
+    'tc-pa':eachLine(function(w){return w.map(cap).join('');})
   };
 
   Object.keys(fns).forEach(function(id){
     document.getElementById(id).onclick=function(){
       var inp=document.getElementById('tc-in').value;
-      if(!inp)return;
+      if(!inp){document.getElementById('tc-out').value='';toast('Enter some text first','err');return;}
       document.querySelectorAll('#tc-in ~ div .btn').forEach(function(b){b.classList.remove('active');});
       this.classList.add('active');
       document.getElementById('tc-out').value=fns[id](inp);
@@ -606,6 +734,7 @@ INIT['timestamp-converter']=function(panel){
     +'<input id="ts-hu-in" type="datetime-local" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:14px">'
     +'<button class="btn btn-primary" id="ts-hu-go" style="white-space:nowrap">Convert →</button>'
     +'</div>'
+    +'<label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="ts-hu-utc"> This time is in UTC (otherwise your local time zone)</label>'
     +'<div id="ts-hu-out" style="font-size:13.5px;font-family:monospace;color:var(--text);min-height:20px"></div>'
     +'</div>'
     +'</div>';
@@ -633,25 +762,27 @@ INIT['timestamp-converter']=function(panel){
     navigator.clipboard.writeText(Date.now().toString()).then(function(){toast('Milliseconds copied!','ok');});
   };
   document.getElementById('ts-ux-go').onclick=function(){
-    var v=document.getElementById('ts-ux-in').value.trim();
-    if(!v)return;
-    var ts=parseInt(v);
-    if(isNaN(ts)){document.getElementById('ts-ux-out').textContent='Invalid timestamp';return;}
-    // Auto-detect seconds vs milliseconds
-    if(v.length>11) ts=Math.floor(ts/1000);
-    var d=new Date(ts*1000);
-    if(isNaN(d.getTime())){document.getElementById('ts-ux-out').textContent='Invalid timestamp';return;}
-    document.getElementById('ts-ux-out').innerHTML=
-      '<div>Local: <strong>'+d.toLocaleString()+'</strong></div>'
+    var v=document.getElementById('ts-ux-in').value.trim().replace(/[,_\s]/g,''),out=document.getElementById('ts-ux-out');
+    if(!v){out.textContent='Enter a Unix timestamp.';return;}
+    if(!/^[+-]?\d+(\.\d+)?$/.test(v)){out.textContent='Invalid timestamp: use digits only, for example 1735689600';return;}
+    /* The size of the number tells the unit: 1e11 seconds is the year 5138 */
+    var n=Number(v),abs=Math.abs(n);
+    var u=abs<1e11?['seconds',1000]:abs<1e14?['milliseconds',1]:abs<1e17?['microseconds',1e-3]:['nanoseconds',1e-6];
+    var d=new Date(Math.round(n*u[1]));
+    if(isNaN(d.getTime())){out.textContent='Invalid timestamp: that date is out of range';return;}
+    out.innerHTML=
+      '<div>Local: <strong>'+d.toLocaleString()+'</strong> ('+Intl.DateTimeFormat().resolvedOptions().timeZone+')</div>'
       +'<div>UTC: '+d.toUTCString()+'</div>'
-      +'<div>ISO: '+d.toISOString()+'</div>';
+      +'<div>ISO: '+d.toISOString()+'</div>'
+      +'<div style="color:var(--text-dim)">Read as '+u[0]+'</div>';
   };
   document.getElementById('ts-hu-go').onclick=function(){
-    var v=document.getElementById('ts-hu-in').value;
-    if(!v)return;
-    var ts=Math.floor(new Date(v).getTime()/1000);
-    document.getElementById('ts-hu-out').innerHTML=
-      '<div>Unix seconds: <strong>'+ts+'</strong></div>'
-      +'<div>Unix milliseconds: '+(ts*1000)+'</div>';
+    var v=document.getElementById('ts-hu-in').value,out=document.getElementById('ts-hu-out');
+    var utc=document.getElementById('ts-hu-utc').checked;
+    var ms=v?new Date(v+(utc?'Z':'')).getTime():NaN;
+    if(isNaN(ms)){out.textContent='Choose a date and time.';return;}
+    out.innerHTML=
+      '<div>Unix seconds: <strong>'+Math.floor(ms/1000)+'</strong></div>'
+      +'<div>Unix milliseconds: '+ms+'</div>';
   };
 };

@@ -254,6 +254,34 @@
     var avgLineLen = rows.length ? totalChars / rows.length : 0;
     var isVeryShort = n <= 30 && rows.length <= 14;
 
+    /* A small table is still a table: several rows that share the same cell
+       positions. Without this, anything under 6 rows was read as prose and
+       the whole table landed in one cell. */
+    function numeric(s) { return /^[\s(+-]*[$€£¥₹]?\s*[\d.,]*\d[\d.,]*\s*[%)]?$/.test(s); }
+    function sameEdge(a, b) { return Math.abs(a.x - b.x) <= 5 || Math.abs(a.x + a.w - b.x - b.w) <= 5; }
+    /* Cells are set well apart. Justified prose also leaves gaps between
+       words, but narrower ones, and its words don't line up row after row. */
+    var cellRows = rows.filter(function (r) {
+      for (var i = 1; i < r.items.length; i++) if (r.items[i].x - r.items[i - 1].x - r.items[i - 1].w < medianSize) return false;
+      return r.items.length > 1;
+    });
+    function lined(group) {
+      var need = (group.length - 1) * 0.6;
+      return group.filter(function (row) {
+        return row.items.filter(function (it) {
+          return group.filter(function (o) { return o !== row && o.items.some(function (b) { return sameEdge(it, b); }); }).length >= need;
+        }).length >= row.items.length * 0.75;
+      });
+    }
+    var wide = lined(cellRows.filter(function (r) { return r.items.length >= 3; })).length;
+    var pairs = lined(cellRows.filter(function (r) { return r.items.length === 2; }));
+    var numPairs = pairs.filter(function (r) { return numeric(r.items[1].text); }).length;
+    if ((wide >= 3 && wide >= rows.length * 0.5) ||
+        (pairs.length >= 4 && pairs.length >= rows.length * 0.6 && numPairs >= pairs.length * 0.6)) {
+      reasons.push((wide >= 3 ? wide : pairs.length) + ' of ' + rows.length + ' rows share the same cell positions.');
+      return { type: 'table', confidence: 'medium', reasons: reasons };
+    }
+
     /* Card-likelihood is checked first and on its own merits, not merely
        as a "table signal absent" fallback — a very short document with a
        dominant large title is distinctive enough that it shouldn't be

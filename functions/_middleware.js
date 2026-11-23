@@ -23,8 +23,9 @@
  * _redirects again.
  */
 const PATH_REDIRECTS = {
-  '/svg-to-png': '/png-to-svg',
-  '/svg-to-png.html': '/png-to-svg',
+  /* The SVG converter outputs PNG too; ?format=png preselects it */
+  '/svg-to-png': '/svg-to-jpg?format=png',
+  '/svg-to-png.html': '/svg-to-jpg?format=png',
 };
 
 /* Internal files that live in the repo root but must not be public:
@@ -71,8 +72,9 @@ export async function onRequest(context) {
 
   const target = PATH_REDIRECTS[url.pathname];
   if (target) {
-    url.pathname = target;
-    return Response.redirect(url.toString(), 301);
+    const to = new URL(target, url.origin);
+    url.searchParams.forEach((v, k) => { if (!to.searchParams.has(k)) to.searchParams.append(k, v); });
+    return Response.redirect(to.toString(), 301);
   }
 
   return context.next();

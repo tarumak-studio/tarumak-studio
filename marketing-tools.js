@@ -399,22 +399,28 @@ INIT['brand-color-extract']=function(panel){
   function loadF(file){var r=new FileReader();r.onload=function(e){var img=new Image();img.onload=function(){
     var c=document.createElement('canvas');c.width=Math.min(img.width,300);c.height=Math.round(img.height*c.width/img.width);
     var cx=c.getContext('2d');cx.drawImage(img,0,0,c.width,c.height);
-    var data=cx.getImageData(0,0,c.width,c.height).data,bk={};
-    for(var i=0;i<data.length;i+=12){if(data[i+3]<120)continue;var k=(data[i]>>2)+','+(data[i+1]>>2)+','+(data[i+2]>>2);bk[k]=(bk[k]||0)+1;}
-    var sorted=Object.entries(bk).sort(function(a,b){return b[1]-a[1];});
-    colors=[];
-    for(var i=0;i<sorted.length&&colors.length<8;i++){
-      var p=sorted[i][0].split(',');var R=p[0]<<2,G=p[1]<<2,B=p[2]<<2;
-      var ok=true;for(var j=0;j<colors.length;j++){var dr=R-colors[j][0],dg=G-colors[j][1],db=B-colors[j][2];if(Math.sqrt(dr*dr+dg*dg+db*db)<32){ok=false;break;}}
-      if(ok)colors.push([R,G,B]);
-    }
+    var data=cx.getImageData(0,0,c.width,c.height).data;
+    function hslOf(p){return rgb2hsl(p.rgb[0],p.rgb[1],p.rgb[2]);}
+    function neutral(p){var h=hslOf(p);return h[1]<12||h[2]>=96||h[2]<=6;}
+    /* The backdrop is the colour around the edge of the image. A white, grey or
+       black backdrop isn't a brand colour; a coloured one (an app icon) is. */
+    var edge=[];
+    for(var y=0;y<c.height;y++)for(var x=0;x<c.width;x++)if(x<2||y<2||x>=c.width-2||y>=c.height-2){var o=(y*c.width+x)*4;edge.push(data[o],data[o+1],data[o+2],data[o+3]);}
+    var rim=pickPalette(edge,3).filter(function(p){return neutral(p)&&p.share>=0.2;});
+    function isRim(p){return rim.some(function(r){return Math.abs(r.rgb[0]-p.rgb[0])+Math.abs(r.rgb[1]-p.rgb[1])+Math.abs(r.rgb[2]-p.rgb[2])<75;});}
+    var found=pickPalette(data,12);
+    var brand=found.filter(function(p){return p.share>=0.004&&!(neutral(p)&&(isRim(p)||hslOf(p)[2]>=85));});
+    if(!brand.length)brand=found.slice(0,1);
+    /* Colours first, then blacks and greys; most used first within each */
+    brand.sort(function(a,b){return (neutral(a)-neutral(b))||(b.share-a.share);});
+    colors=brand.slice(0,6).map(function(p){return p.rgb;});
     var hexes=colors.map(function(c){return r2h(c[0],c[1],c[2]);});
     var sw=document.getElementById('bc-swatches');
     sw.innerHTML=hexes.map(function(h,i){
       var rgb=colors[i],hsl=rgb2hsl(rgb[0],rgb[1],rgb[2]);
       return '<div class="swatch-card" onclick="navigator.clipboard.writeText(\''+h+'\').then(function(){toast(\''+h+' copied\',\'ok\',2000);})">'
         +'<div class="sc-box" style="background:'+h+'"></div>'
-        +'<div style="flex:1"><div class="sc-hex">'+h.toUpperCase()+'</div><div class="sc-meta">RGB('+rgb.join(', ')+') &bull; HSL('+hsl.join('\u00b0,')+') </div></div>'
+        +'<div style="flex:1"><div class="sc-hex">'+h.toUpperCase()+'</div><div class="sc-meta">RGB('+rgb.join(', ')+') &bull; HSL('+hsl[0]+'\u00b0, '+hsl[1]+'%, '+hsl[2]+'%)</div></div>'
         +'<span style="font-size:11px;color:var(--text-faint)">copy</span></div>';
     }).join('');
     var css=hexes.map(function(h,i){return '--brand-'+(i===0?'primary':i===1?'secondary':'color-'+(i+1))+': '+h+';';}).join('\n');

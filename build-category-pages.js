@@ -15,7 +15,7 @@ const {
 const { CATEGORIES } = require('./category-content.js');
 const { COMPARISONS } = require('./comparison-content.js');
 
-const { CHROME_TOP, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, NAV_RESPONSIVE_SCRIPT } = getChrome();
+const { CHROME_TOP, FOOTER, HEAD_LINKS, MEGA_MENU_SCRIPT, NAV_RESPONSIVE_SCRIPT, TOAST_RACK } = getChrome();
 
 /* ── Validation: every real tool in a category must appear in exactly
    one group. This runs on every build, not just once by hand — if a
@@ -166,7 +166,7 @@ function buildCategoryPage(catKey, cat) {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>${esc(cat.heroTitle)} | Tarumak Studio</title>
+<title>${esc(cat.pageTitle || cat.heroTitle)} | Tarumak Studio</title>
 <meta name="description" content="${esc(trimDesc(cat.heroSubtitle, 160))}">
 <link rel="canonical" href="${url}">
 <meta property="og:type" content="website">
@@ -180,6 +180,7 @@ ${HEAD_LINKS}
 <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body>
+${TOAST_RACK}
 ${active}
 <main>
   <div class="cat-wrap">

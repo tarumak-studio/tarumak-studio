@@ -170,28 +170,73 @@ INIT['image-to-pdf']=imagesToPdfTool({outName:'image'});
 /* ---------- Scan to PDF (camera + files) -------------------------- */
 
 INIT['watermark-image']=function(panel){
-  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',formats:['JPG','PNG','WEBP'],sub:'Then type your watermark text.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="tx">Text</label><input type="text" id="tx" value="© TARUMAK" style="width:180px"></div><div class="ctrl"><label for="ps">Position</label><select id="ps"><option value="br">Bottom right</option><option value="bl">Bottom left</option><option value="tr">Top right</option><option value="tl">Top left</option><option value="c">Center</option><option value="tile">Tiled</option></select></div><div class="ctrl"><label for="sz">Size · <span class="val" id="szv">5%</span></label><input type="range" id="sz" min="2" max="14" value="5"></div><div class="ctrl"><label for="op">Opacity · <span class="val" id="opv">45%</span></label><input type="range" id="op" min="5" max="100" value="45"></div><div class="ctrl"><label>Color</label><div class="color-field"><input type="color" id="cl" value="#ffffff"><span id="clh">#ffffff</span></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Download</button>';
-  let img=null;const tx=$('#tx',panel),ps=$('#ps',panel),sz=$('#sz',panel),op=$('#op',panel),cl=$('#cl',panel);
-  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!f)return;readImg(f).then(im=>{img=im;paint();});});
-  function paint(){if(!img)return;$('#szv',panel).textContent=sz.value+'%';$('#opv',panel).textContent=op.value+'%';$('#clh',panel).textContent=cl.value;
+  const u=dz(panel,{accept:'image/png,image/jpeg,image/webp',formats:['JPG','PNG','WEBP'],sub:'Then type your watermark text or add your logo.'});
+  u.controls.innerHTML='<div class="ctrl"><label for="tx">Text</label><input type="text" id="tx" value="" placeholder="© Your name" style="width:180px"></div><div class="ctrl"><label for="lg">Or a logo image</label><input type="file" id="lg" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="width:210px;font-size:12px"></div><div class="ctrl"><label for="ps">Position</label><select id="ps"><option value="br">Bottom right</option><option value="bl">Bottom left</option><option value="tr">Top right</option><option value="tl">Top left</option><option value="c">Center</option><option value="tile">Tiled</option></select></div><div class="ctrl"><label for="sz">Size · <span class="val" id="szv">5%</span></label><input type="range" id="sz" min="2" max="14" value="5"></div><div class="ctrl"><label for="op">Opacity · <span class="val" id="opv">45%</span></label><input type="range" id="op" min="5" max="100" value="45"></div><div class="ctrl"><label for="ro">Rotation · <span class="val" id="rov">0°</span></label><input type="range" id="ro" min="-90" max="90" step="5" value="0"></div><div class="ctrl"><label for="cl">Text color</label><div class="color-field"><input type="color" id="cl" value="#ffffff"><span id="clh">#ffffff</span></div></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run" disabled>Download</button>';
+  let img=null,logo=null,srcType='image/png',srcName='image',canvas=null;
+  const tx=$('#tx',panel),lg=$('#lg',panel),ps=$('#ps',panel),sz=$('#sz',panel),op=$('#op',panel),ro=$('#ro',panel),cl=$('#cl',panel),run=$('#run',panel);
+  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>/image\/(png|jpeg|webp)/.test(x.type));if(!f){setStatus(u.status,'Drop a JPG, PNG or WebP image.',1);return;}
+    srcType=f.type;srcName=f.name.replace(/\.[^.]+$/,'');readImg(f).then(im=>{img=im;paint();}).catch(()=>setStatus(u.status,'Could not read this image.',1));});
+  lg.addEventListener('change',()=>{const f=lg.files[0];if(!f){logo=null;paint();return;}
+    readImg(f).then(im=>{logo=im;paint();}).catch(()=>{logo=null;lg.value='';setStatus(u.status,'Could not read that logo image.',1);});});
+  function paint(){
+    $('#szv',panel).textContent=sz.value+'%';$('#opv',panel).textContent=op.value+'%';$('#rov',panel).textContent=ro.value+'°';$('#clh',panel).textContent=cl.value;
+    if(!img)return;
     const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');x.drawImage(img,0,0);
-    const fs=Math.round(c.width*sz.value/100);x.font='600 '+fs+'px Space Grotesk, Inter, sans-serif';x.fillStyle=cl.value;x.globalAlpha=op.value/100;x.textBaseline='middle';const m=fs*.7,t=tx.value||' ',tw=x.measureText(t).width;
-    if(ps.value==='tile'){x.save();x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/6);x.translate(-c.width/2,-c.height/2);x.textAlign='center';const gx=tw+fs*2,gy=fs*3;for(let yy=-c.height;yy<c.height*2;yy+=gy)for(let xx=-c.width;xx<c.width*2;xx+=gx)x.fillText(t,xx,yy);x.restore();}
-    else{x.textAlign='left';let px,py;if(ps.value==='tl'){px=m;py=m+fs/2;}if(ps.value==='tr'){px=c.width-tw-m;py=m+fs/2;}if(ps.value==='bl'){px=m;py=c.height-m-fs/2;}if(ps.value==='br'){px=c.width-tw-m;py=c.height-m-fs/2;}if(ps.value==='c'){px=(c.width-tw)/2;py=c.height/2;}x.fillText(t,px,py);}
-    x.globalAlpha=1;u.results.innerHTML='';u.results.classList.add('show');const w=document.createElement('div');w.className='preview show';w.appendChild(c);u.results.appendChild(w);u.results._c=c;}
-  [tx,ps,sz,op,cl].forEach(el=>el.addEventListener('input',paint));
-  $('#run',panel).onclick=()=>{const c=u.results._c;if(!c){setStatus(u.status,'Drop an image first.',1);return;}c.toBlob(b=>download(b,'watermarked.png'),'image/png');};
+    const t=tx.value.trim(),has=!!(logo||t);
+    if(has){
+      const fs=Math.max(8,Math.round(c.width*sz.value/100));let w,h;
+      if(logo){w=fs*4;h=w*((logo.naturalHeight||1)/(logo.naturalWidth||1));}
+      else{x.font='600 '+fs+'px Space Grotesk, Inter, sans-serif';w=x.measureText(t).width;h=fs;}
+      const a=ro.value*Math.PI/180;
+      /* Size of the rotated mark, so corner positions keep it inside the image */
+      const bw=Math.abs(w*Math.cos(a))+Math.abs(h*Math.sin(a)),bh=Math.abs(w*Math.sin(a))+Math.abs(h*Math.cos(a)),m=fs*.7;
+      const mark=(cx,cy)=>{x.save();x.translate(cx,cy);x.rotate(a);
+        if(logo)x.drawImage(logo,-w/2,-h/2,w,h);else{x.textAlign='center';x.textBaseline='middle';x.fillStyle=cl.value;x.fillText(t,0,0);}
+        x.restore();};
+      x.globalAlpha=op.value/100;
+      if(ps.value==='tile'){x.save();x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/6);
+        const R=Math.hypot(c.width,c.height)/2,gx=bw+fs*2,gy=bh+fs*2;
+        for(let yy=0;yy<R+gy;yy+=gy)for(let xx=0;xx<R+gx;xx+=gx){mark(xx,yy);if(xx)mark(-xx,yy);if(yy)mark(xx,-yy);if(xx&&yy)mark(-xx,-yy);}
+        x.restore();}
+      else{const L=m+bw/2,T=m+bh/2,p=ps.value;
+        mark(p==='c'?c.width/2:/l$/.test(p)?L:c.width-L,p==='c'?c.height/2:/^t/.test(p)?T:c.height-T);}
+      x.globalAlpha=1;
+    }
+    canvas=c;run.disabled=!has;
+    setStatus(u.status,has?c.width+'×'+c.height+' px':'Type some text or choose a logo to see your watermark.');
+    u.results.innerHTML='';u.results.classList.add('show');const wr=document.createElement('div');wr.className='preview show';wr.appendChild(c);u.results.appendChild(wr);}
+  [tx,ps,sz,op,ro,cl].forEach(el=>el.addEventListener('input',paint));
+  /* Keep the source format: a JPG photo stays a JPG instead of a much larger PNG */
+  run.onclick=()=>{if(!canvas)return;const ext=srcType==='image/jpeg'?'jpg':srcType==='image/webp'?'webp':'png';
+    canvas.toBlob(b=>{if(!b){setStatus(u.status,'Could not create the image. It may be too large for this browser.',1);return;}
+      download(b,srcName+'-watermarked.'+ext);setStatus(u.status,'Done — '+fmtBytes(b.size)+'.');},srcType,.92);};
 };
 
 /* ===== SVG rasterizer factory ===== */
 function svgConv(outType,ext,bg){return function(panel){
-  const u=dz(panel,{accept:'.svg,image/svg+xml',multiple:true,formats:[ext.toUpperCase()],sub:'Vector SVG rendered to '+ext.toUpperCase()+' at your chosen size.'});
-  u.controls.innerHTML='<div class="ctrl"><label for="sc">Output width</label><select id="sc"><option value="512">512 px</option><option value="1024">1024 px</option><option value="256">256 px</option><option value="2048">2048 px</option></select></div>';
-  dropzone(u.drop,u.file,async fs=>{const list=[...fs].filter(f=>/svg/i.test(f.type)||/\.svg$/i.test(f.name));if(!list.length)return;u.results.innerHTML='';u.results.classList.add('show');const W=+$('#sc',panel).value;
-    for(const f of list){const txt=await f.text();const url=URL.createObjectURL(new Blob([txt],{type:'image/svg+xml'}));
-      await new Promise(res=>{const im=new Image();im.onload=()=>{const ar=(im.naturalWidth&&im.naturalHeight)?im.naturalHeight/im.naturalWidth:1;const c=document.createElement('canvas');c.width=W;c.height=Math.round(W*ar)||W;const x=c.getContext('2d');if(bg){x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);}x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);c.toBlob(b=>{row(u.results,c.toDataURL(),f.name,c.width+'×'+c.height+' · '+ext.toUpperCase(),()=>download(b,f.name.replace(/\.svg$/i,'')+'.'+ext));res();},outType,.95);};im.onerror=()=>{setStatus(u.status,'Could not render '+f.name,1);res();};im.src=url;});}
-  });
+  const want=new URLSearchParams(location.search).get('format');
+  if(want==='png'){outType='image/png';ext='png';}
+  const u=dz(panel,{accept:'.svg,image/svg+xml',multiple:true,formats:['JPG','PNG'],sub:'Vector SVG rendered to JPG or PNG at your chosen size.'});
+  u.controls.innerHTML='<div class="ctrl"><label for="fm">Format</label><select id="fm"><option value="jpg">JPG (white background)</option><option value="png">PNG (keeps transparency)</option></select></div><div class="ctrl"><label for="sc">Output width</label><select id="sc"><option value="256">256 px</option><option value="512" selected>512 px</option><option value="1024">1024 px</option><option value="2048">2048 px</option></select></div><div class="ctrl" id="qc"><label for="cq">JPG quality · <span class="val" id="cqv">92%</span></label><input type="range" id="cq" min="50" max="100" value="92" style="width:130px"></div>';
+  const fm=$('#fm',panel),sc=$('#sc',panel),cq=$('#cq',panel);let last=[];
+  fm.value=ext;
+  async function convert(){
+    $('#qc',panel).style.display=fm.value==='jpg'?'':'none';$('#cqv',panel).textContent=cq.value+'%';
+    if(!last.length)return;
+    const png=fm.value==='png',type=png?'image/png':'image/jpeg',W=+sc.value;
+    u.results.innerHTML='';u.results.classList.add('show');let ok=0;
+    for(const f of last){const txt=await f.text();const url=URL.createObjectURL(new Blob([txt],{type:'image/svg+xml'}));
+      await new Promise(res=>{const im=new Image();
+        im.onload=()=>{const ar=(im.naturalWidth&&im.naturalHeight)?im.naturalHeight/im.naturalWidth:1;const c=document.createElement('canvas');c.width=W;c.height=Math.max(1,Math.round(W*ar));const x=c.getContext('2d');
+          if(!png){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);}
+          x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+          c.toBlob(b=>{if(b){ok++;const nm=f.name.replace(/\.svg$/i,'')+'.'+fm.value;row(u.results,c.toDataURL(),nm,c.width+'×'+c.height+' · '+fmtBytes(b.size),()=>download(b,nm));}res();},type,cq.value/100);};
+        im.onerror=()=>{setStatus(u.status,'Could not render '+f.name,1);res();};im.src=url;});}
+    if(ok)setStatus(u.status,ok+' file'+(ok>1?'s':'')+' converted to '+fm.value.toUpperCase()+'.');
+  }
+  fm.onchange=convert;sc.onchange=convert;cq.onchange=convert;cq.oninput=()=>{$('#cqv',panel).textContent=cq.value+'%';};
+  dropzone(u.drop,u.file,fs=>{last=[...fs].filter(f=>/svg/i.test(f.type)||/\.svg$/i.test(f.name));if(!last.length){setStatus(u.status,'No SVG files found.',1);return;}convert();});
+  convert();
 };}
 
 INIT['qr-code-generator']=function(panel){

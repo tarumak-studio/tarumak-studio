@@ -102,15 +102,15 @@ for (const file of targets) {
       }
     }
 
-    if (!html.includes('href="/mega-menu.css"')) {
+    if (!html.includes('href="/mega-menu.css')) {
       const headClose = html.indexOf('</head>');
       html = html.slice(0, headClose) + '  <link rel="stylesheet" href="/mega-menu.css">\n' + html.slice(headClose);
     }
-    if (!html.includes('href="/nav-responsive.css"')) {
+    if (!html.includes('href="/nav-responsive.css')) {
       const headClose = html.indexOf('</head>');
       html = html.slice(0, headClose) + '  <link rel="stylesheet" href="/nav-responsive.css">\n' + html.slice(headClose);
     }
-    if (!html.includes('src="/mega-menu.js"')) {
+    if (!html.includes('src="/mega-menu.js')) {
       /* Insert right before </body> — same relative position as every
          other page's script chain (features.js always loads just before
          this point, tool pages already insert MEGA_MENU_SCRIPT right
@@ -119,7 +119,7 @@ for (const file of targets) {
       if (bodyClose === -1) throw new Error('no </body> found');
       html = html.slice(0, bodyClose) + MEGA_MENU_SCRIPT + '\n' + html.slice(bodyClose);
     }
-    if (!html.includes('src="/nav-responsive.js"')) {
+    if (!html.includes('src="/nav-responsive.js')) {
       const bodyClose = html.lastIndexOf('</body>');
       if (bodyClose === -1) throw new Error('no </body> found');
       html = html.slice(0, bodyClose) + NAV_RESPONSIVE_SCRIPT + '\n' + html.slice(bodyClose);

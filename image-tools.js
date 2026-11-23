@@ -1392,7 +1392,7 @@ INIT['ai-image-upscaler']=function(panel){
        whenever the engine changes, so a cache can't serve last version's
        file under this version's request — it's a genuinely different URL.
        Bump ENGINE_V here whenever upscaler-engine.js's own version bumps. */
-    var ENGINE_V='4.2';
+    var ENGINE_V='a202384daa';
     _loadScript('/upscaler-engine.js?v='+ENGINE_V,'UpscaleEngine').catch(function(){
       /* Still-rare fallback: a timestamp buster for the case even the
          versioned URL is somehow blocked (e.g. an overzealous proxy
@@ -1877,7 +1877,7 @@ INIT['ai-photo-enhancer']=function(panel){
      after a real deployment problem confirmed a stale cache serving a
      valid-but-old file never triggers a catch-only retry. Bump this
      whenever enhancer-engine.js's own version bumps. */
-  var EN_ENGINE_V='2.1';
+  var EN_ENGINE_V='48dc050526';
   function loadEngine(){
     return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V,'EnhanceEngine').catch(function(){
       return _loadScript('/enhancer-engine.js?v='+EN_ENGINE_V+'&r='+Date.now(),'EnhanceEngine');
@@ -2358,7 +2358,7 @@ INIT['ai-object-remover']=function(panel){
      200, which _loadScript treats as success, so a catch-only retry
      never gets a chance to fire. Bump ENGINE_V here whenever
      objectremover-engine.js's own version bumps. */
-  var OR_ENGINE_V='3.1';
+  var OR_ENGINE_V='e44f70f258';
   function loadEngine(){
     return _loadScript('/objectremover-engine.js?v='+OR_ENGINE_V,'ObjectRemoveEngine').catch(function(){
       return _loadScript('/objectremover-engine.js?v='+OR_ENGINE_V+'&r='+Date.now(),'ObjectRemoveEngine');

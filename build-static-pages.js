@@ -75,7 +75,7 @@ for (const file of targets) {
 
     /* ── 2. Ensure main.css + font/icon links are present (most pages
        already have them; add only what's missing, never duplicate) ── */
-    if (!html.includes('href="/main.css"')) {
+    if (!html.includes('href="/main.css')) {
       const headClose = html.indexOf('</head>');
       html = html.slice(0, headClose) + '  ' + HEAD_LINKS + '\n' + html.slice(headClose);
     }
@@ -112,7 +112,7 @@ for (const file of targets) {
       '<script src="/features.js" defer></script>',
       '<script src="/analytics.js" defer></script>'
     ].join('\n');
-    if (!html.includes('src="/features.js"')) {
+    if (!html.includes('src="/features.js')) {
       const bodyClose = html.lastIndexOf('</body>');
       if (bodyClose === -1) throw new Error('no </body> found');
       html = html.slice(0, bodyClose) + headerScripts + '\n' + html.slice(bodyClose);

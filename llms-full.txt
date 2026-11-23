@@ -4,82 +4,91 @@
 
 ## Image Tools
 
-- [Image Compressor](https://tarumakstudio.com/#/t/image-compressor): Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.
-- [Image Resizer](https://tarumakstudio.com/#/t/image-resizer): Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.
-- [Image Cropper](https://tarumakstudio.com/#/t/image-cropper): Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.
-- [JPG to PNG Converter](https://tarumakstudio.com/#/t/jpg-to-png): Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.
-- [PNG to JPG Converter](https://tarumakstudio.com/#/t/png-to-jpg): Convert PNG to JPG online to reduce file size for web and email. Adjust quality level before downloading.
-- [JPG to WebP Converter](https://tarumakstudio.com/#/t/jpg-to-webp): Convert JPG to WebP online — get files 25–35% smaller than JPG with the same visual quality. Works in all modern browsers.
-- [WebP to JPG Converter](https://tarumakstudio.com/#/t/webp-to-jpg): Convert WebP images to JPG online for compatibility with older software, email clients and social media platforms.
-- [PNG to WebP Converter](https://tarumakstudio.com/#/t/png-to-webp): Convert PNG to WebP online and save up to 26% file size. Keeps transparency. Ideal for web performance and Core Web Vitals.
-- [WebP to PNG Converter](https://tarumakstudio.com/#/t/webp-to-png): Convert WebP to PNG for full compatibility with all image editors, design tools and platforms that do not yet support WebP.
+- [Image Compressor](https://tarumakstudio.com/image-compressor): Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.
+- [Image Resizer](https://tarumakstudio.com/image-resizer): Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.
+- [Image Cropper](https://tarumakstudio.com/image-cropper): Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.
+- [JPG to PNG Converter](https://tarumakstudio.com/jpg-to-png): Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.
+- [PNG to JPG Converter](https://tarumakstudio.com/png-to-jpg): Convert PNG to JPG online to reduce file size for web and email. Adjust quality level before downloading.
+- [JPG to WebP Converter](https://tarumakstudio.com/jpg-to-webp): Convert JPG to WebP online — get files 25–35% smaller than JPG with the same visual quality. Works in all modern browsers.
+- [WebP to JPG Converter](https://tarumakstudio.com/webp-to-jpg): Convert WebP images to JPG online for compatibility with older software, email clients and social media platforms.
+- [PNG to WebP Converter](https://tarumakstudio.com/png-to-webp): Convert PNG to WebP online and save up to 26% file size. Keeps transparency. Ideal for web performance and Core Web Vitals.
+- [WebP to PNG Converter](https://tarumakstudio.com/webp-to-png): Convert WebP to PNG for full compatibility with all image editors, design tools and platforms that do not yet support WebP.
 - [SVG to PNG](https://tarumakstudio.com/svg-to-jpg?format=png): Convert SVG files to transparent PNG in the SVG converter, at 256 to 2048 px wide.
-- [SVG to JPG Converter](https://tarumakstudio.com/#/t/svg-to-jpg): Convert SVG to JPG or PNG online. Choose the output size, JPG quality, or PNG to keep transparency.
-- [Image to PDF Converter](https://tarumakstudio.com/#/t/image-to-pdf): Convert JPG or PNG images to a PDF document online. Combine multiple images into one PDF in seconds — no software needed.
-- [Watermark Image Tool](https://tarumakstudio.com/#/t/watermark-image): Add a text or image watermark to photos online. Adjust opacity, size and position. Protect your images before sharing.
-- [EXIF Data Remover](https://tarumakstudio.com/#/t/exif-remover): Remove EXIF metadata from photos to protect your privacy. Strips GPS location, camera model and timestamps from JPG files.
-- [QR Code Generator](https://tarumakstudio.com/#/t/qr-code-generator): Generate a free QR code for any URL, text, email or phone number. Download as high-resolution PNG — no sign-up required.
+- [SVG to JPG Converter](https://tarumakstudio.com/svg-to-jpg): Convert SVG to JPG or PNG online. Choose the output size, JPG quality, or PNG to keep transparency.
+- [Image to PDF Converter](https://tarumakstudio.com/image-to-pdf): Convert JPG or PNG images to a PDF document online. Combine multiple images into one PDF in seconds — no software needed.
+- [Watermark Image Tool](https://tarumakstudio.com/watermark-image): Add a text or image watermark to photos online. Adjust opacity, size and position. Protect your images before sharing.
+- [EXIF Data Remover](https://tarumakstudio.com/exif-remover): Remove EXIF metadata from photos to protect your privacy. Strips GPS location, camera model and timestamps from JPG files.
+- [QR Code Generator](https://tarumakstudio.com/qr-code-generator): Generate a free QR code for any URL, text, email or phone number. Download as high-resolution PNG — no sign-up required.
+- [PNG to SVG Converter](https://tarumakstudio.com/png-to-svg): Convert PNG logos, icons and simple graphics into clean, editable SVG vectors with intelligent tracing — free and fully in-browser.
+- [AI Object Remover](https://tarumakstudio.com/ai-object-remover): Remove unwanted objects, people, text, wires and watermarks from photos. Paint over anything and the background rebuilds itself — free, in your browser.
+- [AI Photo Enhancer](https://tarumakstudio.com/ai-photo-enhancer): Enhance photos automatically: fix exposure, color, noise and sharpness with intelligent auto-analysis in your browser. Presets for portraits, night shots, documents and old photos.
+- [AI Image Upscaler](https://tarumakstudio.com/ai-image-upscaler): Upscale images 2x or 4x with AI directly in your browser. Enlarge photos, art and product shots with sharp edges and preserved detail — no upload, free.
+- [Background Remover](https://tarumakstudio.com/background-remover): Remove backgrounds from images automatically using AI. Works on people, products, logos and objects. Downloads as transparent PNG.
+- [OCR Image to Text](https://tarumakstudio.com/ocr-image-to-text): Extract text from any image — screenshots, scanned documents or photos of signs. Powered by Tesseract.js in your browser.
+- [HEIC to JPG Converter](https://tarumakstudio.com/heic-to-jpg): Convert iPhone HEIC and HEIF photos to JPG or PNG online. Batch convert multiple files at once — no upload, no server, all in your browser.
 
 ## PDF Tools
 
-- [PDF Merger](https://tarumakstudio.com/#/t/pdf-merger): Merge multiple PDF files into one online for free. Drag to reorder pages before combining — no uploads, no sign-up.
-- [PDF Splitter](https://tarumakstudio.com/#/t/pdf-splitter): Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.
-- [PDF Compressor](https://tarumakstudio.com/#/t/pdf-compressor): Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.
-- [PDF to JPG Converter](https://tarumakstudio.com/#/t/pdf-to-jpg): Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.
-- [JPG to PDF Converter](https://tarumakstudio.com/#/t/jpg-to-pdf): Convert JPG images to PDF online in seconds. Combine multiple JPGs into one PDF or convert individually.
-- [PNG to PDF Converter](https://tarumakstudio.com/#/t/png-to-pdf): Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.
-- [PDF to Text Converter](https://tarumakstudio.com/#/t/pdf-to-text): Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.
-- [PDF Password Protector](https://tarumakstudio.com/#/t/pdf-password-protect): Add password protection to a PDF online. Encrypt your PDF before sharing to prevent unauthorised access.
-- [PDF Unlock Tool](https://tarumakstudio.com/#/t/pdf-unlock): Remove the password from a PDF you own. Creates an unlocked copy that opens and prints without a password.
-- [PDF Page Rotator](https://tarumakstudio.com/#/t/pdf-page-rotator): Rotate PDF pages online — rotate individual pages or the entire document 90° or 180°. Download the corrected PDF.
-- [PDF Page Remover](https://tarumakstudio.com/#/t/pdf-page-remover): Delete specific pages from a PDF online. Enter page numbers or ranges and download the PDF with those pages removed.
-- [PDF Organizer](https://tarumakstudio.com/#/t/pdf-organizer): Reorder PDF pages online with drag-and-drop thumbnail view. Rearrange, rotate and preview before downloading.
-- [Scan to PDF Tool](https://tarumakstudio.com/#/t/scan-to-pdf): Scan documents to PDF using your device camera. Capture multiple pages and merge them into a single PDF file.
-- [Multiple Images to PDF](https://tarumakstudio.com/#/t/images-to-pdf): Convert multiple images to a single PDF online. Drag in JPG, PNG or WebP files, reorder them and download.
-- [PDF Reader Web App](https://tarumakstudio.com/#/t/pdf-reader): Read and view PDF files online without downloading software. Navigate pages and zoom in — all in your browser.
+- [PDF Merger](https://tarumakstudio.com/pdf-merger): Merge multiple PDF files into one online for free. Drag to reorder pages before combining — no uploads, no sign-up.
+- [PDF Splitter](https://tarumakstudio.com/pdf-splitter): Split a PDF into separate pages or extract a specific page range online. Download as individual PDFs instantly.
+- [PDF Compressor](https://tarumakstudio.com/pdf-compressor): Compress PDF file size online for free. Reduce large PDFs for email attachments and web uploads — all in your browser.
+- [PDF to JPG Converter](https://tarumakstudio.com/pdf-to-jpg): Convert PDF pages to JPG images online. Extract every page as a high-quality image — free, fast and private.
+- [JPG to PDF Converter](https://tarumakstudio.com/jpg-to-pdf): Convert JPG images to PDF online in seconds. Combine multiple JPGs into one PDF or convert individually.
+- [PNG to PDF Converter](https://tarumakstudio.com/png-to-pdf): Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.
+- [PDF to Text Converter](https://tarumakstudio.com/pdf-to-text): Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.
+- [PDF Password Protector](https://tarumakstudio.com/pdf-password-protect): Add password protection to a PDF online. Encrypt your PDF before sharing to prevent unauthorised access.
+- [PDF Unlock Tool](https://tarumakstudio.com/pdf-unlock): Remove the password from a PDF you own. Creates an unlocked copy that opens and prints without a password.
+- [PDF Page Rotator](https://tarumakstudio.com/pdf-page-rotator): Rotate PDF pages online — rotate individual pages or the entire document 90° or 180°. Download the corrected PDF.
+- [PDF Page Remover](https://tarumakstudio.com/pdf-page-remover): Delete specific pages from a PDF online. Enter page numbers or ranges and download the PDF with those pages removed.
+- [PDF Organizer](https://tarumakstudio.com/pdf-organizer): Reorder PDF pages online with drag-and-drop thumbnail view. Rearrange, rotate and preview before downloading.
+- [Scan to PDF Tool](https://tarumakstudio.com/scan-to-pdf): Scan documents to PDF using your device camera. Capture multiple pages and merge them into a single PDF file.
+- [Multiple Images to PDF](https://tarumakstudio.com/images-to-pdf): Convert multiple images to a single PDF online. Drag in JPG, PNG or WebP files, reorder them and download.
+- [PDF Reader Web App](https://tarumakstudio.com/pdf-reader): Read and view PDF files online without downloading software. Navigate pages and zoom in — all in your browser.
+- [PDF to Excel Converter](https://tarumakstudio.com/pdf-to-excel): Convert PDF tables to Excel (.xlsx) online. Reconstructs rows and columns from real text positions, with OCR for scanned pages — free, private, no upload.
 
 ## Converter Tools
 
-- [TXT to PDF Converter](https://tarumakstudio.com/#/t/txt-to-pdf): Convert plain text files to PDF online. Paste text or upload a .txt file and download a formatted PDF document.
-- [HTML to PDF Converter](https://tarumakstudio.com/#/t/html-to-pdf): Convert HTML to PDF online. Paste HTML code and generate a PDF document — useful for web page archiving.
-- [GIF Maker](https://tarumakstudio.com/#/t/gif-maker): Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.
-- [GIF to WebP Converter](https://tarumakstudio.com/#/t/gif-to-webp): Convert a GIF to a smaller WebP image online. Animated GIFs are converted from their first frame; to shrink an animation, use the GIF Compressor.
-- [WebP to GIF Converter](https://tarumakstudio.com/#/t/webp-to-gif): Convert a WebP image to GIF for older browsers, email clients and apps. Animated WebP files are converted from their first frame.
-- [Color Picker from Image](https://tarumakstudio.com/#/t/color-picker): Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.
-- [Image Collage Maker](https://tarumakstudio.com/#/t/image-collage): Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.
-- [Favicon Generator](https://tarumakstudio.com/#/t/favicon-generator): Generate favicons for your website from any image. Creates all required sizes (16x16 to 512x512) — free, instant.
+- [TXT to PDF Converter](https://tarumakstudio.com/txt-to-pdf): Convert plain text files to PDF online. Paste text or upload a .txt file and download a formatted PDF document.
+- [HTML to PDF Converter](https://tarumakstudio.com/html-to-pdf): Convert HTML to PDF online. Paste HTML code and generate a PDF document — useful for web page archiving.
+- [GIF Maker](https://tarumakstudio.com/gif-maker): Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.
+- [GIF to WebP Converter](https://tarumakstudio.com/gif-to-webp): Convert a GIF to a smaller WebP image online. Animated GIFs are converted from their first frame; to shrink an animation, use the GIF Compressor.
+- [WebP to GIF Converter](https://tarumakstudio.com/webp-to-gif): Convert a WebP image to GIF for older browsers, email clients and apps. Animated WebP files are converted from their first frame.
+- [Color Picker from Image](https://tarumakstudio.com/color-picker): Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.
+- [Image Collage Maker](https://tarumakstudio.com/image-collage): Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.
+- [Favicon Generator](https://tarumakstudio.com/favicon-generator): Generate favicons for your website from any image. Creates all required sizes (16x16 to 512x512) — free, instant.
+- [Word to PDF Converter](https://tarumakstudio.com/word-to-pdf): Convert .docx Word documents to PDF in your browser without uploading.
+- [Markdown to HTML Converter](https://tarumakstudio.com/markdown-to-html): Convert Markdown to clean HTML with live preview.
+- [GIF Compressor](https://tarumakstudio.com/gif-compressor): Compress animated GIFs online for free. Reduce file size while preserving animation — browser-based, privacy-first, no uploads.
 
-- [Word to PDF Converter](https://tarumakstudio.com/#/t/word-to-pdf): Convert .docx Word documents to PDF in your browser without uploading.
-- [Markdown to HTML Converter](https://tarumakstudio.com/#/t/markdown-to-html): Convert Markdown to clean HTML with live preview.
 ## Marketing Designer Tools
 
-- [Social Media Image Resizer](https://tarumakstudio.com/#/t/social-image-resizer): Resize images for Instagram, Facebook, Twitter, LinkedIn, YouTube and 8 more platforms. Exact pixel dimensions, drag-to-crop.
-- [Color Palette Generator](https://tarumakstudio.com/#/t/color-palette-gen): Extract a color palette from any image or generate harmonious color schemes (complementary, triadic, analogous) from a base color.
-- [Ad Copy Generator](https://tarumakstudio.com/#/t/ad-copy-gen): Generate ad headlines, body copy and CTAs for Facebook, Google and Instagram ads. Template-based, no AI subscription needed.
-- [CTA Button Generator](https://tarumakstudio.com/#/t/cta-button-gen): Design CTA buttons with live preview. Adjust color, radius, size and padding — copy the CSS or download as PNG.
-- [UTM Link Builder](https://tarumakstudio.com/#/t/utm-builder): Build UTM campaign URLs for Google Analytics 4. Track source, medium, campaign and content. Also decodes existing UTM links.
-- [Open Graph Image Generator](https://tarumakstudio.com/#/t/og-image-gen): Create Open Graph images (1200x630) for social media link previews. Add title, brand colors and logo — download as PNG.
-- [PDF Lead Magnet Creator](https://tarumakstudio.com/#/t/pdf-lead-magnet): Create professional PDF lead magnets — checklists, guides and cheatsheets — to grow your email list. Download instantly.
-- [Brand Color Extractor](https://tarumakstudio.com/#/t/brand-color-extract): Extract brand colors from any logo or image. Get HEX, RGB and HSL values plus ready-to-paste CSS custom properties.
+- [Social Media Image Resizer](https://tarumakstudio.com/social-image-resizer): Resize images for Instagram, Facebook, Twitter, LinkedIn, YouTube and 8 more platforms. Exact pixel dimensions, drag-to-crop.
+- [Color Palette Generator](https://tarumakstudio.com/color-palette-gen): Extract a color palette from any image or generate harmonious color schemes (complementary, triadic, analogous) from a base color.
+- [Ad Copy Generator](https://tarumakstudio.com/ad-copy-gen): Generate ad headlines, body copy and CTAs for Facebook, Google and Instagram ads. Template-based, no AI subscription needed.
+- [CTA Button Generator](https://tarumakstudio.com/cta-button-gen): Design CTA buttons with live preview. Adjust color, radius, size and padding — copy the CSS or download as PNG.
+- [UTM Link Builder](https://tarumakstudio.com/utm-builder): Build UTM campaign URLs for Google Analytics 4. Track source, medium, campaign and content. Also decodes existing UTM links.
+- [Open Graph Image Generator](https://tarumakstudio.com/og-image-gen): Create Open Graph images (1200x630) for social media link previews. Add title, brand colors and logo — download as PNG.
+- [PDF Lead Magnet Creator](https://tarumakstudio.com/pdf-lead-magnet): Create professional PDF lead magnets — checklists, guides and cheatsheets — to grow your email list. Download instantly.
+- [Brand Color Extractor](https://tarumakstudio.com/brand-color-extract): Extract brand colors from any logo or image. Get HEX, RGB and HSL values plus ready-to-paste CSS custom properties.
 
 ## Developer Tools
 
-- [Word & Character Counter](https://tarumakstudio.com/#/t/word-counter): Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.
-- [Secure Password Generator](https://tarumakstudio.com/#/t/password-generator): Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.
-- [CSS Gradient Generator](https://tarumakstudio.com/#/t/css-gradient-gen): Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.
-- [Base64 Encoder & Decoder](https://tarumakstudio.com/#/t/base64-encoder): Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.
-- [JSON Formatter & Validator](https://tarumakstudio.com/#/t/json-formatter): Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.
-- [Meta Tag Generator](https://tarumakstudio.com/#/t/meta-tag-gen): Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.
-- [Hashtag Generator](https://tarumakstudio.com/#/t/hashtag-gen): Generate targeted hashtags for Instagram, Twitter and LinkedIn from design, marketing, business and tech categories.
-- [Lorem Ipsum Generator](https://tarumakstudio.com/#/t/lorem-ipsum): Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.
-- [Color Code Converter](https://tarumakstudio.com/#/t/color-converter): Convert between HEX, RGB and HSL color formats instantly. Click any result to copy to clipboard.
-- [URL Encoder & Decoder](https://tarumakstudio.com/#/t/url-encoder): Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.
+- [Word & Character Counter](https://tarumakstudio.com/word-counter): Count words, characters, sentences and reading time. Essential for bloggers, copywriters and SEO content creators.
+- [Secure Password Generator](https://tarumakstudio.com/password-generator): Generate strong random passwords with custom length, uppercase, numbers and symbols. Uses cryptographic randomness.
+- [CSS Gradient Generator](https://tarumakstudio.com/css-gradient-gen): Create beautiful CSS linear and radial gradients with a live visual picker. Copy the ready-to-use CSS code.
+- [Base64 Encoder & Decoder](https://tarumakstudio.com/base64-encoder): Encode text to Base64 and decode Base64 strings back to plain text. Essential for web developers and API work.
+- [JSON Formatter & Validator](https://tarumakstudio.com/json-formatter): Format, beautify and validate JSON data online. Minify JSON and highlight syntax errors with clear messages.
+- [Meta Tag Generator](https://tarumakstudio.com/meta-tag-gen): Generate SEO title tags, meta descriptions and Open Graph tags for any web page. Copy-ready HTML output.
+- [Hashtag Generator](https://tarumakstudio.com/hashtag-gen): Generate targeted hashtags for Instagram, Twitter and LinkedIn from design, marketing, business and tech categories.
+- [Lorem Ipsum Generator](https://tarumakstudio.com/lorem-ipsum): Generate placeholder text in paragraphs, sentences or words. Start with classic Lorem ipsum or use random text.
+- [Color Code Converter](https://tarumakstudio.com/color-converter): Convert between HEX, RGB and HSL color formats instantly. Click any result to copy to clipboard.
+- [URL Encoder & Decoder](https://tarumakstudio.com/url-encoder): Encode special characters in URLs for safe transmission. Decode URL-encoded strings back to readable text.
+- [Text Diff Checker](https://tarumakstudio.com/text-diff): Word-level comparison with highlighted changes.
+- [Regex Tester](https://tarumakstudio.com/regex-tester): Real-time regular expression testing with match highlighting.
+- [Slug Generator](https://tarumakstudio.com/slug-generator): Text to URL slug converter.
+- [Text Case Converter](https://tarumakstudio.com/text-case-converter): 8 case format conversions.
+- [Timestamp Converter](https://tarumakstudio.com/timestamp-converter): Live UNIX timestamp and date conversion.
 
-- [Text Diff Checker](https://tarumakstudio.com/#/t/text-diff): Word-level comparison with highlighted changes.
-- [Regex Tester](https://tarumakstudio.com/#/t/regex-tester): Real-time regular expression testing with match highlighting.
-- [Slug Generator](https://tarumakstudio.com/#/t/slug-generator): Text to URL slug converter.
-- [Text Case Converter](https://tarumakstudio.com/#/t/text-case-converter): 8 case format conversions.
-- [Timestamp Converter](https://tarumakstudio.com/#/t/timestamp-converter): Live UNIX timestamp and date conversion.
 ## Blog Articles
 
 ### Image Tools

@@ -43,8 +43,8 @@
 - [TXT to PDF Converter](https://tarumakstudio.com/#/t/txt-to-pdf): Convert plain text files to PDF online. Paste text or upload a .txt file and download a formatted PDF document.
 - [HTML to PDF Converter](https://tarumakstudio.com/#/t/html-to-pdf): Convert HTML to PDF online. Paste HTML code and generate a PDF document — useful for web page archiving.
 - [GIF Maker](https://tarumakstudio.com/#/t/gif-maker): Create animated GIFs from multiple images online. Set frame duration and loop settings — free GIF creator in your browser.
-- [GIF to WebP Converter](https://tarumakstudio.com/#/t/gif-to-webp): Convert animated GIF to WebP online for smaller file sizes and better web performance. Keeps all animation frames.
-- [WebP to GIF Converter](https://tarumakstudio.com/#/t/webp-to-gif): Convert animated WebP to GIF for wider compatibility with older browsers, email clients and social platforms.
+- [GIF to WebP Converter](https://tarumakstudio.com/#/t/gif-to-webp): Convert a GIF to a smaller WebP image online. Animated GIFs are converted from their first frame; to shrink an animation, use the GIF Compressor.
+- [WebP to GIF Converter](https://tarumakstudio.com/#/t/webp-to-gif): Convert a WebP image to GIF for older browsers, email clients and apps. Animated WebP files are converted from their first frame.
 - [Color Picker from Image](https://tarumakstudio.com/#/t/color-picker): Pick and identify any color from an uploaded image. Get HEX, RGB and HSL values — free online eyedropper tool.
 - [Image Collage Maker](https://tarumakstudio.com/#/t/image-collage): Create a photo collage online from multiple images. Choose grid layout, gaps and background color — download as PNG.
 - [Favicon Generator](https://tarumakstudio.com/#/t/favicon-generator): Generate favicons for your website from any image. Creates all required sizes (16x16 to 512x512) — free, instant.

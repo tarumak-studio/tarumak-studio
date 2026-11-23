@@ -331,7 +331,8 @@ to{opacity:1;transform:none}
    Web3Forms dashboard. Until a key is set, the form falls back to opening
    the visitor's email app. */
 var CONTACT_ACCESS_KEY = '4185a8d9-0033-4e86-8c04-6b9faa283c61';
-var CONTACT_FALLBACK_TO = 'makenster@gmail.com';
+/* Built from pieces so the address is not sitting in the page code for scrapers to collect. */
+var CONTACT_FALLBACK_TO = ['makenster', 'gmail.com'].join('@');
 function cfStatus(msg, ok){
   var s = document.getElementById('cf-status');
   s.textContent = msg; s.style.display = msg ? 'block' : 'none';

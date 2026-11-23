@@ -752,7 +752,7 @@ INIT['gif-compressor']=function(panel){
   var engine=null,gifData=null,originalFile=null,levelKey='balanced',lossyOverride=null,colorOverride=null,running=null;
   var CHECK_DEFAULTS={dedupe:true,merge:true,optTransparency:true,optTiming:true,trimUnused:true};
 
-  var GCE_V='1.0';
+  var GCE_V='686f5e6ceb';
   function loadEngine(){return _loadScript('/gifcompressor-engine.js?v='+GCE_V,'GifCompressorEngine').catch(function(){return _loadScript('/gifcompressor-engine.js?v='+GCE_V+'&r='+Date.now(),'GifCompressorEngine');});}
 
   dropzone(u.drop,u.file,handleFiles);

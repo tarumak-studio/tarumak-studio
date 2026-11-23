@@ -210,3 +210,56 @@ function _loadScript(src, glob) {
     document.head.appendChild(s);
   });
 }
+
+/* ════ Palette picker ════════════════════════════════════════════════
+   Main colours of an image, as colours that really occur in it. Used by
+   PNG to SVG and Brand Color Extractor. rgba: ImageData.data. Returns
+   [{rgb:[r,g,b], share}] with at most max colours, most common first.
+   (Median cut, used before, averaged small areas into their neighbours:
+   a blue square next to a red circle came out crimson.) */
+function pickPalette(rgba,max){
+  var bins={},total=0,i;
+  for(i=0;i<rgba.length;i+=4){
+    if(rgba[i+3]<128)continue;total++;
+    var k=(rgba[i]>>3)<<10|(rgba[i+1]>>3)<<5|(rgba[i+2]>>3),b=bins[k]||(bins[k]={n:0,r:0,g:0,b:0});
+    b.n++;b.r+=rgba[i];b.g+=rgba[i+1];b.b+=rgba[i+2];
+  }
+  var list=Object.keys(bins).map(function(k){var b=bins[k];return{n:b.n,c:[b.r/b.n,b.g/b.n,b.b/b.n]};});
+  function d2(a,b){var x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return x*x+y*y+z*z;}
+  /* A thin edge blend lies on the line between two chosen colours */
+  function isBlend(c,pal){
+    for(var i=0;i<pal.length;i++)for(var j=i+1;j<pal.length;j++){
+      var a=pal[i],v=[pal[j][0]-a[0],pal[j][1]-a[1],pal[j][2]-a[2]],L=v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+      var t=L?((c[0]-a[0])*v[0]+(c[1]-a[1])*v[1]+(c[2]-a[2])*v[2])/L:0;
+      if(t>0.05&&t<0.95&&d2(c,[a[0]+t*v[0],a[1]+t*v[1],a[2]+t*v[2]])<400)return true;
+    }
+    return false;
+  }
+  var pal=[];
+  list.forEach(function(x){x.d=1e9;});
+  while(pal.length<max){
+    var best=null,bs=0;
+    list.forEach(function(x){
+      if(x.d<24*24||x.n<total*0.001)return;
+      var s=x.n*Math.min(x.d,10000);
+      if(s>bs&&!(x.n<total*0.03&&isBlend(x.c,pal))){bs=s;best=x;}
+    });
+    if(!best)break;
+    pal.push(best.c);
+    list.forEach(function(x){x.d=Math.min(x.d,d2(x.c,best.c));});
+  }
+  if(!pal.length&&list.length)pal=[list.sort(function(a,b){return b.n-a.n;})[0].c];
+  /* Settle each colour on its most common exact value, or the average for gradients */
+  var hit=pal.map(function(){return{n:0,s:[0,0,0],m:{}};}),near={};
+  for(i=0;i<rgba.length;i+=4){
+    if(rgba[i+3]<128)continue;
+    var key=rgba[i]<<16|rgba[i+1]<<8|rgba[i+2],j=near[key];
+    if(j===undefined){var bd=1e9;pal.forEach(function(p,q){var d=d2(p,[rgba[i],rgba[i+1],rgba[i+2]]);if(d<bd){bd=d;j=q;}});near[key]=j;}
+    var h=hit[j];h.n++;h.s[0]+=rgba[i];h.s[1]+=rgba[i+1];h.s[2]+=rgba[i+2];h.m[key]=(h.m[key]||0)+1;
+  }
+  return hit.filter(function(h){return h.n;}).map(function(h){
+    var top=0,tk=0;Object.keys(h.m).forEach(function(k){if(h.m[k]>top){top=h.m[k];tk=+k;}});
+    var rgb=top>=h.n*0.2?[tk>>16,tk>>8&255,tk&255]:h.s.map(function(v){return Math.round(v/h.n);});
+    return{rgb:rgb,share:h.n/total};
+  }).sort(function(a,b){return b.share-a.share;});
+}

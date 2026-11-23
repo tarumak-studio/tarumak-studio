@@ -653,7 +653,7 @@ INIT['pdf-to-excel']=function(panel){
      serving old-but-valid content returns a normal 200, which never
      triggers a catch-only retry. Bump PTE_ENGINE_V whenever
      pdftoexcel-engine.js's own version bumps. */
-  var PTE_ENGINE_V='7c0c64f595';
+  var PTE_ENGINE_V='e89083c288';
   function loadEngine(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V,'PdfToExcelEngine').catch(function(){return _loadScript('/pdftoexcel-engine.js?v='+PTE_ENGINE_V+'&r='+Date.now(),'PdfToExcelEngine');});}
 
   async function openPdf(buf,password){

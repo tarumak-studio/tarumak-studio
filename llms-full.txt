@@ -13,8 +13,8 @@
 - [WebP to JPG Converter](https://tarumakstudio.com/#/t/webp-to-jpg): Convert WebP images to JPG online for compatibility with older software, email clients and social media platforms.
 - [PNG to WebP Converter](https://tarumakstudio.com/#/t/png-to-webp): Convert PNG to WebP online and save up to 26% file size. Keeps transparency. Ideal for web performance and Core Web Vitals.
 - [WebP to PNG Converter](https://tarumakstudio.com/#/t/webp-to-png): Convert WebP to PNG for full compatibility with all image editors, design tools and platforms that do not yet support WebP.
-- [SVG to PNG Converter](https://tarumakstudio.com/#/t/svg-to-png): Convert SVG vector files to PNG at any resolution online. Set exact pixel width and height — perfect for app icons and assets.
-- [SVG to JPG Converter](https://tarumakstudio.com/#/t/svg-to-jpg): Convert SVG to JPG online with a white background. Choose output quality and dimensions for social media or print.
+- [SVG to PNG](https://tarumakstudio.com/svg-to-jpg?format=png): Convert SVG files to transparent PNG in the SVG converter, at 256 to 2048 px wide.
+- [SVG to JPG Converter](https://tarumakstudio.com/#/t/svg-to-jpg): Convert SVG to JPG or PNG online. Choose the output size, JPG quality, or PNG to keep transparency.
 - [Image to PDF Converter](https://tarumakstudio.com/#/t/image-to-pdf): Convert JPG or PNG images to a PDF document online. Combine multiple images into one PDF in seconds — no software needed.
 - [Watermark Image Tool](https://tarumakstudio.com/#/t/watermark-image): Add a text or image watermark to photos online. Adjust opacity, size and position. Protect your images before sharing.
 - [EXIF Data Remover](https://tarumakstudio.com/#/t/exif-remover): Remove EXIF metadata from photos to protect your privacy. Strips GPS location, camera model and timestamps from JPG files.

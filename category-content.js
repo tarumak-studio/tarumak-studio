@@ -103,6 +103,7 @@ const CATEGORIES = {
     slug: 'developer-tools', name: 'Developer & SEO Tools', accent: '#34d399', dataCat: 'developer',
     eyebrow: 'DEVELOPER & SEO',
     heroTitle: 'Developer Utilities Without the Context Switch',
+    pageTitle: 'Developer Tools — Free & Browser-Based',
     heroSubtitle: 'Formatters, encoders, generators and validators for the small tasks that interrupt real work \u2014 no account, no ads gating the result.',
     leadParagraph: 'These are the small, recurring tasks that interrupt actual development and content work: formatting and validating JSON, encoding or decoding Base64 and URLs, generating a secure password, testing a regular expression against real sample text, converting between color formats, checking a timestamp, or writing SEO meta tags and structured data that actually validates. Every tool runs in your own browser tab \u2014 nothing you paste in is transmitted anywhere, and there\u2019s no daily rate limit tied to an account, because there\u2019s no server-side quota to hit in the first place.',
     stats: [
@@ -187,6 +188,7 @@ const CATEGORIES = {
     slug: 'converter-tools', name: 'Converter Tools', accent: '#a3e635', dataCat: 'converter',
     eyebrow: 'CONVERTERS',
     heroTitle: 'File Conversion, Done Directly in the Browser',
+    pageTitle: 'File Converters — Browser-Based',
     heroSubtitle: 'Documents, images and animations converted between formats \u2014 no install, no watching an upload progress bar for a file that never needed to leave your device.',
     leadParagraph: 'This collection covers the everyday file-conversion tasks that don\u2019t fit neatly under Image or PDF Tools: converting Word, plain text, HTML or Markdown into a shareable PDF, building an animated GIF or converting one to the smaller WebP format, generating a full set of favicon sizes from one image, or building a quick collage from several photos. Each tool runs entirely in your browser \u2014 conversion happens on your device, with no watermark added to the result and no software to install first.',
     stats: [
@@ -202,7 +204,7 @@ const CATEGORIES = {
     ],
     groups: [
       ['Document Converters', ['txt-to-pdf', 'html-to-pdf', 'word-to-pdf', 'markdown-to-html']],
-      ['Image & Animation', ['gif-maker', 'gif-to-webp', 'webp-to-gif', 'image-collage', 'color-picker']],
+      ['Image & Animation', ['gif-maker', 'gif-compressor', 'gif-to-webp', 'webp-to-gif', 'image-collage', 'color-picker']],
       ['Web Assets', ['favicon-generator']],
     ],
     workflow: {

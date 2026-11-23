@@ -180,7 +180,57 @@ INIT['txt-to-pdf']=function(panel){
   panel.innerHTML='<div class="ctrl"><label for="ta">Paste text, or load a .txt file</label><textarea id="ta" placeholder="Type or paste your text here…"></textarea></div><div class="controls"><label class="btn btn-ghost" style="cursor:pointer">Load .txt<input type="file" id="f" accept=".txt,text/plain" hidden></label><div class="ctrl"><label for="pg">Page</label><select id="pg"><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="run">Create PDF</button></div><div class="status" id="st"></div>';
   const ta=$('#ta',panel),st=$('#st',panel);
   $('#f',panel).onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>ta.value=t);};
-  $('#run',panel).onclick=()=>{const txt=ta.value;if(!txt.trim()){setStatus(st,'Enter some text first.',1);return;}const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'pt',format:$('#pg',panel).value});const M=48,W=doc.internal.pageSize.getWidth()-M*2,PH=doc.internal.pageSize.getHeight()-M;doc.setFont('helvetica');doc.setFontSize(12);const lines=doc.splitTextToSize(txt,W);let y=M;lines.forEach(ln=>{if(y>PH){doc.addPage();y=M;}doc.text(ln,M,y);y+=16;});doc.save('document.pdf');setStatus(st,'PDF created.');};
+  /* The PDF's built-in font covers Western European text only. Anything else
+     (Hindi, Urdu, Arabic, CJK, Cyrillic, the rupee sign, emoji…) is drawn by
+     the browser, which has the fonts and joins letters correctly, and placed
+     in the PDF as page images. */
+  const PDF_FONT=/^[\n\x20-\x7e\xa0-\xff€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]*$/;
+  const RTL=/[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}\p{Script=Nko}]/u;
+  function tokens(line){ /* places a line may break */
+    if(typeof Intl!=='undefined'&&Intl.Segmenter)return Array.from(new Intl.Segmenter(undefined,{granularity:'word'}).segment(line),s=>s.segment);
+    return line.split(/(\s+)/).filter(Boolean);
+  }
+  function wrap(x,line,W){
+    const out=[];let cur='';
+    tokens(line).forEach(t=>{
+      if(!cur||x.measureText(cur+t).width<=W){cur+=t;}
+      else{out.push(cur.replace(/\s+$/,''));cur=t.replace(/^\s+/,'');}
+      while(x.measureText(cur).width>W&&cur.length>1){ /* one unbroken run longer than the line */
+        const g=Array.from(cur);let n=g.length-1;while(n>1&&x.measureText(g.slice(0,n).join('')).width>W)n--;
+        out.push(g.slice(0,n).join(''));cur=g.slice(n).join('');}
+    });
+    out.push(cur);return out;
+  }
+  $('#run',panel).onclick=async()=>{
+    const txt=ta.value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').replace(/[​﻿]/g,'');
+    if(!txt.trim()){setStatus(st,'Enter some text first.',1);return;}
+    setStatus(st,'Creating PDF…');
+    try{
+      const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:$('#pg',panel).value});
+      const PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),M=48,W=PW-M*2,LH=16;
+      if(PDF_FONT.test(txt)){
+        doc.setFont('helvetica');doc.setFontSize(12);let y=M;
+        doc.splitTextToSize(txt,W).forEach(ln=>{if(y>PH-M){doc.addPage();y=M;}doc.text(ln,M,y);y+=LH;});
+        doc.save('document.pdf');setStatus(st,'PDF created.');return;
+      }
+      const S=2,LN=19,FS=12;
+      const c=document.createElement('canvas');c.width=Math.round(PW*S);c.height=Math.round(PH*S);const x=c.getContext('2d');
+      const font=FS+'px "Noto Sans","Nirmala UI","Segoe UI",Arial,"Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+      const fresh=()=>{x.setTransform(1,0,0,1,0,0);x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.setTransform(S,0,0,S,0,0);x.fillStyle='#000';x.font=font;x.textBaseline='alphabetic';};
+      let y=M,pages=0;fresh();
+      const flush=()=>{if(pages)doc.addPage();doc.addImage(c.toDataURL('image/png'),'PNG',0,0,PW,PH,'','FAST');pages++;fresh();y=M;};
+      for(const line of txt.split('\n')){
+        const strong=line.match(/\p{L}/u),rtl=!!(strong&&RTL.test(strong[0]));
+        x.direction=rtl?'rtl':'ltr';x.textAlign=rtl?'right':'left';
+        for(const ln of wrap(x,line,W)){
+          if(y>PH-M){flush();x.direction=rtl?'rtl':'ltr';x.textAlign=rtl?'right':'left';await new Promise(r=>setTimeout(r));}
+          x.fillText(ln,rtl?PW-M:M,y+4);y+=LN;}
+      }
+      flush();
+      doc.save('document.pdf');
+      setStatus(st,'PDF created ('+pages+' page'+(pages>1?'s':'')+'). Your text has characters the PDF font doesn’t include, so pages are images: they look right, but the text can’t be selected.');
+    }catch(e){setStatus(st,'Could not create the PDF: '+(e.message||e),1);}
+  };
 };
 
 /* Convert any modern CSS colour function html2canvas 1.4.1 can't parse
@@ -374,10 +424,27 @@ INIT['image-collage']=function(panel){
 };
 
 INIT['favicon-generator']=function(panel){
-  const u=dz(panel,{accept:'image/*',formats:['ICO','PNG'],sub:'Drop a square image — a logo works best.'});
-  dropzone(u.drop,u.file,async fs=>{const f=[...fs].find(x=>x.type.startsWith('image/'));if(!f)return;const img=await readImg(f);const sizes=[16,32,48,64,128,180,192,512];u.results.innerHTML='';u.results.classList.add('show');const cv={};
-    sizes.forEach(s=>{const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,0,0,s,s);cv[s]=c;c.toBlob(b=>row(u.results,c.toDataURL(),'favicon-'+s+'.png',s+'×'+s+' PNG',()=>download(b,'favicon-'+s+'x'+s+'.png')),'image/png');});
-    setTimeout(()=>{try{const ico=buildIco([cv[16],cv[32],cv[48]]);u.actions.className='actions show';u.actions.innerHTML='';const b=document.createElement('button');b.className='btn btn-primary';b.textContent='Download favicon.ico';b.onclick=()=>download(ico,'favicon.ico');u.actions.appendChild(b);}catch(e){}},250);});
+  const u=dz(panel,{accept:'image/*',formats:['ICO','PNG'],sub:'Drop your logo. A square image works best; others are fitted without stretching.'});
+  u.controls.innerHTML='<div class="ctrl"><label for="ft">If the image isn’t square</label><select id="ft"><option value="fit">Fit all of it (transparent edges)</option><option value="crop">Crop to the centre</option></select></div>';
+  const ft=$('#ft',panel);let img=null;
+  async function build(){
+    if(!img)return;
+    const iw=img.naturalWidth||512,ih=img.naturalHeight||512,sizes=[16,32,48,64,128,180,192,512],cv={};
+    u.results.innerHTML='';u.results.classList.add('show');u.actions.innerHTML='';
+    for(const s of sizes){const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.imageSmoothingQuality='high';
+      const k=(ft.value==='crop'?Math.max:Math.min)(s/iw,s/ih),w=iw*k,h=ih*k;x.drawImage(img,(s-w)/2,(s-h)/2,w,h);cv[s]=c;
+      const b=await new Promise(r=>c.toBlob(r,'image/png')),nm='favicon-'+s+'x'+s+'.png';
+      row(u.results,c.toDataURL(),nm,s+'×'+s+' PNG',()=>download(b,nm));}
+    const ico=buildIco([cv[16],cv[32],cv[48]]);u.actions.className='actions show';
+    const html='<link rel="icon" href="/favicon.ico" sizes="any">\n<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">\n<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">\n<link rel="apple-touch-icon" href="/favicon-180x180.png">';
+    const mk=(t,cls,fn)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=t;b.onclick=fn;u.actions.appendChild(b);};
+    mk('Download favicon.ico','btn-primary',()=>download(ico,'favicon.ico'));
+    mk('Copy HTML tags','btn-ghost',()=>navigator.clipboard.writeText(html).then(()=>toast('HTML copied','ok')).catch(()=>toast('Copy failed','err')));
+    const pre=document.createElement('pre');pre.textContent=html;pre.style.cssText='width:100%;overflow:auto;font-size:12px;text-align:left;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text-dim)';u.actions.appendChild(pre);
+    setStatus(u.status,iw===ih?'Done — upload the files to your site root and paste the HTML into <head>.':'Your image is '+iw+'×'+ih+', not square, so it was '+(ft.value==='crop'?'cropped to the centre.':'fitted with transparent edges.'));
+  }
+  ft.onchange=build;
+  dropzone(u.drop,u.file,fs=>{const f=[...fs].find(x=>x.type.startsWith('image/'));if(!f){setStatus(u.status,'Drop an image file.',1);return;}readImg(f).then(im=>{img=im;return build();}).catch(()=>setStatus(u.status,'Could not read this image.',1));});
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -415,8 +482,32 @@ INIT['png-to-svg']=function(panel){
       for(var i=a+1;i<b;i++){var d=dist2seg(pts[i][0],pts[i][1],pts[a][0],pts[a][1],pts[b][0],pts[b][1]);if(d>mx){mx=d;mi=i;}}
       if(mx>t2&&mi>0){keep[mi]=1;stack.push([a,mi],[mi,b]);}}
     var out=[];for(var j=0;j<pts.length;j++)if(keep[j])out.push(pts[j]);return out;}
-  function chaikin(pts){var out=[];for(var i=0;i<pts.length;i++){var a=pts[i],b=pts[(i+1)%pts.length];
-    out.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25],[a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]);}return out;}
+  /* Closed outline → path. Split at two far points so simplifying can't collapse the loop. */
+  function outline(loop,tol,smooth){
+    var a=0,b=0,best=-1;
+    for(var i=1;i<loop.length;i++){var d=Math.pow(loop[i][0]-loop[0][0],2)+Math.pow(loop[i][1]-loop[0][1],2);if(d>best){best=d;a=i;}}
+    best=-1;
+    for(i=0;i<loop.length;i++){d=Math.pow(loop[i][0]-loop[a][0],2)+Math.pow(loop[i][1]-loop[a][1],2);if(d>best){best=d;b=i;}}
+    if(a>b){var t=a;a=b;b=t;}
+    var one=simplify(loop.slice(a,b+1),tol),two=simplify(loop.slice(b).concat(loop.slice(0,a+1)),tol);
+    var pts=one.slice(0,-1).concat(two.slice(0,-1));
+    if(pts.length<3)pts=loop;
+    function f(v){return Math.round(v*10)/10;}
+    if(!smooth)return'M'+pts.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L')+'Z';
+    /* Round gentle turns only; real corners stay sharp */
+    var n=pts.length,s='';
+    for(i=0;i<n;i++){
+      var P=pts[i],A=pts[(i+n-1)%n],B=pts[(i+1)%n];
+      var ax=A[0]-P[0],ay=A[1]-P[1],bx=B[0]-P[0],by=B[1]-P[1],la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);
+      var cos=(ax*bx+ay*by)/(la*lb||1),c=s?'L':'M';
+      if(cos<-0.5){ /* turn under 60 degrees */
+        var m=Math.min(la,lb)/2;
+        s+=c+f(P[0]+ax/la*m)+' '+f(P[1]+ay/la*m)+'Q'+f(P[0])+' '+f(P[1])+' '+f(P[0]+bx/lb*m)+' '+f(P[1]+by/lb*m);
+      }else s+=c+f(P[0])+' '+f(P[1]);
+    }
+    return s+'Z';
+  }
+
 
   $('#p2s-run',panel).onclick=function(){
     if(!img)return;
@@ -429,16 +520,9 @@ INIT['png-to-svg']=function(panel){
       var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
       x.imageSmoothingQuality='high';x.drawImage(img,0,0,W,H);
       var rgba=x.getImageData(0,0,W,H).data;
-      /* median-cut over opaque pixels */
-      var pts=[];for(var i=0;i<rgba.length;i+=4)if(rgba[i+3]>=128)pts.push([rgba[i],rgba[i+1],rgba[i+2]]);
-      if(!pts.length){setStatus(u.status,'The image is fully transparent \u2014 nothing to trace.',1);return;}
-      var boxes=[pts];
-      function ext(box){var mn=[255,255,255],mx=[0,0,0];for(var i=0;i<box.length;i++)for(var ch=0;ch<3;ch++){var v=box[i][ch];if(v<mn[ch])mn[ch]=v;if(v>mx[ch])mx[ch]=v;}return[mn,mx];}
-      while(boxes.length<K){boxes.sort(function(a,b){var ea=ext(a),eb=ext(b);return((eb[1][0]-eb[0][0])+(eb[1][1]-eb[0][1])+(eb[1][2]-eb[0][2]))-((ea[1][0]-ea[0][0])+(ea[1][1]-ea[0][1])+(ea[1][2]-ea[0][2]));});
-        var bx=boxes.shift();if(!bx||bx.length<2){if(bx)boxes.push(bx);break;}
-        var e=ext(bx),d=[e[1][0]-e[0][0],e[1][1]-e[0][1],e[1][2]-e[0][2]];var ch=d[0]>=d[1]&&d[0]>=d[2]?0:(d[1]>=d[2]?1:2);
-        bx.sort(function(a,b){return a[ch]-b[ch];});var mid=bx.length>>1;boxes.push(bx.slice(0,mid),bx.slice(mid));}
-      var pal=boxes.map(function(b){var r=0,g=0,bl=0,n=b.length||1;for(var i=0;i<b.length;i++){r+=b[i][0];g+=b[i][1];bl+=b[i][2];}return[r/n|0,g/n|0,bl/n|0];});
+      var picked=pickPalette(rgba,K);
+      if(!picked.length){setStatus(u.status,'The image is fully transparent — nothing to trace.',1);return;}
+      var pal=picked.map(function(p){return p.rgb;});
       /* label map: -1 transparent */
       var lab=new Int16Array(W*H);
       for(var p=0,q=0;p<rgba.length;p+=4,q++){
@@ -446,48 +530,46 @@ INIT['png-to-svg']=function(panel){
         var r=rgba[p],g=rgba[p+1],b=rgba[p+2],best=0,bd=1e9;
         for(var j=0;j<pal.length;j++){var dr=r-pal[j][0],dg=g-pal[j][1],db=b-pal[j][2],dd=dr*dr+dg*dg+db*db;if(dd<bd){bd=dd;best=j;}}
         lab[q]=best;}
-      /* per color: connected components (4-neigh flood) then Moore boundary trace */
-      var tol=[2.2,1.3,0.7][detail-1];
+      /* Per colour: follow the pixel edges into closed outlines, holes
+         included. Drawn with the even-odd rule, so layer order can't hide
+         shapes and rings keep their centre. */
+      var tol=[1.6,1,0.75][detail-1];
       var groups=[];
       for(var col=0;col<pal.length;col++){
-        var mask=new Uint8Array(W*H);var any=false;
-        for(var q2=0;q2<lab.length;q2++)if(lab[q2]===col){mask[q2]=1;any=true;}
-        if(!any)continue;
-        var seen=new Uint8Array(W*H),paths=[];
-        function at(xx,yy){return xx>=0&&yy>=0&&xx<W&&yy<H&&mask[yy*W+xx]===1;}
+        var next={},starts=[];
+        function edge(x1,y1,x2,y2){var k=y1*(W+1)+x1;if(next[k])next[k].push([x2,y2]);else{next[k]=[[x2,y2]];starts.push(k);}}
+        var on=function(xx,yy){return xx>=0&&yy>=0&&xx<W&&yy<H&&lab[yy*W+xx]===col;};
         for(var yy=0;yy<H;yy++)for(var xx=0;xx<W;xx++){
-          var id=yy*W+xx;
-          if(mask[id]!==1||seen[id])continue;
-          /* flood-fill mark component + find its top-left boundary start */
-          var stack=[id],comp=[];seen[id]=1;
-          while(stack.length){var cur=stack.pop();comp.push(cur);var cx=cur%W,cy=(cur/W)|0;
-            [[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dv){var nx=cx+dv[0],ny=cy+dv[1];if(nx>=0&&ny>=0&&nx<W&&ny<H){var nid=ny*W+nx;if(mask[nid]===1&&!seen[nid]){seen[nid]=1;stack.push(nid);}}});}
-          if(comp.length<4)continue; /* speck removal */
-          /* Moore boundary from the component's top-left pixel */
-          var s=comp[0];comp.forEach(function(cc){if(((cc/W)|0)<((s/W)|0)||(((cc/W)|0)===((s/W)|0)&&cc%W<s%W))s=cc;});
-          var sx=s%W,sy=(s/W)|0;
-          var DIRS=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
-          var bpts=[[sx,sy]],px2=sx,py2=sy,dir=6,guard=comp.length*8+64;
-          while(guard-->0){
-            var found=false;
-            for(var k2=0;k2<8;k2++){var nd=(dir+6+k2)%8;var nx2=px2+DIRS[nd][0],ny2=py2+DIRS[nd][1];
-              if(at(nx2,ny2)){px2=nx2;py2=ny2;dir=nd;found=true;break;}}
-            if(!found)break;
-            if(px2===sx&&py2===sy)break;
-            bpts.push([px2,py2]);}
-          if(bpts.length<3)continue;
-          var sp=simplify(bpts,tol);
-          if(smooth&&sp.length>3)sp=simplify(chaikin(sp),tol*0.6);
-          if(sp.length<3)continue;
-          var dstr='M'+sp.map(function(pt){return (Math.round(pt[0]*10)/10)+' '+(Math.round(pt[1]*10)/10);}).join('L')+'Z';
-          paths.push(dstr);
+          if(!on(xx,yy))continue;
+          if(!on(xx,yy-1))edge(xx,yy,xx+1,yy);
+          if(!on(xx+1,yy))edge(xx+1,yy,xx+1,yy+1);
+          if(!on(xx,yy+1))edge(xx+1,yy+1,xx,yy+1);
+          if(!on(xx-1,yy))edge(xx,yy+1,xx,yy);
         }
+        var paths=[];
+        starts.forEach(function(k0){
+          while(next[k0]&&next[k0].length){
+            var sx=k0%(W+1),sy=(k0/(W+1))|0,cx=sx,cy=sy,loop=[],area=0,pd='';
+            do{
+              var opts=next[cy*(W+1)+cx],pick=0;
+              if(opts.length>1&&pd){ /* where two corners touch, turn right so diagonal shapes stay separate */
+                var dxy=pd.split(',').map(Number),rx=-dxy[1],ry=dxy[0];
+                opts.forEach(function(o,i){if(o[0]-cx===rx&&o[1]-cy===ry)pick=i;});
+              }
+              var to=opts.splice(pick,1)[0],nd=(to[0]-cx)+','+(to[1]-cy);
+              if(nd!==pd)loop.push([cx,cy]);
+              area+=cx*to[1]-to[0]*cy;cx=to[0];cy=to[1];pd=nd;
+            }while(cx!==sx||cy!==sy);
+            if(Math.abs(area)/2<4||loop.length<3)continue; /* speck removal */
+            paths.push(outline(loop,tol,smooth));
+          }
+        });
         if(paths.length)groups.push({color:pal[col],d:paths.join('')});
       }
       if(!groups.length){setStatus(u.status,'No traceable shapes found \u2014 try more colors or higher detail.',1);return;}
       var hex=function(carr){return '#'+carr.map(function(v){return v.toString(16).padStart(2,'0');}).join('');};
       var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+img.naturalWidth+'" height="'+img.naturalHeight+'">'
-        +groups.map(function(g){return '<path fill="'+hex(g.color)+'" d="'+g.d+'"/>';}).join('')+'</svg>';
+        +groups.map(function(g){var h=hex(g.color);return '<path fill="'+h+'" stroke="'+h+'" stroke-width=".4" stroke-linejoin="round" fill-rule="evenodd" d="'+g.d+'"/>';}).join('')+'</svg>';
       var blob=new Blob([svg],{type:'image/svg+xml'});
       u.results.innerHTML='';u.results.classList.add('show');
       var wrap=document.createElement('div');wrap.className='preview show';

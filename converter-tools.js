@@ -282,7 +282,7 @@ INIT['html-to-pdf']=function(panel){
   const ta=$('#ta',panel),st=$('#st',panel);
   $('#run',panel).onclick=async()=>{
     const html=ta.value;if(!html.trim()){setStatus(st,'Paste some HTML first.',1);return;}
-    if(typeof html2canvas!=='function'){setStatus(st,'Renderer still loading — try again in a moment.',1);return;}
+    if(typeof html2canvas!=='function'||typeof DOMPurify==='undefined'){setStatus(st,'Renderer still loading — try again in a moment.',1);return;}
     setStatus(st,'Rendering\u2026');
     if(window.trackEvent)window.trackEvent('tool_process_started',{});
     const _t0=performance.now();
@@ -294,7 +294,8 @@ INIT['html-to-pdf']=function(panel){
     const box=document.createElement('div');
     box.id='htp-render-box';
     box.style.cssText='position:fixed;left:-99999px;top:0;width:'+boxW+'px;padding:40px;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box';
-    box.innerHTML=html;document.body.appendChild(box);
+    /* Pasted HTML must not run code here: scripts and event handlers are removed, styles are kept. */
+    box.innerHTML=DOMPurify.sanitize(html,{ADD_TAGS:['style'],FORCE_BODY:true});document.body.appendChild(box);
     /* let fonts/images settle a tick before measuring */
     await new Promise(r=>setTimeout(r,30));
     try{
@@ -568,7 +569,7 @@ INIT['word-to-pdf']=function(panel){
         "r[style-name='Emphasis'] => em"
       ];
       var result=await mammoth.convertToHtml({arrayBuffer:buf},{styleMap:styleMap});
-      html=result.value;
+      html=DOMPurify.sanitize(result.value);
       warnCount=(result.messages||[]).filter(function(m){return m.type==='warning';}).length;
     }catch(e){
       setStatus(st,'Could not read this document: '+(e&&e.message?e.message:'it may be corrupted or password-protected.'),1);
@@ -706,9 +707,9 @@ INIT['markdown-to-html']=function(panel){
   var isPreview=true;
   function render(){
     var md=document.getElementById('md-in').value;
-    if(typeof marked==='undefined'){document.getElementById('md-preview').textContent='Loading renderer...';return;}
+    if(typeof marked==='undefined'||typeof DOMPurify==='undefined'){document.getElementById('md-preview').textContent='Loading renderer...';return;}
     var html=marked.parse(md||'');
-    document.getElementById('md-preview').innerHTML=html;
+    document.getElementById('md-preview').innerHTML=DOMPurify.sanitize(html);   /* pasted Markdown can contain scripts */
     document.getElementById('md-html-out').value=html;
   }
   document.getElementById('md-in').addEventListener('input',render);

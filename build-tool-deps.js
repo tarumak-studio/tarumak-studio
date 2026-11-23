@@ -24,12 +24,13 @@ const LIBS = {
   html2canvas: { global: 'html2canvas', src: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', sri: 'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H' },
   mammoth:     { global: 'mammoth',     src: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', sri: 'sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz' },
   marked:      { global: 'marked',      src: 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js',          sri: 'sha384-odPBjvtXVM/5hOYIr3A1dB+flh0c3wAT3bSesIOqEGmyUA4JoKf/YTWy0XKOYAY7' },
+  purify:      { global: 'DOMPurify',   src: 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.17/purify.min.js',       sri: 'sha384-P0JNneQf81HOl9VwNXK76cQ9VMD6Nfsnepxb0cCOg8+UzEdzgPHAPV4wVQrvYQSx' },
 };
 /* How each library shows up in code (code calls, not prose) */
 const USE = {
   pdflib: /PDFLib\./, pdfjs: /pdfjsLib\./, jspdf: /window\.jspdf|jspdf\.jsPDF/,
   qrcode: /new QRCode\(|QRCode\.CorrectLevel/, html2canvas: /html2canvas\(/,
-  mammoth: /mammoth\.[a-zA-Z]+\(/, marked: /marked\.(parse|use|setOptions)\(|[^.\w]marked\(/,
+  mammoth: /mammoth\.[a-zA-Z]+\(/, purify: /DOMPurify\.sanitize/, marked: /marked\.(parse|use|setOptions)\(|[^.\w]marked\(/,
 };
 /* Load order matters: when two bundles define the same INIT, the later one wins. */
 const BUNDLES = ['pdf-tools.js', 'image-tools.js', 'converter-tools.js', 'marketing-tools.js', 'developer-tools.js'];

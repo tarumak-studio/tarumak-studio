@@ -142,7 +142,7 @@
 - [Blog Index](https://tarumakstudio.com/blog): All 30 articles, organized by category
 - [About](https://tarumakstudio.com/about.html): Tarumak Studio's story as a browser-first, privacy-first tools and learning platform
 - [French Academy](https://tarumakstudio.com/french-academy.html): Free French learning platform (A0–C2) — lessons, trainers, quizzes, progress tracking, all in the browser
-- [Contact](https://tarumakstudio.com/contact.html): hello@tarumakstudio.com
+- [Contact](https://tarumakstudio.com/contact.html): makenster@gmail.com
 - [Privacy Policy](https://tarumakstudio.com/privacy-policy.html)
 - [Terms of Service](https://tarumakstudio.com/terms.html)
 - [Changelog](https://tarumakstudio.com/changelog.html): Recent changes, new tools, fixes and improvements

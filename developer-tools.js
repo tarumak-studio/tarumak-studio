@@ -110,31 +110,54 @@ INIT['password-generator']=function(panel){
 
 /* 3 — CSS Gradient Generator */
 INIT['css-gradient-gen']=function(panel){
-  panel.innerHTML='<div class="controls" style="grid-template-columns:1fr 1fr">'
-    +'<div><label for="cg-c1" style="font-size:12px;color:var(--text-dim)">Color 1</label><input type="color" id="cg-c1" value="#22d3ee" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label for="cg-c2" style="font-size:12px;color:var(--text-dim)">Color 2</label><input type="color" id="cg-c2" value="#6366f1" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);cursor:pointer;margin-top:4px"></div>'
-    +'<div><label for="cg-type" style="font-size:12px;color:var(--text-dim)">Type</label><select id="cg-type" style="width:100%;margin-top:4px"><option value="linear">Linear</option><option value="radial">Radial</option></select></div>'
-    +'<div><label for="cg-angle" style="font-size:12px;color:var(--text-dim)">Angle (linear)</label><input type="range" id="cg-angle" min="0" max="360" value="135" style="width:100%;margin-top:12px"><span id="cg-angle-v" style="font-size:12px;color:var(--text-faint)">135°</span></div>'
-    +'</div>'
+  var stops=[{c:'#22d3ee',p:0},{c:'#6366f1',p:100}];
+  panel.innerHTML='<div class="controls">'
+    +'<div class="ctrl"><label for="cg-type">Type</label><select id="cg-type"><option value="linear">Linear</option><option value="radial">Radial</option><option value="conic">Conic</option></select></div>'
+    +'<div class="ctrl" id="cg-angle-w"><label for="cg-angle">Angle · <span class="val" id="cg-angle-v">135°</span></label><input type="range" id="cg-angle" min="0" max="360" value="135"></div>'
+    +'<div class="ctrl"><label><input type="checkbox" id="cg-rep"> Repeat</label></div></div>'
+    +'<div id="cg-stops" style="margin:14px 0 8px"></div>'
+    +'<button class="btn" id="cg-add">Add color</button>'
     +'<div id="cg-preview" style="height:160px;border-radius:14px;margin:16px 0;border:1px solid var(--border)"></div>'
-    +'<div id="cg-css" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--text)"></div>'
+    +'<div id="cg-css" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere"></div>'
     +'<div class="controls" style="margin-top:10px"><button class="btn btn-primary" id="cg-copy">Copy CSS</button></div>';
-  function update(){
-    var c1=document.getElementById('cg-c1').value;
-    var c2=document.getElementById('cg-c2').value;
-    var type=document.getElementById('cg-type').value;
-    var angle=document.getElementById('cg-angle').value;
-    document.getElementById('cg-angle-v').textContent=angle+'°';
-    var css=type==='linear'?'linear-gradient('+angle+'deg, '+c1+', '+c2+')':'radial-gradient(circle, '+c1+', '+c2+')';
-    document.getElementById('cg-preview').style.background=css;
-    var fullcss='background: '+css+';';
-    document.getElementById('cg-css').textContent=fullcss;
+  var g=function(id){return document.getElementById(id);};
+  function css(){
+    var t=g('cg-type').value,a=g('cg-angle').value,rep=g('cg-rep').checked?'repeating-':'';
+    var s=stops.slice().sort(function(x,y){return x.p-y.p;}).map(function(x){return x.c+' '+x.p+'%';}).join(', ');
+    if(t==='radial')return[rep+'radial-gradient(circle, '+s+')','-webkit-'+rep+'radial-gradient(circle, '+s+')'];
+    if(t==='conic')return[rep+'conic-gradient(from '+a+'deg, '+s+')',null];
+    /* the old prefixed syntax counts angles anticlockwise from the right */
+    return[rep+'linear-gradient('+a+'deg, '+s+')','-webkit-'+rep+'linear-gradient('+((450-a)%360)+'deg, '+s+')'];
   }
-  ['cg-c1','cg-c2','cg-type','cg-angle'].forEach(function(id){document.getElementById(id).addEventListener('input',update);});
-  document.getElementById('cg-copy').onclick=function(){
-    navigator.clipboard.writeText(document.getElementById('cg-css').textContent).then(function(){toast('CSS copied!','ok');});
+  function update(){
+    g('cg-angle-v').textContent=g('cg-angle').value+'°';
+    g('cg-angle-w').style.display=g('cg-type').value==='radial'?'none':'';
+    var c=css();g('cg-preview').style.background=c[0];
+    g('cg-css').textContent=(c[1]?'background: '+c[1]+';\n':'')+'background: '+c[0]+';';
+  }
+  function draw(){
+    g('cg-stops').innerHTML='';
+    stops.forEach(function(s,i){
+      var r=document.createElement('div');r.style.cssText='display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px';
+      r.innerHTML='<input type="color" aria-label="Color '+(i+1)+'" style="width:52px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer"><input type="range" min="0" max="100" aria-label="Position of color '+(i+1)+'" style="flex:1;min-width:120px"><span style="font-family:var(--fm);font-size:12px;color:var(--text-dim);width:40px"></span><button class="btn" aria-label="Remove color '+(i+1)+'">Remove</button>';
+      var q=r.children;q[0].value=s.c;q[1].value=s.p;q[2].textContent=s.p+'%';q[3].disabled=stops.length<3;
+      q[0].oninput=function(){s.c=q[0].value;update();};
+      q[1].oninput=function(){s.p=+q[1].value;q[2].textContent=s.p+'%';update();};
+      q[3].onclick=function(){stops.splice(i,1);draw();};
+      g('cg-stops').appendChild(r);
+    });
+    update();
+  }
+  g('cg-add').onclick=function(){
+    /* put it in the middle of the widest gap */
+    var o=stops.slice().sort(function(x,y){return x.p-y.p;}),at=50,w=-1;
+    for(var i=1;i<o.length;i++)if(o[i].p-o[i-1].p>w){w=o[i].p-o[i-1].p;at=Math.round((o[i].p+o[i-1].p)/2);}
+    var C=['#f5b042','#ec4899','#22c55e','#f97316','#a855f7'];
+    stops.push({c:C[(stops.length-2)%C.length],p:at});stops.sort(function(x,y){return x.p-y.p;});draw();
   };
-  update();
+  ['cg-type','cg-angle','cg-rep'].forEach(function(id){g(id).addEventListener('input',update);});
+  g('cg-copy').onclick=function(){navigator.clipboard.writeText(g('cg-css').textContent).then(function(){toast('CSS copied!','ok');}).catch(function(){toast('Copy failed','err');});};
+  draw();
 };
 
 /* 4 — Base64 Encoder/Decoder */
@@ -291,26 +314,42 @@ INIT['hashtag-gen']=function(panel){
 
 /* 8 — Lorem Ipsum Generator */
 INIT['lorem-ipsum']=function(panel){
-  var PARAS=['Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.','Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.','Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae.','At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.','Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.'];
+  var OPEN='lorem ipsum dolor sit amet consectetur adipiscing elit';
+  var WORDS=('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum perspiciatis unde omnis iste natus error accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis quasi architecto beatae vitae dicta explicabo nemo ipsam quia voluptas aspernatur aut odit fugit').split(' ');
+  var LIMIT={para:100,sent:500,word:10000};
   panel.innerHTML='<div class="controls" style="margin-bottom:12px">'
-    +'<select id="li-type"><option value="para">Paragraphs</option><option value="sent">Sentences</option><option value="word">Words</option></select>'
-    +'<input id="li-count" type="number" min="1" max="20" value="3" style="width:70px">'
+    +'<select id="li-type" aria-label="Type"><option value="para">Paragraphs</option><option value="sent">Sentences</option><option value="word">Words</option></select>'
+    +'<input id="li-count" type="number" min="1" max="100" value="3" aria-label="How many" style="width:90px">'
     +'<label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px"><input type="checkbox" id="li-start" checked> Start with Lorem ipsum</label>'
     +'<button class="btn btn-primary" id="li-gen">Generate</button>'
     +'</div>'
-    +'<textarea id="li-out" rows="10" readonly style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13.5px;resize:vertical;line-height:1.7"></textarea>'
-    +'<div class="controls" style="margin-top:10px"><button class="btn" id="li-copy">Copy Text</button></div>';
-  document.getElementById('li-gen').onclick=function(){
-    var type=document.getElementById('li-type').value;
-    var n=Math.min(+document.getElementById('li-count').value,20);
-    var start=document.getElementById('li-start').checked;
-    var result='';
-    if(type==='para'){var ps=[];for(var i=0;i<n;i++)ps.push(PARAS[i%PARAS.length]);if(start)ps[0]='Lorem ipsum dolor sit amet. '+ps[0];result=ps.join('\n\n');}
-    else if(type==='sent'){var all=PARAS.join(' ').split('. ').filter(Boolean);var sents=[];for(var i=0;i<n;i++)sents.push(all[i%all.length]+'.');if(start)sents[0]='Lorem ipsum dolor sit amet.';result=sents.join(' ');}
-    else{var words='lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt labore dolore magna aliqua enim minim veniam quis nostrud exercitation'.split(' ');var ws=[];for(var i=0;i<n;i++)ws.push(words[i%words.length]);if(start){ws[0]='Lorem';if(ws[1])ws[1]='ipsum';}result=ws.join(' ')+'.';}
-    document.getElementById('li-out').value=result;
-  };
-  document.getElementById('li-copy').onclick=function(){navigator.clipboard.writeText(document.getElementById('li-out').value).then(function(){toast('Text copied!','ok');});};
+    +'<textarea id="li-out" rows="10" readonly aria-label="Generated text" style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13.5px;resize:vertical;line-height:1.7"></textarea>'
+    +'<div class="controls" style="margin-top:10px"><button class="btn" id="li-copy">Copy Text</button></div><div class="status" id="li-st"></div>';
+  var g=function(id){return document.getElementById(id);};
+  function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+  function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+  function words(n,open){
+    var out=open?OPEN.split(' ').slice(0,n):[];
+    while(out.length<n){var w=WORDS[rnd(0,WORDS.length-1)];if(w!==out[out.length-1])out.push(w);}
+    return out;
+  }
+  function sentence(open){
+    var n=rnd(8,16),w=words(n,open);
+    var c=open?7:rnd(3,n-3);if(n>9&&c<n-1)w[c]+=',';
+    return cap(w.join(' '))+'.';
+  }
+  function para(open){var s=[];for(var i=0,n=rnd(4,7);i<n;i++)s.push(sentence(open&&!i));return s.join(' ');}
+  function make(){
+    var type=g('li-type').value,start=g('li-start').checked,max=LIMIT[type],asked=Math.floor(+g('li-count').value)||1;
+    var n=Math.min(Math.max(asked,1),max),out=[],i;
+    g('li-count').max=max;g('li-count').value=n;
+    if(type==='word')g('li-out').value=cap(words(n,start).join(' '))+'.';
+    else{for(i=0;i<n;i++)out.push((type==='para'?para:sentence)(start&&!i));g('li-out').value=out.join(type==='para'?'\n\n':' ');}
+    setStatus(g('li-st'),asked>max?'The most you can make at once is '+max.toLocaleString()+'.':'');
+  }
+  g('li-gen').onclick=make;g('li-type').onchange=make;
+  g('li-copy').onclick=function(){if(!g('li-out').value)make();navigator.clipboard.writeText(g('li-out').value).then(function(){toast('Text copied!','ok');}).catch(function(){toast('Copy failed','err');});};
+  make();
 };
 
 /* 9 — Color Converter */

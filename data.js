@@ -531,7 +531,7 @@ const TOOLS=[
   ['ai-photo-enhancer','AI Photo Enhancer','image','Enhance photos automatically: fix exposure, color, noise and sharpness with intelligent auto-analysis in your browser. Presets for portraits, night shots, documents and old photos.',['Auto-Fix','Presets','Privacy Safe']],
   ['ai-image-upscaler','AI Image Upscaler','image','Upscale images 2x or 4x with AI directly in your browser. Enlarge photos, art and product shots with sharp edges and preserved detail — no upload, free.',['AI-Powered','2x / 4x','Privacy Safe']],
  ['background-remover','Background Remover','image','Remove backgrounds from images automatically using AI. Works on people, products, logos and objects. Downloads as transparent PNG.',['AI-Powered','Transparent PNG','Privacy Safe']],
-  ['ocr-image-to-text','OCR Image to Text','image','Extract text from any image — screenshots, scanned documents, photos of signs or handwriting. Powered by Tesseract.js in your browser.',['Multi-Language','Copy & Download','Privacy Safe']],
+  ['ocr-image-to-text','OCR Image to Text','image','Extract text from any image — screenshots, scanned documents or photos of signs. Powered by Tesseract.js in your browser.',['Multi-Language','Copy & Download','Privacy Safe']],
   ['heic-to-jpg','HEIC to JPG Converter','image','Convert iPhone HEIC and HEIF photos to JPG or PNG online. Batch convert multiple files at once — no upload, no server, all in your browser.',['Batch','JPG & PNG','iPhone Photos']]
 ];
 

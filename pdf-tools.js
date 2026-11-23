@@ -163,23 +163,43 @@ INIT['pdf-password-protect']=function(panel){
 };
 
 INIT['pdf-unlock']=function(panel){
-  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Removes owner restrictions. If the file needs a password to open, enter it below.'});
+  const u=dz(panel,{accept:'application/pdf',formats:['PDF'],title:'Drop a PDF here or click to browse',sub:'Creates an unlocked copy. If the file needs a password to open, enter it below.'});
   let file=null;
   dropzone(u.drop,u.file,async fs=>{file=[...fs][0];if(!file)return;
     u.controls.className='controls';
     u.controls.innerHTML='<div class="ctrl"><label for="pw">Password (if required to open)</label><input type="password" id="pw" placeholder="Leave blank if none" style="width:220px"></div><div class="ctrl-spacer"></div><button class="btn btn-primary" id="go">Unlock PDF</button>';
     setStatus(u.status,'Ready — '+file.name+'.');
-    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value;setStatus(u.status,'Working…');
+    /* pdf-lib cannot decrypt. Loading with ignoreEncryption and saving
+       produced a file that was STILL encrypted while we reported
+       success. Now: (1) detect encryption, (2) open with pdf.js using the
+       password if one is needed, (3) rebuild an unlocked copy page by
+       page, (4) verify the copy opens with no password before saying
+       it worked. */
+    $('#go',panel).onclick=async()=>{const pw=$('#pw',panel).value;setStatus(u.status,'Checking the PDF…');
       try{const buf=await file.arrayBuffer();
-        try{const d=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true});
-          download(new Blob([await d.save()],{type:'application/pdf'}),'unlocked.pdf');
-          setStatus(u.status,'Done — restrictions removed, text preserved.');return;}
-        catch(inner){/* needs password: rebuild via render */}
-        const pdf=await pdfjsLib.getDocument({data:buf,password:pw}).promise;const {jsPDF}=window.jspdf;let doc=null;
-        for(let i=1;i<=pdf.numPages;i++){const r=await renderPage(pdf,i,1.6);const img=r.canvas.toDataURL('image/jpeg',.9);
+        let encrypted=false;
+        try{await PDFLib.PDFDocument.load(buf.slice(0));}
+        catch(inner){if(/encrypt/i.test((inner&&(inner.name+' '+inner.message))||''))encrypted=true;else throw inner;}
+        if(!encrypted){setStatus(u.status,'This PDF has no password or restrictions, so there is nothing to unlock.');return;}
+        let pdf;
+        try{pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf.slice(0)),password:pw||undefined}).promise;}
+        catch(e){
+          if(e&&e.name==='PasswordException'){
+            setStatus(u.status,pw?'That password is not correct. Check it and try again.':'This PDF needs its password to open. Enter it above, then press Unlock PDF.',1);
+            const f=$('#pw',panel);if(f)f.focus();return;}
+          throw e;}
+        const {jsPDF}=window.jspdf;let doc=null;
+        for(let i=1;i<=pdf.numPages;i++){setStatus(u.status,'Rebuilding page '+i+' of '+pdf.numPages+'…');
+          const r=await renderPage(pdf,i,1.6);const img=r.canvas.toDataURL('image/jpeg',.9);
           const w=r.w,h=r.h,o=w>h?'l':'p';if(i===1)doc=new jsPDF({unit:'pt',format:[w,h],orientation:o});else doc.addPage([w,h],o);doc.addImage(img,'JPEG',0,0,w,h);}
-        download(doc.output('blob'),'unlocked.pdf');setStatus(u.status,'Done — unlocked copy created.');}
-      catch(e){setStatus(u.status,(/password/i.test(e.message||'')?'Wrong or missing password.':'Failed: '+(e.message||e)),1);}};
+        const out=doc.output('blob');
+        /* Verify: the copy must open without any password */
+        try{const chk=await pdfjsLib.getDocument({data:new Uint8Array(await out.arrayBuffer())}).promise;
+          if(chk.numPages!==pdf.numPages)throw new Error('page count mismatch');}
+        catch(v){setStatus(u.status,'Could not create an unlocked copy of this PDF. Your file was not changed.',1);return;}
+        download(out,file.name.replace(/\.pdf$/i,'')+'-unlocked.pdf');
+        setStatus(u.status,'Done — unlocked copy created ('+pdf.numPages+' page'+(pdf.numPages>1?'s':'')+'). Pages were rebuilt as images, so text in the copy is not selectable.');}
+      catch(e){setStatus(u.status,'Could not unlock this PDF: '+(e.message||e),1);}};
   });
 };
 

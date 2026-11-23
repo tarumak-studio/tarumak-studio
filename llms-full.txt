@@ -30,7 +30,7 @@
 - [PNG to PDF Converter](https://tarumakstudio.com/#/t/png-to-pdf): Convert PNG images to PDF online. Preserves transparency as white background. Merge multiple PNGs into one document.
 - [PDF to Text Converter](https://tarumakstudio.com/#/t/pdf-to-text): Extract text from a PDF file online. Convert PDF to plain TXT for editing, copying or analysis — no software needed.
 - [PDF Password Protector](https://tarumakstudio.com/#/t/pdf-password-protect): Add password protection to a PDF online. Encrypt your PDF before sharing to prevent unauthorised access.
-- [PDF Unlock Tool](https://tarumakstudio.com/#/t/pdf-unlock): Remove password from a PDF online. Unlock a PDF you own to enable editing, printing and copying.
+- [PDF Unlock Tool](https://tarumakstudio.com/#/t/pdf-unlock): Remove the password from a PDF you own. Creates an unlocked copy that opens and prints without a password.
 - [PDF Page Rotator](https://tarumakstudio.com/#/t/pdf-page-rotator): Rotate PDF pages online — rotate individual pages or the entire document 90° or 180°. Download the corrected PDF.
 - [PDF Page Remover](https://tarumakstudio.com/#/t/pdf-page-remover): Delete specific pages from a PDF online. Enter page numbers or ranges and download the PDF with those pages removed.
 - [PDF Organizer](https://tarumakstudio.com/#/t/pdf-organizer): Reorder PDF pages online with drag-and-drop thumbnail view. Rearrange, rotate and preview before downloading.

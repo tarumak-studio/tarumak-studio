@@ -237,26 +237,56 @@ INIT['utm-builder']=function(panel){
     +'<button class="btn btn-primary" id="ut-dec-btn">Decode</button><div id="ut-dec-out"></div></div>';
   document.getElementById('ut-t1').onclick=function(){document.getElementById('ut-build').style.display='';document.getElementById('ut-decode').style.display='none';this.classList.add('active');document.getElementById('ut-t2').classList.remove('active');};
   document.getElementById('ut-t2').onclick=function(){document.getElementById('ut-decode').style.display='';document.getElementById('ut-build').style.display='none';this.classList.add('active');document.getElementById('ut-t1').classList.remove('active');};
+  /* Built with the URL API so UTM parameters always land in the query
+     string, before any #fragment (appending to the raw string put them
+     after "#top", where analytics never sees them). Inputs are escaped
+     before display. Errors replace the old result instead of leaving a
+     stale URL on screen. */
+  var UTM_KEYS=['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
+  var escH=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+  var outEl=document.getElementById('ut-out'),copyBtn=document.getElementById('ut-copy');
+  function showErr(el,msg){el.innerHTML='<span role="alert" style="color:var(--bad,#ff6b6b)">'+escH(msg)+'</span>';}
   document.getElementById('ut-build-btn').onclick=function(){
-    var base=document.getElementById('ut-url').value.trim();
-    var src=document.getElementById('ut-src').value.trim(),med=document.getElementById('ut-med').value.trim(),cam=document.getElementById('ut-cam').value.trim();
-    if(!base||!src||!med||!cam){toast('Please fill in URL, Source, Medium and Campaign','err');return;}
-    var params=[['utm_source',src],['utm_medium',med],['utm_campaign',cam],['utm_term',document.getElementById('ut-term').value.trim()],['utm_content',document.getElementById('ut-con').value.trim()]].filter(function(p){return p[1];});
-    var sep=base.includes('?')?'&':'?';
-    var full=base+sep+params.map(function(p){return encodeURIComponent(p[0])+'='+encodeURIComponent(p[1]);}).join('&');
-    var display=base+'<span class="utm-param">'+sep+params.map(function(p){return p[0]+'='+encodeURIComponent(p[1]);}).join('&amp;')+'</span>';
-    document.getElementById('ut-out').innerHTML=display;
-    document.getElementById('ut-copy').style.display='';
-    document.getElementById('ut-copy').onclick=function(){navigator.clipboard.writeText(full).then(function(){toast('UTM URL copied!','ok');});};};
+    var val=function(id){return document.getElementById(id).value.trim();};
+    var base=val('ut-url'),src=val('ut-src'),med=val('ut-med'),cam=val('ut-cam');
+    copyBtn.style.display='none';
+    var missing=[];if(!base)missing.push('Website URL');if(!src)missing.push('Source');if(!med)missing.push('Medium');if(!cam)missing.push('Campaign');
+    if(missing.length){showErr(outEl,'Fill in: '+missing.join(', ')+'.');return;}
+    var notes=[];
+    if(!/^[a-z][a-z0-9+.-]*:/i.test(base)){base='https://'+base;notes.push('Added https:// to the start of the URL.');}
+    var u;
+    try{u=new URL(base);}catch(e){showErr(outEl,'That website URL isn’t valid. Example: https://example.com/page');return;}
+    if(u.protocol!=='http:'&&u.protocol!=='https:'){showErr(outEl,'The website URL must start with http:// or https://');return;}
+    if(!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(u.hostname)&&u.hostname!=='localhost'){showErr(outEl,'That domain doesn’t look right ('+u.hostname+'). Example: https://example.com/page');return;}
+    var params=[['utm_source',src],['utm_medium',med],['utm_campaign',cam],['utm_term',val('ut-term')],['utm_content',val('ut-con')]];
+    var replaced=UTM_KEYS.filter(function(k){return u.searchParams.has(k);});
+    UTM_KEYS.forEach(function(k){u.searchParams.delete(k);});
+    params.forEach(function(p){if(p[1])u.searchParams.set(p[0],p[1]);});
+    if(replaced.length)notes.push('Replaced the existing '+replaced.join(', ')+' in your URL.');
+    var mixed=params.filter(function(p){return p[1]&&p[1]!==p[1].toLowerCase();}).map(function(p){return p[0];});
+    if(mixed.length)notes.push('GA4 treats "Google" and "google" as different values. Consider lowercase for '+mixed.join(', ')+'.');
+    /* URLSearchParams writes spaces as "+"; use %20 like most campaign
+       builders. A literal "+" is already encoded as %2B, so this is safe. */
+    u.search=u.search.replace(/\+/g,'%20');
+    var full=u.toString();
+    var q=full.indexOf('?'),h=full.indexOf('#');
+    var pre=full.slice(0,q),qs=full.slice(q,h>-1?h:undefined),frag=h>-1?full.slice(h):'';
+    outEl.innerHTML=escH(pre)+'<span class="utm-param">'+escH(qs)+'</span>'+escH(frag)
+      +(notes.length?'<div style="margin-top:8px;font-size:12px;color:var(--text-dim)">'+notes.map(escH).join('<br>')+'</div>':'');
+    copyBtn.style.display='';
+    copyBtn.onclick=function(){navigator.clipboard.writeText(full).then(function(){toast('UTM URL copied!','ok');}).catch(function(){toast('Copy failed — select the URL and copy it manually','err');});};};
   document.getElementById('ut-dec-btn').onclick=function(){
-    try{var u=new URL(document.getElementById('ut-paste').value.trim());
-      var p=['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
-      var found=p.filter(function(k){return u.searchParams.get(k);});
-      if(!found.length){document.getElementById('ut-dec-out').innerHTML='<p style="color:var(--text-faint);margin-top:12px">No UTM parameters found.</p>';return;}
-      document.getElementById('ut-dec-out').innerHTML='<div style="margin-top:14px">'
-        +p.map(function(k){var v=u.searchParams.get(k);if(!v)return '';
-          return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center"><span style="font-family:var(--fm);font-size:12px;color:var(--text-faint);min-width:130px">'+k+'</span><span style="font-size:13px;color:var(--text);flex:1">'+v+'</span></div>';}).join('')+'</div>';
-    }catch(e){toast('Invalid URL — please include https://','err');}};
+    var out=document.getElementById('ut-dec-out');
+    var raw=document.getElementById('ut-paste').value.trim();
+    if(!raw){showErr(out,'Paste a URL to decode.');return;}
+    var u;
+    try{u=new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw)?raw:'https://'+raw);}
+    catch(e){showErr(out,'That isn’t a valid URL. Paste the full link, for example https://example.com/?utm_source=google');return;}
+    var found=UTM_KEYS.filter(function(k){return u.searchParams.get(k);});
+    if(!found.length){out.innerHTML='<p style="color:var(--text-faint);margin-top:12px">No UTM parameters found in this URL.</p>';return;}
+    out.innerHTML='<div style="margin-top:14px">'
+      +found.map(function(k){
+        return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center"><span style="font-family:var(--fm);font-size:12px;color:var(--text-faint);min-width:130px">'+k+'</span><span style="font-size:13px;color:var(--text);flex:1;word-break:break-word">'+escH(u.searchParams.get(k))+'</span></div>';}).join('')+'</div>';};
 };
 
 INIT['og-image-gen']=function(panel){

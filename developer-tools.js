@@ -353,35 +353,52 @@ INIT['regex-tester']=function(panel){
       errEl.textContent='';
     }catch(e){errEl.textContent='⚠ '+e.message;hl.textContent=str;info.textContent='';groups.innerHTML='';return;}
 
-    // Highlight matches
-    var matches=[],m;
+    // Highlight matches.
+    // A pattern that can match an empty string (\b, a*, ^, x?) leaves
+    // lastIndex where it was, so the old loop never ended and froze the
+    // tab. Step past empty matches, and stop at MAX_MATCHES.
+    var MAX_MATCHES=5000;
+    var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+    var matches=[],m,capped=false;
     if(flags.g){
+      re.lastIndex=0;
       while((m=re.exec(str))!==null){
-        matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1)});
-        if(!flags.g)break;
+        matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1),named:m.groups||null});
+        if(m[0]==='')re.lastIndex++;
+        if(matches.length>=MAX_MATCHES){capped=true;break;}
       }
     } else {
       m=re.exec(str);
-      if(m) matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1)});
+      if(m) matches.push({index:m.index,end:m.index+m[0].length,match:m[0],groups:m.slice(1),named:m.groups||null});
     }
 
-    info.textContent=matches.length? matches.length+' match'+(matches.length>1?'es':'')+ ' found':'No matches';
+    info.textContent=matches.length
+      ? (capped?'Showing the first '+MAX_MATCHES+' matches':matches.length+' match'+(matches.length>1?'es':'')+' found')
+      : 'No matches';
 
-    // Build highlighted HTML
+    // Build highlighted HTML (empty matches are counted but not drawn)
     var out='',last=0;
     matches.forEach(function(ma){
-      var pre=str.slice(last,ma.index).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      var match=str.slice(ma.index,ma.end).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      out+=pre+'<mark class="rx-match">'+match+'</mark>';
+      if(ma.end===ma.index)return;
+      out+=esc(str.slice(last,ma.index))+'<mark class="rx-match">'+esc(str.slice(ma.index,ma.end))+'</mark>';
       last=ma.end;
     });
-    out+=str.slice(last).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    out+=esc(str.slice(last));
     hl.innerHTML=out||'&nbsp;';
 
-    // Show capture groups
+    // Show capture groups (escaped: they come from the user's test string)
     if(matches.length&&matches[0].groups.length){
+      var names={};
+      if(matches[0].named){
+        /* map group number -> name: walk the pattern, skipping escapes,
+           character classes and non-capturing/lookaround groups */
+        var gi=0;pat.replace(/\\.|\[(?:\\.|[^\]])*\]|\((\?(?:<([A-Za-z_$][\w$]*)>|[:=!]|<[=!]))?/g,function(tok,q,name){
+          if(tok.charAt(0)!=='(')return tok;
+          if(!q||name){gi++;if(name)names[gi]=name;}
+          return tok;});
+      }
       groups.innerHTML='<span style="font-size:12px;font-weight:600;color:var(--text-dim)">CAPTURE GROUPS (first match):</span><br>'
-        +matches[0].groups.map(function(g,i){return '<code style="font-size:12px;background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;margin:2px">$'+(i+1)+': '+g+'</code>';}).join(' ');
+        +matches[0].groups.map(function(g,i){var label=names[i+1]?esc(names[i+1]):'$'+(i+1);return '<code style="font-size:12px;background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;margin:2px">'+label+': '+(g===undefined?'(no match)':esc(g))+'</code>';}).join(' ');
     } else groups.innerHTML='';
   }
 

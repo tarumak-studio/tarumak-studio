@@ -289,20 +289,49 @@ function fadeIn(el){el.classList.remove('fade-in');void el.offsetWidth;el.classL
    COOKIE CONSENT BANNER
    ══════════════════════════════════════════════════ */
 
+/* One banner text for every page. Pages built without the banner
+   markup (articles, 404) get it injected, so every visitor can opt in
+   or out. The choice is applied by window.tmkConsent (config.js):
+   analytics only load after Accept. window.tmkCookieSettings() reopens
+   the banner (used by the Cookie Policy page). */
 (()=>{
-  const CKEY='tmk_cookie';
-  const bar=$('#cookie-bar');
-  if(!bar||localStorage.getItem(CKEY))return;
-  /* Show after 1.2s so the page settles first */
-  setTimeout(()=>bar.classList.add('show'),1200);
-  function dismiss(accepted){
-    bar.classList.remove('show');
-    localStorage.setItem(CKEY,accepted?'1':'0');
-    setTimeout(()=>bar.style.display='none',420);
+  const TEXT='We’d like to use Google Analytics cookies to count visits and see which tools are used. They’re only set if you accept. Your files are never uploaded. <a href="/cookie-policy">Cookie Policy</a> · <a href="/privacy-policy">Privacy Policy</a>';
+  function ensureBar(){
+    let bar=$('#cookie-bar');
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='cookie-bar';bar.setAttribute('role','region');bar.setAttribute('aria-label','Cookie consent');
+      bar.innerHTML='<p></p><div class="cb-btns"><button class="cb-decline" id="cb-decline" type="button">Decline</button><button class="cb-accept" id="cb-accept" type="button">Accept</button></div>';
+      document.body.appendChild(bar);
+      /* Fallback styling for pages whose CSS has no #cookie-bar rule */
+      if(getComputedStyle(bar).position!=='fixed'){
+        const st=document.createElement('style');
+        st.textContent='#cookie-bar{position:fixed;left:0;right:0;bottom:0;z-index:8500;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:14px 20px;background:var(--bg-2,#0e1226);color:var(--text-dim,#9aa3c4);border-top:1px solid var(--border,rgba(255,255,255,.09));transform:translateY(100%);transition:transform .4s}#cookie-bar.show{transform:none}#cookie-bar p{flex:1;min-width:200px;margin:0;font-size:13.5px}#cookie-bar a{color:var(--p1,#22d3ee)}#cookie-bar .cb-btns{display:flex;gap:10px}#cookie-bar button{font:inherit;font-size:13px;padding:8px 16px;border-radius:10px;border:1px solid var(--border-2,rgba(255,255,255,.14));background:transparent;color:inherit;cursor:pointer}#cookie-bar .cb-accept{background:var(--p1,#22d3ee);color:#06121a;border-color:transparent;font-weight:600}';
+        document.head.appendChild(st);
+      }
+    }
+    const p=bar.querySelector('p');if(p)p.innerHTML=TEXT;
+    bar.style.display='';
+    return bar;
   }
-  var _ca=$('#cb-accept'),_cd=$('#cb-decline');
-  if(_ca)_ca.onclick=()=>{dismiss(true);toast('Preferences saved','ok',2000);};
-  if(_cd)_cd.onclick=()=>{dismiss(false);};
+  function open(){
+    const bar=ensureBar();
+    function dismiss(accepted){
+      bar.classList.remove('show');
+      if(window.tmkConsent)window.tmkConsent.set(accepted);
+      else{try{localStorage.setItem('tmk_cookie',accepted?'1':'0');}catch(e){}}
+      setTimeout(()=>{bar.style.display='none';},420);
+    }
+    const ca=bar.querySelector('#cb-accept'),cd=bar.querySelector('#cb-decline');
+    if(ca)ca.onclick=()=>{dismiss(true);toast('Analytics enabled — thank you','ok',2000);};
+    if(cd)cd.onclick=()=>{dismiss(false);toast('Analytics stay off','ok',2000);};
+    requestAnimationFrame(()=>bar.classList.add('show'));
+  }
+  window.tmkCookieSettings=open;
+  let choice=null;try{choice=localStorage.getItem('tmk_cookie');}catch(e){}
+  if(choice){const bar=$('#cookie-bar');if(bar)bar.style.display='none';return;}
+  /* Show after 1.2s so the page settles first */
+  setTimeout(open,1200);
 })();
 
 /* ---------- Category page filter (search + group chips, no reload) ---------- */

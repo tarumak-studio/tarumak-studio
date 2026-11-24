@@ -199,7 +199,7 @@
   .breadcrumb a+a::before, .breadcrumb a+.crumb-current::before { margin: 0 6px; }
 }
 </style>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/regex-tester#page","url":"https://tarumakstudio.com/regex-tester","name":"Regex Tester — Free Online, No Upload | Tarumak Studio","description":"Test regular expressions against any string. See matches highlighted in real time with capture group details.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/regex-tester#app","name":"Regex Tester","url":"https://tarumakstudio.com/regex-tester","description":"Test regular expressions against any string. See matches highlighted in real time with capture group details.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Regex Tester"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What regex syntax does this tool use?","acceptedAnswer":{"@type":"Answer","text":"JavaScript's built-in RegExp engine, which follows ECMAScript standards. Most standard regex syntax (character classes, quantifiers, groups, lookaheads) is supported."}},{"@type":"Question","name":"What do the g, i, and m flags do?","acceptedAnswer":{"@type":"Answer","text":"g (global) finds all matches not just the first. i makes the pattern case-insensitive. m makes ^ and $ match the start and end of each line rather than the whole string."}},{"@type":"Question","name":"Can I test capture groups?","acceptedAnswer":{"@type":"Answer","text":"Yes — the first match's capture groups ($1, $2, etc.) are displayed below the test string."}},{"@type":"Question","name":"Is Regex Tester really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Regex Tester processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/regex-tester#page","url":"https://tarumakstudio.com/regex-tester","name":"Regex Tester — Free Online, No Upload | Tarumak Studio","description":"Test regular expressions against any string. See matches highlighted in real time with capture group details.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/regex-tester#app","name":"Regex Tester","url":"https://tarumakstudio.com/regex-tester","description":"Test regular expressions against any string. See matches highlighted in real time with capture group details.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Regex Tester"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can it replace text?","acceptedAnswer":{"@type":"Answer","text":"No, it finds matches."}},{"@type":"Question","name":"Why are only the first groups shown?","acceptedAnswer":{"@type":"Answer","text":"Groups are listed for the first match to keep the view readable."}},{"@type":"Question","name":"How many matches are shown?","acceptedAnswer":{"@type":"Answer","text":"Up to 5,000."}},{"@type":"Question","name":"Can I check e-mail addresses with a regex?","acceptedAnswer":{"@type":"Answer","text":"Only roughly. Sending a confirmation message is the reliable test."}},{"@type":"Question","name":"Is Regex Tester really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Regex Tester processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
 </head>
 <body data-tool-slug="regex-tester" data-tool-name="Regex Tester">
 <div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
@@ -320,7 +320,7 @@
 
     <section class="tp-hero">
       <h1>Regex Tester</h1>
-      <p class="tp-lead">Test regular expressions against any string. See matches highlighted in real time with capture group details.</p>
+      <p class="tp-lead">Try a regular expression on your own text and watch the matches light up as you type. Capture groups, including named ones, are listed, and broken patterns are explained.</p>
       <div class="tp-badges">
         <a class="tp-cat-badge" href="/developer-tools">Developer &amp; SEO</a>
         <span class="tp-chip">REGEX</span><span class="tp-chip">PATTERN</span><span class="tp-chip">TEST</span>
@@ -343,27 +343,17 @@
     <div class="tp-layout">
       <div class="tp-col-main">
 
-    <section class="tp-sec" aria-labelledby="tp-tips">
-      <h2 id="tp-tips">Get better results</h2>
-      <p class="tp-sub">Tips from how Regex Tester actually works, and mistakes worth avoiding.</p>
-      <div class="tp-tips-grid">
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg>Pro tips</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Keep a working copy of your input before running a destructive operation — undo is a browser back-button, not a history stack.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>When something looks wrong, check the start of the input first — most parsing errors cascade from one early character.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Bookmark this page. It is a static URL with no login, so it works the same way every time you need it.</span></li>
-        </ul>
-      </div>
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Common mistakes</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Assuming a paid tool would give a more &quot;official&quot; result — the underlying parsing logic is the same either way.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Not checking for trailing commas, smart quotes, or copy-pasted invisible characters — the most common source of a confusing error.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Working directly on the only copy of an important file instead of a duplicate.</span></li>
-        </ul>
-      </div>
-      </div>
+    <section class="tp-sec" aria-labelledby="tp-how">
+      <h2 id="tp-how">How to use Regex Tester</h2>
+      <p class="tp-sub">3 steps, no learning curve.</p>
+      <ol class="tp-steps">
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">1</span><div><h3>Type a pattern</h3><p>Without the slashes.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">2</span><div><h3>Set the flags</h3><p>g for all matches, i to ignore case, m for line starts and ends.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">3</span><div><h3>Paste test text</h3><p>Matches and groups update live.</p></div></li>
+      </ol>
+    </section><section class="tp-sec tp-guide-text" aria-labelledby="tp-gt">
+      <h2 id="tp-gt">Good to know about Regex Tester</h2>
+      <h3>JavaScript flavour</h3><p>Patterns run in your browser’s engine. Most syntax is the same in Python, PHP or Java, but lookbehind, named groups and Unicode classes are written or supported differently in some of them.</p><h3>Frequent mistakes</h3><p>An unescaped dot matches any character, so write \. for a real one. A greedy .* takes as much as it can; .*? stops at the first chance. ^ and $ mean the whole text unless m is on.</p><h3>Slow patterns</h3><p>Nested repetition such as (a+)+ can take extremely long on certain text and freeze the page. Avoid repeating something that is itself repeated.</p><h3>Test what should not match</h3><p>A pattern that finds all valid entries may also accept wrong ones. Put counter-examples in the text as well.</p>
     </section>
 
     
@@ -373,9 +363,10 @@
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>
       <p class="tp-sub">About Regex Tester and how Tarumak Studio works.</p>
-      <details><summary>What regex syntax does this tool use?</summary><p>JavaScript's built-in RegExp engine, which follows ECMAScript standards. Most standard regex syntax (character classes, quantifiers, groups, lookaheads) is supported.</p></details>
-      <details><summary>What do the g, i, and m flags do?</summary><p>g (global) finds all matches not just the first. i makes the pattern case-insensitive. m makes ^ and $ match the start and end of each line rather than the whole string.</p></details>
-      <details><summary>Can I test capture groups?</summary><p>Yes — the first match's capture groups ($1, $2, etc.) are displayed below the test string.</p></details>
+      <details><summary>Can it replace text?</summary><p>No, it finds matches.</p></details>
+      <details><summary>Why are only the first groups shown?</summary><p>Groups are listed for the first match to keep the view readable.</p></details>
+      <details><summary>How many matches are shown?</summary><p>Up to 5,000.</p></details>
+      <details><summary>Can I check e-mail addresses with a regex?</summary><p>Only roughly. Sending a confirmation message is the reliable test.</p></details>
       <details><summary>Is Regex Tester really free?</summary><p>Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.</p></details>
       <details><summary>Is my input sent to a server?</summary><p>No. Regex Tester processes everything you type or paste locally in your browser — nothing is ever sent to a server.</p></details>
     </section>

@@ -32,7 +32,7 @@
 const fs = require('fs');
 const vm = require('vm');
 
-const GUIDES = require('./tool-guides.js'); /* page-specific text, replaces the generic category copy */
+const GUIDES = { ...require('./tool-guides.js'), ...require('./tool-guides-2.js') }; /* page-specific text, replaces the generic category copy */
 const SITE = 'https://tarumakstudio.com';
 const TODAY = new Date().toISOString().slice(0, 10);
 /* Cache-busting for the 5 core tool-logic scripts, shared across every

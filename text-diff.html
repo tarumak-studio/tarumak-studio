@@ -199,7 +199,7 @@
   .breadcrumb a+a::before, .breadcrumb a+.crumb-current::before { margin: 0 6px; }
 }
 </style>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/text-diff#page","url":"https://tarumakstudio.com/text-diff","name":"Text Diff Checker — Free Online, No Upload | Tarumak Studio","description":"Compare two texts and highlight every addition, deletion and change between them.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/text-diff#app","name":"Text Diff Checker","url":"https://tarumakstudio.com/text-diff","description":"Compare two texts and highlight every addition, deletion and change between them.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Text Diff Checker"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does the diff algorithm work?","acceptedAnswer":{"@type":"Answer","text":"It compares the texts line by line with the Myers algorithm (the one git uses by default), then compares word by word inside each changed block."}},{"@type":"Question","name":"Can I diff large documents?","acceptedAnswer":{"@type":"Answer","text":"Yes. Long texts that are mostly the same compare quickly. If two blocks have very little in common, they are shown as fully removed and fully added."}},{"@type":"Question","name":"Does it show character-level or word-level differences?","acceptedAnswer":{"@type":"Answer","text":"Word-level differences. Whitespace between words is preserved so the output is readable."}},{"@type":"Question","name":"Is Text Diff Checker really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Text Diff Checker processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/text-diff#page","url":"https://tarumakstudio.com/text-diff","name":"Text Diff Checker — Free Online, No Upload | Tarumak Studio","description":"Compare two texts and highlight every addition, deletion and change between them.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/text-diff#app","name":"Text Diff Checker","url":"https://tarumakstudio.com/text-diff","description":"Compare two texts and highlight every addition, deletion and change between them.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Text Diff Checker"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I compare Word or PDF files?","acceptedAnswer":{"@type":"Answer","text":"Copy the text into the boxes. PDF to Text helps with PDFs."}},{"@type":"Question","name":"Is upper and lower case significant?","acceptedAnswer":{"@type":"Answer","text":"Yes."}},{"@type":"Question","name":"Can I save the comparison?","acceptedAnswer":{"@type":"Answer","text":"Not as a file. Take a screenshot or print the page."}},{"@type":"Question","name":"Are confidential texts safe?","acceptedAnswer":{"@type":"Answer","text":"They are compared in your browser and not sent anywhere."}},{"@type":"Question","name":"Is Text Diff Checker really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Text Diff Checker processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
 </head>
 <body data-tool-slug="text-diff" data-tool-name="Text Diff Checker">
 <div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
@@ -320,7 +320,7 @@
 
     <section class="tp-hero">
       <h1>Text Diff Checker</h1>
-      <p class="tp-lead">Compare two texts and highlight every addition, deletion and change between them.</p>
+      <p class="tp-lead">Paste two versions of a text and see what was added and removed, down to single words. Lines that moved little are matched, so one inserted paragraph does not mark everything after it.</p>
       <div class="tp-badges">
         <a class="tp-cat-badge" href="/developer-tools">Developer &amp; SEO</a>
         <span class="tp-chip">DIFF</span><span class="tp-chip">COMPARE</span><span class="tp-chip">TEXT</span>
@@ -343,27 +343,17 @@
     <div class="tp-layout">
       <div class="tp-col-main">
 
-    <section class="tp-sec" aria-labelledby="tp-tips">
-      <h2 id="tp-tips">Get better results</h2>
-      <p class="tp-sub">Tips from how Text Diff Checker actually works, and mistakes worth avoiding.</p>
-      <div class="tp-tips-grid">
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg>Pro tips</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Keep a working copy of your input before running a destructive operation — undo is a browser back-button, not a history stack.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>When something looks wrong, check the start of the input first — most parsing errors cascade from one early character.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Bookmark this page. It is a static URL with no login, so it works the same way every time you need it.</span></li>
-        </ul>
-      </div>
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Common mistakes</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Assuming a paid tool would give a more &quot;official&quot; result — the underlying parsing logic is the same either way.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Not checking for trailing commas, smart quotes, or copy-pasted invisible characters — the most common source of a confusing error.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Working directly on the only copy of an important file instead of a duplicate.</span></li>
-        </ul>
-      </div>
-      </div>
+    <section class="tp-sec" aria-labelledby="tp-how">
+      <h2 id="tp-how">How to use Text Diff Checker</h2>
+      <p class="tp-sub">3 steps, no learning curve.</p>
+      <ol class="tp-steps">
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">1</span><div><h3>Paste the original</h3><p>On the left.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">2</span><div><h3>Paste the changed text</h3><p>On the right.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">3</span><div><h3>Press Compare</h3><p>Additions are green, removals red and struck through, with a count above.</p></div></li>
+      </ol>
+    </section><section class="tp-sec tp-guide-text" aria-labelledby="tp-gt">
+      <h2 id="tp-gt">Good to know about Text Diff Checker</h2>
+      <h3>Lines first, then words</h3><p>Unchanged lines are found with the same method used by version control systems. Lines that changed are then compared word by word, so you see the edit and not just the line.</p><h3>Reading the numbers</h3><p>A changed line counts as one removed and one added. Word counts show how large the edit really was.</p><h3>White space counts</h3><p>Different indentation or a trailing space is a difference. If everything seems changed, one version may use other line endings or tabs: paste both into a plain editor first.</p><h3>Good uses</h3><p>Checking a contract that came back from the other side, comparing configuration files, or finding what an editor did to your article.</p>
     </section>
 
     
@@ -373,9 +363,10 @@
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>
       <p class="tp-sub">About Text Diff Checker and how Tarumak Studio works.</p>
-      <details><summary>How does the diff algorithm work?</summary><p>It compares the texts line by line with the Myers algorithm (the one git uses by default), then compares word by word inside each changed block.</p></details>
-      <details><summary>Can I diff large documents?</summary><p>Yes. Long texts that are mostly the same compare quickly. If two blocks have very little in common, they are shown as fully removed and fully added.</p></details>
-      <details><summary>Does it show character-level or word-level differences?</summary><p>Word-level differences. Whitespace between words is preserved so the output is readable.</p></details>
+      <details><summary>Can I compare Word or PDF files?</summary><p>Copy the text into the boxes. PDF to Text helps with PDFs.</p></details>
+      <details><summary>Is upper and lower case significant?</summary><p>Yes.</p></details>
+      <details><summary>Can I save the comparison?</summary><p>Not as a file. Take a screenshot or print the page.</p></details>
+      <details><summary>Are confidential texts safe?</summary><p>They are compared in your browser and not sent anywhere.</p></details>
       <details><summary>Is Text Diff Checker really free?</summary><p>Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.</p></details>
       <details><summary>Is my input sent to a server?</summary><p>No. Text Diff Checker processes everything you type or paste locally in your browser — nothing is ever sent to a server.</p></details>
     </section>

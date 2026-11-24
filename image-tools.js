@@ -2603,3 +2603,166 @@ INIT['ai-object-remover']=function(panel){
   }
 };
 
+
+/* ════ Compress Image to Exact KB ═════════════════════════════════════
+   UI only. The work happens in exactkb-engine.js, in a Web Worker. */
+var XKB_V='c6a59af7c1';
+var xkbWorker=null;
+INIT['compress-image-to-exact-kb']=function(panel){
+  if(xkbWorker){xkbWorker.terminate();xkbWorker=null;}
+  var MAX_FILE=60*1024*1024,OUT={'image/jpeg':['JPG','jpg'],'image/png':['PNG','png'],'image/webp':['WebP','webp']};
+  var u=dz(panel,{accept:'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',title:'Drop an image here or click to browse',formats:['JPG','JPEG','PNG','WEBP'],sub:'One image, up to 60 MB.'});
+  u.controls.className='controls xkb-controls';
+  u.controls.innerHTML=
+    '<div class="xkb-target"><div class="ctrl"><label for="xkT">Target size (KB)</label><input type="number" id="xkT" inputmode="decimal" min="1" step="any" value="50"></div>'+
+    '<div class="ctrl xkb-grow"><label id="xkPl">Quick sizes</label><div class="seg" role="group" aria-labelledby="xkPl">'+[20,50,100,200,500].map(function(k){return'<button type="button" data-kb="'+k+'">'+k+' KB</button>';}).join('')+'</div></div></div>'+
+    '<details class="xkb-settings"><summary>Compression settings</summary><div class="xkb-grid">'+
+      '<div class="ctrl"><label for="xkF">Output format</label><select id="xkF"><option value="auto">Automatic</option><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option><option value="image/png">PNG</option></select></div>'+
+      '<div class="ctrl"><label for="xkM">If the target is tight</label><select id="xkM"><option value="balanced">Balanced (recommended)</option><option value="detail">Keep quality, resize sooner</option><option value="size">Keep dimensions</option></select></div>'+
+      '<div class="ctrl"><label for="xkQ">Highest quality to use · <span class="val" id="xkQv">95%</span></label><input type="range" id="xkQ" min="10" max="100" value="95"></div>'+
+      '<div class="ctrl"><label for="xkD">Longest side, px (optional)</label><input type="number" id="xkD" inputmode="numeric" min="16" step="1" placeholder="No limit"></div>'+
+      '<div class="ctrl"><label for="xkK">1 KB means</label><select id="xkK"><option value="1024">1,024 bytes (usual)</option><option value="1000">1,000 bytes</option></select></div>'+
+      '<div class="ctrl" id="xkBw"><label for="xkB">Background for JPG</label><input type="color" id="xkB" value="#ffffff"></div>'+
+      '<label class="xkb-check"><input type="checkbox" id="xkP"> <span>Match the target to the byte<small>Adds harmless filler data to the file. The picture does not change. Useful when a form needs a minimum size.</small></span></label>'+
+    '</div><p class="xkb-note" id="xkNote"></p></details>'+
+    '<div class="xkb-go"><button class="btn btn-primary" id="xkGo" disabled>Compress Image</button><button class="btn btn-ghost" id="xkStop" hidden>Cancel</button></div>';
+  var g=function(id){return $('#'+id,panel);};
+  var file=null,srcUrl='',outUrl='',busy=false,origDims='',last=null,runId=0;
+  u.controls.after(u.status); /* next to the button, not below the previews */
+  u.status.setAttribute('role','status');u.status.setAttribute('aria-live','polite');
+
+  function unit(){return +g('xkK').value;}
+  function kb(b){var v=b/unit();return (v<10?v.toFixed(2):v<1000?v.toFixed(1):Math.round(v).toLocaleString())+' KB';}
+  function both(b){return kb(b)+' <small>('+b.toLocaleString()+' bytes)</small>';}
+  /* Released a moment later, so a preview still loading is not cut off */
+  function free(url){if(url)setTimeout(function(){URL.revokeObjectURL(url);},1500);}
+  function targetKb(){var v=parseFloat(g('xkT').value);return isFinite(v)?v:NaN;}
+  function paintPresets(){var t=targetKb();$$('[data-kb]',panel).forEach(function(b){var on=+b.dataset.kb===t;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on);});}
+  function note(){
+    var f=g('xkF').value,m=g('xkM').value,t='Automatic keeps JPG as JPG and WebP as WebP. A PNG becomes JPG. With transparency it becomes WebP or stays PNG, whichever keeps the image larger.';
+    if(f==='image/jpeg')t='JPG cannot store transparency, so see-through areas get the background colour.';
+    if(f==='image/webp')t='WebP keeps transparency. Some older programs and upload forms do not accept it.';
+    if(f==='image/png')t='PNG has no quality setting. It is made smaller with fewer colours and smaller dimensions, so photos shrink much further as JPG or WebP. Transparency is kept.';
+    g('xkNote').textContent=t+' '+(m==='detail'?'Keep quality stays sharp per pixel and makes the image smaller instead.':m==='size'?'Keep dimensions only lowers quality, so small targets may look rough or be impossible.':'Balanced lowers quality to a reasonable level first, then reduces dimensions.');g('xkBw').style.display=(f==='auto'||f==='image/jpeg')?'':'none';
+  }
+  function changed(){if(last&&!busy)setStatus(u.status,'Settings changed. Press Compress Image to update the result.');}
+  g('xkT').addEventListener('input',function(){paintPresets();changed();});
+  $$('[data-kb]',panel).forEach(function(b){b.onclick=function(){g('xkT').value=b.dataset.kb;paintPresets();changed();};});
+  g('xkQ').addEventListener('input',function(){g('xkQv').textContent=g('xkQ').value+'%';});
+  ['xkF','xkM','xkQ','xkD','xkK','xkB','xkP'].forEach(function(id){g(id).addEventListener('change',function(){note();changed();if(file&&id==='xkK')paint();});});
+  g('xkT').addEventListener('keydown',function(e){if(e.key==='Enter'&&file&&!busy)compress();});
+  paintPresets();note();
+
+  function clearResult(){free(outUrl);outUrl='';last=null;u.actions.innerHTML='';u.actions.className='actions';}
+  function reset(){stop();runId++;free(srcUrl);srcUrl='';file=null;origDims='';clearResult();u.results.innerHTML='';u.results.className='results';u.drop.style.display='';u.file.value='';g('xkGo').disabled=true;u.status.className='status';u.drop.focus();}
+
+  function pick(fs){
+    var list=[...fs];if(!list.length)return;
+    var f=list[0],named=/\.(jpe?g|png|webp)$/i.test(f.name)||/^image\/(jpeg|png|webp)$/.test(f.type);
+    u.file.value='';
+    if(!named){setStatus(u.status,'“'+f.name+'” is not supported. Choose a JPG, JPEG, PNG or WebP image.',1);return;}
+    if(!f.size){setStatus(u.status,'This file is empty.',1);return;}
+    if(f.size>MAX_FILE){setStatus(u.status,'This file is '+(f.size/1048576).toFixed(1)+' MB. The limit is 60 MB, to keep your browser from running out of memory.',1);return;}
+    stop();var id=++runId;
+    var url=URL.createObjectURL(f),im=new Image();
+    im.onload=function(){
+      if(id!==runId){free(url);return;}
+      free(srcUrl);clearResult();file=f;srcUrl=url;origDims=im.naturalWidth+' × '+im.naturalHeight+' px';
+      u.drop.style.display='none';g('xkGo').disabled=false;paint();
+      setStatus(u.status,list.length>1?'Using the first image. This tool does one at a time.':'Ready. Set a target and press Compress Image.');
+    };
+    im.onerror=function(){free(url);if(id===runId)setStatus(u.status,'This image could not be opened. The file may be damaged, or it is not really a JPG, PNG or WebP.',1);};
+    im.src=url;
+  }
+  dropzone(u.drop,u.file,pick);
+
+  function fig(title,url,size,dims,cls){
+    return '<figure class="xkb-fig '+cls+'"><figcaption>'+title+'</figcaption><div class="xkb-img">'+(url?'<img alt="'+title+' image preview" src="'+url+'">':'<span>Your compressed image appears here.</span>')+'</div>'+
+      '<dl><div><dt>File size</dt><dd>'+size+'</dd></div><div><dt>Dimensions</dt><dd>'+dims+'</dd></div></dl></figure>';
+  }
+  function paint(){
+    var h='';
+    if(last){
+      var r=last,saved=Math.round((1-r.blob.size/r.originalSize)*1000)/10,diff=r.target-r.blob.size;
+      h+='<div class="xkb-sum"><div><span>Target size</span><b>'+both(r.target)+'</b></div><div><span>Actual compressed size</span><b>'+both(r.blob.size)+'</b></div>'+
+        '<div><span>'+(saved>=0?'Space saved':'Size change')+'</span><b>'+(saved>=0?saved+'%':'+'+(-saved)+'%')+'</b></div>'+
+        '<div><span>Compared with target</span><b>'+(diff===0?'Exact match':kb(Math.abs(diff))+(diff>0?' under':' over'))+'</b></div></div>';
+    }
+    h+='<div class="xkb-pair">'+fig('Original',srcUrl,file?both(file.size):'',origDims,'o')+
+      fig('Compressed',last?outUrl:'',last?both(last.blob.size):'—',last?last.w+' × '+last.h+' px':'—','c')+'</div>';
+    u.results.innerHTML=h;u.results.className='results show';
+  }
+
+  function explain(r){
+    var t=kb(r.target),m=[],type=OUT[r.type][0];
+    if(!r.reached){
+      var need=Math.ceil(r.blob.size/unit()),fix=g('xkM').value==='size'?' Or allow resizing: set “If the target is tight” to Balanced.':r.type==='image/png'?' Or choose WebP or JPG, which can go much smaller.':'';
+      return ['The '+t+' target could not be reached. The smallest '+type+' possible with these settings is '+kb(r.blob.size)+' at '+r.w+' × '+r.h+' px. A realistic target is '+need.toLocaleString()+' KB or more.'+fix,1];
+    }
+    if(r.kept){
+      m.push(r.padded?'The original was already under '+t+', so only filler data was added and the picture is unchanged':'The original is already under '+t+', so it is kept exactly as it is. Compressing it again would only lose quality');
+    }else{
+      var d=r.target-r.blob.size,how=r.type==='image/png'?(r.level?r.level+' colours':'lossless'):'quality '+r.level+'%';
+      m.push(d===0?'Done. The file is exactly '+t:'Done. '+kb(r.blob.size)+', which is '+kb(d)+' under the '+t+' target');
+      m.push(type+', '+how+', '+(r.w===r.ow&&r.h===r.oh?'original dimensions':'resized from '+r.ow+' × '+r.oh+' to '+r.w+' × '+r.h+' px'));
+      if(r.topQuality&&d>r.target*.03)m.push('It is already at the highest quality you allowed, so it cannot usefully be larger');
+      if(r.fullSizeNeeds&&r.w*r.h<r.ow*r.oh*.25){var fk=r.fullSizeNeeds/unit();m.push('To keep the full dimensions, try '+(r.estimated?'roughly '+(+fk.toPrecision(2)).toLocaleString():'about '+Math.ceil(fk).toLocaleString())+' KB');}
+      if(r.flattened)m.push('Transparent areas were filled with the background colour');
+      if(r.limited)m.push('The image was too large for this device at full size, so it was reduced first');
+    }
+    if(!r.kept&&r.blob.size>=r.originalSize)m.push('Note: this is not smaller than your original ('+kb(r.originalSize)+')');
+    if(r.padded&&!r.kept)m.push(r.padded.toLocaleString()+' bytes of it are filler');
+    if(r.animated&&!r.kept)m.push('This image is animated; only the first frame was kept');
+    return [m.join('. ')+'.',0];
+  }
+
+  function setBusy(on){busy=on;g('xkGo').disabled=on||!file;g('xkStop').hidden=!on;panel.setAttribute('aria-busy',on);}
+  function stop(){if(xkbWorker){xkbWorker.terminate();xkbWorker=null;}setBusy(false);}
+  g('xkStop').onclick=function(){runId++;stop();setStatus(u.status,'Cancelled.');};
+
+  /* Worker when possible, otherwise the same code on the page. */
+  function runEngine(job,onProgress){
+    var src='/exactkb-engine.js?v='+XKB_V;
+    function onPage(){return _loadScript(src,'ExactKB').then(function(){return window.ExactKB.run(job,onProgress);});}
+    if(typeof Worker==='undefined'||typeof OffscreenCanvas==='undefined'||typeof createImageBitmap==='undefined')return onPage();
+    return new Promise(function(res,rej){
+      var w,started=false;
+      try{w=new Worker(src);}catch(e){onPage().then(res,rej);return;}
+      xkbWorker=w;
+      function done(){w.terminate();if(xkbWorker===w)xkbWorker=null;}
+      w.onmessage=function(e){var d=e.data;
+        if('ready' in d){started=true;if(d.ready)w.postMessage(job);else{done();onPage().then(res,rej);}}
+        else if(d.progress)onProgress(d.progress);
+        else if(d.done){done();res(d.done);}
+        else{done();var er=new Error(d.error);er.code=d.code;rej(er);}
+      };
+      w.onerror=function(e){e.preventDefault&&e.preventDefault();done();if(!started)onPage().then(res,rej);else rej(new Error('The browser ran out of memory. Try a smaller image, or set a longest side.'));};
+    });
+  }
+
+  function compress(){
+    if(!file||busy)return;
+    var t=targetKb(),dim=g('xkD').value.trim();
+    if(!(t>=1)){setStatus(u.status,'Enter a target size of at least 1 KB.',1);g('xkT').focus();return;}
+    if(t>61440){setStatus(u.status,'The largest target is 61,440 KB (60 MB).',1);g('xkT').focus();return;}
+    if(dim&&!(+dim>=16)){setStatus(u.status,'The longest side must be at least 16 px, or leave it empty.',1);return;}
+    var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform)&&navigator.maxTouchPoints>1);
+    var id=++runId;clearResult();paint();setBusy(true);setStatus(u.status,'Starting…');
+    runEngine({file:file,target:Math.floor(t*unit()),type:g('xkF').value,quality:+g('xkQ').value,mode:g('xkM').value,resize:g('xkM').value!=='size',
+      maxDim:dim?Math.floor(+dim):0,bg:g('xkB').value,pad:g('xkP').checked,maxPixels:ios?16e6:50e6},function(m){if(id===runId)setStatus(u.status,m+'…');})
+    .then(function(r){
+      if(id!==runId)return;
+      last=r;outUrl=URL.createObjectURL(r.blob);setBusy(false);paint();
+      var ex=explain(r);setStatus(u.status,ex[0],ex[1]);
+      var name=file.name.replace(/\.[^.]+$/,'')+'-'+Math.max(1,Math.round(r.blob.size/unit()))+'kb.'+OUT[r.type][1];
+      u.actions.className='actions show';
+      var mk=function(txt,cls,fn){var b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.onclick=fn;u.actions.appendChild(b);};
+      mk('Download '+OUT[r.type][0]+' ('+kb(r.blob.size)+')','btn-primary',function(){download(r.blob,name);});
+      mk('Compress another image','btn-ghost',reset);
+      if(window._ga)window._ga('exact_kb_done',{reached:r.reached,format:OUT[r.type][1]});
+    }).catch(function(e){if(id!==runId)return;setBusy(false);setStatus(u.status,e.message||'Something went wrong. Try another image.',1);});
+  }
+  g('xkGo').onclick=compress;
+  /* The result area also accepts a new image */
+  ['dragover','drop'].forEach(function(ev){u.results.addEventListener(ev,function(e){e.preventDefault();if(ev==='drop')pick(e.dataTransfer.files);});});
+};

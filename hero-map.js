@@ -28,6 +28,7 @@ const HERO_MAP = {
 
   /* ───────────────────────── Image Tools (18) ───────────────────────── */
   'image-compressor':   { type: 'sizeReduction', from: '12.4 MB', to: '2.8 MB', saved: '\u221277%' },
+  'compress-image-to-exact-kb': { type: 'sizeReduction', from: '1.8 MB', to: '50 KB', saved: 'target met' },
   'image-resizer':      { type: 'dimension', from: '4000 \u00d7 3000', to: '1200 \u00d7 900' },
   'image-cropper':      { type: 'crop' },
   'jpg-to-png':         { type: 'formatConvert', from: 'JPG', to: 'PNG' },

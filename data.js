@@ -260,6 +260,7 @@ function row(box,thumb,name,meta,onDl){box.classList.add('show');const d=documen
 const INIT={};            /* slug -> init(panel) */
 const TOOL_ARTICLES={
   'image-compressor':['compress-images-without-losing-quality','compress-images-web'],
+  'compress-image-to-exact-kb':['compress-images-without-losing-quality','compress-images-web'],
   'image-resizer':['social-media-image-sizes-2026','instagram-story-size-guide'],
   'image-cropper':['social-media-image-sizes-2026','best-free-tools-designers-2026'],
   'jpg-to-png':['jpg-vs-png-vs-webp'],
@@ -328,6 +329,7 @@ const TOOL_ARTICLES={
 const FEAT={};            /* slug -> [[title,desc],...] optional */
 const AI_SUMMARY={
   'image-compressor':'This free online image compressor reduces JPG, PNG, and WebP file sizes by 40-80% inside your browser without uploading anything to a server.',
+  'compress-image-to-exact-kb':'This free tool compresses a JPG, PNG or WebP image to a target file size in KB, adjusting quality and, if needed, dimensions, entirely in your browser.',
   'image-resizer':'This free image resizer changes the dimensions of JPG, PNG, and WebP files in batch, preserves aspect ratio, and processes images entirely in the browser.',
   'image-cropper':'This free image cropper trims JPG, PNG, and WebP files to preset aspect ratios (1:1, 16:9, 4:3, 9:16) or a custom freeform region, fully in-browser.',
   'jpg-to-png':'This free converter changes JPG images to PNG format while preserving full quality, processed locally in your browser.',
@@ -461,6 +463,7 @@ const FAQ={
 /* metadata for all 38 tools */
 const TOOLS=[
  ['image-compressor','Image Compressor','image','Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.',['JPG','PNG','WEBP']],
+ ['compress-image-to-exact-kb','Compress Image to Exact KB','image','Compress a JPG, PNG or WebP image to a target size such as 20, 50 or 100 KB. Free and private: it runs in your browser and shows the real file size.',['JPG','PNG','WEBP']],
  ['image-resizer','Image Resizer','image','Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.',['JPG','PNG']],
  ['image-cropper','Image Cropper','image','Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.',['JPG','PNG']],
  ['jpg-to-png','JPG to PNG Converter','image','Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.',['JPG→PNG']],
@@ -650,6 +653,17 @@ FAQ['ai-object-remover']=[["How does the removal work?","You paint a mask over u
 FAQ['exif-remover']=[['How does it remove metadata?','Re-drawing the photo onto a fresh canvas discards EXIF data like GPS location and camera model, then re-exports a clean JPG.'],['Are my files uploaded?','No — it all happens in your browser.']];
 FAQ['gif-to-webp']=[['Does it keep animation?','This converts the first frame to a still WebP image. Animated-WebP encoding isn\'t supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
 FAQ['webp-to-gif']=[['Does it keep animation?','This converts a still WebP into a single-frame GIF. Decoding animated WebP frames is not supported by browsers.'],['Are my files uploaded?','No — conversion is fully local.']];
+FAQ['compress-image-to-exact-kb']=[
+  ['How do I compress an image to exactly 50 KB?','Drop in your image, press the 50 KB button and choose Compress Image. The tool tests many quality levels and, if it has to, smaller dimensions, and keeps the best version that is not larger than 50 KB. The result shows the actual size next to your target.'],
+  ['Why is my file slightly smaller than the target?','Image quality moves in steps, so file sizes jump too. The tool picks the largest result that stays at or under your target, because upload forms normally reject anything over the limit. If you need the size to the byte, turn on “Match the target to the byte” in Compression settings.'],
+  ['What does “Match the target to the byte” do?','It adds filler data that image programs ignore, so the file size equals your target. The picture does not change at all. It is off by default because it makes the file bigger without making it look better. With WebP, an odd number of bytes can leave a 1-byte difference.'],
+  ['What if the target cannot be reached?','The tool tells you so, shows the smallest size it managed and suggests a realistic target. This mostly happens when you ask it to keep the dimensions, or to keep a photo as PNG.'],
+  ['Will the dimensions of my image change?','Only if lowering quality is not enough, or if you set a longest side. Choose “Keep dimensions” to prevent resizing. The result always shows the original and new dimensions.'],
+  ['Is 1 KB 1,024 or 1,000 bytes?','Most upload forms and Windows count 1,024 bytes, which is the default here. If your form counts 1,000 bytes, change it in Compression settings. The exact number of bytes is always shown.'],
+  ['Does it keep transparency?','Yes, with WebP or PNG output. Automatic picks WebP or PNG for a transparent image, whichever keeps it larger. JPG cannot store transparency, so those areas are filled with a background colour you choose.'],
+  ['Why is PNG harder to shrink?','PNG has no quality setting. The tool can only use fewer colours or smaller dimensions. That works well for logos and screenshots. Photos shrink much further as JPG or WebP.'],
+  ['Is photo information such as location kept?','When the image is compressed again, hidden data such as location and camera details is removed. If your file is already under the target it is kept exactly as it is, including that data.']
+];
 FAQ['gif-compressor']=[
   ['How much can GIFs be compressed?','It depends heavily on the source — a GIF with a lot of flat color and repeated frames can shrink dramatically (often 60–80%+) at the Balanced or Strong setting; a GIF that\'s already tightly optimized, or full of noisy photographic content, will compress less. The live stats panel gives an estimate before you commit, and the actual result is always shown after.'],
   ['Will the animation be preserved?','Yes — frame count (minus any duplicates you choose to remove), timing, and loop behavior are all preserved. Removing a duplicate frame adds its display time to the frame it matched, so total animation duration doesn\'t change.'],

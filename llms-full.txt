@@ -5,6 +5,7 @@
 ## Image Tools
 
 - [Image Compressor](https://tarumakstudio.com/image-compressor): Compress JPG, PNG and WebP images online — reduce file size by up to 80% with no visible quality loss. Free, browser-based, no uploads.
+- [Compress Image to Exact KB](https://tarumakstudio.com/compress-image-to-exact-kb): Compress a JPG, PNG or WebP image to a target size such as 20, 50 or 100 KB. Free and private: it runs in your browser and shows the real file size.
 - [Image Resizer](https://tarumakstudio.com/image-resizer): Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.
 - [Image Cropper](https://tarumakstudio.com/image-cropper): Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.
 - [JPG to PNG Converter](https://tarumakstudio.com/jpg-to-png): Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.

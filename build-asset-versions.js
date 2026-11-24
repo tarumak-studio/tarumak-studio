@@ -30,6 +30,7 @@ function save(f, before, after) {
 const ENGINES = [
   ['converter-tools.js', 'GCE_V', 'gifcompressor-engine.js'],
   ['image-tools.js', 'ENGINE_V', 'upscaler-engine.js'],
+  ['image-tools.js', 'XKB_V', 'exactkb-engine.js'],
   ['image-tools.js', 'EN_ENGINE_V', 'enhancer-engine.js'],
   ['image-tools.js', 'OR_ENGINE_V', 'objectremover-engine.js'],
   ['pdf-tools.js', 'PTE_ENGINE_V', 'pdftoexcel-engine.js'],

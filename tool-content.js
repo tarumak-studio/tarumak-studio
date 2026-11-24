@@ -206,6 +206,7 @@ const WORKFLOW_NEXT = {
   'ai-image-upscaler': ['ai-object-remover', 'ai-photo-enhancer', 'background-remover', 'image-compressor', 'image-resizer'],
   'ai-photo-enhancer': ['ai-object-remover', 'ai-image-upscaler', 'image-compressor', 'background-remover'],
   'ai-object-remover': ['ai-photo-enhancer', 'ai-image-upscaler', 'background-remover', 'image-compressor', 'watermark-image'],
+  'compress-image-to-exact-kb': ['image-compressor', 'image-resizer', 'image-cropper', 'png-to-webp', 'exif-remover', 'pdf-compressor'],
   'image-compressor': ['background-remover', 'image-resizer', 'png-to-webp', 'social-image-resizer'],
   'ocr-image-to-text': ['pdf-to-text', 'text-diff', 'word-counter', 'markdown-to-html'],
   'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-to-excel', 'pdf-organizer'],
@@ -353,6 +354,33 @@ const TOOL_META = {
     ctaVerb: 'Remove another background'
   },
 
+  'compress-image-to-exact-kb': {
+    seoTitle: 'Compress Image to Exact KB Online – Free Image Compressor',
+    lead: 'Need a photo under 20 KB, 50 KB or 100 KB for an application form, exam portal or website? Enter the size in KB and this free image compressor finds the best quality that fits. You see the target and the actual file size side by side, and your image never leaves your device.',
+    variant: 'A', accent: '#22d3ee',
+    benefits: [
+      ['gem', 'Best quality that fits', 'It searches many quality levels and keeps the best result at or under your target, instead of guessing once.'],
+      ['layers', 'Target and actual size, side by side', 'You always see the real size of the file you download, in KB and in bytes. A near miss is never called exact.'],
+      ['monitor', 'Nothing is uploaded', 'Compression runs on your device, in the background, so the page stays responsive with large photos.'],
+      ['zap', 'Resizes only when needed', 'Quality goes first. Dimensions shrink only if quality alone cannot reach the size, and you can forbid it.']
+    ],
+    features: ['Any target from 1 KB', '20, 50, 100, 200 and 500 KB presets', 'JPG, WebP and PNG output', 'Keeps transparency in WebP and PNG', 'Before and after preview', 'Optional exact-to-the-byte size'],
+    useCases: [
+      ['Government and exam forms', 'Photo and signature uploads that only accept files under 20, 50 or 100 KB.'],
+      ['Job and college applications', 'Portals that reject a photo or scan for being a few KB too large.'],
+      ['Website images', 'Keeping a banner or product photo inside a page-weight budget.'],
+      ['Email and chat', 'Getting a picture under an attachment limit in one try.']
+    ],
+    howTo: [
+      ['Add your image', 'Drag in a JPG, PNG or WebP, or click to browse. It stays on your device.'],
+      ['Enter the target size in KB', 'Type a number or press 20, 50, 100, 200 or 500 KB.'],
+      ['Adjust the settings if you need to', 'Choose the output format, limit the quality, or keep the dimensions unchanged.'],
+      ['Press Compress Image', 'The tool tests quality levels and, if necessary, smaller dimensions until it finds the best fit.'],
+      ['Compare and download', 'Check the target, the actual size and both previews, then download the file.']
+    ],
+    tips: [],
+    ctaVerb: 'Compress another image'
+  },
   'image-compressor': {
     hero: 'compare', heroVariant: 'meter', variant: 'A', accent: '#22d3ee',
     benefits: [

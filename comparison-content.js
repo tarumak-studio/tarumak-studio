@@ -185,7 +185,7 @@ const COMPARISONS = [
     metaTitle: 'Tarumak Studio vs Canva Background Remover',
     metaDescription: 'Canva’s background remover offers limited free downloads. Compare it with Tarumak Studio’s browser-based tool on cost, privacy, editing and bulk work.',
     heroQuestion: 'A full design suite, or just one cut-out without an account?',
-    summary: 'Canva’s remover is part of its design platform, with Erase and Restore for corrections, bulk removal and templates. Canva’s feature page says you can try it with a limited number of free high-resolution downloads; paid plans make them unlimited. Tarumak Studio’s Background Remover does one job in your browser, without account, limit or upload. Statements about Canva come from its own feature page, read on 24 November 2026.',
+    summary: 'Canva’s remover is part of its design platform, with Erase and Restore for corrections, bulk removal and templates. Canva’s feature page says you can try it with a limited number of free high-resolution downloads; paid plans make them unlimited. Tarumak Studio’s Background Remover does one job in your browser, without account, limit or upload. Statements about Canva come from its own feature and help pages, read on 24 November 2026.',
     chooseUsIf: [
       'You only need the cut-out',
       'You do not want an account or an upload',

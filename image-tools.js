@@ -252,20 +252,27 @@ INIT['qr-code-generator']=function(panel){
   $('#ty',panel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#ty button',panel).forEach(x=>x.classList.remove('active'));b.classList.add('active');type=b.dataset.t;if(type==='wifi'){mainB.style.display='none';wifiB.style.display='block';}else{mainB.style.display='block';wifiB.style.display='none';ml.textContent=cfg[type][0];mi.placeholder=cfg[type][1];}gen();});
   function payload(){if(type==='wifi'){const s=$('#ssid',panel).value,p=$('#wp',panel).value,t=$('#wt',panel).value;if(!s)return'';const e=x=>x.replace(/([\\;,:"])/g,'\\$1');   /* the Wi-Fi QR format needs these escaped */
     return'WIFI:T:'+t+';S:'+e(s)+';'+(t==='nopass'?'':'P:'+e(p)+';')+';';}const v=mi.value.trim();if(!v)return'';return type==='email'?'mailto:'+v:v;}
-  function gen(){const data=payload();qbox.innerHTML='';if(!data){dl.disabled=true;qbox.innerHTML='<span style="color:#5a6180;font-size:13px;text-align:center;line-height:1.5">Enter your content and the QR code appears here.</span>';return;}
-    /* Medium error correction, or low when the content needs the room. The library throws when it doesn't fit. */
-    let made=false;
-    for(const level of [QRCode.CorrectLevel.M,QRCode.CorrectLevel.L]){
-      try{qbox.innerHTML='';qr=new QRCode(qbox,{text:data,width:460,height:460,colorDark:fg.value,colorLight:bg.value,correctLevel:level});made=true;break;}catch(e){}
+  /* qrcodejs mixes stray bytes into text with accents or emoji and misjudges its length,
+     so it gets correct UTF-8 bytes and we pick the smallest version that fits. */
+  function encode(text){const bytes=[...new TextEncoder().encode(text)];if(bytes.length>2953)return null;
+    const proto=Object.getPrototypeOf(new QRCode(document.createElement('div'),{text:'a'})._oQRCode);
+    for(const level of [QRCode.CorrectLevel.M,QRCode.CorrectLevel.L])for(let v=1;v<=40;v++){
+      const m=Object.create(proto);Object.assign(m,{typeNumber:v,errorCorrectLevel:level,modules:null,moduleCount:0,dataCache:null,dataList:[]});
+      m.addData('a');m.dataList[0].parsedData=bytes;
+      try{m.make();return m;}catch(e){}   /* does not fit: next version */
     }
-    if(!made)qbox.innerHTML='<span role="alert" style="color:#c0262d;font-size:13px;text-align:center;line-height:1.5">That is too long for a QR code ('+data.length.toLocaleString()+' characters). Shorten it, or link to a page instead.</span>';
-    dl.disabled=!made;}
-  panel.addEventListener('input',e=>{if(e.target.closest('#qwrap')){$('#fgh',panel).textContent=fg.value;$('#bgh',panel).textContent=bg.value;gen();}});
-  /* Drawn from the code's own squares: whole pixels, and the 4-square margin scanners expect */
-  dl.onclick=()=>{const m=qr&&qr._oQRCode;if(!m)return;const n=m.getModuleCount(),S=1024,k=Math.floor(S/(n+8)),off=Math.floor((S-n*k)/2);
+    return null;}
+  /* Whole pixels, and the 4-square margin scanners expect */
+  function paint(m){const n=m.getModuleCount(),S=1024,k=Math.floor(S/(n+8)),off=Math.floor((S-n*k)/2);
     const c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle=bg.value;x.fillRect(0,0,S,S);x.fillStyle=fg.value;
     for(let r=0;r<n;r++)for(let q=0;q<n;q++)if(m.isDark(r,q))x.fillRect(off+q*k,off+r*k,k,k);
-    c.toBlob(b=>download(b,'qr-code.png'),'image/png');};
+    return c;}
+  function gen(){const data=payload();qbox.innerHTML='';if(!data){dl.disabled=true;qbox.innerHTML='<span style="color:#5a6180;font-size:13px;text-align:center;line-height:1.5">Enter your content and the QR code appears here.</span>';return;}
+    qr=encode(data);dl.disabled=!qr;
+    if(!qr){qbox.innerHTML='<span role="alert" style="color:#c0262d;font-size:13px;text-align:center;line-height:1.5">That is too long for a QR code ('+data.length.toLocaleString()+' characters). Shorten it, or link to a page instead.</span>';return;}
+    const c=paint(qr);c.style.cssText='width:212px;height:212px;display:block';c.setAttribute('role','img');c.setAttribute('aria-label','QR code');qbox.appendChild(c);}
+  panel.addEventListener('input',e=>{if(e.target.closest('#qwrap')){$('#fgh',panel).textContent=fg.value;$('#bgh',panel).textContent=bg.value;gen();}});
+  dl.onclick=()=>{if(qr)paint(qr).toBlob(b=>download(b,'qr-code.png'),'image/png');};
   gen();
 };
 

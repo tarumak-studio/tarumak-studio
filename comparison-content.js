@@ -57,7 +57,7 @@ const COMPARISONS = [
       ['Free, full-size output', true, 'Canva: limited number of free high-resolution downloads'],
       ['Bulk processing', false, 'Through Canva or the Leonardo.ai API'],
       ['Developer API', false, 'Leonardo.ai; enterprise contracts continue'],
-      ['Manual touch-up brush', false, 'Erase and Restore in Canva'],
+      ['Erase and Restore brush', true, 'In Canva'],
       ['Download before first use', 'AI mode about 100 MB; Solid mode none', 'None'],
     ],
     detailedSections: [
@@ -85,7 +85,7 @@ const COMPARISONS = [
       'No model download and little load on your device',
     ],
     limitationsUs: [
-      'One picture at a time, no API, no touch-up brush',
+      'One picture at a time and no API',
       'AI mode downloads about 100 MB once and needs a reasonably fast device',
       'Single hairs, glass and motion blur remain difficult',
     ],
@@ -185,7 +185,7 @@ const COMPARISONS = [
     metaTitle: 'Tarumak Studio vs Canva Background Remover',
     metaDescription: 'Canva’s background remover offers limited free downloads. Compare it with Tarumak Studio’s browser-based tool on cost, privacy, editing and bulk work.',
     heroQuestion: 'A full design suite, or just one cut-out without an account?',
-    summary: 'Canva’s remover is part of its design platform, with Erase and Restore for corrections, bulk removal and templates. Canva’s feature page says you can try it with a limited number of free high-resolution downloads; paid plans make them unlimited. Tarumak Studio’s Background Remover does one job in your browser, without account, limit or upload. Statements about Canva come from its own feature and help pages, read on 24 November 2026.',
+    summary: 'Canva’s remover is part of its design platform, with bulk removal, templates and correction brushes. Canva’s feature page says you can try it with a limited number of free high-resolution downloads; paid plans make them unlimited. Tarumak Studio’s Background Remover does one job in your browser, without account, limit or upload, and includes Erase and Restore brushes. Statements about Canva come from its own feature and help pages, read on 24 November 2026.',
     chooseUsIf: [
       'You only need the cut-out',
       'You do not want an account or an upload',
@@ -193,14 +193,14 @@ const COMPARISONS = [
     ],
     chooseThemIf: [
       'You want to keep designing in the same place',
-      'You need to correct edges by hand',
+      'You want templates and team functions',
       'You process many pictures at once',
     ],
     featureTable: [
       ['Free use', 'Unlimited', 'Limited number of free high-resolution downloads'],
       ['Runs in your browser (no upload)', true, false],
       ['Account required', 'Never', 'Log in or create one if prompted'],
-      ['Erase and Restore brush', false, true],
+      ['Erase and Restore brush', true, true],
       ['Bulk removal', false, true],
       ['Design tools and templates', false, true],
       ['Transparent PNG', true, true],
@@ -209,7 +209,7 @@ const COMPARISONS = [
     ],
     detailedSections: [
       ['Cost', 'Canva’s feature page offers limited free high-resolution downloads and unlimited ones with a paid plan. Some Canva help pages describe the function as included in paid plans only, so check what your account shows. Our tool is free.'],
-      ['Quality and corrections', 'Both work automatically. Canva adds a brush to erase or restore parts, which is a clear advantage for hair and jewellery. We have not run a controlled comparison.'],
+      ['Quality and corrections', 'Both work automatically and both have a brush to erase leftovers or restore missing parts. We have not run a controlled comparison.'],
       ['Picture size', 'Canva’s help mentions a limit of 9 MB and reduces pictures above 10 megapixels. Our tool saves at the size of the original; very large pictures depend on the memory of your device.'],
       ['Privacy', 'Canva processes uploads on its servers under its terms and privacy policy. With us the picture stays on your device, and only the AI model is downloaded.'],
       ['Remove.bg users', 'Remove.bg closes its website on 1 December 2026 and names Canva as its successor, with the same technology.'],
@@ -227,12 +227,11 @@ const COMPARISONS = [
       'Full-size PNG',
     ],
     advantagesThem: [
-      'Erase and Restore brush',
       'Bulk removal and a complete design workflow',
       'No model download',
     ],
     limitationsUs: [
-      'No manual corrections and one picture at a time',
+      'One picture at a time, without design tools',
       'AI mode downloads about 100 MB once',
     ],
     limitationsThem: [
@@ -245,7 +244,7 @@ const COMPARISONS = [
       ['Is Tarumak Studio’s remover really free?', 'Yes, without a trial, account or watermark.'],
       ['Why is the first use slow?', 'AI mode downloads its model once, about 100 MB in total. Solid mode starts at once.'],
     ],
-    verdict: 'If you design in Canva, use Canva: the brush and the bulk function are worth it. If you need a cut-out now and then and prefer not to upload or sign in, our tool is enough. With mobile data, use Solid mode or wait for Wi-Fi.',
+    verdict: 'If you design in Canva, use Canva: the bulk function and the templates are worth it. If you need a cut-out now and then and prefer not to upload or sign in, our tool is enough. With mobile data, use Solid mode or wait for Wi-Fi.',
   },
 ];
 

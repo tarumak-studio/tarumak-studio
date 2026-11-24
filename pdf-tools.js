@@ -385,6 +385,7 @@ INIT['pdf-organizer']=function(panel){
 INIT['images-to-pdf']=imagesToPdfTool({outName:'images',sub:'Batch many photos into one PDF — drag in as many as you like.'});
 
 /* ---------- Scan to PDF (camera + files) -------------------------- */
+var scanStop=null;
 INIT['scan-to-pdf']=function(panel){
   panel.innerHTML='<div class="controls" id="cam"></div><div class="preview" id="pv"></div>'+
     '<div class="drop" id="d_drop"><input type="file" id="d_file" accept="image/*" multiple hidden><div class="di">'+UP+'</div><h3>Or drop image scans here</h3><p>JPG / PNG photos of your pages</p></div>'+
@@ -392,18 +393,33 @@ INIT['scan-to-pdf']=function(panel){
     '<div class="results" id="d_results"></div><div class="status" id="st"></div>';
   const cam=$('#cam',panel),pv=$('#pv',panel),st=$('#st',panel),make=$('#make',panel),res=$('#d_results',panel);
   let files=[],stream=null,video=null;
+  if(scanStop)scanStop();
   function refresh(){listRows(res,files,f=>f._nm||f.name||'scan');make.disabled=!files.length;}
-  cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';
-  $('#open',cam).onclick=async()=>{
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.srcObject=stream;
+  function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video=null;}
+  /* Also released when the tool is reset or the page is left */
+  scanStop=stopCam;window.addEventListener('pagehide',stopCam);
+  function idle(){stopCam();pv.className='preview';pv.innerHTML='';
+    cam.innerHTML='<button class="btn btn-ghost" id="open">Open camera</button><div class="ctrl-spacer"></div>';$('#open',cam).onclick=openCam;}
+  async function openCam(){
+    $('#open',cam).disabled=true;
+    try{
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('unsupported');
+      /* Ask for a sharp picture: the default is often only 640 x 480 */
+      const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:2560},height:{ideal:1440}}});
+      if(!panel.contains(cam)){s.getTracks().forEach(t=>t.stop());return;}
+      stream=s;
+      video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.srcObject=s;video.style.maxWidth='100%';
       pv.className='preview show';pv.innerHTML='';pv.appendChild(video);
       cam.innerHTML='<button class="btn btn-primary" id="snap">Capture page</button><button class="btn btn-ghost" id="stop">Stop camera</button><div class="ctrl-spacer"></div>';
-      $('#snap',cam).onclick=()=>{const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
-        c.toBlob(b=>{b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
-      $('#stop',cam).onclick=()=>{stream.getTracks().forEach(t=>t.stop());pv.className='preview';pv.innerHTML='';cam.innerHTML='<button class="btn btn-ghost" id="open2">Open camera</button><div class="ctrl-spacer"></div>';$('#open2',cam).onclick=$('#open',cam)&&null;};
-    }catch(e){setStatus(st,'Camera unavailable — drop image scans below instead.',1);}
-  };
+      s.getVideoTracks()[0].addEventListener('ended',()=>{if(stream===s){idle();setStatus(st,'The camera was disconnected.',1);}});
+      $('#snap',cam).onclick=()=>{
+        if(!video||!video.videoWidth){setStatus(st,'The camera is still starting. Try again in a moment.',1);return;}
+        const c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);
+        c.toBlob(b=>{if(!b){setStatus(st,'The picture could not be saved. Try again.',1);return;}b._nm='scan-'+(files.length+1)+'.jpg';files.push(b);refresh();setStatus(st,files.length+' page(s) captured.');},'image/jpeg',.9);};
+      $('#stop',cam).onclick=()=>{idle();setStatus(st,'Camera stopped.');};
+    }catch(e){idle();setStatus(st,e&&e.name==='NotAllowedError'?'Camera access was refused. Allow it for this site in your browser, or drop image scans below.':'Camera unavailable — drop image scans below instead.',1);}
+  }
+  idle();
   dropzone($('#d_drop',panel),$('#d_file',panel),fs=>{[...fs].forEach(f=>{if((f.type||'').startsWith('image/'))files.push(f);});refresh();});
   make.onclick=async()=>{if(!files.length)return;setStatus(st,'Building PDF…');make.disabled=true;
     try{download(await buildImagesPdf(files,$('#ps',panel).value),'scan.pdf');setStatus(st,'PDF created with '+files.length+' page(s).');}

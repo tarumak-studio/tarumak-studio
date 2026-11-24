@@ -3,25 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>How to Compress Images Without Losing… | Tarumak Studio</title>
-  <meta name="description" content="Reduce image file sizes by 60-80% without any visible quality loss using the right tools and settings.">
+  <title>Compress Images Without Losing Quality: Measured</title>
+  <meta name="description" content="How far can you compress a photo before it shows? Measured results for JPG, WebP and AVIF, what lossless really means, and the order of steps that works.">
     <meta name="keywords" content="browser-based image editor, browser-based tools, compress, free image tools, free online tools, image editor online, images, losing, no upload image tool, quality, tarumak studio, without">
   <link rel="canonical" href="https://tarumakstudio.com/article-compress-images-without-losing-quality">
 
   <!-- Open Graph -->
   <meta property="og:type"        content="article">
   <meta property="og:title"       content="How to Compress Images Without Losing Quality — Tarumak Studio">
-  <meta property="og:description" content="Reduce image file sizes by 60-80% without any visible quality loss using the right tools and settings.">
+  <meta property="og:description" content="How far can you compress a photo before it shows? Measured results for JPG, WebP and AVIF, what lossless really means, and the order of steps that works.">
   <meta property="og:url"         content="https://tarumakstudio.com/article-compress-images-without-losing-quality">
   <meta property="og:image"       content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name"   content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-26T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="How to Compress Images Without Losing Quality — Tarumak Studio">
-  <meta name="twitter:description" content="Reduce image file sizes by 60-80% without any visible quality loss using the right tools and settings.">
+  <meta name="twitter:description" content="How far can you compress a photo before it shows? Measured results for JPG, WebP and AVIF, what lossless really means, and the order of steps that works.">
   <meta name="twitter:image"       content="https://tarumakstudio.com/og-image.png">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -37,10 +38,10 @@
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": "How to Compress Images Without Losing Quality",
-      "description": "Reduce image file sizes by 60-80% without any visible quality loss using the right tools and settings.",
+      "description": "How far can you compress a photo before it shows? Measured results for JPG, WebP and AVIF, what lossless really means, and the order of steps that works.",
       "url": "https://tarumakstudio.com/article-compress-images-without-losing-quality",
       "datePublished": "2026-06-26",
-      "dateModified": "2026-06-26",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -97,18 +98,34 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What quality setting should I use?",
+          "name": "Which quality setting should I use?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Start at 80% and compare with the original. If you cannot spot the difference, use 80%. If you can, try 85%. Going above 90% gives almost no visual benefit but significantly increases file size."
+            "text": "For JPG and WebP begin at 80 to 85%, for AVIF at about 60%. Compare at 100% zoom, lower it until you notice a difference and go back one step."
           }
         },
         {
           "@type": "Question",
-          "name": "Should I compress PNG files?",
+          "name": "Why did my image get bigger after compressing?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Only with lossless compression. Lossy PNG compression causes visible colour banding on flat-colour images like logos and screenshots. Convert PNG to WebP instead for the best size-to-quality ratio."
+            "text": "It had been compressed before, or it is a screenshot or logo saved as JPG. Keep the smaller file; the Image Compressor does this for you."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is WebP always better than JPG?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For photos it is usually smaller at the same visible quality. JPG is still the safer choice for old software and some upload forms."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I restore quality that was lost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Converting a damaged JPG to PNG keeps the damage, only in a larger file."
           }
         }
       ]
@@ -331,7 +348,7 @@ main{flex:1}
     <div class="art-meta">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        June 2026
+        June 2026 · Updated November 2026
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -341,22 +358,50 @@ main{flex:1}
 
     <!-- Article body -->
     <div class="art-body">
-      <h2>Why image compression matters</h2>
-<p>Large images are the single biggest cause of slow websites. A page that takes 4 seconds to load loses 25% of its visitors before they see anything. Compressing your images can cut page weight by 60-80% with no visible difference to the human eye.</p>
+<p>“Without losing quality” can mean two things: the file is mathematically identical, or nobody can see a difference. The second is what most people need, and it allows far smaller files. This guide shows how far you can go, using measurements of one real photo instead of rules of thumb.</p>
 <a href="/image-compressor" class="tool-cta-link">Compress Images Free →</a>
-<h2>Lossy vs lossless compression</h2>
-<p><strong>Lossy compression</strong> permanently removes image data. At quality 80-85%, the results are visually identical to the original but 60-70% smaller. This is the right choice for web images.</p>
-<p><strong>Lossless compression</strong> removes metadata and optimises encoding without losing a single pixel. File sizes reduce by 20-30%. Use this for images that need to remain pixel-perfect, such as product screenshots or medical imagery.</p>
-<h2>The best settings for web images</h2>
-<ul><li><strong>JPG quality 80-85%</strong> — visually identical to 100%, typically 60% smaller</li><li><strong>WebP quality 80%</strong> — smaller still than JPG 85%, excellent browser support</li><li><strong>PNG</strong> — use lossless compression only; lossy PNG looks noticeably degraded</li></ul>
-<h2>How to compress in bulk</h2>
-<p>The <a href="/image-compressor">TARUMAK Image Compressor</a> lets you drag in multiple images at once and download them all compressed. It runs in your browser — your images never leave your device.</p>
-<h2>Convert to WebP for maximum savings</h2>
-<p>If you convert JPG or PNG images to WebP before compressing, you get an additional 25-35% reduction in file size. Use the <a href="/jpg-to-webp">JPG to WebP converter</a> and then apply compression.</p>
-<h2>Remove EXIF data too</h2>
-<p>Photos taken on a smartphone contain hidden EXIF metadata — GPS coordinates, camera model, shutter speed. This can add 50-100KB to an image. Use the <a href="/exif-remover">EXIF Data Remover</a> to strip it out, which also protects your privacy.</p>
-<details class="art-faq"><summary>What quality setting should I use?</summary><p>Start at 80% and compare with the original. If you cannot spot the difference, use 80%. If you can, try 85%. Going above 90% gives almost no visual benefit but significantly increases file size.</p></details>
-<details class="art-faq"><summary>Should I compress PNG files?</summary><p>Only with lossless compression. Lossy PNG compression causes visible colour banding on flat-colour images like logos and screenshots. Convert PNG to WebP instead for the best size-to-quality ratio.</p></details>
+<h2>One photo, eleven files</h2>
+<p>The test picture is a sharp daylight photo of a row of old houses by a river, 1280 × 854 pixels, with bricks, windows, bare branches and blue sky. Fine detail like this is hard to compress, so portraits and product shots will usually do better. Sizes are in KB.</p>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Format and quality</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Size</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Compared with PNG</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Error (PSNR)</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">PNG, lossless</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">1,895</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">100%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">none</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 95</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">556</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">29%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">37.8 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 85</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">344</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">18%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">33.3 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 80</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">298</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">16%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">32.0 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 75</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">263</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">14%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">30.9 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 60</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">202</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">11%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">28.9 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">JPG 40</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">153</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">8%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">27.1 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">WebP 90</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">371</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">20%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">37.4 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">WebP 80</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">265</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">14%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">34.3 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">AVIF 70</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">249</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">13%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">34.4 dB</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">AVIF 60</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">181</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">10%</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">31.7 dB</td></tr>
+</tbody></table></div>
+<p>PSNR measures how far the pixels are from the original; higher is better. It does not see like a person, but it makes formats comparable. Encoded with Pillow in November 2026; browsers use slightly different encoders, so expect similar rather than identical numbers.</p>
+<h2>What the numbers say</h2>
+<ul><li><strong>The first step saves the most.</strong> Going from JPG 95 to 85 removes 212 KB. Going from 60 to 40 removes only 49 KB and does visible damage.</li>
+<li><strong>Quality numbers do not translate.</strong> AVIF 60 and JPG 80 have about the same error here, yet AVIF needs 181 KB instead of 298. Never compare “80” in one format with “80” in another.</li>
+<li><strong>WebP 80 beat JPG 85 on both counts</strong>: smaller by 23% and closer to the original.</li></ul>
+<h2>The biggest saving is not compression</h2>
+<p>The same photo at half the width and height, saved as JPG 80, is 81 KB instead of 298. If a picture is displayed 640 pixels wide, sending 1,280 wastes most of the file; allow double only for sharp phone screens. So the order is: resize first, then choose the format, then the quality.</p>
+<ol><li>Find out how wide the image is shown, and scale it to that or twice that with the <a href="/image-resizer">Image Resizer</a>.</li>
+<li>Pick the format: photos as WebP, AVIF or JPG; screenshots, logos and line art as PNG or lossless WebP.</li>
+<li>Start at 80 to 85% for JPG and WebP, about 60% for AVIF, and compare at full size.</li>
+<li>Lower the value until you see a difference, then go back one step.</li></ol>
+<h2>Where damage shows first</h2>
+<p>Look at smooth gradients such as sky and skin (bands and blocks), at thin dark lines on light backgrounds (grey noise around them), at red text (smeared edges) and at hair and grass (turning to mush). If those four look right at 100% zoom, the rest will.</p>
+<h2>Lossless compression: when and how much</h2>
+<p>Lossless tools rearrange the data and remove hidden extras without touching a pixel. Gains depend on how the file was made. Choose it for screenshots, diagrams, logos and anything you will edit again. For photos it is rarely worthwhile: our PNG is more than six times the size of JPG 80.</p>
+<p>Screenshots are the opposite case. A test image we made, filled with small text, took 102 KB as PNG and 206 KB as JPG 80. Flat colours and sharp edges are what JPG handles badly.</p>
+<h2>Does saving again and again ruin a picture?</h2>
+<p>Less than its reputation suggests, if nothing else changes. Saving our photo ten times in a row at JPG 80 lowered the result from 32.0 to 31.1 dB. Real damage comes from cropping, resizing or editing between saves, and from mixing quality settings. Keep an original and export from it each time.</p>
+<h2>Hidden data</h2>
+<p>Phone photos contain camera settings, a small preview and often the GPS position. It is little in a 4 MB photo but noticeable in a 60 KB web image, and it can reveal where you live. The <a href="/image-compressor">Image Compressor</a> drops it when it recompresses a file; to remove it alone, use the <a href="/exif-remover">EXIF Data Remover</a>.</p>
+<h2>When a form demands a certain size</h2>
+<p>Application portals often insist on “under 50 KB”. Trying quality settings by hand is tedious, so <a href="/compress-image-to-exact-kb">Compress Image to Exact KB</a> searches for the best quality that fits and shows the real result.</p>
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>Which quality setting should I use?</summary><p>For JPG and WebP begin at 80 to 85%, for AVIF at about 60%. Compare at 100% zoom, lower it until you notice a difference and go back one step.</p></details>
+<details class="art-faq"><summary>Why did my image get bigger after compressing?</summary><p>It had been compressed before, or it is a screenshot or logo saved as JPG. Keep the smaller file; the Image Compressor does this for you.</p></details>
+<details class="art-faq"><summary>Is WebP always better than JPG?</summary><p>For photos it is usually smaller at the same visible quality. JPG is still the safer choice for old software and some upload forms.</p></details>
+<details class="art-faq"><summary>Can I restore quality that was lost?</summary><p>No. Converting a damaged JPG to PNG keeps the damage, only in a larger file.</p></details>
 
     </div>
 

@@ -42,7 +42,7 @@ const COMPARISONS = [
     chooseUsIf: [
       'You cut out one picture at a time',
       'You do not want to upload the picture or create an account',
-      'You can accept a large one-time download for AI mode, about 200 MB',
+      'You can accept a large one-time download for AI mode, about 100 MB',
       'You need full-size results without paying',
     ],
     chooseThemIf: [
@@ -58,7 +58,7 @@ const COMPARISONS = [
       ['Bulk processing', false, 'Through Canva or the Leonardo.ai API'],
       ['Developer API', false, 'Leonardo.ai; enterprise contracts continue'],
       ['Manual touch-up brush', false, 'Erase and Restore in Canva'],
-      ['Download before first use', 'AI mode about 200 MB; Solid mode none', 'None'],
+      ['Download before first use', 'AI mode about 100 MB; Solid mode none', 'None'],
     ],
     detailedSections: [
       ['What to do before 1 December', 'Use up pay-as-you-go credits: Remove.bg says unused ones expire on that date. Export your credit usage report and invoices from your account page, because accounts will not be accessible afterwards. Download any results you still need.'],
@@ -86,7 +86,7 @@ const COMPARISONS = [
     ],
     limitationsUs: [
       'One picture at a time, no API, no touch-up brush',
-      'AI mode downloads about 200 MB once and needs a reasonably fast device',
+      'AI mode downloads about 100 MB once and needs a reasonably fast device',
       'Single hairs, glass and motion blur remain difficult',
     ],
     limitationsThem: [
@@ -205,7 +205,7 @@ const COMPARISONS = [
       ['Design tools and templates', false, true],
       ['Transparent PNG', true, true],
       ['Instant mode for plain backgrounds', true, 'One automatic mode'],
-      ['Download before first use', 'AI mode about 200 MB; Solid mode none', 'None'],
+      ['Download before first use', 'AI mode about 100 MB; Solid mode none', 'None'],
     ],
     detailedSections: [
       ['Cost', 'Canva’s feature page offers limited free high-resolution downloads and unlimited ones with a paid plan. Some Canva help pages describe the function as included in paid plans only, so check what your account shows. Our tool is free.'],
@@ -233,7 +233,7 @@ const COMPARISONS = [
     ],
     limitationsUs: [
       'No manual corrections and one picture at a time',
-      'AI mode downloads about 200 MB once',
+      'AI mode downloads about 100 MB once',
     ],
     limitationsThem: [
       'Free downloads are limited',
@@ -243,7 +243,7 @@ const COMPARISONS = [
       ['Is Canva’s background remover free?', 'Its feature page says you can try it with a limited number of free high-resolution downloads and that paid plans are unlimited.'],
       ['Can I use the result in Canva?', 'Yes. Download the transparent PNG and upload it to your Canva design.'],
       ['Is Tarumak Studio’s remover really free?', 'Yes, without a trial, account or watermark.'],
-      ['Why is the first use slow?', 'AI mode downloads its model once, about 200 MB in total. Solid mode starts at once.'],
+      ['Why is the first use slow?', 'AI mode downloads its model once, about 100 MB in total. Solid mode starts at once.'],
     ],
     verdict: 'If you design in Canva, use Canva: the brush and the bulk function are worth it. If you need a cut-out now and then and prefer not to upload or sign in, our tool is enough. With mobile data, use Solid mode or wait for Wi-Fi.',
   },

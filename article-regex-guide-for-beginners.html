@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Regex Guide for Beginners | Tarumak Studio</title>
+  <title>Regex Guide for Beginners</title>
   <meta name="description" content="Regular expressions explained from scratch — pattern syntax, flags, common use cases and live examples. Includes a free regex tester.">
   <link rel="canonical" href="https://tarumakstudio.com/article-regex-guide-for-beginners">
   <meta property="og:type" content="article"><meta property="og:title" content="Regular Expressions Explained: A Beginner Guide with Live Examples — Tarumak Studio">
@@ -10,6 +10,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-28T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Regular Expressions Explained: A Beginner Guide with Live Examples — Tarumak Studio">
@@ -27,7 +28,7 @@
       "description": "Regular expressions (regex) explained from scratch — pattern syntax, flags, common use cases, and examples you can test live. Includes a free browser-based regex tester.",
       "url": "https://tarumakstudio.com/article-regex-guide-for-beginners",
       "datePublished": "2026-06-28T00:00:00Z",
-      "dateModified": "2026-06-28T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -83,7 +84,7 @@
           "name": "What does . mean in regex?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "A bare dot matches any single character except a newline. To match a literal period use \\. (escaped dot). This is the most common beginner mistake."
+            "text": "A bare dot matches any single character except a newline. To match a literal period use \\. (escaped dot). This is one of the most common beginner mistakes — writing . when you mean \\.."
           }
         },
         {
@@ -91,7 +92,7 @@
           "name": "What is the difference between + and *?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "+ means one or more — must match at least once. * means zero or more — may not match at all."
+            "text": "+ means one or more — the pattern must match at least once. * means zero or more — the pattern may not match at all. \\d+ matches \"123\" and \"5\" but not an empty string. \\d* matches \"123\", \"5\", and also an empty string."
           }
         },
         {
@@ -99,22 +100,22 @@
           "name": "Why does my regex match too much?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Quantifiers are greedy by default. Add ? after a quantifier to make it lazy: .+? matches the shortest possible string."
+            "text": "Quantifiers are greedy by default — they match as much as possible. Add ? after a quantifier to make it lazy: .+? matches the shortest possible string. This is the fix for patterns that match from the first occurrence all the way to the last instead of stopping at the first natural end."
           }
         },
         {
           "@type": "Question",
-          "name": "Are regex patterns the same in all languages?",
+          "name": "Are regex patterns the same in all programming languages?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Most use PCRE-based syntax. Minor differences exist. Test patterns in your specific environment before using in production."
+            "text": "The basics are the same, the details are not. JavaScript, Python, PHP, Java and Go have their own engines: Go has no lookaround, and older browsers lack lookbehind. Test a pattern where you will use it."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -320,8 +321,8 @@ main{flex:1}
   <a href="/developer-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-green)">Developer Tools</div></a>
   <h1 class="art-h1">Regular Expressions Explained: A Beginner Guide with Live Examples</h1>
   <div class="art-meta">
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8 min read</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28 · Updated November 2026</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 min read</span>
   </div>
   <div class="art-body">
 <p>Regular expressions — often called regex or regexp — are patterns that describe sets of strings. They are used to search, validate, extract, and replace text in almost every programming language and many text editors. They look intimidating at first, but the core syntax covers about 90% of real-world use cases.</p>
@@ -331,9 +332,9 @@ main{flex:1}
 <h3>Character classes</h3>
 <ul>
 <li><code>\d</code> — any digit (0–9)</li>
-<li><code>\w</code> — any word character (a–z, A–Z, 0–9, underscore)</li>
+<li><code>\w</code> — in JavaScript a–z, A–Z, 0–9 and underscore; accented letters are not included</li>
 <li><code>\s</code> — any whitespace (space, tab, newline)</li>
-<li><code>.</code> — any character except newline</li>
+<li><code>.</code> — any character except a line break (with the s flag also line breaks)</li>
 <li><code>[abc]</code> — any one of a, b, or c</li>
 <li><code>[^abc]</code> — anything except a, b, or c</li>
 <li><code>[a-z]</code> — any lowercase letter a through z</li>
@@ -359,15 +360,15 @@ main{flex:1}
 <li><code>a|b</code> — matches a or b</li>
 </ul>
 <h2>Common regex patterns</h2>
-<p><strong>Email address (simplified):</strong></p>
+<p><strong>Email address (rough check):</strong> <code>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}</code> — only a confirmation message proves that an address exists</p>
 <div class="art-callout"><code>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}</code></div>
 <p><strong>URL:</strong></p>
 <div class="art-callout"><code>https?:\/\/[\w\-.]+\.[a-z]{2,}(\/[\S]*)?</code></div>
-<p><strong>Date in YYYY-MM-DD format:</strong></p>
+<p><strong>Date in YYYY-MM-DD format:</strong> <code>\d{4}-\d{2}-\d{2}</code> — checks the form only and accepts 2026-99-99</p>
 <div class="art-callout"><code>\d{4}-\d{2}-\d{2}</code></div>
 <p><strong>Phone number (flexible):</strong></p>
 <div class="art-callout"><code>[+]?[\d\s\-().]{7,15}</code></div>
-<p><strong>Hex colour code:</strong></p>
+<p><strong>Hex colour code:</strong> <code>#(?:[0-9a-fA-F]{3}){1,2}\b</code> for three or six digits</p>
 <div class="art-callout"><code>#[0-9a-fA-F]{3,6}\b</code></div>
 <h2>Flags</h2>
 <ul>
@@ -376,12 +377,12 @@ main{flex:1}
 <li><code>m</code> (multiline) — <code>^</code> and <code>$</code> match start/end of each line</li>
 </ul>
 <h2>Testing your patterns</h2>
-<p>The Regex Tester tool below lets you paste a pattern, toggle flags, enter test text, and see all matches highlighted in real time. Capture groups from the first match are shown below the test string.</p>
+<p>The <a href="/regex-tester">Regex Tester</a> lets you type a pattern, switch the flags g, i and m, and see all matches highlighted while you type. Capture groups of the first match are listed below. Avoid repeating something that is itself repeated, such as (a+)+, because some texts then take extremely long.</p>
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>What does . mean in regex?</summary><p>A bare dot matches any single character except a newline. To match a literal period use \. (escaped dot). This is one of the most common beginner mistakes — writing . when you mean \..</p></details>
 <details class="art-faq"><summary>What is the difference between + and *?</summary><p>+ means one or more — the pattern must match at least once. * means zero or more — the pattern may not match at all. \d+ matches "123" and "5" but not an empty string. \d* matches "123", "5", and also an empty string.</p></details>
 <details class="art-faq"><summary>Why does my regex match too much?</summary><p>Quantifiers are greedy by default — they match as much as possible. Add ? after a quantifier to make it lazy: .+? matches the shortest possible string. This is the fix for patterns that match from the first occurrence all the way to the last instead of stopping at the first natural end.</p></details>
-<details class="art-faq"><summary>Are regex patterns the same in all programming languages?</summary><p>Most languages (JavaScript, Python, PHP, Ruby, Java) use a similar PCRE-based syntax. Minor differences exist — Python uses \A and \Z for string boundaries, JavaScript does not support lookbehind in older engines. Test patterns in your specific environment before relying on them in production.</p></details>
+<details class="art-faq"><summary>Are regex patterns the same in all programming languages?</summary><p>The basics are the same, the details are not. JavaScript, Python, PHP, Java and Go have their own engines: Go has no lookaround, and older browsers lack lookbehind. Test a pattern where you will use it.</p></details>
 <div class="art-tools"><a href="/regex-tester">Regex Tester</a><a href="/text-diff">Text Diff Checker</a><a href="/json-formatter">JSON Formatter</a><a href="/slug-generator">Slug Generator</a></div>
   </div>
   <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:var(--text-dim)">Browse all Developer Tools</span><a href="/developer-tools" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Developer Tools →</a></div>

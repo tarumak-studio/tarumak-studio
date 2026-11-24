@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>CSS Gradients: Complete Guide | Tarumak Studio</title>
+  <title>CSS Gradients: Complete Guide</title>
   <meta name="description" content="CSS gradient types explained — linear, radial and conic — with syntax, color stops and angles. Includes a free browser-based gradient generator.">
   <link rel="canonical" href="https://tarumakstudio.com/article-css-gradient-guide">
   <meta property="og:type" content="article">
@@ -13,6 +13,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="CSS Gradients: Complete Guide with Types, Examples and a Free Generator — Tarumak Studio">
@@ -31,7 +32,7 @@
       "description": "CSS gradient types explained — linear, radial, and conic gradients with syntax examples, color stops, angles, and tips. Includes a free browser-based CSS gradient generator.",
       "url": "https://tarumakstudio.com/article-css-gradient-guide",
       "datePublished": "2026-06-27T00:00:00Z",
-      "dateModified": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -87,7 +88,7 @@
           "name": "Can I use CSS gradients as borders?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Not directly with border-color. Use a wrapper element with a gradient background and a smaller inner element with a solid background to create the appearance of a gradient border."
+            "text": "Yes, with border-image: for example border: 4px solid transparent; border-image: linear-gradient(90deg, #22d3ee, #6366f1) 1. It ignores rounded corners. For those, use two backgrounds with different background-clip values, or a wrapper element."
           }
         },
         {
@@ -95,7 +96,7 @@
           "name": "How do I animate a CSS gradient?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "CSS cannot animate gradient properties directly. The workaround is to animate background-position on an oversized gradient, or animate opacity between two overlapping gradient layers using a pseudo-element."
+            "text": "Gradients themselves do not transition. In current browsers you can register a custom property with @property, for example an angle or a colour, use it in the gradient and animate it. The older way is to animate background-position on an oversized gradient or the opacity of a second layer."
           }
         },
         {
@@ -103,14 +104,14 @@
           "name": "What is the difference between a gradient and a mesh gradient?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "CSS gradients blend along a mathematical function. Mesh gradients blend on a 2D grid for organic colour fields. CSS does not natively support mesh gradients — they must be rasterised to PNG or SVG."
+            "text": "CSS gradients blend colours along a mathematical function (line, circle, cone). Mesh gradients (popular in design tools like Figma) blend colours on a two-dimensional grid, producing complex organic-looking colour fields. CSS does not natively support mesh gradients — they must be rasterised to a PNG or SVG."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -317,12 +318,12 @@ main{flex:1}
     <a href="/developer-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-green)">Developer Tools</div></a>
     <h1 class="art-h1">CSS Gradients: Complete Guide with Types, Examples and a Free Generator</h1>
     <div class="art-meta">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 7 min read</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27 · Updated November 2026</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 min read</span>
     </div>
     <div class="art-body">
 
-<p>CSS gradients let you create smooth transitions between two or more colours without using image files. They are resolution-independent, load instantly, and can be animated — making them far superior to gradient images for most web design uses. Here is everything you need to create any gradient type in CSS.</p>
+<p>CSS gradients create smooth transitions between colours without image files. They are sharp at every size, need no download and can be animated. Here is how each type works.</p>
 
 <h2>The three gradient types</h2>
 <p>CSS has three gradient functions: <code>linear-gradient()</code>, <code>radial-gradient()</code>, and <code>conic-gradient()</code>. Each produces a different shape of transition.</p>
@@ -340,7 +341,7 @@ main{flex:1}
 
 <h2>Radial gradient</h2>
 <p>A radial gradient transitions colours outward from a centre point in a circular or elliptical pattern:</p>
-<div class="art-callout"><code>background: radial-gradient(circle at centre, #22d3ee, #6366f1);</code></div>
+<div class="art-callout"><code>background: radial-gradient(circle at center, #22d3ee, #6366f1);</code></div>
 <p>Key parameters:</p>
 <ul>
 <li><code>circle</code> — produces a perfect circle</li>
@@ -352,7 +353,7 @@ main{flex:1}
 <h2>Conic gradient</h2>
 <p>A conic gradient rotates colours around a centre point, like a colour wheel:</p>
 <div class="art-callout"><code>background: conic-gradient(from 0deg, #22d3ee, #6366f1, #22d3ee);</code></div>
-<p>Conic gradients are newer (Safari support from 2020, Chrome from 2018) and are excellent for pie charts, progress indicators, and colour wheels.</p>
+<p>Conic gradients work in Chrome since 2018, Safari since 2019 and Firefox since 2020. They are excellent for pie charts, progress rings and colour wheels.</p>
 
 <h2>Color stops</h2>
 <p>All gradient types accept multiple colour stops — the points where one colour transitions to the next:</p>
@@ -375,16 +376,16 @@ main{flex:1}
 <p>The first value is on top. Using <code>rgba()</code> or <code>transparent</code> lets lower layers show through.</p>
 
 <h2>Browser compatibility</h2>
-<p>All three gradient types work in every modern browser without vendor prefixes. For very old browsers (IE 9 and below), gradients require the <code>-ms-</code> prefix — but at 2026 traffic levels this is not a concern for the vast majority of projects.</p>
+<p>All three gradient types work in every current browser without prefixes. Internet Explorer 10 and 11 know linear and radial gradients but not conic ones; Internet Explorer 9 knows none. Give a plain background colour first as a fallback.</p>
 
 <h2>Performance</h2>
-<p>CSS gradients are painted by the GPU and have essentially zero performance cost. They are far more efficient than loading gradient images. The one exception: extremely complex multi-stop gradients with many transparent layers may cause paint performance issues on mobile — test at 60fps if you are using many stacked transparent gradients.</p>
+<p>Gradients need no download and stay sharp at any size. They are not free to draw, though: large areas with many transparent layers, or gradients that are redrawn during an animation, can make scrolling jerky on phones. Test on a real device.</p>
 
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>Can I use CSS gradients as borders?</summary>
-<p>Not directly with border-color — CSS borders do not accept gradients. The most reliable approach is to use a wrapper element with a gradient background and a smaller inner element with a solid background, creating the appearance of a gradient border.</p></details>
+<p>Yes, with border-image: for example border: 4px solid transparent; border-image: linear-gradient(90deg, #22d3ee, #6366f1) 1. It ignores rounded corners. For those, use two backgrounds with different background-clip values, or a wrapper element.</p></details>
 <details class="art-faq"><summary>How do I animate a CSS gradient?</summary>
-<p>CSS currently cannot animate gradient properties directly with transitions. The standard workaround is to animate background-position on a gradient that is larger than the element, or to animate opacity between two overlapping gradient layers using a pseudo-element.</p></details>
+<p>Gradients themselves do not transition. In current browsers you can register a custom property with @property, for example an angle or a colour, use it in the gradient and animate it. The older way is to animate background-position on an oversized gradient or the opacity of a second layer.</p></details>
 <details class="art-faq"><summary>What is the difference between a gradient and a mesh gradient?</summary>
 <p>CSS gradients blend colours along a mathematical function (line, circle, cone). Mesh gradients (popular in design tools like Figma) blend colours on a two-dimensional grid, producing complex organic-looking colour fields. CSS does not natively support mesh gradients — they must be rasterised to a PNG or SVG.</p></details>
 

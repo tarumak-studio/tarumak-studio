@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>JSON Formatting and Validation Guide | Tarumak Studio</title>
+  <title>JSON Formatting and Validation Guide</title>
   <meta name="description" content="JSON formatting and validation explained — common syntax mistakes, when to minify, and how to format nested JSON for readability.">
   <link rel="canonical" href="https://tarumakstudio.com/article-json-formatting-validation-guide">
   <meta property="og:type" content="article">
@@ -13,6 +13,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="JSON Formatting and Validation: A Complete Developer Guide — Tarumak Studio">
@@ -31,7 +32,7 @@
       "description": "JSON formatting, validation, and common errors explained. Learn what valid JSON looks like, the most common syntax mistakes, when to minify, and how to format nested JSON for readability.",
       "url": "https://tarumakstudio.com/article-json-formatting-validation-guide",
       "datePublished": "2026-06-27T00:00:00Z",
-      "dateModified": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -87,7 +88,7 @@
           "name": "What is the difference between JSON and XML?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Both are text-based formats for structured data. JSON is more compact, easier to read, and natively parsed by JavaScript. REST APIs now overwhelmingly use JSON. XML remains common in SOAP web services, RSS feeds, and some enterprise systems."
+            "text": "Both are text formats for structured data. JSON is more compact and is read directly by JavaScript. XML has attributes, comments and mixed content, and is still common in RSS feeds, office documents and SOAP services."
           }
         },
         {
@@ -95,7 +96,7 @@
           "name": "Can JSON contain JavaScript functions?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. JSON is a data format only. Functions, undefined values, and special objects like Date are not valid JSON. Store dates as ISO 8601 strings instead: \"2026-06-27T12:00:00Z\"."
+            "text": "No. JSON is a data format only. Functions, undefined values, and special objects like Date are not valid JSON types. If you need to serialise a Date, store it as an ISO 8601 string: \"2026-06-27T12:00:00Z\"."
           }
         },
         {
@@ -103,7 +104,7 @@
           "name": "How do I validate JSON in my browser?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Paste it into a JSON formatter tool — it will flag any syntax error with the line number. Alternatively, run JSON.parse(yourString) in your browser console."
+            "text": "Paste it into the JSON Formatter, which shows your browser’s error message, usually with the position. Or run JSON.parse(yourString) in the console: if it throws an error, the JSON is invalid."
           }
         },
         {
@@ -111,14 +112,14 @@
           "name": "What does \"unexpected token\" mean in a JSON error?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The parser encountered an unexpected character. Most common causes: trailing comma after the last item, single quotes instead of double quotes, or an unescaped special character inside a string."
+            "text": "It means the parser encountered a character it did not expect. The most common causes: a trailing comma after the last item, a single quote instead of a double quote, or an unescaped special character inside a string."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -325,8 +326,8 @@ main{flex:1}
     <a href="/developer-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-green)">Developer Tools</div></a>
     <h1 class="art-h1">JSON Formatting and Validation: A Complete Developer Guide</h1>
     <div class="art-meta">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 7 min read</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27 · Updated November 2026</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4 min read</span>
     </div>
     <div class="art-body">
 
@@ -336,9 +337,9 @@ main{flex:1}
 <p>JSON is a lightweight text format for representing structured data. It was derived from JavaScript but is now language-independent — every major programming language has libraries for reading and writing it.</p>
 
 <p>A basic JSON object looks like this:</p>
-<div class="art-callout"><code>{"name": "Tarumak Studio", "tools": 56, "free": true}</code></div>
+<div class="art-callout"><code>{"name": "Tarumak Studio", "tools": 73, "free": true}</code></div>
 
-<p>JSON supports six data types: strings, numbers, booleans, null, arrays, and objects. Every valid JSON document is either an object (<code>{}</code>) or an array (<code>[]</code>).</p>
+<p>JSON supports six data types: strings, numbers, booleans, null, arrays and objects. A document is usually an object ( {} ) or an array ( [] ), but the current standard also allows a single value such as "text" or 42.</p>
 
 <h2>JSON syntax rules</h2>
 <p>JSON is strict. Every character matters. The most common cause of invalid JSON is a single missing comma, brace, or quotation mark. Here are the non-negotiable rules:</p>
@@ -360,7 +361,7 @@ main{flex:1}
 <div class="art-callout"><code>{'name': 'Alice'}  ← invalid — use "name": "Alice"</code></div>
 
 <p><strong>3. Unescaped special characters in strings:</strong></p>
-<div class="art-callout"><code>{"quote": "She said "hello""}  ← invalid — use "hello"</code></div>
+<div class="art-callout"><code>{"quote": "She said "hello""}  ← invalid — use \"hello\"</code></div>
 
 <p><strong>4. Missing comma between items:</strong></p>
 <div class="art-callout"><code>{"a": 1 "b": 2}  ← invalid — needs a comma between pairs</code></div>
@@ -374,11 +375,11 @@ main{flex:1}
 <p><strong>Formatted JSON</strong> uses newlines and indentation to make the structure readable to humans:</p>
 <div class="art-callout"><code>{
   "name": "Tarumak",
-  "tools": 56
+  "tools": 73
 }</code></div>
 
 <p><strong>Minified JSON</strong> removes all whitespace, reducing file size:</p>
-<div class="art-callout"><code>{"name":"Tarumak","tools":56}</code></div>
+<div class="art-callout"><code>{"name":"Tarumak","tools":73}</code></div>
 
 <p>Use formatted JSON in source files, configuration files, and anywhere a human will read it. Use minified JSON in API responses, CDN payloads, and anywhere that byte count matters for performance. A JSON formatter/minifier tool handles either direction instantly.</p>
 
@@ -386,7 +387,7 @@ main{flex:1}
 <p>JSON objects and arrays can contain other objects and arrays — this is called nesting:</p>
 <div class="art-callout"><code>{"user": {"name": "Alice", "skills": ["design", "dev"]}}</code></div>
 
-<p>There is no official limit to nesting depth in the JSON specification, but practical limits exist: most parsers handle up to 100 levels, and browsers can have stricter limits. If you find yourself with JSON nested 5+ levels deep, it is usually a sign the data structure should be redesigned.</p>
+<p>The specification sets no limit for nesting, but every parser has one, from around a hundred to many thousands of levels. Deep structures are hard for people to read; if you often need five or more levels, consider flatter data.</p>
 
 <h2>JSON vs JSON5 vs JSONC</h2>
 <p>Standard JSON is deliberately strict. Two common extensions have emerged for human-edited configuration files:</p>
@@ -399,15 +400,15 @@ main{flex:1}
 <h2>JSON in structured data (SEO)</h2>
 <p>JSON-LD (JSON Linked Data) is the recommended format by Google for embedding structured data in web pages. It is standard JSON wrapped in a script tag:</p>
 <div class="art-callout"><code>&lt;script type="application/ld+json"&gt;{"@context": "https://schema.org", "@type": "Article"}&lt;/script&gt;</code></div>
-<p>Errors in JSON-LD can cause Google to reject your structured data entirely. Using a JSON formatter to validate your schema markup before publishing avoids this.</p>
+<p>A syntax error makes Google ignore that block of structured data. A formatter finds syntax errors; whether the properties are right is checked by Google’s Rich Results Test and the Schema Markup Validator.</p>
 
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>What is the difference between JSON and XML?</summary>
-<p>Both are text-based formats for structured data. JSON is more compact, easier to read, and natively parsed by JavaScript. XML supports comments, attributes, and mixed content but is more verbose. REST APIs now overwhelmingly use JSON. XML remains common in SOAP web services, RSS feeds, and some enterprise systems.</p></details>
+<p>Both are text formats for structured data. JSON is more compact and is read directly by JavaScript. XML has attributes, comments and mixed content, and is still common in RSS feeds, office documents and SOAP services.</p></details>
 <details class="art-faq"><summary>Can JSON contain JavaScript functions?</summary>
 <p>No. JSON is a data format only. Functions, undefined values, and special objects like Date are not valid JSON types. If you need to serialise a Date, store it as an ISO 8601 string: "2026-06-27T12:00:00Z".</p></details>
 <details class="art-faq"><summary>How do I validate JSON in my browser?</summary>
-<p>Paste it into the JSON Formatter linked below — it will immediately flag any syntax error with the line number and error description. Alternatively, open your browser console and run JSON.parse(yourString) — if it throws, the JSON is invalid.</p></details>
+<p>Paste it into the <a href="/json-formatter">JSON Formatter</a>, which shows your browser’s error message, usually with the position. Or run JSON.parse(yourString) in the console: if it throws an error, the JSON is invalid.</p></details>
 <details class="art-faq"><summary>What does "unexpected token" mean in a JSON error?</summary>
 <p>It means the parser encountered a character it did not expect. The most common causes: a trailing comma after the last item, a single quote instead of a double quote, or an unescaped special character inside a string.</p></details>
 

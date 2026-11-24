@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>UNIX Timestamps Explained | Tarumak Studio</title>
+  <title>UNIX Timestamps Explained</title>
   <meta name="description" content="What UNIX timestamps are, why computers use them, how to convert between timestamps and human-readable dates, and common timestamp issues like the 2038 problem.">
   <link rel="canonical" href="https://tarumakstudio.com/article-unix-timestamps-explained">
   <meta property="og:type" content="article"><meta property="og:title" content="UNIX Timestamps Explained: What They Are and How to Convert Them — Tarumak Studio">
@@ -10,6 +10,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-28T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="UNIX Timestamps Explained: What They Are and How to Convert Them — Tarumak Studio">
@@ -27,7 +28,7 @@
       "description": "What UNIX timestamps are, why computers use them, how to convert between timestamps and human-readable dates, and common timestamp issues like the 2038 problem.",
       "url": "https://tarumakstudio.com/article-unix-timestamps-explained",
       "datePublished": "2026-06-28T00:00:00Z",
-      "dateModified": "2026-06-28T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -83,7 +84,7 @@
           "name": "What time zone is a UNIX timestamp in?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "UNIX timestamps are always UTC. Converting to local time happens at the display layer — the timestamp itself always represents the same absolute moment."
+            "text": "UNIX timestamps are always UTC (Coordinated Universal Time) — they have no timezone. When you display a timestamp to a user, you convert it to their local timezone at that point. The timestamp itself always represents the same absolute moment regardless of where in the world it is read."
           }
         },
         {
@@ -91,7 +92,7 @@
           "name": "Can timestamps be negative?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Negative timestamps represent moments before January 1, 1970. Unix timestamp -86400 is December 31, 1969."
+            "text": "Yes, for moments before 1970: −86400 is 31 December 1969, 00:00 UTC. Not every program accepts negative values, so test it."
           }
         },
         {
@@ -99,14 +100,14 @@
           "name": "What is the difference between Unix time and ISO 8601?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Unix time is an integer (seconds since epoch). ISO 8601 is a human-readable string like 2026-01-01T12:00:00Z. APIs often accept both."
+            "text": "Unix time is an integer (seconds since epoch). ISO 8601 is a human-readable string format: 2026-01-01T12:00:00Z. APIs often accept both. ISO 8601 is easier for humans to read; Unix timestamps are easier for machines to store and compare."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -312,20 +313,20 @@ main{flex:1}
   <a href="/developer-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-green)">Developer Tools</div></a>
   <h1 class="art-h1">UNIX Timestamps Explained: What They Are and How to Convert Them</h1>
   <div class="art-meta">
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28 · Updated November 2026</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 min read</span>
   </div>
   <div class="art-body">
 <p>If you have ever seen a number like 1735689600 in a database, API response, or log file, that is a UNIX timestamp. Understanding what it is, how to read it, and how to convert it is a foundational skill for any developer working with time-based data.</p>
 <h2>What is a UNIX timestamp?</h2>
-<p>A UNIX timestamp is the number of seconds that have elapsed since the UNIX epoch: <strong>January 1, 1970, at 00:00:00 UTC</strong>. It is a single integer that uniquely identifies any moment in time. The UNIX epoch was chosen somewhat arbitrarily by the original Unix developers, but it has become the global standard for representing time in computing.</p>
-<p>As of mid-2026, the current UNIX timestamp is approximately 1,751,000,000.</p>
+<p>A UNIX timestamp is the number of seconds since the epoch: 1 January 1970, 00:00:00 UTC. Leap seconds are not counted, so each day has exactly 86,400 seconds.</p>
+<p>In November 2026 the current timestamp is about 1,795,000,000.</p>
 <h2>Why computers use timestamps</h2>
 <p>Storing time as a single integer has several advantages over storing a human-readable date string:</p>
 <ul>
 <li><strong>Language-independent</strong> — 1735689600 means the same thing in JavaScript, Python, PHP, Go, and every other language</li>
 <li><strong>Timezone-independent</strong> — UNIX timestamps are always UTC. Converting to local time happens at the display layer</li>
-<li><strong>Easy arithmetic</strong> — calculating "is event A before event B" is a simple integer comparison. Calculating "how many days between two dates" is subtraction divided by 86,400</li>
+<li><strong>Easy arithmetic</strong> — which event came first is a simple comparison. Dividing a difference by 86,400 gives 24-hour days; calendar days can have 23 or 25 hours when clocks change</li>
 <li><strong>Sortable</strong> — sorting records by timestamp sorts them chronologically with no parsing needed</li>
 </ul>
 <h2>Seconds vs milliseconds</h2>
@@ -334,19 +335,19 @@ main{flex:1}
 <li><strong>Unix seconds</strong> — 10 digits, e.g. 1735689600 — the standard in most systems</li>
 <li><strong>Unix milliseconds</strong> — 13 digits, e.g. 1735689600000 — used by JavaScript (Date.now()), Java, and Android</li>
 </ul>
-<p>If your timestamp has 13 digits, divide by 1000 to get seconds. The Timestamp Converter tool auto-detects which format you have entered.</p>
+<p>If your timestamp has 13 digits, divide by 1000 to get seconds. The <a href="/timestamp-converter">Timestamp Converter</a> recognises seconds, milliseconds, microseconds and nanoseconds from the size of the number.</p>
 <h2>Converting timestamps</h2>
 <p>In JavaScript:</p>
 <div class="art-callout"><code>// Current timestamp in seconds<br>Math.floor(Date.now() / 1000)<br><br>// Timestamp to human date<br>new Date(1735689600 * 1000).toLocaleString()<br><br>// Date string to timestamp<br>new Date('2026-01-01').getTime() / 1000</code></div>
 <p>In Python:</p>
-<div class="art-callout"><code>import time, datetime<br># Current timestamp<br>int(time.time())<br><br># Timestamp to datetime<br>datetime.datetime.fromtimestamp(1735689600)</code></div>
+<div class="art-callout"><code>import time, datetime<br># Current timestamp<br>int(time.time())<br><br># Timestamp to datetime<br>datetime.datetime.fromtimestamp(1735689600, datetime.timezone.utc)</code></div>
 <h2>Common timestamp pitfalls</h2>
 <p><strong>Forgetting to multiply by 1000 in JavaScript.</strong> JavaScript's Date constructor expects milliseconds. new Date(1735689600) is a wrong date — you need new Date(1735689600 * 1000).</p>
 <p><strong>Timezone confusion.</strong> Timestamps are always UTC. new Date().toString() in JavaScript returns your local timezone, but the underlying value is always UTC. Store timestamps in UTC; convert to local time only for display.</p>
-<p><strong>Integer overflow in 32-bit systems.</strong> 32-bit signed integers max out at 2,147,483,647 — which corresponds to January 19, 2038 at 03:14:07 UTC. This is the Year 2038 problem: systems using 32-bit timestamps will overflow on that date. Modern systems use 64-bit integers which extend the range by billions of years.</p>
+<p><strong>Integer overflow in 32-bit systems.</strong> A signed 32-bit number ends at 2,147,483,647, which is 19 January 2038, 03:14:07 UTC. Programs that still store seconds that way will fail then. 64-bit values solve it; check old databases and embedded devices.</p>
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>What time zone is a UNIX timestamp in?</summary><p>UNIX timestamps are always UTC (Coordinated Universal Time) — they have no timezone. When you display a timestamp to a user, you convert it to their local timezone at that point. The timestamp itself always represents the same absolute moment regardless of where in the world it is read.</p></details>
-<details class="art-faq"><summary>Can timestamps be negative?</summary><p>Yes. Negative timestamps represent moments before January 1, 1970. Unix timestamp -86400 is December 31, 1969. Most systems support negative timestamps in 64-bit signed integers, allowing dates back to approximately 292 billion years BC.</p></details>
+<details class="art-faq"><summary>Can timestamps be negative?</summary><p>Yes, for moments before 1970: −86400 is 31 December 1969, 00:00 UTC. Not every program accepts negative values, so test it.</p></details>
 <details class="art-faq"><summary>What is the difference between Unix time and ISO 8601?</summary><p>Unix time is an integer (seconds since epoch). ISO 8601 is a human-readable string format: 2026-01-01T12:00:00Z. APIs often accept both. ISO 8601 is easier for humans to read; Unix timestamps are easier for machines to store and compare.</p></details>
 <div class="art-tools"><a href="/timestamp-converter">Timestamp Converter</a><a href="/json-formatter">JSON Formatter</a><a href="/url-encoder">URL Encoder</a><a href="/meta-tag-gen">Meta Tag Generator</a></div>
   </div>

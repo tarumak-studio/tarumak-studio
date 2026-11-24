@@ -292,7 +292,7 @@ INIT['background-remover'] = function(panel) {
      · AI mode (default): ISNet neural segmentation via
        @imgly/background-removal (ONNX Runtime, WASM), lazy-loaded
        from CDN on first use. The MODEL downloads to the device once
-       (isnet ~176 MB plus ~23 MB runtime, browser-cached); the IMAGE never leaves the device.
+       (isnet_fp16 ~88 MB plus ~12 MB runtime, browser-cached); the IMAGE never leaves the device.
        API facts validated in prior integration work: the removal
        function is the module's DEFAULT export (not a named export),
        and models auto-fetch from resources.img.ly — do NOT pass a
@@ -455,11 +455,10 @@ INIT['background-remover'] = function(panel) {
 
     loadAIModule().then(function(removeBg) {
       return removeBg(file, {
-        /* isnet = the full-precision ISNet model. Noticeably better on hair,
-           soft edges and colour fidelity than the default fp16 build — the
-           quality the "professional" brief is asking for. Costs a larger
-           one-time download, which the browser caches. */
-        model: 'isnet',
+        /* isnet_fp16 is half the download of full-precision isnet (88 vs 176 MB).
+           Compared on five photos in November 2026, alpha differed by at most 2/255.
+           isnet_quint8 (44 MB) left specks around a product shot. */
+        model: 'isnet_fp16',
         progress: function(key, current, total) {
           if (key && String(key).indexOf('fetch') === 0 && total) {
             var pct = Math.min(100, Math.round((current / total) * 100));

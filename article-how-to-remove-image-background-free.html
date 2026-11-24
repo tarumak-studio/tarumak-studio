@@ -74,7 +74,7 @@
           "name": "Is my photo uploaded?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. Processing happens in your browser. AI mode downloads a model once, about 200 MB."
+            "text": "No. Processing happens in your browser. AI mode downloads a model once, about 100 MB."
           }
         },
         {
@@ -82,7 +82,7 @@
           "name": "Why is the first picture slow?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The model has to be downloaded. Later pictures take a few seconds."
+            "text": "The model has to be downloaded. Later pictures often take 10 to 30 seconds, depending on your device."
           }
         },
         {
@@ -316,19 +316,19 @@ main{flex:1}
       <span>3 min read</span>
     </div>
     <div class="art-body">
-<p>Removing a background used to mean half an hour with the pen tool. For many pictures it now takes seconds, without uploading anything. Good results still depend on the photo and on choosing the right method, so both are covered here.</p>
+<p>Removing a background used to mean half an hour with the pen tool. For many pictures it now takes well under a minute, without uploading anything. Good results still depend on the photo and on choosing the right method, so both are covered here.</p>
 <a href="/background-remover" class="tool-cta-link">Remove Background Free →</a>
 <h2>Two methods</h2>
 <div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)"></th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">AI mode</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Solid mode</th></tr></thead><tbody>
 <tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">How it works</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">A neural network recognises the subject</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Removes a connected area of similar colour, starting at the edge</td></tr>
 <tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Best for</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">People, animals, products in real scenes</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Logos, signatures, studio shots on one colour</td></tr>
-<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">First use</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Downloads the model once, about 200 MB</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Instant</td></tr>
-<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Afterwards</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">A few seconds per picture</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Instant</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">First use</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Downloads the model once, about 100 MB</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Instant</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Afterwards</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Often 10 to 30 seconds per picture</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Instant</td></tr>
 <tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Weakness</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Fine edges are computed at limited resolution</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Parts of the subject with the background’s colour</td></tr>
 </tbody></table></div>
 <p>In the <a href="/background-remover">Background Remover</a> you can switch between both with the same picture. If the AI model cannot be loaded, the tool tells you and uses Solid mode. The photo stays on your device in either case; only the model is downloaded.</p>
 <h2>Step by step</h2>
-<ol><li>Open the picture. JPG, PNG and WebP work.</li><li>Try AI mode for photos and Solid mode for flat backgrounds.</li><li>In Solid mode, raise the sensitivity if background remains, and lower it if the subject is eaten away.</li><li>Look at the edges at full size.</li><li>Download the transparent PNG.</li></ol>
+<ol><li>Open the picture. JPG, PNG and WebP work.</li><li>Try AI mode for photos and Solid mode for flat backgrounds.</li><li>In Solid mode, raise the sensitivity if background remains, and lower it if the subject is eaten away.</li><li>Look at the edges at full size, and correct them with the Restore and Erase brushes under <strong>Touch up</strong>.</li><li>Keep the background transparent or choose a colour, then download the PNG.</li></ol>
 <h2>Photos that work well</h2>
 <ul><li><strong>Contrast</strong> between subject and background in colour or brightness.</li>
 <li><strong>Sharp edges.</strong> Motion blur and shallow focus leave nothing clear to cut along.</li>
@@ -339,7 +339,7 @@ main{flex:1}
 <h3>Hair and fur</h3><p>AI mode copes with normal hair. Single flyaway strands are usually simplified. Placing the cut-out on a background of similar brightness hides this better than any editing.</p>
 <h3>Glass and veils</h3><p>Transparent things show what is behind them, which no simple cut-out can separate. Photograph them against the colour you need.</p>
 <h3>Halos</h3><p>A light rim comes from mixed pixels at the edge. In Solid mode, raise the sensitivity a little. Otherwise choose a new background similar in brightness to the old one.</p>
-<h3>Missing parts</h3><p>If AI mode drops a chair leg or a hand, crop closer to the subject with the <a href="/image-cropper">Image Cropper</a> and try again.</p>
+<h3>Missing parts</h3><p>If AI mode drops a chair leg or a hand, paint it back with Restore under <strong>Touch up</strong>, or crop closer to the subject with the <a href="/image-cropper">Image Cropper</a> and try again.</p>
 <h2>Why PNG?</h2>
 <p>A removed background is transparency, which JPG cannot store: it would fill the area with a solid colour. PNG and WebP can. Keep the PNG as your master. For a website, <a href="/png-to-webp">PNG to WebP</a> makes it much smaller and keeps the transparency. For a shop that asks for JPG on white, use <a href="/png-to-jpg">PNG to JPG</a>.</p>
 <h2>Making the result look real</h2>
@@ -350,8 +350,8 @@ main{flex:1}
 <h2>Permission</h2>
 <p>A cut-out is still the same picture. You need the right to use it, and for people you usually need their consent before publishing it in a new setting.</p>
 <h2>Frequently asked questions</h2>
-<details class="art-faq"><summary>Is my photo uploaded?</summary><p>No. Processing happens in your browser. AI mode downloads a model once, about 200 MB.</p></details>
-<details class="art-faq"><summary>Why is the first picture slow?</summary><p>The model has to be downloaded. Later pictures take a few seconds.</p></details>
+<details class="art-faq"><summary>Is my photo uploaded?</summary><p>No. Processing happens in your browser. AI mode downloads a model once, about 100 MB.</p></details>
+<details class="art-faq"><summary>Why is the first picture slow?</summary><p>The model has to be downloaded. Later pictures often take 10 to 30 seconds, depending on your device.</p></details>
 <details class="art-faq"><summary>Can I remove the background of a logo?</summary><p>Yes. For a logo on one colour, Solid mode is instant and gives clean edges.</p></details>
 <details class="art-faq"><summary>Why is the background black in another program?</summary><p>That program does not show transparency, or the picture was saved as JPG. Keep it as PNG.</p></details>
     </div>
@@ -381,7 +381,7 @@ main{flex:1}
 </div></footer>
 <script src="/config.js?v=bbf77376ef" defer></script>
 <script src="/utils.js?v=59c4870233" defer></script>
-<script src="/data.js?v=e4c0cae673" defer></script>
+<script src="/data.js?v=e0348552ad" defer></script>
 <script src="/features.js?v=5a9249b2ad" defer></script>
 <script src="/analytics.js?v=d5f4522748" defer></script>
 <script src="/mega-menu.js?v=d7c748265f" defer></script>

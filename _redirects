@@ -20,6 +20,20 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 #    canonical replacement (both extensionless and .html request forms) ──
 /article-social-media-image-sizes       /article-social-media-image-sizes-2026  301
 /article-social-media-image-sizes.html  /article-social-media-image-sizes-2026  301
+/article-how-to-merge-pdfs  /article-merge-pdf-online-free  301
+/article-how-to-merge-pdfs.html  /article-merge-pdf-online-free  301
+/article-remove-background-image-free  /article-how-to-remove-image-background-free  301
+/article-remove-background-image-free.html  /article-how-to-remove-image-background-free  301
+/article-free-favicon-generator  /article-best-favicon-size  301
+/article-free-favicon-generator.html  /article-best-favicon-size  301
+/article-compress-images-web  /article-compress-images-without-losing-quality  301
+/article-compress-images-web.html  /article-compress-images-without-losing-quality  301
+/article-pdf-guide-2026  /article-best-free-pdf-tools-2026  301
+/article-pdf-guide-2026.html  /article-best-free-pdf-tools-2026  301
+/article-web-design-tools-2026  /article-best-free-tools-designers-2026  301
+/article-web-design-tools-2026.html  /article-best-free-tools-designers-2026  301
+/article-free-tools-freelancers  /article-best-free-tools-designers-2026  301
+/article-free-tools-freelancers.html  /article-best-free-tools-designers-2026  301
 /privacy                                /privacy-policy                         301
 /privacy.html                           /privacy-policy                         301
 /work-with-me                           /about                                  301
@@ -36,7 +50,6 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /article-best-free-tools-designers-2026.html /article-best-free-tools-designers-2026 301
 /article-brand-color-extraction-guide.html /article-brand-color-extraction-guide 301
 /article-color-palette-brand-guide.html /article-color-palette-brand-guide 301
-/article-compress-images-web.html /article-compress-images-web 301
 /article-compress-images-without-losing-quality.html /article-compress-images-without-losing-quality 301
 /article-convert-jpg-to-pdf.html /article-convert-jpg-to-pdf 301
 /article-create-gif-from-images.html /article-create-gif-from-images 301
@@ -44,14 +57,11 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /article-create-qr-code-business.html /article-create-qr-code-business 301
 /article-css-gradient-guide.html /article-css-gradient-guide 301
 /article-exif-data-privacy-guide.html /article-exif-data-privacy-guide 301
-/article-free-favicon-generator.html /article-free-favicon-generator 301
-/article-free-tools-freelancers.html /article-free-tools-freelancers 301
 /article-hashtag-strategy-instagram.html /article-hashtag-strategy-instagram 301
 /article-heic-to-jpg-iphone-photos-guide.html /article-heic-to-jpg-iphone-photos-guide 301
 /article-how-to-compare-two-texts.html /article-how-to-compare-two-texts 301
 /article-how-to-convert-word-to-pdf.html /article-how-to-convert-word-to-pdf 301
 /article-how-to-create-seo-friendly-url-slugs.html /article-how-to-create-seo-friendly-url-slugs 301
-/article-how-to-merge-pdfs.html /article-how-to-merge-pdfs 301
 /article-how-to-password-protect-pdf.html /article-how-to-password-protect-pdf 301
 /article-how-to-remove-image-background-free.html /article-how-to-remove-image-background-free 301
 /article-instagram-story-size-guide.html /article-instagram-story-size-guide 301
@@ -62,11 +72,9 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /article-meta-tags-seo-guide.html /article-meta-tags-seo-guide 301
 /article-ocr-image-to-text-guide.html /article-ocr-image-to-text-guide 301
 /article-password-security-guide-2026.html /article-password-security-guide-2026 301
-/article-pdf-guide-2026.html /article-pdf-guide-2026 301
 /article-pdf-to-jpg-convert.html /article-pdf-to-jpg-convert 301
 /article-reduce-pdf-file-size.html /article-reduce-pdf-file-size 301
 /article-regex-guide-for-beginners.html /article-regex-guide-for-beginners 301
-/article-remove-background-image-free.html /article-remove-background-image-free 301
 /article-social-media-image-sizes-2026.html /article-social-media-image-sizes-2026 301
 /article-svg-vs-png-icons-logos.html /article-svg-vs-png-icons-logos 301
 /article-tarumak-studio-vs-ilovepdf.html /article-tarumak-studio-vs-ilovepdf 301
@@ -76,7 +84,6 @@ http://tarumakstudio.com/*       https://tarumakstudio.com/:splat  301
 /article-unix-timestamps-explained.html /article-unix-timestamps-explained 301
 /article-url-encoding-complete-guide.html /article-url-encoding-complete-guide 301
 /article-utm-link-builder-guide.html /article-utm-link-builder-guide 301
-/article-web-design-tools-2026.html /article-web-design-tools-2026 301
 /article-what-is-open-graph-image.html /article-what-is-open-graph-image 301
 /ai-image-upscaler.html /ai-image-upscaler 301
 /background-remover.html /background-remover 301

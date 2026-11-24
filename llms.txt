@@ -33,7 +33,7 @@ The site offers tools across five categories — Image Tools (23), PDF Tools (16
 
 ## Blog & Guides
 
-In-depth practical guides linking to the tools that solve each problem. All 50 articles are freely accessible at https://tarumakstudio.com/blog
+In-depth practical guides linking to the tools that solve each problem. All 43 articles are freely accessible at https://tarumakstudio.com/blog
 
 - [JPG vs PNG vs WebP — Which to Use in 2026](https://tarumakstudio.com/article-jpg-vs-png-vs-webp): Definitive format comparison for designers and developers.
 - [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality): Practical guide to lossless and lossy compression.

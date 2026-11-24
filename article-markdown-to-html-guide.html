@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Markdown to HTML Conversion Guide | Tarumak Studio</title>
-  <meta name="description" content="Convert Markdown to HTML instantly. Learn Markdown syntax, when to use it over HTML, and how to convert .md files to clean HTML for websites and emails.">
+  <title>Markdown to HTML: Syntax, Pitfalls and Clean Output</title>
+  <meta name="description" content="A practical guide to Markdown: the syntax with the HTML it produces, the mistakes that break lists and tables, and how to use the result in a CMS or e-mail.">
   <link rel="canonical" href="https://tarumakstudio.com/article-markdown-to-html-guide">
   <meta property="og:type" content="article"><meta property="og:title" content="Markdown to HTML: Complete Conversion Guide for Writers and Developers — Tarumak Studio">
-  <meta property="og:description" content="Convert Markdown to HTML instantly. Learn Markdown syntax, when to use it over HTML, and how to convert .md files to clean HTML for websites and emails."><meta property="og:url" content="https://tarumakstudio.com/article-markdown-to-html-guide">
+  <meta property="og:description" content="A practical guide to Markdown: the syntax with the HTML it produces, the mistakes that break lists and tables, and how to use the result in a CMS or e-mail."><meta property="og:url" content="https://tarumakstudio.com/article-markdown-to-html-guide">
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-28T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Markdown to HTML: Complete Conversion Guide for Writers and Developers — Tarumak Studio">
-  <meta name="twitter:description" content="Convert Markdown to HTML instantly. Learn Markdown syntax, when to use it over HTML, and how to convert .md files to clean HTML for websites and emails."><meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
+  <meta name="twitter:description" content="A practical guide to Markdown: the syntax with the HTML it produces, the mistakes that break lists and tables, and how to use the result in a CMS or e-mail."><meta name="twitter:image" content="https://tarumakstudio.com/og-image.png">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -24,10 +25,10 @@
     {
       "@type": "Article",
       "headline": "Markdown to HTML: Complete Conversion Guide for Writers and Developers",
-      "description": "Convert Markdown to HTML instantly. Learn Markdown syntax, when to use it over HTML, and how to convert .md files to clean HTML for websites and emails.",
+      "description": "A practical guide to Markdown: the syntax with the HTML it produces, the mistakes that break lists and tables, and how to use the result in a CMS or e-mail.",
       "url": "https://tarumakstudio.com/article-markdown-to-html-guide",
       "datePublished": "2026-06-28T00:00:00Z",
-      "dateModified": "2026-06-28T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -83,15 +84,7 @@
           "name": "Can I convert a .md file directly?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Open your .md file in any text editor, copy the content, paste into the Markdown input area."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Does it support code syntax highlighting?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "It outputs correct HTML with language class attributes. Add Prism.js or Highlight.js to your page to activate colouring."
+            "text": "Open it in any text editor and paste the content. Markdown files are plain text."
           }
         },
         {
@@ -99,14 +92,30 @@
           "name": "Why does my table not render?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Tables require GFM syntax with pipes and a header separator row. Ensure a blank line before the table."
+            "text": "The line of dashes under the header is missing, or there is no empty line before the table."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it support syntax highlighting?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It adds the language class to code blocks. A library such as Prism on your page adds the colours."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I get a PDF from Markdown?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Convert it to HTML, then print it to PDF from your browser or use HTML to PDF."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -312,37 +321,57 @@ main{flex:1}
   <a href="/converter-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-amber)">Converter Tools</div></a>
   <h1 class="art-h1">Markdown to HTML: Complete Conversion Guide for Writers and Developers</h1>
   <div class="art-meta">
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-28 · Updated November 2026</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4 min read</span>
   </div>
   <div class="art-body">
-<p>Markdown is a lightweight markup language designed to be readable as plain text while converting to clean HTML for web rendering. It is the standard for README files, documentation, blog posts, and content management systems.</p>
-<h2>Markdown syntax quick reference</h2>
-<div class="art-callout"><code># H1  ## H2  ### H3<br>**bold**  *italic*  ~~strikethrough~~  `code`<br>[Link text](url)  ![Alt text](image.jpg)<br>- Unordered list item<br>1. Ordered list item<br>&gt; Blockquote</code></div>
+<p>Markdown lets you write formatted text with a handful of ordinary characters. A converter turns it into HTML, the language of web pages. This guide shows what each piece of syntax becomes, why lists and tables sometimes refuse to work, and what to check before you publish the result.</p>
+<a href="/markdown-to-html" class="tool-cta-link">Convert Markdown to HTML →</a>
+<h2>Syntax and the HTML behind it</h2>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">You write</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">You get</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code># Title</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;h1&gt;Title&lt;/h1&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>## Section</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;h2&gt;Section&lt;/h2&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>**bold**</code> and <code>*italic*</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;strong&gt;</code> and <code>&lt;em&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>[text](https://example.com)</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;a href="…"&gt;text&lt;/a&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>![description](photo.jpg)</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;img src="…" alt="description"&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>- item</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;ul&gt;&lt;li&gt;item&lt;/li&gt;&lt;/ul&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>1. item</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;ol&gt;&lt;li&gt;item&lt;/li&gt;&lt;/ol&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&gt; quote</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;blockquote&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>`code`</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;code&gt;code&lt;/code&gt;</code></td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>---</code></td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top"><code>&lt;hr&gt;</code></td></tr>
+</tbody></table></div>
+<h2>Paragraphs and line breaks</h2>
+<p>This surprises nearly everyone at first: a single line break does nothing. Two lines written below each other are joined into one paragraph. An empty line starts a new paragraph. To break a line inside a paragraph, for an address or a poem, end it with two spaces or a backslash.</p>
 <h2>Code blocks</h2>
-<div class="art-callout"><code>```javascript<br>const x = 1;<br>```<br>→ &lt;pre&gt;&lt;code class="language-javascript"&gt;...&lt;/code&gt;&lt;/pre&gt;</code></div>
+<p>Put three backticks on their own line before and after the code. A word after the first three names the language:</p>
+<div class="art-callout"><code>```javascript<br>const total = 3;<br>```</code></div>
+<p>The HTML becomes a <code>pre</code> element with a <code>code</code> element that carries the class <code>language-javascript</code>. Colours are not included. Libraries such as Prism or highlight.js read that class and add them on your page.</p>
 <h2>Tables</h2>
-<div class="art-callout"><code>| Header | Header |<br>|--------|--------|<br>| Cell   | Cell   |</code></div>
-<h2>When to write Markdown vs HTML</h2>
-<p><strong>Use Markdown when</strong> writing documentation, README files, blog posts, or content a non-developer will edit. Speed and readability matter more than layout control.</p>
-<p><strong>Use HTML when</strong> you need precise layout, custom classes, inline styles, or elements Markdown does not support (video, canvas, custom attributes).</p>
-<h2>Markdown flavours</h2>
-<ul>
-<li><strong>CommonMark</strong> — strict standardised spec, most modern parsers implement this</li>
-<li><strong>GitHub Flavored Markdown (GFM)</strong> — adds tables, task lists, strikethrough</li>
-<li><strong>MultiMarkdown</strong> — adds footnotes, citations, metadata</li>
-</ul>
-<p>The tool on this site uses marked.js which implements CommonMark with GFM extensions — tables and strikethrough are supported.</p>
-<h2>Using the converted HTML</h2>
-<ul>
-<li><strong>Copy HTML</strong> — paste into a CMS editor, email builder, or HTML file</li>
-<li><strong>Download .html</strong> — saves a complete standalone HTML document</li>
-<li><strong>Preview tab</strong> — see the rendered output as it would appear in a browser</li>
-</ul>
+<div class="art-callout"><code>| Plan | Price |<br>|:-----|------:|<br>| Basic | 5 |<br>| Pro | 12 |</code></div>
+<p>The second line is compulsory. Colons set the alignment: left, right, or both for centred. Columns need not line up in your text, and a cell cannot contain a list or a second paragraph. For anything complicated, write the table in HTML.</p>
+<h2>Why it does not work: the usual suspects</h2>
+<ul><li><strong>A heading shows the # sign.</strong> There is no space after it. Write “# Title”, not “#Title”.</li>
+<li><strong>A list turns into one long line.</strong> Leave an empty line before the first item.</li>
+<li><strong>Nested items are not nested.</strong> Indent them by as many spaces as the text of the parent item, two after a dash and three after “1.”.</li>
+<li><strong>Text becomes a grey code block by accident.</strong> Four spaces at the start of a line mean code. Remove them.</li>
+<li><strong>Underscores make words italic.</strong> Use a backslash: snake\_case, or put the term in backticks.</li>
+<li><strong>A link is cut off.</strong> Spaces in addresses must be written as %20, and closing brackets as %29.</li></ul>
+<h2>Flavours</h2>
+<p>The original Markdown of 2004 left many cases open. <strong>CommonMark</strong> is the precise specification that most tools follow today. <strong>GitHub Flavored Markdown</strong> adds tables, task lists, strikethrough with two tildes and automatic links. Footnotes, formulas and diagrams are extras of particular systems. The converter on this site uses the marked library, which covers CommonMark and the GitHub additions.</p>
+<h2>Using the HTML</h2>
+<ul><li><strong>In a CMS:</strong> paste the code into the HTML or code view, not into the visual editor, which would show the tags.</li>
+<li><strong>In a newsletter:</strong> e-mail programs need styles written on each element. Paste the HTML into your newsletter tool and let it add them.</li>
+<li><strong>As a web page:</strong> put the content into the body of a page with a title, a language and your style sheet.</li></ul>
+<p>Use only one first-level heading per page. Many systems already show the title as h1, so start your text with “##”.</p>
+<h2>Safety</h2>
+<p>Markdown may contain raw HTML, including scripts. That is harmless in your own notes, but if you publish text from other people, the HTML has to be sanitised first. The preview in our <a href="/markdown-to-html">Markdown to HTML Converter</a> removes scripts; the HTML code view shows everything that was in the text, so read it before you use it.</p>
+<h2>When HTML is the better choice</h2>
+<p>Markdown has no classes, columns, forms or video. If a page depends on layout, write HTML or use a page builder. For articles, documentation and notes, Markdown is faster to write, readable without conversion and ideal for version control, where changes can be compared line by line, for example with the <a href="/text-diff">Text Diff Checker</a>.</p>
 <h2>Frequently asked questions</h2>
-<details class="art-faq"><summary>Can I convert a .md file directly?</summary><p>Open your .md file in any text editor, copy the content, and paste it into the Markdown input area.</p></details>
-<details class="art-faq"><summary>Does it support code syntax highlighting?</summary><p>It outputs the correct HTML with language class attributes. Add Prism.js or Highlight.js to your page to activate syntax colouring.</p></details>
-<details class="art-faq"><summary>Why does my table not render?</summary><p>Tables require GFM syntax: pipes separating columns and a header separator row with dashes. Ensure a blank line before the table.</p></details>
+<details class="art-faq"><summary>Can I convert a .md file directly?</summary><p>Open it in any text editor and paste the content. Markdown files are plain text.</p></details>
+<details class="art-faq"><summary>Why does my table not render?</summary><p>The line of dashes under the header is missing, or there is no empty line before the table.</p></details>
+<details class="art-faq"><summary>Does it support syntax highlighting?</summary><p>It adds the language class to code blocks. A library such as Prism on your page adds the colours.</p></details>
+<details class="art-faq"><summary>How do I get a PDF from Markdown?</summary><p>Convert it to HTML, then print it to PDF from your browser or use HTML to PDF.</p></details>
 <div class="art-tools"><a href="/markdown-to-html">Markdown to HTML Converter</a><a href="/word-to-pdf">Word to PDF Converter</a><a href="/json-formatter">JSON Formatter</a><a href="/meta-tag-gen">Meta Tag Generator</a></div>
   </div>
   <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:var(--text-dim)">Browse all Converter Tools</span><a href="/converter-tools" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Converter Tools →</a></div>

@@ -479,7 +479,8 @@ function trimDesc(s, max) {
   const cut = s.slice(0, max - 1);
   return cut.slice(0, cut.lastIndexOf(' ')) + '\u2026';
 }
-function pageTitle(name) {
+function pageTitle(name, slug) {
+  if (slug && TOOL_META[slug] && TOOL_META[slug].seoTitle) return TOOL_META[slug].seoTitle;
   let t = name + ' \u2014 Free Online, No Upload | Tarumak Studio';
   if (t.length > 60) t = name + ' \u2014 Free Online Tool | Tarumak Studio';
   if (t.length > 60) t = name + ' | Tarumak Studio';
@@ -796,7 +797,7 @@ function schemaGraph(t, faqPairs) {
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      { '@type': 'WebPage', '@id': url + '#page', url, name: pageTitle(name), description: trimDesc(desc, 155), isPartOf: { '@id': SITE + '/#website' }, dateModified: TODAY },
+      { '@type': 'WebPage', '@id': url + '#page', url, name: pageTitle(name, slug), description: trimDesc(desc, 155), isPartOf: { '@id': SITE + '/#website' }, dateModified: TODAY },
       { '@type': 'Organization', '@id': SITE + '/#org', name: 'Tarumak Studio', url: SITE, logo: SITE + '/og-image.png' },
       { '@type': 'SoftwareApplication', '@id': url + '#app', name, url, description: desc, applicationCategory: 'WebApplication', applicationSubCategory: CAT[cat], operatingSystem: 'Any', browserRequirements: 'Requires JavaScript', isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } },
       { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: CAT[cat], item: SITE + CAT_PAGE[cat] }, { '@type': 'ListItem', position: 3, name }] },
@@ -823,7 +824,7 @@ function toolBundleTags(slug) {
 function buildPage(t) {
   const [slug, name, cat, desc, chips] = t;
   const url = `${SITE}/${slug}`;
-  const title = pageTitle(name);
+  const title = pageTitle(name, slug);
   const metaDesc = trimDesc(desc, 155);
   const meta = resolveMeta(t);
 
@@ -928,7 +929,7 @@ ${CHROME_TOP}
 
     <section class="tp-hero">
       <h1>${esc(name)}</h1>
-      <p class="tp-lead">${esc(desc)}</p>
+      <p class="tp-lead">${esc((TOOL_META[slug] && TOOL_META[slug].lead) || desc)}</p>
       <div class="tp-badges">
         <a class="tp-cat-badge" href="${CAT_PAGE[cat]}">${esc(CAT[cat])}</a>
         ${(chips || []).map(c => `<span class="tp-chip">${esc(c)}</span>`).join('')}

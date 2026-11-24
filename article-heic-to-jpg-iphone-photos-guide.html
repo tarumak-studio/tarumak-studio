@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>HEIC to JPG Converter — Free Online | Tarumak Studio</title>
+  <title>HEIC to JPG Converter — Free Online</title>
   <meta name="description" content="Convert HEIC and HEIF photos from your iPhone to JPG or PNG free. No upload required — convert directly in your browser. Batch convert multiple files at once.">
   <link rel="canonical" href="https://tarumakstudio.com/article-heic-to-jpg-iphone-photos-guide">
   <meta property="og:type" content="article">
@@ -36,7 +36,7 @@
         "@id": "https://tarumakstudio.com/#organization"
       },
       "datePublished": "2026-06-28T00:00:00Z",
-      "dateModified": "2026-06-28T00:00:00Z",
+      "dateModified": "2026-11-24",
       "articleSection": "Image Tools",
       "isPartOf": {
         "@type": "Blog",
@@ -74,7 +74,7 @@
           "name": "Does converting HEIC to JPG reduce quality?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Converting HEIC to JPG at 90% quality setting produces visually indistinguishable results from the original for most photo content. JPG at 90% quality with HEIC source material is excellent. Below 80% quality you may notice artefacts in smooth gradients and skin tones."
+            "text": "Slightly, because both formats are lossy. At 90% the difference is hard to see. Live Photo movement, depth data and the wider colour range are lost."
           }
         },
         {
@@ -82,7 +82,7 @@
           "name": "Why can't Windows open HEIC files?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Windows 10 and 11 require the HEVC Video Extensions codec to open HEIC files natively, which must be installed separately from the Microsoft Store (it has a small fee). Alternatively, converting to JPG is free and requires no installation."
+            "text": "Windows needs two extensions from the Microsoft Store: HEIF Image Extensions, which are free, and HEVC Video Extensions, for which Microsoft usually charges a small fee. Some computers come with them. Converting to JPG avoids both."
           }
         },
         {
@@ -90,14 +90,14 @@
           "name": "Can I convert HEIC to PNG?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Select PNG in the output format dropdown before converting. PNG output is lossless — no quality is lost — but file sizes are significantly larger than JPG. Use PNG when you need to edit the image further or when the image contains transparency."
+            "text": "Yes. Choose PNG as the output before you add the files. The PNG adds no further loss but is much larger."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -304,23 +304,23 @@ main{flex:1}
     <a href="/image-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--p1)">Image Tools</div></a>
     <h1 class="art-h1">HEIC to JPG: Convert iPhone Photos Free Online</h1>
     <div class="art-meta">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> June 2026</span>
-      <span>5 min read</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> June 2026 · Updated November 2026</span>
+      <span>3 min read</span>
     </div>
     <div class="art-body">
 
-<p>If you have ever sent a photo from your iPhone to a Windows PC and been unable to open it, the HEIC format is why. Apple switched the iPhone default camera format to HEIC (High Efficiency Image Container) in iOS 11, and it is now the default on every iPhone and iPad. The format is excellent — HEIC files are roughly 50% smaller than JPG at the same visual quality — but compatibility with non-Apple software remains inconsistent.</p>
+<p>If a photo from an iPhone will not open on your PC, the HEIC format is probably the reason. Apple introduced it with iOS 11 in 2017 as the default on newer devices. Files are often about half the size of a comparable JPG, but many programs, websites and printers still do not accept them.</p>
 
 <h2>Why HEIC exists</h2>
 <p>HEIC is based on the HEIF standard (High Efficiency Image Format) using H.265/HEVC compression. The same compression technology behind 4K video streaming was adapted for still images. The result is better quality at smaller file sizes than JPEG, which was designed in 1992 when storage was scarce but compression algorithms were primitive by modern standards.</p>
-<p>Apple adopted HEIC for two reasons: smaller files mean more photos fit in the same storage, and 12-bit colour depth in HEIC preserves more colour information than 8-bit JPEG — important for computational photography features like HDR, Portrait mode, and Live Photos.</p>
+<p>Apple’s main reasons were smaller files and room for more: 10-bit colour, several pictures in one file, depth information for portraits. JPG stores 8 bits per colour and a single picture.</p>
 
 <h2>Why you need to convert</h2>
 <p>Despite HEIC being a better format technically, JPG remains the universal compatibility standard. Common situations where you need to convert:</p>
 <ul>
-  <li>Uploading to websites that reject HEIC files (Facebook, Instagram on web, most CMS platforms)</li>
-  <li>Sharing with colleagues using Windows 10 or Android (without specific codec installations)</li>
-  <li>Opening in Photoshop versions below CC 2019, or in many free image editors</li>
+  <li>Uploading to websites and forms that accept only JPG or PNG</li>
+  <li>Sharing with people whose computer or phone cannot show HEIC</li>
+  <li>Opening in older versions of image editors</li>
   <li>Including in documents, presentations, or email attachments for broad compatibility</li>
   <li>Delivering client work — always deliver JPG or PNG unless specifically requested otherwise</li>
 </ul>
@@ -328,8 +328,8 @@ main{flex:1}
 <h2>JPG vs PNG as your output format</h2>
 <p>The tool supports both JPG and PNG output from HEIC files:</p>
 <ul>
-  <li><strong>JPG output</strong> — Recommended for most photos. Smaller files, universally compatible. Set quality to 85-90% for excellent results. Quality below 80% produces visible compression artefacts in gradients and skin tones.</li>
-  <li><strong>PNG output</strong> — Recommended when you need to edit the image further or require lossless quality. PNG files are 2-4x larger than JPG for typical photos but preserve every pixel perfectly.</li>
+  <li><strong>JPG output</strong> — right for most photos. The quality slider goes from 60% to 100% and starts at 90%, which is hard to tell from the original.</li>
+  <li><strong>PNG output</strong> — for editing. It adds no further loss, but a photo becomes several times larger. It cannot restore what HEIC compression has already removed.</li>
 </ul>
 
 <h2>Stopping HEIC at source</h2>
@@ -345,7 +345,7 @@ main{flex:1}
     </div>
     <div class="art-faq">
       <h2>Frequently asked questions</h2>
-      <details class="art-faq-q"><summary>Does converting HEIC to JPG reduce quality?</summary><p>Converting HEIC to JPG at 90% quality setting produces visually indistinguishable results from the original for most photo content. JPG at 90% quality with HEIC source material is excellent. Below 80% quality you may notice artefacts in smooth gradients and skin tones.</p></details><details class="art-faq-q"><summary>Why can't Windows open HEIC files?</summary><p>Windows 10 and 11 require the HEVC Video Extensions codec to open HEIC files natively, which must be installed separately from the Microsoft Store (it has a small fee). Alternatively, converting to JPG is free and requires no installation.</p></details><details class="art-faq-q"><summary>Can I convert HEIC to PNG?</summary><p>Yes. Select PNG in the output format dropdown before converting. PNG output is lossless — no quality is lost — but file sizes are significantly larger than JPG. Use PNG when you need to edit the image further or when the image contains transparency.</p></details>
+      <details class="art-faq-q"><summary>Does converting HEIC to JPG reduce quality?</summary><p>Slightly, because both formats are lossy. At 90% the difference is hard to see. Live Photo movement, depth data and the wider colour range are lost.</p></details><details class="art-faq-q"><summary>Why can't Windows open HEIC files?</summary><p>Windows needs two extensions from the Microsoft Store: HEIF Image Extensions, which are free, and HEVC Video Extensions, for which Microsoft usually charges a small fee. Some computers come with them. Converting to JPG avoids both.</p></details><details class="art-faq-q"><summary>Can I convert HEIC to PNG?</summary><p>Yes. Choose PNG as the output before you add the files. The PNG adds no further loss but is much larger.</p></details>
     </div>
     <div class="art-related">
       <h2>Related articles</h2>

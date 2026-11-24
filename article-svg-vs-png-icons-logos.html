@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>SVG vs PNG for Logos and Icons | Tarumak Studio</title>
+  <title>SVG vs PNG for Logos and Icons</title>
   <meta name="description" content="SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.">
   <link rel="canonical" href="https://tarumakstudio.com/article-svg-vs-png-icons-logos">
   <meta property="og:type" content="article">
@@ -13,6 +13,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="SVG vs PNG: Which Format Should You Use for Logos and Icons? — Tarumak Studio">
@@ -31,7 +32,7 @@
       "description": "SVG vs PNG explained — when to use each format for logos, icons, illustrations, and web graphics. Includes file size, quality, and browser support comparison.",
       "url": "https://tarumakstudio.com/article-svg-vs-png-icons-logos",
       "datePublished": "2026-06-27T00:00:00Z",
-      "dateModified": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -87,7 +88,7 @@
           "name": "Can I convert a PNG logo to SVG?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Only with significant quality loss. Converting a raster PNG to a true vector SVG requires auto-tracing software like Inkscape or Adobe Illustrator. Always request the original SVG source file from your designer instead of converting from PNG."
+            "text": "By tracing. It works well for flat logos with few colours and poorly for photos. Our PNG to SVG tool traces shapes by colour; Inkscape and Illustrator offer more control. The original vector file is always better."
           }
         },
         {
@@ -95,7 +96,7 @@
           "name": "Which format does Google prefer for favicons?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Google supports both SVG and PNG favicons. SVG is preferred because it renders sharply on all display densities. Also provide a 32x32 PNG and .ico for maximum compatibility."
+            "text": "Google names no preference. The icon should be square, reachable by crawlers and at least 8 × 8 pixels, better a multiple of 48. Provide an ICO or PNG even if you use SVG."
           }
         },
         {
@@ -103,7 +104,7 @@
           "name": "Does SVG support transparency?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. SVG supports full transparency natively. Any unfilled areas in an SVG are transparent by default without needing a separate alpha channel."
+            "text": "Yes — SVG supports full transparency natively. You do not need a separate alpha channel; any unfilled areas in an SVG are transparent by default."
           }
         },
         {
@@ -111,14 +112,14 @@
           "name": "Can I use SVG in email newsletters?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. Most email clients including Gmail, Outlook and Apple Mail do not render SVG. Always use PNG for email graphics."
+            "text": "Better not. Gmail and Outlook do not display it, even if some other programs do. Use PNG for e-mail graphics."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -325,8 +326,8 @@ main{flex:1}
     <a href="/image-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--p1)">Image Tools</div></a>
     <h1 class="art-h1">SVG vs PNG: Which Format Should You Use for Logos and Icons?</h1>
     <div class="art-meta">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27 · Updated November 2026</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4 min read</span>
     </div>
     <div class="art-body">
 
@@ -338,7 +339,7 @@ main{flex:1}
 <p>You can open an SVG in a text editor and read it. A simple circle looks like:</p>
 <div class="art-callout"><code>&lt;svg&gt;&lt;circle cx="50" cy="50" r="40" fill="#22d3ee"/&gt;&lt;/svg&gt;</code></div>
 
-<p>Because they are text, SVGs can be very small (a simple logo might be 2–5 KB), are indexable by Google, can be styled with CSS, and can be animated.</p>
+<p>Because they are text, simple SVGs are small, can be styled with CSS and animated. An SVG can also contain scripts, so do not publish files from strangers without cleaning them. The example above works inside a web page; a separate .svg file also needs xmlns="http://www.w3.org/2000/svg" and a viewBox.</p>
 
 <h2>What is a PNG file?</h2>
 <p>PNG stands for Portable Network Graphics. It is a raster format — a grid of pixels with a fixed resolution. PNG uses lossless compression, so every pixel is stored exactly with no quality loss. PNG also supports a full alpha transparency channel, meaning individual pixels can be partially transparent — something JPG cannot do.</p>
@@ -351,7 +352,7 @@ main{flex:1}
 <li><strong>Logos</strong> — must look sharp at any size, from a 32px browser tab to a 300px header</li>
 <li><strong>Icons and icon sets</strong> — UI icons that need to scale between mobile and desktop displays</li>
 <li><strong>Infographics and diagrams</strong> — charts, maps, illustrations made of paths and text</li>
-<li><strong>Favicons</strong> — modern browsers support SVG favicons natively, which look perfect on retina displays</li>
+<li><strong>Favicons</strong> — many browsers accept SVG icons; offer an ICO or PNG as well</li>
 <li><strong>Animated illustrations</strong> — SVGs can be animated with CSS or JavaScript without video codecs</li>
 </ul>
 
@@ -368,14 +369,14 @@ main{flex:1}
 <h2>File size comparison</h2>
 <p>For a simple geometric logo, SVG typically produces a much smaller file:</p>
 <ul>
-<li>Simple logo as SVG: 2–8 KB</li>
-<li>Same logo as PNG at 512×512: 15–40 KB</li>
-<li>Same logo as PNG at 1024×1024 (for retina): 40–120 KB</li>
+<li>Simple logo as SVG: often a few kilobytes</li>
+<li>The same logo as PNG: grows with its dimensions, often tens of kilobytes at 512 × 512</li>
+
 </ul>
-<p>However, for complex artwork with many paths and gradients, an SVG can become large (50–500 KB) while a PNG at normal web resolution stays small. Use a tool like SVGO to optimise SVG files before deploying.</p>
+<p>Complex artwork with many paths can make an SVG larger than a PNG at web size. Optimise SVG files with a tool such as SVGO before publishing.</p>
 
 <h2>Browser support</h2>
-<p>SVG is supported in all modern browsers (Chrome, Firefox, Safari, Edge) and has been since 2011. Internet Explorer 8 and below do not support SVG — in 2026 this is no longer a realistic concern for most projects. PNG is supported universally across everything from browsers to email clients to Word documents.</p>
+<p>SVG works in all current browsers. Internet Explorer 8 and older did not support it, which no longer matters.</p>
 
 <h2>The hybrid approach</h2>
 <p>The best practice for logos is to maintain the source as SVG and export PNG versions at specific sizes when needed — for example, a 512×512 PNG for app stores, a 192×192 PNG for PWA manifests, and 16/32/48 PNG for ICO favicons. Keep the SVG as your master file and convert from it rather than trying to convert back from a raster format.</p>
@@ -392,15 +393,15 @@ main{flex:1}
 
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>Can I convert a PNG logo to SVG?</summary>
-<p>Only with significant quality loss. Converting a raster PNG to a true vector SVG requires auto-tracing software like Inkscape or Adobe Illustrator. The result is rarely as clean as the original vector source. If your designer has the original SVG source file, always request that instead of converting from PNG.</p></details>
+<p>By tracing. It works well for flat logos with few colours and poorly for photos. Our <a href="/png-to-svg">PNG to SVG</a> tool traces shapes by colour; Inkscape and Illustrator offer more control. The original vector file is always better.</p></details>
 <details class="art-faq"><summary>Which format does Google prefer for favicons?</summary>
-<p>Google supports both SVG and PNG favicons in search results. An SVG favicon is preferred because it renders sharply on all display densities including high-DPI screens. For maximum compatibility also provide a 32×32 PNG and a traditional .ico file.</p></details>
+<p>Google names no preference. The icon should be square, reachable by crawlers and at least 8 × 8 pixels, better a multiple of 48. Provide an ICO or PNG even if you use SVG.</p></details>
 <details class="art-faq"><summary>Does SVG support transparency?</summary>
 <p>Yes — SVG supports full transparency natively. You do not need a separate alpha channel; any unfilled areas in an SVG are transparent by default.</p></details>
 <details class="art-faq"><summary>Can I use SVG in email newsletters?</summary>
-<p>No. Most email clients including Gmail, Outlook, and Apple Mail do not render SVG. Always use PNG for email graphics.</p></details>
+<p>Better not. Gmail and Outlook do not display it, even if some other programs do. Use PNG for e-mail graphics.</p></details>
 
-<div class="art-tools"><a href="/png-to-svg">SVG to PNG Converter</a><a href="/svg-to-jpg">SVG to JPG Converter</a><a href="/image-compressor">Image Compressor</a><a href="/favicon-generator">Favicon Generator</a></div>
+<div class="art-tools"><a href="/png-to-svg">PNG to SVG Converter</a><a href="/svg-to-jpg">SVG to JPG or PNG</a><a href="/image-compressor">Image Compressor</a><a href="/favicon-generator">Favicon Generator</a></div>
     </div>
     <div style="margin-top:32px;padding:18px 20px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-family:Space Grotesk,sans-serif;font-size:14px;color:var(--text-dim)">Browse all Image Tools</span><a href="/image-tools" style="font-family:Space Grotesk,sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:9px;background:var(--grad);color:#06121a;text-decoration:none">Explore Image Tools →</a></div>
     <div class="art-nav" style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.06);margin-top:48px;flex-wrap:wrap">

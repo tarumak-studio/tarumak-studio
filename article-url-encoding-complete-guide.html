@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>URL Encoding Complete Guide | Tarumak Studio</title>
+  <title>URL Encoding Complete Guide</title>
   <meta name="description" content="URL encoding converts unsafe characters into a format safe for URLs. Learn when to encode and the difference between encodeURI and encodeURIComponent.">
   <link rel="canonical" href="https://tarumakstudio.com/article-url-encoding-complete-guide">
   <meta property="og:type" content="article">
@@ -13,6 +13,7 @@
   <meta property="og:image" content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name" content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-27T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="URL Encoding Explained: What It Is, Why It Matters, and When to Use It — Tarumak Studio">
@@ -31,7 +32,7 @@
       "description": "URL encoding (percent-encoding) converts unsafe characters into a format safe for URLs. Learn when to encode, the difference between encodeURI and encodeURIComponent, and common encoding mistakes.",
       "url": "https://tarumakstudio.com/article-url-encoding-complete-guide",
       "datePublished": "2026-06-27T00:00:00Z",
-      "dateModified": "2026-06-27T00:00:00Z",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -87,7 +88,7 @@
           "name": "Why do some URLs have + instead of %20 for spaces?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The application/x-www-form-urlencoded format (HTML form submissions) encodes spaces as + rather than %20. Both represent spaces but the two schemes are not interchangeable. %20 is correct for path segments and most modern contexts."
+            "text": "The application/x-www-form-urlencoded format (used in HTML form submissions) encodes spaces as + rather than %20. Both represent a space, but the two encoding schemes are not interchangeable. %20 is correct for path segments and most modern contexts. + for spaces is specific to form data encoding."
           }
         },
         {
@@ -95,7 +96,7 @@
           "name": "Does URL encoding affect SEO?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Google handles URL-encoded URLs well. However, clean human-readable URLs without unnecessary encoding are preferred for both SEO and user experience. Use hyphens instead of %20 for spaces in permanent URLs."
+            "text": "Google handles URL-encoded URLs well and decodes them for indexing. However, clean, human-readable URLs without unnecessary encoding are preferred both for SEO and user experience. Use hyphens instead of %20 for spaces in permanent URLs."
           }
         },
         {
@@ -103,14 +104,14 @@
           "name": "What is the difference between URL encoding and Base64 encoding?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "URL encoding makes characters safe for use within URLs. Base64 converts arbitrary binary data into ASCII characters safe for text contexts. They solve different problems and are not interchangeable."
+            "text": "URL encoding makes specific characters safe for use within URLs. Base64 encoding converts arbitrary binary data into a set of ASCII characters safe for text contexts like HTML attributes, JSON values, and email. They solve different problems and are not interchangeable."
           }
         }
       ]
     }
   ]
 }
-  </script>
+</script>
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* :root now supplied by main.css \u2014 single source of truth for design tokens site-wide */
@@ -317,17 +318,15 @@ main{flex:1}
     <a href="/developer-tools" style="text-decoration:none"><div class="art-cat" style="color:var(--tc-green)">Developer Tools</div></a>
     <h1 class="art-h1">URL Encoding Explained: What It Is, Why It Matters, and When to Use It</h1>
     <div class="art-meta">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 min read</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2026-06-27 · Updated November 2026</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4 min read</span>
     </div>
     <div class="art-body">
 
 <p>URLs can only contain a specific set of characters. Everything else must be converted into a safe format before it can be sent as part of a URL. This process is called URL encoding or percent-encoding. Understanding it matters for developers building APIs, marketers constructing campaign URLs, and anyone debugging why a link is not working.</p>
 
 <h2>What is URL encoding?</h2>
-<p>URL encoding converts characters that are not allowed in URLs (or that have special meaning) into a percent sign followed by two hexadecimal digits representing the character's ASCII code.</p>
-
-<p>A space becomes <code>%20</code>. An ampersand becomes <code>%26</code>. A hash becomes <code>%23</code>. You have seen this if you have ever copied a URL from an address bar and pasted it somewhere else:</p>
+<p>URL encoding writes a character as its UTF-8 bytes, each as a percent sign and two hexadecimal digits. A space becomes %20, an ampersand %26, a hash %23, and é, which has two bytes, %C3%A9.</p>
 <div class="art-callout"><code>https://example.com/search?q=red%20shoes%20size%2010</code></div>
 <p>The <code>%20</code> values represent spaces — "red shoes size 10" as a URL-safe query string.</p>
 
@@ -343,10 +342,10 @@ main{flex:1}
 <h2>encodeURI vs encodeURIComponent</h2>
 <p>JavaScript provides two built-in functions for URL encoding:</p>
 
-<p><strong><code>encodeURI()</code></strong> encodes a full URL. It leaves structural characters (<code>:/?#[]@!$&'()*+,;=</code>) intact because they are needed for the URL structure. Use this when encoding a complete URL.</p>
+<p><strong>encodeURI()</strong> is for a complete address. It leaves characters with a structural meaning intact, such as : / ? # @ &amp; = + , and ;. Square brackets are encoded.</p>
 <div class="art-callout"><code>encodeURI("https://example.com/search?q=red shoes")<br>→ "https://example.com/search?q=red%20shoes"</code></div>
 
-<p><strong><code>encodeURIComponent()</code></strong> encodes everything including structural characters. Use this when encoding a value that will be placed inside a query string parameter — because an unencoded <code>&</code> or <code>=</code> inside a parameter value would break the URL structure.</p>
+<p><strong>encodeURIComponent()</strong> is for one value inside an address. It encodes the structural characters too, but leaves ! ' ( ) * as they are. An unencoded &amp; or = in a value would break the address.</p>
 <div class="art-callout"><code>encodeURIComponent("price=100&size=10")<br>→ "price%3D100%26size%3D10"</code></div>
 
 <p>The most common mistake is using <code>encodeURI</code> for parameter values — the <code>&</code> in the value gets treated as a parameter separator instead of part of the value.</p>
@@ -354,7 +353,7 @@ main{flex:1}
 <h2>When you actually need URL encoding</h2>
 <p><strong>Building API request URLs.</strong> Query string values often contain user input — names, addresses, search terms. Always <code>encodeURIComponent()</code> each value before concatenating it into a query string.</p>
 
-<p><strong>UTM campaign parameters.</strong> A UTM source value like "Google Ads" contains a space. Without encoding, the URL breaks. Proper UTM builders handle this automatically, but if you are constructing URLs manually, encode all parameter values.</p>
+<p><strong>UTM campaign parameters.</strong> A value such as “Google Ads” contains a space. Browsers repair some of this, other programs do not, and an &amp; in a value always cuts it off. The <a href="/utm-builder">UTM Link Builder</a> encodes values for you.</p>
 
 <p><strong>Sharing content with special characters.</strong> Sharing a URL in a tweet or email that contains characters like <code>#</code> or <code>?</code> in the path (not as structural characters) requires encoding them so they are not interpreted as anchors or query string starts.</p>
 
@@ -364,7 +363,7 @@ main{flex:1}
 <p>Decoding reverses the process — <code>%20</code> back to a space, <code>%26</code> back to <code>&</code>. In JavaScript: <code>decodeURI()</code> and <code>decodeURIComponent()</code>. The browser tool linked below handles both directions instantly.</p>
 
 <h2>Double encoding — the common mistake</h2>
-<p>Double encoding happens when an already-encoded string is encoded again: <code>%20</code> becomes <code>%2520</code> (the <code>%</code> gets encoded to <code>%25</code>). This breaks the URL at the receiving end. Always decode before re-encoding if you are unsure of the current state of a string.</p>
+<p>Double encoding happens when an encoded text is encoded again: %20 becomes %2520. Encode exactly once, at the moment you build the address. Decoding “to be safe” can damage values that really contain a percent sign.</p>
 
 <h2>Frequently asked questions</h2>
 <details class="art-faq"><summary>Why do some URLs have + instead of %20 for spaces?</summary>

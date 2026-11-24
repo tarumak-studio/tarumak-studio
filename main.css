@@ -2327,10 +2327,6 @@ footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(i
 .fcol a{display:block;font-size:14px;color:var(--text-dim);padding:5px 0;cursor:pointer}
 .fcol a:hover{color:var(--p1)}
 .fcol .desc{font-size:13.5px;color:var(--text-dim);margin:14px 0 18px;max-width:260px}
-.socials{display:flex;gap:10px}
-.soc{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--text-dim);transition:.3s var(--ease)}
-.soc svg{width:17px;height:17px}.soc:hover{transform:translateY(-3px) scale(1.05)}
-.soc.fb:hover{background:#1877f2;color:#fff}.soc.ig:hover{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:#fff}.soc.tw:hover{background:#fff;color:#000}[data-theme="light"] .soc.tw:hover{background:#000;color:#fff}.soc.li:hover{background:#0a66c2;color:#fff}
 .fbar{border-top:1px solid var(--border);padding:20px 0;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text-faint)}
 @media (max-width: 980px) { .fgrid { grid-template-columns: 1fr 1fr; gap: 30px; } .trust { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .fgrid { grid-template-columns: 1fr; } }

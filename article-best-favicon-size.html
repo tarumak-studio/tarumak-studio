@@ -3,25 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Favicon Size Guide: What Size Should… | Tarumak Studio</title>
-  <meta name="description" content="The complete guide to favicon sizes — what dimensions you need, which formats to use, and how to generate them all at once.">
+  <title>Favicon Sizes: Which Files You Need and How to Add Them</title>
+  <meta name="description" content="The favicon sizes that matter, the HTML to add them, how to design an icon that works at 16 pixels, and why browsers and Google keep showing the old one.">
     <meta name="keywords" content="2026, browser dev tools, browser-based tools, favicon, free coding tools, free developer tools, free online tools, guide:, should, size, tarumak studio, web developer utilities">
   <link rel="canonical" href="https://tarumakstudio.com/article-best-favicon-size">
 
   <!-- Open Graph -->
   <meta property="og:type"        content="article">
   <meta property="og:title"       content="Favicon Size Guide: What Size Should Your Favicon Be in 2026? — Tarumak Studio">
-  <meta property="og:description" content="The complete guide to favicon sizes — what dimensions you need, which formats to use, and how to generate them all at once.">
+  <meta property="og:description" content="The favicon sizes that matter, the HTML to add them, how to design an icon that works at 16 pixels, and why browsers and Google keep showing the old one.">
   <meta property="og:url"         content="https://tarumakstudio.com/article-best-favicon-size">
   <meta property="og:image"       content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name"   content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-26T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="Favicon Size Guide: What Size Should Your Favicon Be in 2026? — Tarumak Studio">
-  <meta name="twitter:description" content="The complete guide to favicon sizes — what dimensions you need, which formats to use, and how to generate them all at once.">
+  <meta name="twitter:description" content="The favicon sizes that matter, the HTML to add them, how to design an icon that works at 16 pixels, and why browsers and Google keep showing the old one.">
   <meta name="twitter:image"       content="https://tarumakstudio.com/og-image.png">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -37,10 +38,10 @@
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": "Favicon Size Guide: What Size Should Your Favicon Be in 2026?",
-      "description": "The complete guide to favicon sizes — what dimensions you need, which formats to use, and how to generate them all at once.",
+      "description": "The favicon sizes that matter, the HTML to add them, how to design an icon that works at 16 pixels, and why browsers and Google keep showing the old one.",
       "url": "https://tarumakstudio.com/article-best-favicon-size",
       "datePublished": "2026-06-26",
-      "dateModified": "2026-06-26",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -97,18 +98,34 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Can I use a JPG as a favicon?",
+          "name": "What is the best favicon size?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "JPG is supported by most browsers but PNG is preferred because it supports transparency — so the favicon looks good on any browser tab background color."
+            "text": "There is no single one. An ICO with 16, 32 and 48 pixels plus a 180 pixel touch icon covers most sites."
           }
         },
         {
           "@type": "Question",
-          "name": "Why is my new favicon not showing up?",
+          "name": "Can I use a JPG or GIF?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Browsers aggressively cache favicons. Do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) or clear your browser cache. It can take several hours for all visitors to see the new favicon."
+            "text": "Some browsers accept them, but PNG and ICO are safer and support transparency."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I still need favicon.ico?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is sensible. Browsers, feed readers and other programs request it without being told."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long until Google shows the new icon?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "From several days to a few weeks, after the home page has been crawled again."
           }
         }
       ]
@@ -331,29 +348,53 @@ main{flex:1}
     <div class="art-meta">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        June 2026
+        June 2026 · Updated November 2026
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        3 min read
+        4 min read
       </span>
     </div>
 
     <!-- Article body -->
     <div class="art-body">
-      <h2>What is a favicon?</h2>
-<p>A favicon is the small icon that appears in the browser tab, bookmarks bar and search results next to your website name. A missing or low-resolution favicon makes a site look unfinished and untrustworthy.</p>
+<p>A favicon is the small icon in the browser tab, in bookmarks, on a phone’s home screen and next to your site in Google. Old guides list twenty files. You need five, and a design that survives being sixteen pixels wide.</p>
 <a href="/favicon-generator" class="tool-cta-link">Generate Favicons Free →</a>
-<h2>Required favicon sizes in 2026</h2>
-<ul><li><strong>16 × 16 px</strong> — browser tab (desktop)</li><li><strong>32 × 32 px</strong> — browser tab (high DPI), Windows taskbar</li><li><strong>48 × 48 px</strong> — Windows site shortcuts</li><li><strong>64 × 64 px</strong> — high-DPI displays</li><li><strong>180 × 180 px</strong> — Apple Touch Icon (iPhone home screen)</li><li><strong>192 × 192 px</strong> — Android Chrome home screen</li><li><strong>512 × 512 px</strong> — PWA splash screen, Google search</li></ul>
-<h2>Which format to use</h2>
-<p>Create your favicon in <strong>PNG format</strong> for all sizes. The legacy .ico file (which packs 16px and 32px into one file) is still supported by some older browsers and can be included for maximum compatibility. The <a href="/favicon-generator">TARUMAK Favicon Generator</a> creates all sizes from your original image.</p>
-<h2>How to add your favicon</h2>
-<div class="art-callout"><p>&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;<br>&lt;link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"&gt;<br>&lt;link rel="icon" type="image/x-icon" href="/favicon.ico"&gt;</p></div>
-<h2>Favicon design tips</h2>
-<ul><li>Use a simple shape — detail is lost at 16px</li><li>Avoid text unless it is a single letter or two characters</li><li>Use high contrast between the icon and background</li><li>Test at actual size (16px) before finalising</li></ul>
-<details class="art-faq"><summary>Can I use a JPG as a favicon?</summary><p>JPG is supported by most browsers but PNG is preferred because it supports transparency — so the favicon looks good on any browser tab background color.</p></details>
-<details class="art-faq"><summary>Why is my new favicon not showing up?</summary><p>Browsers aggressively cache favicons. Do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) or clear your browser cache. It can take several hours for all visitors to see the new favicon.</p></details>
+<h2>The files that matter</h2>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">File</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Size</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Used for</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">favicon.ico</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">16, 32, 48 inside</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Tabs, bookmarks, feed readers; requested automatically</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">PNG</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">32 × 32</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Tabs on sharp screens</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">apple-touch-icon.png</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">180 × 180</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">iPhone and iPad home screen</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">PNG</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">192 × 192</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Android home screen</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">PNG</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">512 × 512</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Installable web apps, splash screen</td></tr>
+</tbody></table></div>
+<p>An additional <strong>SVG</strong> icon is optional. It is sharp at any size and can adapt to dark mode, but not every browser uses it, so keep the ICO as a fallback. The <a href="/favicon-generator">Favicon Generator</a> creates the ICO and PNG files from 16 to 512 pixels; it does not make an SVG, which comes from your logo’s original file.</p>
+<h2>Adding them to your site</h2>
+<p>Upload the files to the root folder and put this into the head of every page:</p>
+<div class="art-callout"><code>&lt;link rel="icon" href="/favicon.ico" sizes="48x48"&gt;<br>&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;<br>&lt;link rel="apple-touch-icon" href="/apple-touch-icon.png"&gt;</code></div>
+<p>Use the names of the files you actually uploaded; the generator gives you matching tags to copy. The 192 and 512 pixel icons belong in a web app manifest, and you only need one if people should be able to install your site like an app. In WordPress, Shopify and most builders you upload one large square picture under “Site icon” or “Favicon”, and the system does the rest.</p>
+<h2>Designing for sixteen pixels</h2>
+<ul><li><strong>Use a symbol or one letter.</strong> A full logo with a name becomes a smudge.</li>
+<li><strong>Thick shapes, few details.</strong> At 16 pixels a thin line is thinner than one pixel and turns grey.</li>
+<li><strong>Strong contrast</strong> inside the icon, because tabs can be white, grey or black. A dark symbol on a transparent background disappears in dark mode; place it on a coloured shape.</li>
+<li><strong>Fill the square.</strong> Generous margins waste pixels.</li>
+<li><strong>Recognisable colour.</strong> People find the right tab by colour before they see the shape.</li></ul>
+<p>Test it at real size, among ten other tabs, in light and dark mode.</p>
+<h2>The home screen icon is different</h2>
+<p>iPhones round the corners themselves and fill transparent areas with black. Give the 180 pixel icon a solid background and keep the symbol about 20 pixels away from the edge. Android may cut icons to a circle, so leave even more room there.</p>
+<h2>Step by step with the generator</h2>
+<ol><li>Start with a square picture of at least 512 × 512 pixels, ideally a transparent PNG or an SVG.</li><li>Choose Fit, which keeps the whole logo, or Crop, which fills the square from the centre.</li><li>Look at the 16 pixel version. If it is unclear, simplify the logo.</li><li>Download favicon.ico and the PNG files.</li><li>Upload them and copy the tags.</li></ol>
+<h2>Favicons in Google</h2>
+<p>Google shows the icon beside your results. It should be square, at least 8 × 8 pixels with a multiple of 48 recommended, and linked from the home page. The crawler must be able to reach both the icon and the home page, so check robots.txt. There is one icon per host name, and changes can take days or weeks.</p>
+<h2>Why does the old icon still appear?</h2>
+<ol><li>Open example.com/favicon.ico directly. If you see the old icon there, the upload failed or a cache sits in front of your server.</li><li>Open the site in a private window.</li><li>Add a version to the links, such as /favicon.ico?v=2.</li><li>Bookmarks and home screen icons are stored separately. Delete and add them again.</li></ol>
+<h2>Common mistakes</h2>
+<ul><li>Renaming a PNG to .ico. Some browsers cope, others show nothing.</li><li>A rectangular picture that is squeezed.</li><li>One 2,000 pixel image linked for everything, loaded on each visit.</li><li>Several conflicting icon tags from a theme and a plugin.</li></ul>
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>What is the best favicon size?</summary><p>There is no single one. An ICO with 16, 32 and 48 pixels plus a 180 pixel touch icon covers most sites.</p></details>
+<details class="art-faq"><summary>Can I use a JPG or GIF?</summary><p>Some browsers accept them, but PNG and ICO are safer and support transparency.</p></details>
+<details class="art-faq"><summary>Do I still need favicon.ico?</summary><p>It is sensible. Browsers, feed readers and other programs request it without being told.</p></details>
+<details class="art-faq"><summary>How long until Google shows the new icon?</summary><p>From several days to a few weeks, after the home page has been crawled again.</p></details>
 
     </div>
 
@@ -372,20 +413,15 @@ main{flex:1}
       <h2 style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-.5px">Related articles</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
         
-      <a href="/article-free-favicon-generator" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='rgba(255,255,255,.18)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-        <div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tc-green);margin-bottom:6px">Developer Tools</div>
-        <div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px">Free Favicon Generator — Create Website Favicons in All Sizes</div>
-        <div style="font-size:12px;color:var(--text-faint)">June 2026 &middot; 3 min read</div>
-      </a>
       <a href="/article-meta-tags-seo-guide" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='rgba(255,255,255,.18)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
         <div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tc-green);margin-bottom:6px">Developer Tools</div>
         <div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px">Meta Tags for SEO — Complete Guide with Examples (2026)</div>
         <div style="font-size:12px;color:var(--text-faint)">June 2026 &middot; 6 min read</div>
       </a>
-      <a href="/article-web-design-tools-2026" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='rgba(255,255,255,.18)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+      <a href="/article-best-free-tools-designers-2026" style="display:block;padding:16px 18px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.08);border-radius:12px;text-decoration:none;transition:.2s" onmouseover="this.style.borderColor='rgba(255,255,255,.18)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
         <div style="font-family:Space Grotesk,sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tc-green);margin-bottom:6px">Developer Tools</div>
-        <div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px">Best Free Web Design Tools in 2026 — No Subscription Needed</div>
-        <div style="font-size:12px;color:var(--text-faint)">June 2026 &middot; 6 min read</div>
+        <div style="font-family:Space Grotesk,sans-serif;font-size:14.5px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px">20 Best Free Online Tools for Graphic Designers in 2026</div>
+        <div style="font-size:12px;color:var(--text-faint)">June 2026 &middot; 3 min read</div>
       </a>
       </div>
     </div>
@@ -409,7 +445,7 @@ main{flex:1}
 </div></footer>
 <script src="/config.js?v=bbf77376ef" defer></script>
 <script src="/utils.js?v=59c4870233" defer></script>
-<script src="/data.js?v=1d8c663019" defer></script>
+<script src="/data.js?v=f4afbcfe10" defer></script>
 <script src="/features.js?v=5a9249b2ad" defer></script>
 <script src="/analytics.js?v=d5f4522748" defer></script>
 <script src="/mega-menu.js?v=d7c748265f" defer></script>

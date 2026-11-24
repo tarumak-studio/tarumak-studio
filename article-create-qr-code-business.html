@@ -3,25 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>How to Create a QR Code for Your… | Tarumak Studio</title>
-  <meta name="description" content="Generate a free QR code for your website, menu, business card or social media. Download as high-resolution PNG. No sign-up, no watermarks.">
+  <title>QR Codes for Business: Print Size, Testing, Pitfalls</title>
+  <meta name="description" content="Create a QR code that scans first time. The right size for the distance, quiet zone, colours, Wi-Fi and WhatsApp codes, and how to keep the link changeable.">
     <meta name="keywords" content="browser-based converter, browser-based tools, business, code, convert files online, create, free file converter, free online tools, generator, online converter, tarumak studio">
   <link rel="canonical" href="https://tarumakstudio.com/article-create-qr-code-business">
 
   <!-- Open Graph -->
   <meta property="og:type"        content="article">
   <meta property="og:title"       content="How to Create a QR Code for Your Business — Free Generator — Tarumak Studio">
-  <meta property="og:description" content="Generate a free QR code for your website, menu, business card or social media. Download as high-resolution PNG. No sign-up, no watermarks.">
+  <meta property="og:description" content="Create a QR code that scans first time. The right size for the distance, quiet zone, colours, Wi-Fi and WhatsApp codes, and how to keep the link changeable.">
   <meta property="og:url"         content="https://tarumakstudio.com/article-create-qr-code-business">
   <meta property="og:image"       content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name"   content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-26T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="How to Create a QR Code for Your Business — Free Generator — Tarumak Studio">
-  <meta name="twitter:description" content="Generate a free QR code for your website, menu, business card or social media. Download as high-resolution PNG. No sign-up, no watermarks.">
+  <meta name="twitter:description" content="Create a QR code that scans first time. The right size for the distance, quiet zone, colours, Wi-Fi and WhatsApp codes, and how to keep the link changeable.">
   <meta name="twitter:image"       content="https://tarumakstudio.com/og-image.png">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -37,10 +38,10 @@
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": "How to Create a QR Code for Your Business — Free Generator",
-      "description": "Generate a free QR code for your website, menu, business card or social media. Download as high-resolution PNG. No sign-up, no watermarks.",
+      "description": "Create a QR code that scans first time. The right size for the distance, quiet zone, colours, Wi-Fi and WhatsApp codes, and how to keep the link changeable.",
       "url": "https://tarumakstudio.com/article-create-qr-code-business",
       "datePublished": "2026-06-26",
-      "dateModified": "2026-06-26",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -97,18 +98,34 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "How long does a QR code last?",
+          "name": "Do QR codes expire?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Forever, if the URL it points to stays live. If the website goes down, the QR code stops working. Use a URL shortener (like bit.ly) so you can redirect the code even after printing."
+            "text": "Static codes do not. They work as long as the page behind them exists."
           }
         },
         {
           "@type": "Question",
-          "name": "Can I put a logo inside a QR code?",
+          "name": "Can I change the link later?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "QR codes have built-in error correction that allows up to 30% of the pattern to be obscured. A small logo in the centre works — but always test that it still scans reliably after adding the logo."
+            "text": "Not inside a static code. Encode an address on your own site that you can redirect."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I see how many people scanned it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use a link with UTM parameters and look at the visits in your analytics."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does my code not scan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually it is too small, has too little contrast or no white margin, or contains too much text."
           }
         }
       ]
@@ -331,7 +348,7 @@ main{flex:1}
     <div class="art-meta">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        June 2026
+        June 2026 · Updated November 2026
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -341,18 +358,49 @@ main{flex:1}
 
     <!-- Article body -->
     <div class="art-body">
-      <p>QR codes have made a permanent comeback. Restaurant menus, business cards, product packaging, event posters — they appear everywhere. Generating one takes 10 seconds and costs nothing.</p>
+<p>A QR code is a link that can be printed. It belongs wherever somebody stands in front of your business with a phone in hand: on a menu, a package, a shop window, an invoice. Most codes that fail do so for boring reasons, such as size, contrast or a dead link, and all of them can be avoided.</p>
 <a href="/qr-code-generator" class="tool-cta-link">Generate QR Code Free →</a>
-<h2>What can a QR code link to?</h2>
-<ul><li><strong>Website URL</strong>: Direct visitors to your homepage or a specific landing page</li><li><strong>Google Maps</strong>: Link to your business location for easy navigation</li><li><strong>WhatsApp</strong>: Pre-fill a message to your business number</li><li><strong>PDF menu or brochure</strong>: Host on Google Drive and link to the share URL</li><li><strong>Social media profile</strong>: Instagram, LinkedIn, or any platform URL</li><li><strong>Payment link</strong>: UPI, PayPal, or Razorpay payment URLs</li><li><strong>Plain text</strong>: WiFi passwords, short instructions, contact information</li></ul>
-<h2>QR code size for print</h2>
-<p>Download at the highest resolution available. For print use:</p>
-<ul><li>Business card: minimum 2cm × 2cm (800px at 300 DPI)</li><li>A4 poster: minimum 4cm × 4cm</li><li>Outdoor banner: minimum 8cm × 8cm</li></ul>
-<p>Always test your printed QR code by scanning it before large print runs.</p>
-<h2>QR code best practices</h2>
-<ul><li>Always include a short URL hint below the QR code ("Scan to view menu")</li><li>Leave white space (quiet zone) around the code — do not crop edges</li><li>Test at the smallest size you plan to print it</li><li>Use a dark code on a white or light background (not the reverse)</li><li>For business use, use a URL shortener so you can change the destination without reprinting</li></ul>
-<details class="art-faq"><summary>How long does a QR code last?</summary><p>Forever, if the URL it points to stays live. If the website goes down, the QR code stops working. Use a URL shortener (like bit.ly) so you can redirect the code even after printing.</p></details>
-<details class="art-faq"><summary>Can I put a logo inside a QR code?</summary><p>QR codes have built-in error correction that allows up to 30% of the pattern to be obscured. A small logo in the centre works — but always test that it still scans reliably after adding the logo.</p></details>
+<h2>What to put in it</h2>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Goal</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Content</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Menu, product or offer</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The address of that exact page, not your home page</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Directions</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The share link from your map listing</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">WhatsApp chat</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">https://wa.me/ followed by the number with country code, digits only</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Guest Wi-Fi</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The Wi-Fi type in the generator: name, password, security</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Contact by e-mail</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The Email type, which opens a new message</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Reviews</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The review link from your business profile</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Payment</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Only the official code from your payment provider</td></tr>
+</tbody></table></div>
+<h2>Static or dynamic?</h2>
+<p>A <strong>static</strong> code contains the information itself. It needs no account, has no expiry date and cannot be changed. Our <a href="/qr-code-generator">QR Code Generator</a> makes this kind.</p>
+<p>A <strong>dynamic</strong> code contains the address of a service that forwards to your page. It can be changed and counted, but stops working when the service or your subscription does.</p>
+<p>The best of both: encode a short address on your own domain, such as example.com/menu, and redirect it. You can change the target at any time and depend on nobody. If you want to count scans, let it redirect to a link made with the <a href="/utm-builder">UTM Link Builder</a>.</p>
+<h2>How large must it be?</h2>
+<p>A common rule is one tenth of the scanning distance.</p>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Where</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Distance</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Width of the code</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Business card, label</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">15 to 20 cm</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">2 cm</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Table stand, flyer</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">30 to 40 cm</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">3 to 4 cm</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Poster</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">1 m</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">10 cm</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Shop window</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">2 m</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">20 cm</td></tr>
+</tbody></table></div>
+<p>Long content makes a finer pattern that needs more space. Keep links short: it is the easiest improvement there is.</p>
+<h2>Resolution for print</h2>
+<p>The download is a PNG of 512 × 512 pixels. At 300 dots per inch that is about 4.3 cm, enough for cards and flyers. For larger prints, enlarge it without smoothing (“nearest neighbour” in image software), because a QR code consists of squares and survives that well. For big banners, ask your printer whether they prefer a vector file.</p>
+<h2>Quiet zone and colour</h2>
+<ul><li><strong>Leave white space around the code</strong>, at least four of its small squares on each side. The PNG has only a narrow margin, so place it on a white area and not directly against text or a dark edge.</li>
+<li><strong>Dark code, light background.</strong> Many scanners read inverted codes, but not all.</li>
+<li><strong>No gradients, no photo behind it, no distortion.</strong></li>
+<li><strong>Logo in the middle?</strong> It hides part of the data. Codes with the highest error correction can lose up to about 30%, but this tool uses medium correction, about 15%, or low for long content. Put your logo next to the code.</li></ul>
+<h2>Tell people what happens</h2>
+<p>“Scan for today’s menu” is scanned more readily than a bare square, since people know what they will get. Print the short address below it for those who cannot scan, and check that the page behind it loads quickly and fits a phone.</p>
+<h2>Test before you print</h2>
+<ol><li>Print one copy at the final size on the final paper.</li><li>Scan it with an iPhone and an Android phone, one of them old.</li><li>Test in the real light, at the real distance, and behind glass if there is glass.</li><li>Follow the link to the end and use it as a customer would.</li><li>Put a date in the calendar to scan it again every few months.</li></ol>
+<h2>Safety</h2>
+<p>Criminals paste their own codes over real ones, on parking meters and payment signs in particular. Check your public codes regularly, use your own domain so customers can recognise the address, and never ask for passwords behind a code. For Wi-Fi codes use a guest network: anyone who photographs the code has the password.</p>
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>Do QR codes expire?</summary><p>Static codes do not. They work as long as the page behind them exists.</p></details>
+<details class="art-faq"><summary>Can I change the link later?</summary><p>Not inside a static code. Encode an address on your own site that you can redirect.</p></details>
+<details class="art-faq"><summary>Can I see how many people scanned it?</summary><p>Use a link with UTM parameters and look at the visits in your analytics.</p></details>
+<details class="art-faq"><summary>Why does my code not scan?</summary><p>Usually it is too small, has too little contrast or no white margin, or contains too much text.</p></details>
     </div>
 
     <!-- Bottom navigation -->

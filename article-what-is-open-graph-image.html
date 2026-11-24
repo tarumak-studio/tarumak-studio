@@ -3,25 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Open Graph Images: What They Are and… | Tarumak Studio</title>
-  <meta name="description" content="OG images are the preview images that appear when you share a link on social media. Here is how to make one that gets clicked.">
+  <title>Open Graph Images: Size, Tags and Fixing Previews</title>
+  <meta name="description" content="What an Open Graph image is, the size and tags to use, how to design one that reads at thumbnail size, and how to fix a preview that is missing or outdated.">
     <meta name="keywords" content="browser-based tools, create, designer marketing, free marketing tools, free online tools, graph, image, images:, marketing design tools, open, social media design, tarumak studio">
   <link rel="canonical" href="https://tarumakstudio.com/article-what-is-open-graph-image">
 
   <!-- Open Graph -->
   <meta property="og:type"        content="article">
   <meta property="og:title"       content="Open Graph Images: What They Are and How to Create One — Tarumak Studio">
-  <meta property="og:description" content="OG images are the preview images that appear when you share a link on social media. Here is how to make one that gets clicked.">
+  <meta property="og:description" content="What an Open Graph image is, the size and tags to use, how to design one that reads at thumbnail size, and how to fix a preview that is missing or outdated.">
   <meta property="og:url"         content="https://tarumakstudio.com/article-what-is-open-graph-image">
   <meta property="og:image"       content="https://tarumakstudio.com/og-image.png">
   <meta property="og:site_name"   content="Tarumak Studio">
   <meta property="article:published_time" content="2026-06-26T00:00:00Z">
+  <meta property="article:modified_time" content="2026-11-24T00:00:00Z">
   <meta property="article:author" content="Sudhir Kumar">
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="Open Graph Images: What They Are and How to Create One — Tarumak Studio">
-  <meta name="twitter:description" content="OG images are the preview images that appear when you share a link on social media. Here is how to make one that gets clicked.">
+  <meta name="twitter:description" content="What an Open Graph image is, the size and tags to use, how to design one that reads at thumbnail size, and how to fix a preview that is missing or outdated.">
   <meta name="twitter:image"       content="https://tarumakstudio.com/og-image.png">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -37,10 +38,10 @@
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": "Open Graph Images: What They Are and How to Create One",
-      "description": "OG images are the preview images that appear when you share a link on social media. Here is how to make one that gets clicked.",
+      "description": "What an Open Graph image is, the size and tags to use, how to design one that reads at thumbnail size, and how to fix a preview that is missing or outdated.",
       "url": "https://tarumakstudio.com/article-what-is-open-graph-image",
       "datePublished": "2026-06-26",
-      "dateModified": "2026-06-26",
+      "dateModified": "2026-11-24",
       "author": {
         "@type": "Person",
         "name": "Sudhir Kumar",
@@ -97,18 +98,34 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Why is my OG image not showing on social media?",
+          "name": "What size should an Open Graph image be?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Most likely a caching issue. Facebook and LinkedIn cache OG data aggressively. Use the platform debugger tools to force a refresh. Also make sure the image URL is absolute (starts with https://) not relative."
+            "text": "1200 × 630 pixels, saved as JPG or PNG."
           }
         },
         {
           "@type": "Question",
-          "name": "Can I use the same OG image for every page?",
+          "name": "Why does the old image still appear?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Technically yes, but it reduces engagement. Unique OG images per post or page perform significantly better, especially on LinkedIn and Twitter."
+            "text": "Networks store previews. Request a new scrape in their debugger or use a new file name."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need a separate image for X?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. X uses og:image if there is no twitter:image. Set twitter:card to summary_large_image for the large format."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use the same image for every page?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, but a picture that shows the subject of the page tells people more."
           }
         }
       ]
@@ -331,7 +348,7 @@ main{flex:1}
     <div class="art-meta">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        June 2026
+        June 2026 · Updated November 2026
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -341,20 +358,43 @@ main{flex:1}
 
     <!-- Article body -->
     <div class="art-body">
-      <h2>What is an Open Graph image?</h2>
-<p>An Open Graph (OG) image is the preview image that appears when you share a web page link on Facebook, Twitter, LinkedIn, WhatsApp or iMessage. Without one, platforms use a random image from the page — often a logo or an irrelevant photo. A good OG image dramatically increases click-through rates.</p>
+<p>When a link is pasted into WhatsApp, LinkedIn, Facebook, Slack or iMessage, a card with a title, a description and a picture appears. That picture is the Open Graph image, named after the set of tags Facebook introduced in 2010. If a page does not name one, the app picks something itself or shows nothing.</p>
 <a href="/og-image-gen" class="tool-cta-link">Create OG Image Free →</a>
-<h2>The correct OG image size</h2>
-<p>The standard OG image size is <strong>1200 × 630 px</strong> at 72 DPI. This ratio (1.91:1) works across all major platforms. Using a different size results in cropping or borders around the image.</p>
-<h2>How to add OG image to your website</h2>
-<p>Add this to the <code>&lt;head&gt;</code> of your HTML:</p>
-<div class="art-callout"><p>&lt;meta property="og:image" content="https://yoursite.com/og-image.png" /&gt;<br>&lt;meta property="og:title" content="Page Title" /&gt;<br>&lt;meta property="og:description" content="Page description" /&gt;</p></div>
-<h2>What makes a good OG image?</h2>
-<ul><li><strong>Clear headline text</strong> — readable even as a small thumbnail</li><li><strong>Brand colors</strong> — consistent with your site design</li><li><strong>Logo or brand name</strong> — so people recognise the source instantly</li><li><strong>No clutter</strong> — one message, one image, one CTA</li><li><strong>High contrast</strong> — text must be readable on all backgrounds</li></ul>
-<h2>Test your OG image</h2>
-<p>After adding the meta tag, use the Facebook Sharing Debugger or Twitter Card Validator to see exactly how your link preview will appear. These tools also let you force a cache refresh if you have updated the image.</p>
-<details class="art-faq"><summary>Why is my OG image not showing on social media?</summary><p>Most likely a caching issue. Facebook and LinkedIn cache OG data aggressively. Use the platform debugger tools to force a refresh. Also make sure the image URL is absolute (starts with https://) not relative.</p></details>
-<details class="art-faq"><summary>Can I use the same OG image for every page?</summary><p>Technically yes, but it reduces engagement. Unique OG images per post or page perform significantly better, especially on LinkedIn and Twitter.</p></details>
+<h2>Size and format</h2>
+<ul><li><strong>1200 × 630 pixels</strong>, a ratio of about 1.91 to 1. It is accepted practically everywhere.</li><li><strong>JPG or PNG.</strong> WebP works in many places but not reliably in all; SVG does not work.</li><li><strong>Light.</strong> Networks allow several megabytes, but messengers may skip heavy pictures. Below 300 KB you are on the safe side.</li></ul>
+<p>The dots-per-inch value found in many guides has no effect on screens. Only pixels count.</p>
+<h2>The tags</h2>
+<p>They go into the head of the page:</p>
+<div class="art-callout"><code>&lt;meta property="og:title" content="Title of the page"&gt;<br>&lt;meta property="og:description" content="One sentence."&gt;<br>&lt;meta property="og:type" content="article"&gt;<br>&lt;meta property="og:url" content="https://example.com/page"&gt;<br>&lt;meta property="og:image" content="https://example.com/og/page.jpg"&gt;<br>&lt;meta property="og:image:width" content="1200"&gt;<br>&lt;meta property="og:image:height" content="630"&gt;<br>&lt;meta property="og:image:alt" content="What the picture shows"&gt;<br>&lt;meta name="twitter:card" content="summary_large_image"&gt;</code></div>
+<p>The image address must be complete, beginning with https://. Width and height let a network show the card at once on the first share. X reads the Open Graph tags as well; the last line asks for the large format. The <a href="/meta-tag-gen">Meta Tag Generator</a> writes the set for you.</p>
+<h2>Designing for a thumbnail</h2>
+<p>In a chat the picture may be 300 pixels wide, a quarter of its real size. Text at 60 pixels then measures 15. From that follow some simple rules:</p>
+<ul><li>Five to eight words, at least 60 pixels high. The page title is shown beneath anyway, so the picture need not repeat it.</li><li>One picture or one colour area, no collage.</li><li>Brand name or logo in the same corner each time.</li><li>A margin of 60 to 80 pixels, since some apps round the corners or trim the sides. A few show a square from the centre.</li><li>Strong contrast that works in light and dark mode. White backgrounds without a border merge with a white chat.</li></ul>
+<p>Shrink your design to 300 pixels and look at it on a phone. If you cannot read it in two seconds, remove something.</p>
+<h2>One image for all pages, or one each?</h2>
+<p>A general image for the whole site is better than none. Articles, products and events deserve their own, because a card that shows the subject tells people what they will get. With many pages, make a template: same layout, changing title. Larger sites generate the pictures automatically when they are built.</p>
+<h2>Checking the result</h2>
+<ul><li><strong>Facebook:</strong> Sharing Debugger shows what was read and offers “Scrape again”.</li><li><strong>LinkedIn:</strong> Post Inspector does the same.</li><li><strong>X:</strong> the validator no longer shows a preview. Start a draft post with the link.</li><li><strong>WhatsApp and others:</strong> send the link to yourself.</li></ul>
+<h2>Why is the preview wrong?</h2>
+<div style="overflow-x:auto;margin:18px 0"><table style="width:100%;border-collapse:collapse;font-size:14.5px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Problem</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border-2);color:var(--text)">Usual cause</th></tr></thead><tbody>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Old picture</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Stored by the network. Use its debugger, or give the file a new name.</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">No picture</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Relative address, file blocked by robots.txt or login, or too heavy.</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Wrong picture</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Two og:image tags; often one from the theme and one from a plugin.</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Cropped text</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Too close to the edge, or another ratio.</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Works in the browser only</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">The tags are added by JavaScript. Most crawlers read just the HTML sent by the server.</td></tr>
+<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">Wrong page’s data</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top">og:url or the canonical link points elsewhere.</td></tr>
+</tbody></table></div>
+<h2>Is it good for SEO?</h2>
+<p>Not directly: Open Graph tags are made for sharing and are not a ranking factor. They can help indirectly, because links that look inviting are opened and passed on. Google may also use the picture as one of its sources for thumbnails.</p>
+<h2>Rights</h2>
+<p>The image travels with every share. Use your own pictures or ones with a suitable licence, and be careful with photos of people.</p>
+<h2>Checklist</h2>
+<ol><li>1200 × 630, JPG or PNG, below 300 KB.</li><li>Readable at 300 pixels.</li><li>Complete https address, reachable without login.</li><li>Exactly one og:image tag in the server’s HTML.</li><li>Tested in two apps after publishing.</li></ol>
+<h2>Frequently asked questions</h2>
+<details class="art-faq"><summary>What size should an Open Graph image be?</summary><p>1200 × 630 pixels, saved as JPG or PNG.</p></details>
+<details class="art-faq"><summary>Why does the old image still appear?</summary><p>Networks store previews. Request a new scrape in their debugger or use a new file name.</p></details>
+<details class="art-faq"><summary>Do I need a separate image for X?</summary><p>No. X uses og:image if there is no twitter:image. Set twitter:card to summary_large_image for the large format.</p></details>
+<details class="art-faq"><summary>Can I use the same image for every page?</summary><p>Yes, but a picture that shows the subject of the page tells people more.</p></details>
 
     </div>
 

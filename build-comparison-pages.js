@@ -128,7 +128,7 @@ function renderHowItWorks(cfg) {
     <h2 id="cmp-how-h">How ${esc(SITE_NAME)} works</h2>
     <p class="tp-sub">The part of this comparison that's structural, not a matter of opinion.</p>
     <div class="tp-benefits">
-      <div class="tp-benefit"><h3>Runs on your device</h3><p>Processing happens in your browser using the Canvas API (and WebGL/TensorFlow.js for the AI tools) \u2014 ${esc(TARUMAK_PROFILE.uploadRequired.toLowerCase())}.</p></div>
+      <div class="tp-benefit"><h3>Runs on your device</h3><p>Processing happens in your browser using the Canvas API (and WebAssembly or WebGL for the AI tools). Your files are not uploaded.</p></div>
       <div class="tp-benefit"><h3>No account, ever</h3><p>Signup is ${esc(TARUMAK_PROFILE.signup.toLowerCase())} for any tool on Tarumak Studio, including this one.</p></div>
       <div class="tp-benefit"><h3>Free, with no catch</h3><p>${esc(TARUMAK_PROFILE.pricing)}, no watermark, no resolution cap tied to a paid tier.</p></div>
     </div>
@@ -279,7 +279,7 @@ COMPARISONS.forEach(c => {
 const HUB_FAQ = [
   ['How do you choose which comparisons to write?', `We start with the tools people already search for as alternatives to Tarumak Studio's own tools \u2014 Remove.bg, TinyPNG and similar well-known services in each category. As Tarumak Studio adds more tools, more comparisons get added to match.`],
   ['Are these comparisons sponsored?', `No. Tarumak Studio doesn't accept payment from the companies it's compared against, and every comparison explicitly says so on the page. Where a competitor genuinely does something better, the comparison says that too.`],
-  ['How is each comparison actually put together?', `By using each tool's real, current public offering \u2014 checking their own documented pricing, privacy policy and feature list directly, cross-checking against multiple independent sources, and being explicit whenever a specific claim (like an exact price) may have changed since publication. We don't run our own formal speed benchmarks and don't present invented numbers as measured results.`],
+  ['How is each comparison actually put together?', `By reading each company's own public pages on plans, privacy and features, and noting the date. Claims we could not confirm there are left out. We don't run our own formal speed benchmarks and don't present invented numbers as measured results.`],
   ['Can I suggest a comparison?', `Yes \u2014 use the Contact page. Requests for tools a lot of people are actually comparing against are the ones most likely to get written next.`],
 ];
 

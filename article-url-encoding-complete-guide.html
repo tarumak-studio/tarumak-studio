@@ -326,7 +326,7 @@ main{flex:1}
 <p>URLs can only contain a specific set of characters. Everything else must be converted into a safe format before it can be sent as part of a URL. This process is called URL encoding or percent-encoding. Understanding it matters for developers building APIs, marketers constructing campaign URLs, and anyone debugging why a link is not working.</p>
 
 <h2>What is URL encoding?</h2>
-<p>URL encoding writes a character as its UTF-8 bytes, each as a percent sign and two hexadecimal digits. A space becomes %20, an ampersand %26, a hash %23, and é, which has two bytes, %C3%A9.</p>
+<p>URL encoding writes a character as its UTF-8 bytes, each as a percent sign and two hexadecimal digits. A space becomes %20, an ampersand %26, a hash %23, and é, which has two bytes, %C3%A9. You see this when you copy an address with spaces:</p>
 <div class="art-callout"><code>https://example.com/search?q=red%20shoes%20size%2010</code></div>
 <p>The <code>%20</code> values represent spaces — "red shoes size 10" as a URL-safe query string.</p>
 

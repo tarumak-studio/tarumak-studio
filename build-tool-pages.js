@@ -32,6 +32,7 @@
 const fs = require('fs');
 const vm = require('vm');
 
+const GUIDES = require('./tool-guides.js'); /* page-specific text, replaces the generic category copy */
 const SITE = 'https://tarumakstudio.com';
 const TODAY = new Date().toISOString().slice(0, 10);
 /* Cache-busting for the 5 core tool-logic scripts, shared across every
@@ -308,6 +309,7 @@ const TOOL_CSS = `
 
 .tp-hero{padding:40px 0 8px}
 .tp-hero h1{font-family:var(--fd);font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-1.2px;margin:14px 0 10px}
+.tp-guide-text h3{font-size:17px;margin:22px 0 6px}.tp-guide-text a{color:var(--p1);text-decoration:underline}.tp-guide-text p{font-size:15px;line-height:1.7;color:var(--text-dim);max-width:760px}
 .tp-lead{font-size:14px;color:var(--text-dim);max-width:720px;line-height:1.65}
 .tp-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .tp-cat-badge{font-size:12px;font-weight:700;color:var(--p1);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);padding:5px 12px;border-radius:100px;text-decoration:none}
@@ -507,7 +509,7 @@ function resolveMeta(t) {
 
   const features = flagship && flagship.features ? flagship.features : seededPick(catDef.featurePool, 6, seed + 7);
   const useCases = flagship && flagship.useCases ? flagship.useCases : seededPick(catDef.useCasePool, 4, seed + 13);
-  const howTo = flagship && flagship.howTo ? flagship.howTo : howtoSteps(t, cat);
+  const howTo = GUIDES[slug] ? GUIDES[slug].howTo : flagship && flagship.howTo ? flagship.howTo : howtoSteps(t, cat);
   const howAIWorks = (flagship && flagship.howAIWorks) || null;
   const relatedComparisons = (flagship && flagship.relatedComparisons) || null;
   const tips = (flagship && flagship.tips) || catDef.tipsPool || [];
@@ -600,6 +602,23 @@ function renderHowTo(meta) {
       <ol class="tp-steps">
         ${meta.howTo.map((s, i) => `<li class="tp-step"><span class="tp-step-n" aria-hidden="true">${i + 1}</span><div><h3>${esc(s[0])}</h3><p>${esc(s[1])}</p></div></li>`).join('\n        ')}
       </ol>
+    </section>`;
+}
+/* Link the first mention of each other tool's name */
+function linkTools(text, self) {
+  const names = TOOLS.filter(t => t[0] !== self).sort((a, b) => b[1].length - a[1].length), slots = [];
+  names.forEach(t => [esc(t[1]), esc(t[1].replace(/ (Tool|Converter)$/, ''))].forEach(n => {
+    const i = n.length > 8 ? text.indexOf(n) : -1;
+    if (i < 0) return;
+    slots.push(`<a href="/${t[0]}">${n}</a>`);
+    text = text.slice(0, i) + '' + (slots.length - 1) + '' + text.slice(i + n.length);
+  }));
+  return text.replace(/(\d+)/g, (m, k) => slots[k]);
+}
+function renderGuide(meta, guide) {
+  return `<section class="tp-sec tp-guide-text" aria-labelledby="tp-gt">
+      <h2 id="tp-gt">Good to know about ${esc(meta.name)}</h2>
+      ${guide.sections.map(([h, p]) => `<h3>${esc(h)}</h3><p>${linkTools(esc(p), meta.slug)}</p>`).join('')}
     </section>`;
 }
 function renderHowAIWorks(meta) {
@@ -828,15 +847,22 @@ function buildPage(t) {
   const metaDesc = trimDesc(desc, 155);
   const meta = resolveMeta(t);
 
-  const specificFaq = (FAQ && FAQ[slug]) ? FAQ[slug] : [];
-  const faqPairs = mergeFaq(specificFaq, generalFaq(t, cat, meta.isFileTool)).slice(0, 12);
+  const guide = GUIDES[slug];
+  const specificFaq = guide ? guide.faq : (FAQ && FAQ[slug]) ? FAQ[slug] : [];
+  const faqPairs = mergeFaq(specificFaq, generalFaq(t, cat, meta.isFileTool).filter(([q]) => !/account|mobile/i.test(q) && !(guide && /formats/i.test(q)))).slice(0, 12);
 
   /* Related tools: WORKFLOW_NEXT (cross-category, curated) when this
      slug has an entry; same-category fallback otherwise — identical
      fallback logic to the original script. */
-  const related = (WORKFLOW_NEXT[slug] ? WORKFLOW_NEXT[slug].map(s => TOOLS_BY_SLUG[s]).filter(Boolean)
-    : TOOLS.filter(x => x[2] === cat && x[0] !== slug).sort((a, b) => (FEAT_SET.has(b[0]) ? 1 : 0) - (FEAT_SET.has(a[0]) ? 1 : 0))
-  ).slice(0, 6);
+  /* Curated picks first, then the tools that follow this one in its category,
+     so every tool is linked from several others instead of all pages pointing
+     at the same few favourites. */
+  const peers = TOOLS.filter(x => x[2] === cat), at = peers.findIndex(x => x[0] === slug);
+  const next = peers.slice(at + 1).concat(peers.slice(0, at));
+  const related = [];
+  (WORKFLOW_NEXT[slug] || []).map(k => TOOLS_BY_SLUG[k]).filter(Boolean).slice(0, 4).concat(next).forEach(r => {
+    if (related.length < 9 && r[0] !== slug && !related.includes(r)) related.push(r);
+  });
 
   const guideSlugs = (TOOL_ARTICLES && TOOL_ARTICLES[slug]) || [];
   const guides = guideSlugs.map(g => ({ slug: g, meta: ARTICLES[g] })).filter(g => g.meta);
@@ -860,13 +886,13 @@ function buildPage(t) {
      recommendations area whenever THIS variant's composition didn't
      already include it via middleHTML — every variant shows real guides
      when they exist, and none show it twice. */
-  const standaloneGuidesHTML = composition.includes('guides') ? '' : guidesHTML;
+  const standaloneGuidesHTML = (!guide && composition.includes('guides')) ? '' : guidesHTML;
 
   /* 'guides' is the one composition key needing data other than meta
      (the actual guide objects), so it's substituted here rather than
      inside renderSection — this is also what makes variant C (which
      never lists 'guides') correctly show no guides section at all. */
-  const middleHTML = composition.map(k => k === 'guides' ? guidesHTML : renderSection(k, meta)).filter(Boolean).join('\n\n    ');
+  const middleHTML = guide ? renderHowTo(meta) + renderGuide(meta, guide) : composition.map(k => k === 'guides' ? guidesHTML : renderSection(k, meta)).filter(Boolean).join('\n\n    ');
 
   const relatedHTML = related.length ? `<section class="tp-sec" aria-labelledby="tp-rel">
       <h2 id="tp-rel">Related tools</h2>
@@ -881,11 +907,9 @@ function buildPage(t) {
      earlier on this page can repeat in a later section. Related Tools'
      own picks seed it first since that section is visually first. */
   const shown = new Set([slug, ...related.map(r => r[0])]);
-  const workflowHTML = renderSuggestedWorkflow(related, meta);
-  const popularHTML = renderPopularStrip(cat, slug, shown);
-  const peopleAlsoUseHTML = renderPeopleAlsoUse(slug, cat, chips, shown);
-  const recentlyAddedHTML = renderRecentlyAdded(slug, shown);
-  const footerRecsHTML = renderFooterRecs(slug, cat, chips, shown);
+  /* Workflow, Popular, People also use, Recently added and You may also like
+     repeated the same cards on every page and made pages look alike to search
+     engines. Related tools and the sidebar cover the links. */
   const sidebarHTML = renderSidebar(cat, slug, shown);
 
   return `<!DOCTYPE html>
@@ -929,7 +953,7 @@ ${CHROME_TOP}
 
     <section class="tp-hero">
       <h1>${esc(name)}</h1>
-      <p class="tp-lead">${esc((TOOL_META[slug] && TOOL_META[slug].lead) || desc)}</p>
+      <p class="tp-lead">${esc((guide && guide.lead) || (TOOL_META[slug] && TOOL_META[slug].lead) || desc)}</p>
       <div class="tp-badges">
         <a class="tp-cat-badge" href="${CAT_PAGE[cat]}">${esc(CAT[cat])}</a>
         ${(chips || []).map(c => `<span class="tp-chip">${esc(c)}</span>`).join('')}
@@ -966,17 +990,7 @@ ${CHROME_TOP}
 
     ${relatedHTML}
 
-    ${workflowHTML}
-
-    ${popularHTML}
-
-    ${peopleAlsoUseHTML}
-
-    ${recentlyAddedHTML}
-
     ${standaloneGuidesHTML}
-
-    ${footerRecsHTML}
 
       </div>
       ${sidebarHTML}
@@ -1073,7 +1087,7 @@ const pages = [
   { loc: SITE + '/', freq: 'weekly', pri: '1.0' },
   { loc: SITE + '/tools', freq: 'weekly', pri: '0.9' },
   ...Object.values(CAT_PAGE).map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.8' })),
-  ...['/blog', '/about', '/contact', '/french-academy', '/changelog'].map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.5' })),
+  ...['/blog', '/about', '/contact', '/changelog'] /* french-academy is noindex, so not listed */.map(p => ({ loc: SITE + p, freq: 'monthly', pri: '0.5' })),
   ...['/privacy-policy', '/terms', '/cookie-policy'].map(p => ({ loc: SITE + p, freq: 'yearly', pri: '0.3' }))
 ];
 fs.writeFileSync('sitemap-pages.xml', urlset(pages));

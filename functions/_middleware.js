@@ -40,7 +40,7 @@ const PATH_REDIRECTS = {
  * llms.txt, robots.txt, ai-catalog.json) are NOT in this list. */
 const BLOCKED_FILES = new Set([
   '/header-chrome.js', '/resync-chrome.js', '/category-content.js',
-  '/comparison-content.js', '/tool-content.js', '/hero-render.js',
+  '/comparison-content.js', '/tool-content.js', '/tool-guides.js', '/hero-render.js',
   '/trust-blocks.js', '/tool-deps.js', '/recommend-prototype.js', '/worker.js',
   '/hero-showcase', '/hero-showcase.html', '/upscaler-test', '/upscaler-test.html',
 ]);

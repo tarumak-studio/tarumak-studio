@@ -261,7 +261,11 @@ INIT['qr-code-generator']=function(panel){
     if(!made)qbox.innerHTML='<span role="alert" style="color:#c0262d;font-size:13px;text-align:center;line-height:1.5">That is too long for a QR code ('+data.length.toLocaleString()+' characters). Shorten it, or link to a page instead.</span>';
     dl.disabled=!made;}
   panel.addEventListener('input',e=>{if(e.target.closest('#qwrap')){$('#fgh',panel).textContent=fg.value;$('#bgh',panel).textContent=bg.value;gen();}});
-  dl.onclick=()=>{const src=qbox.querySelector('canvas')||qbox.querySelector('img');if(!src)return;const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle=bg.value;x.fillRect(0,0,512,512);const done=()=>c.toBlob(b=>download(b,'qr-code.png'),'image/png');const cv=qbox.querySelector('canvas');if(cv){x.drawImage(cv,16,16,480,480);done();}else{const i=new Image();i.onload=()=>{x.drawImage(i,16,16,480,480);done();};i.src=src.src;}};
+  /* Drawn from the code's own squares: whole pixels, and the 4-square margin scanners expect */
+  dl.onclick=()=>{const m=qr&&qr._oQRCode;if(!m)return;const n=m.getModuleCount(),S=1024,k=Math.floor(S/(n+8)),off=Math.floor((S-n*k)/2);
+    const c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle=bg.value;x.fillRect(0,0,S,S);x.fillStyle=fg.value;
+    for(let r=0;r<n;r++)for(let q=0;q<n;q++)if(m.isDark(r,q))x.fillRect(off+q*k,off+r*k,k,k);
+    c.toBlob(b=>download(b,'qr-code.png'),'image/png');};
   gen();
 };
 

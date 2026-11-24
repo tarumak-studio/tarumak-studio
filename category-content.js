@@ -33,7 +33,7 @@ const CATEGORIES = {
     ],
     groups: [
       ['AI Tools', ['background-remover', 'ai-object-remover', 'ai-photo-enhancer', 'ai-image-upscaler']],
-      ['Format Converters', ['jpg-to-png', 'png-to-jpg', 'jpg-to-webp', 'webp-to-jpg', 'png-to-webp', 'webp-to-png', 'png-to-svg', 'svg-to-jpg', 'heic-to-jpg', 'image-to-pdf']],
+      ['Format Converters', ['image-converter', 'jpg-to-png', 'png-to-jpg', 'jpg-to-webp', 'webp-to-jpg', 'png-to-webp', 'webp-to-png', 'png-to-svg', 'svg-to-jpg', 'heic-to-jpg', 'image-to-pdf']],
       ['Editing & Optimization', ['image-compressor', 'compress-image-to-exact-kb', 'image-resizer', 'image-cropper', 'watermark-image']],
       ['Metadata & Privacy', ['exif-remover']],
       ['Utilities', ['qr-code-generator', 'ocr-image-to-text']],

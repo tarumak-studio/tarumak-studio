@@ -23,6 +23,8 @@
  * _redirects again.
  */
 const PATH_REDIRECTS = {
+  '/tools/image-converter': '/image-converter',
+  '/tools/image-converter/': '/image-converter',
   '/tools/compress-image-to-exact-kb': '/compress-image-to-exact-kb',
   '/tools/compress-image-to-exact-kb/': '/compress-image-to-exact-kb',
   /* The SVG converter outputs PNG too; ?format=png preselects it */

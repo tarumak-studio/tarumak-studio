@@ -31,6 +31,7 @@ const HERO_MAP = {
   'compress-image-to-exact-kb': { type: 'sizeReduction', from: '1.8 MB', to: '50 KB', saved: 'target met' },
   'image-resizer':      { type: 'dimension', from: '4000 \u00d7 3000', to: '1200 \u00d7 900' },
   'image-cropper':      { type: 'crop' },
+  'image-converter': { type: 'formatConvert', from: 'HEIC', to: 'JPG' },
   'jpg-to-png':         { type: 'formatConvert', from: 'JPG', to: 'PNG' },
   'png-to-jpg':         { type: 'formatConvert', from: 'PNG', to: 'JPG', note: 'smaller' },
   'jpg-to-webp':        { type: 'formatConvert', from: 'JPG', to: 'WebP', note: '\u221230%' },

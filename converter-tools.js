@@ -1084,3 +1084,270 @@ INIT['gif-compressor']=function(panel){
     setStatus(u.status,'Done \u2014 '+pct+'% smaller, animation preserved.');
   }
 };
+
+/* ════ Universal Image Converter ══════════════════════════════════════
+   UI only. Decoding and encoding happen in imgconvert-engine.js. */
+var XCV_V='31bd5bd065';
+var xcvStop=null;
+INIT['image-converter']=function(panel){
+  if(xcvStop)xcvStop();
+  var MAX_FILE=80*1048576,MAX_FILES=100;
+  var OUT={'image/jpeg':['JPG','jpg',90],'image/png':['PNG','png',100],'image/webp':['WebP','webp',85],'image/avif':['AVIF','avif',60]};
+  var JSZIP=['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG'];
+  var u=dz(panel,{accept:'image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif,.gif,.bmp',multiple:true,title:'Drop images here or click to browse',formats:['JPG','PNG','WEBP','AVIF','HEIC','GIF','BMP'],sub:'Add up to 100 images, 80 MB each. Convert them to JPG, PNG, WebP or AVIF.'});
+  u.controls.className='controls xcv-controls';
+  u.controls.innerHTML=
+    '<div class="xcv-step"><span class="xcv-n">1</span><div><b id="xvFl">Convert to</b><div class="seg" id="xvF" role="group" aria-labelledby="xvFl">'+Object.keys(OUT).map(function(t){return'<button type="button" data-t="'+t+'">'+OUT[t][0]+'</button>';}).join('')+'</div><p class="xcv-note" id="xvNote"></p></div></div>'+
+    '<div class="xcv-step"><span class="xcv-n">2</span><div><b>Quality and size</b><div class="xcv-grid">'+
+      '<div class="ctrl" id="xvQw"><label for="xvQ">Quality · <span class="val" id="xvQv">90%</span></label><input type="range" id="xvQ" min="10" max="100" value="90"></div>'+
+      '<div class="ctrl"><label for="xvW">Width, px (optional)</label><input type="number" id="xvW" inputmode="numeric" min="1" max="16384" step="1" placeholder="Original"></div>'+
+      '<div class="ctrl"><label for="xvH">Height, px (optional)</label><input type="number" id="xvH" inputmode="numeric" min="1" max="16384" step="1" placeholder="Original"></div>'+
+      '<label class="xcv-check"><input type="checkbox" id="xvK" checked> <span>Keep proportions</span></label>'+
+      '<label class="xcv-check" id="xvTw"><input type="checkbox" id="xvT" checked> <span>Keep transparency</span></label>'+
+      '<div class="ctrl" id="xvBw"><label for="xvB">Background colour</label><input type="color" id="xvB" value="#ffffff"></div>'+
+      '<div class="ctrl"><label for="xvP">File names</label><input type="text" id="xvP" value="{name}" spellcheck="false" aria-describedby="xvPh"><small id="xvPh">{name} is the original name, {n} a number</small></div>'+
+    '</div></div></div>'+
+    '<div class="xcv-step"><span class="xcv-n">3</span><div class="xcv-go"><button class="btn btn-primary" id="xvGo" disabled>Convert</button><button class="btn btn-ghost" id="xvStop" hidden>Cancel</button></div></div>';
+  u.controls.after(u.status);
+  u.status.setAttribute('role','status');u.status.setAttribute('aria-live','polite');
+  var bar=document.createElement('div');bar.className='xcv-bar';bar.hidden=true;
+  bar.innerHTML='<label class="xcv-check"><input type="checkbox" id="xvAll" checked> <span id="xvCount"></span></label><div class="ctrl-spacer"></div><button class="btn btn-ghost" id="xvAdd">Add more</button><button class="btn btn-ghost" id="xvRm">Remove selected</button><button class="btn btn-ghost" id="xvClear">Clear all</button>';
+  u.status.after(bar);
+  var dlg=document.createElement('dialog');dlg.className='xcv-dlg';dlg.setAttribute('aria-label','Image preview');panel.appendChild(dlg);
+  var g=function(id){return $('#'+id,panel);};
+  var items=[],type='image/jpeg',busy=false,runId=0,nextId=1,workers=[],thumbQ=Promise.resolve();
+
+  /* ── helpers ── */
+  function xvFree(url){if(url)setTimeout(function(){URL.revokeObjectURL(url);},2000);}
+  function xvClean(s){return String(s).replace(/[\\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/^[.\s]+|[.\s]+$/g,'').slice(0,120);}
+  function xvBase(f){return xvClean(f.name.replace(/\.[^.]+$/,''))||'image';}
+  function num(id){var v=g(id).value.trim();return v?+v:0;}
+  function pct(a,b){var p=Math.round((1-b/a)*1000)/10;return p>=0?p+'% smaller':(-p)+'% larger';}
+  function selected(){return items.filter(function(i){return i.sel;});}
+  function xvDone(){return items.filter(function(i){return i.out;});}
+
+  /* ── settings ── */
+  function xvNote(){
+    var t={'image/jpeg':'JPG opens everywhere. It cannot store transparency, so see-through areas get the background colour.','image/png':'PNG is lossless and keeps transparency, so there is no quality setting. Photos become large files.','image/webp':'WebP is small and keeps transparency. It works in every current browser.','image/avif':'AVIF makes the smallest files and keeps transparency. Encoding takes a few seconds per image, and the first one downloads the encoder (about 3.5 MB).'}[type];
+    g('xvNote').textContent=t;
+    $$('#xvF button',panel).forEach(function(b){var on=b.dataset.t===type;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on);});
+    g('xvQw').style.display=type==='image/png'?'none':'';
+    g('xvTw').style.display=type==='image/jpeg'?'none':'';
+    g('xvBw').style.display=(type==='image/jpeg'||!g('xvT').checked)?'':'none';
+  }
+  function stale(){if(!busy&&xvDone().length)setStatus(u.status,'Settings changed. Press Convert to update the results.');}
+  $$('#xvF button',panel).forEach(function(b){b.onclick=function(){if(busy)return;type=b.dataset.t;g('xvQ').value=OUT[type][2];g('xvQv').textContent=OUT[type][2]+'%';xvNote();stale();items.forEach(paintName);};});
+  g('xvQ').addEventListener('input',function(){g('xvQv').textContent=g('xvQ').value+'%';});
+  ['xvQ','xvW','xvH','xvK','xvT','xvB'].forEach(function(id){g(id).addEventListener('change',function(){xvNote();stale();});});
+  g('xvP').addEventListener('input',function(){items.forEach(function(it,i){if(!it.named){it.name=pattern(it,i);paintName(it);}});});
+  function pattern(it,i){var p=g('xvP').value.trim()||'{name}';return xvClean(p.replace(/\{name\}/g,xvBase(it.file)).replace(/\{n\}/g,String(i+1).padStart(Math.max(2,String(items.length).length),'0')))||'image';}
+  xvNote();
+
+  /* ── list ── */
+  function xvAdd(fs){
+    var list=[...fs],bad=[],dup=0,big=0,over=0;
+    u.file.value='';
+    list.forEach(function(f){
+      if(!/\.(jpe?g|png|webp|avif|heic|heif|gif|bmp)$/i.test(f.name)&&!/^image\/(jpeg|png|webp|avif|heic|heif|gif|bmp|x-ms-bmp)$/.test(f.type)){bad.push(f.name);return;}
+      if(!f.size){bad.push(f.name+' (empty)');return;}
+      if(f.size>MAX_FILE){big++;return;}
+      if(items.length>=MAX_FILES){over++;return;}
+      if(items.some(function(i){return i.file.name===f.name&&i.file.size===f.size&&i.file.lastModified===f.lastModified;})){dup++;return;}
+      var it={id:nextId++,file:f,sel:true,name:'',named:false,out:null,state:'wait'};
+      items.push(it);it.name=pattern(it,items.length-1);makeRow(it);xvThumb(it);
+    });
+    var m=[];
+    if(bad.length)m.push('Skipped, not supported: '+bad.slice(0,3).join(', ')+(bad.length>3?' and '+(bad.length-3)+' more':'')+'. Use JPG, PNG, WebP, AVIF, HEIC, GIF or BMP');
+    if(big)m.push(big+' skipped for being over 80 MB');
+    if(over)m.push(over+' skipped: the limit is '+MAX_FILES+' images at a time');
+    if(dup)m.push(dup+' already in the list');
+    if(m.length)setStatus(u.status,m.join('. ')+'.',bad.length||big||over?1:0);
+    else if(items.length)setStatus(u.status,'Ready. Choose a format and press Convert.');
+    refresh();
+  }
+  dropzone(u.drop,u.file,xvAdd);
+  ['dragover','drop'].forEach(function(ev){[bar,u.results].forEach(function(el){el.addEventListener(ev,function(e){e.preventDefault();if(ev==='drop'&&!busy)xvAdd(e.dataTransfer.files);});});});
+
+  function makeRow(it){
+    var d=document.createElement('div');d.className='xcv-row';it.el=d;
+    d.innerHTML='<input type="checkbox" class="xcv-sel" checked><button type="button" class="xcv-thumb" disabled><span></span></button>'+
+      '<div class="xcv-main"><div class="xcv-name"><input type="text" spellcheck="false" maxlength="120"><span class="xcv-ext"></span></div><div class="xcv-meta"></div><div class="xcv-prog" hidden><i></i></div></div>'+
+      '<div class="xcv-act"><button type="button" class="btn btn-primary xcv-dl" hidden>Download</button><button type="button" class="xcv-x" aria-label="Remove">&#10005;</button></div>';
+    var q=function(s){return d.querySelector(s);};
+    q('.xcv-sel').setAttribute('aria-label','Select '+it.file.name);
+    q('.xcv-thumb span').textContent=(it.file.name.split('.').pop()||'').slice(0,4).toUpperCase();
+    q('.xcv-thumb').setAttribute('aria-label','Preview '+it.file.name);
+    q('.xcv-x').setAttribute('aria-label','Remove '+it.file.name);
+    q('.xcv-name input').setAttribute('aria-label','Output name for '+it.file.name);
+    q('.xcv-sel').onchange=function(){it.sel=this.checked;refresh();};
+    q('.xcv-x').onclick=function(){if(busy)return;xvDrop(it);refresh();};
+    q('.xcv-dl').onclick=function(){if(it.out)download(it.out.blob,fileName(it));};
+    q('.xcv-thumb').onclick=function(){xvPreview(it);};
+    var inp=q('.xcv-name input');
+    inp.oninput=function(){it.named=true;it.name=inp.value;};
+    inp.onblur=function(){var v=xvClean(inp.value);if(!v){it.named=false;v=pattern(it,items.indexOf(it));}it.name=v;inp.value=v;};
+    u.results.appendChild(d);paintName(it);paintMeta(it);
+  }
+  function ext(it){return it.out?OUT[it.out.type][1]:OUT[type][1];}
+  function fileName(it){return (xvClean(it.name)||xvBase(it.file))+'.'+ext(it);}
+  function paintName(it){if(!it.el)return;it.el.querySelector('.xcv-name input').value=it.name;it.el.querySelector('.xcv-ext').textContent='.'+ext(it);}
+  function paintMeta(it){
+    var m=it.el.querySelector('.xcv-meta'),p=it.el.querySelector('.xcv-prog'),r=it.out,t='';
+    it.el.classList.toggle('err',it.state==='err');it.el.classList.toggle('ok',it.state==='done');
+    p.hidden=!(it.state==='queue'||it.state==='work');
+    p.firstChild.style.width=(it.pct||0)+'%';
+    if(it.state==='wait')t='Original: '+fmtBytes(it.file.size);
+    else if(it.state==='queue')t='Waiting · '+fmtBytes(it.file.size);
+    else if(it.state==='work')t=(it.stage||'Starting')+'… · '+fmtBytes(it.file.size);
+    else if(it.state==='err')t=it.error;
+    else if(r){
+      t=r.inName+' '+fmtBytes(it.file.size)+' → '+OUT[r.type][0]+' '+fmtBytes(r.blob.size)+' · '+pct(it.file.size,r.blob.size)+' · '+(r.w===r.ow&&r.h===r.oh?r.w+' × '+r.h+' px':r.ow+' × '+r.oh+' → '+r.w+' × '+r.h+' px');
+      if(r.animated)t+=' · animated: first frame only';
+      if(r.flattened)t+=' · transparency filled';
+    }
+    m.textContent=t;
+    it.el.querySelector('.xcv-dl').hidden=!r||busy;
+    it.el.querySelector('.xcv-thumb').disabled=!it.thumbUrl;
+    it.el.querySelector('.xcv-x').disabled=busy;
+  }
+  function setThumb(it,url){xvFree(it.thumbUrl);it.thumbUrl=url;var b=it.el.querySelector('.xcv-thumb');b.innerHTML='';var im=document.createElement('img');im.alt='';im.src=url;b.appendChild(im);b.disabled=false;}
+  /* Small thumbnails, one at a time, so 100 photos don't fill memory */
+  async function smallUrl(blob){
+    var bmp=await createImageBitmap(blob,{resizeHeight:120,resizeQuality:'medium'});
+    var c=document.createElement('canvas');c.width=bmp.width;c.height=bmp.height;c.getContext('2d').drawImage(bmp,0,0);if(bmp.close)bmp.close();
+    return URL.createObjectURL(await new Promise(function(r){c.toBlob(r,'image/png');}));
+  }
+  function xvThumb(it){thumbQ=thumbQ.then(async function(){if(items.indexOf(it)<0||it.thumbUrl)return;try{setThumb(it,await smallUrl(it.file));it.native=true;}catch(e){/* HEIC in most browsers: shown after conversion */}});}
+  function xvDrop(it){items=items.filter(function(x){return x!==it;});xvFree(it.thumbUrl);xvFree(it.outUrl);it.el.remove();}
+  function refresh(){
+    var n=items.length,s=selected().length;
+    u.drop.style.display=n?'none':'';bar.hidden=!n;u.results.className='results'+(n?' show':'');
+    g('xvCount').textContent=s+' of '+n+' selected';
+    var a=g('xvAll');a.checked=n>0&&s===n;a.indeterminate=s>0&&s<n;
+    g('xvRm').disabled=busy||!s;g('xvClear').disabled=busy;g('xvAdd').disabled=busy;
+    g('xvGo').disabled=busy||!s;g('xvGo').textContent=s>1?'Convert '+s+' images':'Convert';
+    paintActions();
+  }
+  g('xvAll').onchange=function(){var on=this.checked;items.forEach(function(i){i.sel=on;i.el.querySelector('.xcv-sel').checked=on;});refresh();};
+  g('xvAdd').onclick=function(){u.file.click();};
+  g('xvRm').onclick=function(){selected().forEach(xvDrop);refresh();};
+  g('xvClear').onclick=function(){items.slice().forEach(xvDrop);u.status.className='status';refresh();u.drop.focus();};
+
+  /* ── preview ── */
+  function xvPreview(it){
+    var r=it.out;if(r&&!it.outUrl)it.outUrl=URL.createObjectURL(r.blob);
+    var src=it.native?URL.createObjectURL(it.file):'';
+    dlg.innerHTML='<div class="xcv-dh"><b></b><button type="button" class="xcv-x" aria-label="Close preview">&#10005;</button></div><div class="xcv-pair"></div>';
+    dlg.querySelector('b').textContent=r?fileName(it):it.file.name;
+    var pair=dlg.querySelector('.xcv-pair');
+    function fig(title,url,info){var f=document.createElement('figure'),c=document.createElement('figcaption');c.textContent=title+' · '+info;var b=document.createElement('div');b.className='xcv-pic';
+      if(url){var im=document.createElement('img');im.src=url;im.alt=title;b.appendChild(im);}else{b.textContent='This browser cannot display the original '+(r?r.inName:'')+' file.';}
+      f.appendChild(c);f.appendChild(b);pair.appendChild(f);}
+    fig('Original',src,fmtBytes(it.file.size));
+    if(r)fig('Converted',it.outUrl,OUT[r.type][0]+', '+fmtBytes(r.blob.size));
+    pair.classList.toggle('one',!r);
+    dlg.querySelector('.xcv-x').onclick=function(){dlg.close();};
+    dlg.onclose=function(){xvFree(src);dlg.innerHTML='';};
+    dlg.onclick=function(e){if(e.target===dlg)dlg.close();};
+    if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','');
+  }
+
+  /* ── conversion ── */
+  function killWorkers(){workers.forEach(function(w){w.terminate();});workers=[];}
+  xcvStop=function(){runId++;killWorkers();};
+  function setBusy(on){
+    busy=on;g('xvStop').hidden=!on;panel.setAttribute('aria-busy',on);
+    $$('#xvF button,.xcv-grid input,.xcv-sel,.xcv-name input',panel).forEach(function(e){e.disabled=on;});g('xvAll').disabled=on;
+    items.forEach(paintMeta);refresh();
+  }
+  function loadOnPage(){return _loadScript('/imgconvert-engine.js?v='+XCV_V,'ImgConvert');}
+  function startWorker(){
+    return new Promise(function(res){
+      var w,t=setTimeout(function(){w&&w.terminate();res(null);},15000);
+      try{w=new Worker('/imgconvert-engine.js?v='+XCV_V);}catch(e){clearTimeout(t);res(null);return;}
+      w.onmessage=function(e){clearTimeout(t);if(e.data.ready){workers.push(w);res(w);}else{w.terminate();res(null);}};
+      w.onerror=function(e){if(e.preventDefault)e.preventDefault();clearTimeout(t);w.terminate();res(null);};
+    });
+  }
+  function inWorker(w,it,job){
+    return new Promise(function(res,rej){
+      w.onmessage=function(e){var d=e.data;if(d.id!==it.id)return;
+        if(d.stage){it.stage=d.stage;it.pct=d.pct;paintMeta(it);}
+        else if(d.done)res(d.done);else rej(new Error(d.error));};
+      w.onerror=function(e){if(e.preventDefault)e.preventDefault();w.dead=true;rej(new Error('The browser ran out of memory on this image. Set a smaller width or height.'));};
+      w.postMessage({id:it.id,job:job});
+    });
+  }
+  async function xvConvert(){
+    if(busy)return;
+    var list=selected();if(!list.length)return;
+    var W=num('xvW'),H=num('xvH');
+    if([W,H].some(function(v){return v!==0&&!(v>=1&&v<=16384&&Math.floor(v)===v);})){setStatus(u.status,'Width and height must be whole numbers from 1 to 16,384, or empty.',1);return;}
+    var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform)&&navigator.maxTouchPoints>1);
+    var mobile=ios||/Android/.test(navigator.userAgent);
+    var opt={type:type,quality:+g('xvQ').value,width:W,height:H,keep:g('xvK').checked,flatten:!g('xvT').checked,bg:g('xvB').value,maxPixels:ios?16e6:50e6};
+    var id=++runId,queue=list.slice(),ok=0,bad=0;
+    list.forEach(function(it){xvFree(it.outUrl);it.outUrl='';it.out=null;it.error='';it.state='queue';it.pct=0;it.stage='';});
+    setBusy(true);
+    function tell(){setStatus(u.status,'Converting… '+(ok+bad)+' of '+list.length+' finished.');}
+    tell();
+    var lanes=Math.min(list.length,mobile?1:Math.max(1,Math.min(3,Math.floor((navigator.hardwareConcurrency||2)/2))));
+    async function lane(){
+      var w=await startWorker();
+      if(id!==runId)return;
+      if(!w)await loadOnPage();
+      while(queue.length&&id===runId){
+        var it=queue.shift();it.state='work';it.pct=5;paintMeta(it);
+        var job=Object.assign({file:it.file},opt);
+        try{
+          if(w&&w.dead){w=await startWorker();if(!w)await loadOnPage();}
+          var r=w?await inWorker(w,it,job):await window.ImgConvert.run(job,function(s,p){it.stage=s;it.pct=p;paintMeta(it);});
+          if(id!==runId)return;
+          it.out=r;it.state='done';ok++;
+          try{var tu=await smallUrl(r.blob);if(id!==runId){URL.revokeObjectURL(tu);return;}setThumb(it,tu);}catch(e){}
+          if(id!==runId)return;
+        }catch(e){if(id!==runId)return;it.state='err';it.error=e.message||'This image could not be converted.';bad++;}
+        paintName(it);paintMeta(it);tell();
+      }
+    }
+    try{await Promise.all(Array.from({length:lanes},lane));}
+    catch(e){if(id===runId)list.forEach(function(it){if(it.state==='queue'||it.state==='work'){it.state='err';it.error='The converter could not start. Reload the page and try again.';bad++;}});}
+    if(id!==runId)return;
+    killWorkers();setBusy(false);
+    var d=list.filter(function(i){return i.out;}),a=d.reduce(function(s,i){return s+i.file.size;},0),b=d.reduce(function(s,i){return s+i.out.blob.size;},0);
+    setStatus(u.status,(ok?ok+' of '+list.length+' converted to '+OUT[opt.type][0]+'. '+fmtBytes(a)+' → '+fmtBytes(b)+' ('+pct(a,b)+').':'')+(bad?' '+bad+' could not be converted; see the list.':''),!ok);
+    if(window._ga)window._ga('image_convert_done',{format:OUT[opt.type][1],count:ok});
+  }
+  g('xvGo').onclick=xvConvert;
+  g('xvStop').onclick=function(){runId++;killWorkers();items.forEach(function(i){if(i.state==='queue'||i.state==='work'){i.state='wait';}});setBusy(false);setStatus(u.status,'Cancelled. Finished images are still available.');};
+
+  /* ── downloads ── */
+  function paintActions(){
+    var d=xvDone();u.actions.innerHTML='';u.actions.className='actions'+(d.length&&!busy?' show':'');
+    if(!d.length||busy)return;
+    var mk=function(t,c,fn){var b=document.createElement('button');b.className='btn '+c;b.textContent=t;b.onclick=function(){fn(b);};u.actions.appendChild(b);};
+    if(d.length>1)mk('Download all as ZIP ('+d.length+')','btn-primary',xvZip);
+    else mk('Download '+OUT[d[0].out.type][0],'btn-primary',function(){download(d[0].out.blob,fileName(d[0]));});
+  }
+  function loadZip(){
+    if(window.JSZip)return Promise.resolve();
+    return new Promise(function(ok,no){var s=document.createElement('script');s.src=JSZIP[0];s.integrity=JSZIP[1];s.crossOrigin='anonymous';s.referrerPolicy='no-referrer';s.onload=ok;s.onerror=function(){s.remove();no(new Error('The ZIP component could not be downloaded. Download the images one by one, or try again.'));};document.head.appendChild(s);});
+  }
+  async function xvZip(btn){
+    var d=xvDone(),label=btn.textContent;btn.disabled=true;btn.textContent='Preparing ZIP…';
+    try{
+      await loadZip();
+      var z=new window.JSZip(),used={};
+      d.forEach(function(it){
+        var n=fileName(it),dot=n.lastIndexOf('.'),k=2,name=n;
+        while(used[name.toLowerCase()])name=n.slice(0,dot)+' ('+(k++)+')'+n.slice(dot);
+        used[name.toLowerCase()]=1;z.file(name,it.out.blob);
+      });
+      /* Images are already compressed, so they are stored as they are */
+      var blob=await z.generateAsync({type:'blob',compression:'STORE'},function(m){btn.textContent='Preparing ZIP… '+Math.round(m.percent)+'%';});
+      download(blob,'converted-images.zip');
+    }catch(e){setStatus(u.status,e.message||'The ZIP could not be created.',1);}
+    btn.disabled=false;btn.textContent=label;
+  }
+  refresh();
+};

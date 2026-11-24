@@ -292,7 +292,7 @@ INIT['background-remover'] = function(panel) {
      · AI mode (default): ISNet neural segmentation via
        @imgly/background-removal (ONNX Runtime, WASM), lazy-loaded
        from CDN on first use. The MODEL downloads to the device once
-       (~20–40 MB, browser-cached); the IMAGE never leaves the device.
+       (isnet ~176 MB plus ~23 MB runtime, browser-cached); the IMAGE never leaves the device.
        API facts validated in prior integration work: the removal
        function is the module's DEFAULT export (not a named export),
        and models auto-fetch from resources.img.ly — do NOT pass a

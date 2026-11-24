@@ -260,6 +260,7 @@ function row(box,thumb,name,meta,onDl){box.classList.add('show');const d=documen
 const INIT={};            /* slug -> init(panel) */
 const TOOL_ARTICLES={
   'image-compressor':['compress-images-without-losing-quality','compress-images-web'],
+  'image-converter':['jpg-vs-png-vs-webp','compress-images-web'],
   'compress-image-to-exact-kb':['compress-images-without-losing-quality','compress-images-web'],
   'image-resizer':['social-media-image-sizes-2026','instagram-story-size-guide'],
   'image-cropper':['social-media-image-sizes-2026','best-free-tools-designers-2026'],
@@ -329,6 +330,7 @@ const TOOL_ARTICLES={
 const FEAT={};            /* slug -> [[title,desc],...] optional */
 const AI_SUMMARY={
   'image-compressor':'This free online image compressor reduces JPG, PNG, and WebP file sizes by 40-80% inside your browser without uploading anything to a server.',
+  'image-converter':'This free image converter turns JPG, PNG, WebP, AVIF, HEIC, GIF and BMP images into JPG, PNG, WebP or AVIF in batches, entirely in your browser.',
   'compress-image-to-exact-kb':'This free tool compresses a JPG, PNG or WebP image to a target file size in KB, adjusting quality and, if needed, dimensions, entirely in your browser.',
   'image-resizer':'This free image resizer changes the dimensions of JPG, PNG, and WebP files in batch, preserves aspect ratio, and processes images entirely in the browser.',
   'image-cropper':'This free image cropper trims JPG, PNG, and WebP files to preset aspect ratios (1:1, 16:9, 4:3, 9:16) or a custom freeform region, fully in-browser.',
@@ -466,6 +468,7 @@ const TOOLS=[
  ['compress-image-to-exact-kb','Compress Image to Exact KB','image','Compress a JPG, PNG or WebP image to a target size such as 20, 50 or 100 KB. Free and private: it runs in your browser and shows the real file size.',['JPG','PNG','WEBP']],
  ['image-resizer','Image Resizer','image','Resize images to exact pixel dimensions or percentage online. Batch resize multiple images while keeping the original aspect ratio.',['JPG','PNG']],
  ['image-cropper','Image Cropper','image','Crop images online to any custom size or preset ratio (1:1, 16:9, 4:3). Preview before downloading — no software needed.',['JPG','PNG']],
+ ['image-converter','Universal Image Converter','image','Convert JPG, PNG, WebP, AVIF, HEIC, GIF and BMP images to JPG, PNG, WebP or AVIF. Convert many at once, download as ZIP. Free and private, no upload.',['JPG','PNG','WEBP','AVIF','HEIC']],
  ['jpg-to-png','JPG to PNG Converter','image','Convert JPG to PNG online for free. Preserve transparency and get lossless quality — instant conversion, no uploads.',['JPG→PNG']],
  ['png-to-jpg','PNG to JPG Converter','image','Convert PNG to JPG online to reduce file size for web and email. Adjust quality level before downloading.',['PNG→JPG']],
  ['jpg-to-webp','JPG to WebP Converter','image','Convert JPG to WebP online — get files 25–35% smaller than JPG with the same visual quality. Works in all modern browsers.',['JPG→WEBP']],
@@ -663,6 +666,19 @@ FAQ['compress-image-to-exact-kb']=[
   ['Does it keep transparency?','Yes, with WebP or PNG output. Automatic picks WebP or PNG for a transparent image, whichever keeps it larger. JPG cannot store transparency, so those areas are filled with a background colour you choose.'],
   ['Why is PNG harder to shrink?','PNG has no quality setting. The tool can only use fewer colours or smaller dimensions. That works well for logos and screenshots. Photos shrink much further as JPG or WebP.'],
   ['Is photo information such as location kept?','When the image is compressed again, hidden data such as location and camera details is removed. If your file is already under the target it is kept exactly as it is, including that data.']
+];
+FAQ['image-converter']=[
+  ['Which formats can I convert from and to?','You can add JPG, PNG, WebP, AVIF, HEIC/HEIF, GIF and BMP images. You can convert them to JPG, PNG, WebP or AVIF.'],
+  ['Can I convert HEIC photos from my iPhone to JPG?','Yes. Add your .heic or .heif files, choose JPG and press Convert. If your browser cannot read HEIC itself, a decoder is downloaded once and runs on your device. Your photos are not uploaded.'],
+  ['Can it create HEIC files?','No. HEIC can only be read, not created, because there is no dependable HEIC encoder that runs in a browser. AVIF is the closest alternative: it is based on similar technology, makes small files and opens in every current browser.'],
+  ['How many images can I convert at once?','Up to 100 images of up to 80 MB each. When they are done you can download them one by one or all together as a ZIP file.'],
+  ['Will transparent backgrounds be kept?','Yes in PNG, WebP and AVIF. JPG cannot store transparency, so see-through areas are filled with a background colour you choose.'],
+  ['What quality should I choose?','The starting values suit most photos: 90% for JPG, 85% for WebP and 60% for AVIF. The scales are not comparable, so AVIF at 60% can look as good as JPG at 90%. PNG is lossless and has no quality setting.'],
+  ['Why is my converted file larger than the original?','This happens when you convert a compressed photo to PNG, which stores every pixel without loss, or re-save it at a higher quality. The list always shows the real size and whether it became smaller or larger.'],
+  ['Can I resize images while converting?','Yes. Enter a width, a height or both. With “Keep proportions” on, each image is fitted inside that size without stretching.'],
+  ['What happens to animated GIFs?','Only the first frame is converted, and the list says so. To keep an animation smaller, use the GIF Compressor.'],
+  ['Why is AVIF slower?','AVIF takes much more calculation than JPG or WebP. The first conversion also downloads the encoder, about 3.5 MB. After that a large photo can still take several seconds.'],
+  ['Is photo information such as location kept?','No. Converting creates a new file with only the picture, so location, camera details and other hidden data are removed.']
 ];
 FAQ['gif-compressor']=[
   ['How much can GIFs be compressed?','It depends heavily on the source — a GIF with a lot of flat color and repeated frames can shrink dramatically (often 60–80%+) at the Balanced or Strong setting; a GIF that\'s already tightly optimized, or full of noisy photographic content, will compress less. The live stats panel gives an estimate before you commit, and the actual result is always shown after.'],

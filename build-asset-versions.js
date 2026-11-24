@@ -29,6 +29,7 @@ function save(f, before, after) {
       Done first, because this changes the bundle's own hash. */
 const ENGINES = [
   ['converter-tools.js', 'GCE_V', 'gifcompressor-engine.js'],
+  ['converter-tools.js', 'XCV_V', 'imgconvert-engine.js'],
   ['image-tools.js', 'ENGINE_V', 'upscaler-engine.js'],
   ['image-tools.js', 'XKB_V', 'exactkb-engine.js'],
   ['image-tools.js', 'EN_ENGINE_V', 'enhancer-engine.js'],

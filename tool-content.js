@@ -207,6 +207,7 @@ const WORKFLOW_NEXT = {
   'ai-photo-enhancer': ['ai-object-remover', 'ai-image-upscaler', 'image-compressor', 'background-remover'],
   'ai-object-remover': ['ai-photo-enhancer', 'ai-image-upscaler', 'background-remover', 'image-compressor', 'watermark-image'],
   'compress-image-to-exact-kb': ['image-compressor', 'image-resizer', 'image-cropper', 'png-to-webp', 'exif-remover', 'pdf-compressor'],
+  'image-converter': ['image-compressor', 'compress-image-to-exact-kb', 'heic-to-jpg', 'image-resizer', 'png-to-svg', 'image-to-pdf'],
   'image-compressor': ['background-remover', 'image-resizer', 'png-to-webp', 'social-image-resizer'],
   'ocr-image-to-text': ['pdf-to-text', 'text-diff', 'word-counter', 'markdown-to-html'],
   'pdf-merger': ['pdf-compressor', 'pdf-splitter', 'pdf-page-rotator', 'pdf-to-excel', 'pdf-organizer'],
@@ -380,6 +381,33 @@ const TOOL_META = {
     ],
     tips: [],
     ctaVerb: 'Compress another image'
+  },
+  'image-converter': {
+    seoTitle: 'Free Online Image Converter – JPG, PNG, WebP, AVIF & HEIC',
+    lead: 'Convert one image or a hundred. Add JPG, PNG, WebP, AVIF, HEIC, GIF or BMP files and turn them into JPG, PNG, WebP or AVIF, with control over quality, size and transparency. Everything happens on your device, and you can download the results one by one or as a ZIP.',
+    variant: 'A', accent: '#22d3ee',
+    benefits: [
+      ['layers', 'Many formats in one place', 'Mix JPG, PNG, WebP, AVIF, HEIC, GIF and BMP files in a single batch and convert them all together.'],
+      ['monitor', 'Nothing is uploaded', 'Your images are decoded and encoded on your device, in the background, so the page stays responsive.'],
+      ['gem', 'Real conversion', 'Every picture is decoded and encoded again in the new format, then checked before you get it. A file is never just renamed.'],
+      ['zap', 'Batch and ZIP', 'Follow the progress of each image, see the size before and after, and download everything in one ZIP.']
+    ],
+    features: ['Reads JPG, PNG, WebP, AVIF, HEIC, GIF and BMP', 'Creates JPG, PNG, WebP and AVIF', 'Up to 100 images at once', 'Keeps transparency in PNG, WebP and AVIF', 'Resize and rename while converting', 'Download all as ZIP'],
+    useCases: [
+      ['iPhone photos', 'Turning HEIC photos into JPG so they open on any computer or upload form.'],
+      ['Faster websites', 'Converting JPG and PNG images to WebP or AVIF for smaller pages.'],
+      ['Old software', 'Changing WebP or AVIF downloads to PNG or JPG for programs that cannot open them.'],
+      ['Consistent folders', 'Bringing a mixed set of pictures to one format, size and naming style.']
+    ],
+    howTo: [
+      ['Add your images', 'Drag them in or click to browse. You can mix formats and add up to 100 images.'],
+      ['Choose the output format', 'Pick JPG, PNG, WebP or AVIF. A short note explains what each one is good for.'],
+      ['Set quality and size', 'Keep the defaults, or change the quality, dimensions, background colour and file names.'],
+      ['Press Convert', 'Each image shows its own progress. You can cancel at any time.'],
+      ['Check and download', 'Click a thumbnail to compare before and after, then download one image or all of them as a ZIP.']
+    ],
+    tips: [],
+    ctaVerb: 'Convert more images'
   },
   'image-compressor': {
     hero: 'compare', heroVariant: 'meter', variant: 'A', accent: '#22d3ee',

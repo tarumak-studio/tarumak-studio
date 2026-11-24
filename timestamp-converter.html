@@ -199,7 +199,7 @@
   .breadcrumb a+a::before, .breadcrumb a+.crumb-current::before { margin: 0 6px; }
 }
 </style>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/timestamp-converter#page","url":"https://tarumakstudio.com/timestamp-converter","name":"Timestamp Converter — Free Online Tool | Tarumak Studio","description":"Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/timestamp-converter#app","name":"Timestamp Converter","url":"https://tarumakstudio.com/timestamp-converter","description":"Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Timestamp Converter"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is a UNIX timestamp?","acceptedAnswer":{"@type":"Answer","text":"A UNIX timestamp is the number of seconds that have elapsed since January 1, 1970, at 00:00:00 UTC. It is the standard way computers represent moments in time."}},{"@type":"Question","name":"Why does the tool auto-detect seconds vs milliseconds?","acceptedAnswer":{"@type":"Answer","text":"JavaScript uses milliseconds, most backend systems use seconds. If the input is 13 digits or more it is treated as milliseconds and divided by 1000 automatically."}},{"@type":"Question","name":"Can I convert a specific date to a UNIX timestamp?","acceptedAnswer":{"@type":"Answer","text":"Yes — use the Human to Unix section to pick any date and time and get the corresponding UNIX timestamp in both seconds and milliseconds."}},{"@type":"Question","name":"Is Timestamp Converter really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Timestamp Converter processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://tarumakstudio.com/timestamp-converter#page","url":"https://tarumakstudio.com/timestamp-converter","name":"Timestamp Converter — Free Online Tool | Tarumak Studio","description":"Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.","isPartOf":{"@id":"https://tarumakstudio.com/#website"},"dateModified":"2026-11-24"},{"@type":"Organization","@id":"https://tarumakstudio.com/#org","name":"Tarumak Studio","url":"https://tarumakstudio.com","logo":"https://tarumakstudio.com/og-image.png"},{"@type":"SoftwareApplication","@id":"https://tarumakstudio.com/timestamp-converter#app","name":"Timestamp Converter","url":"https://tarumakstudio.com/timestamp-converter","description":"Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.","applicationCategory":"WebApplication","applicationSubCategory":"Developer & SEO","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tarumakstudio.com/"},{"@type":"ListItem","position":2,"name":"Developer & SEO","item":"https://tarumakstudio.com/developer-tools"},{"@type":"ListItem","position":3,"name":"Timestamp Converter"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can timestamps be negative?","acceptedAnswer":{"@type":"Answer","text":"Yes, for dates before 1970."}},{"@type":"Question","name":"Are leap seconds counted?","acceptedAnswer":{"@type":"Answer","text":"No, Unix time ignores them."}},{"@type":"Question","name":"Which format should I store?","acceptedAnswer":{"@type":"Answer","text":"A timestamp or ISO 8601 in UTC. Convert to local time only for display."}},{"@type":"Question","name":"Is daylight saving time considered?","acceptedAnswer":{"@type":"Answer","text":"Yes, for your own time zone at the date in question."}},{"@type":"Question","name":"Is Timestamp Converter really free?","acceptedAnswer":{"@type":"Answer","text":"Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use."}},{"@type":"Question","name":"Is my input sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Timestamp Converter processes everything you type or paste locally in your browser — nothing is ever sent to a server."}}]}]}</script>
 </head>
 <body data-tool-slug="timestamp-converter" data-tool-name="Timestamp Converter">
 <div id="toast-rack" aria-live="polite" aria-atomic="false"></div>
@@ -320,7 +320,7 @@
 
     <section class="tp-hero">
       <h1>Timestamp Converter</h1>
-      <p class="tp-lead">Convert UNIX timestamps to human-readable dates and back. Show current timestamp in seconds and milliseconds.</p>
+      <p class="tp-lead">Translate Unix timestamps into dates and back. Seconds, milliseconds, microseconds and nanoseconds are recognised automatically, and you see local time, UTC and ISO 8601 together.</p>
       <div class="tp-badges">
         <a class="tp-cat-badge" href="/developer-tools">Developer &amp; SEO</a>
         <span class="tp-chip">UNIX</span><span class="tp-chip">DATE</span><span class="tp-chip">TIME</span>
@@ -343,27 +343,17 @@
     <div class="tp-layout">
       <div class="tp-col-main">
 
-    <section class="tp-sec" aria-labelledby="tp-tips">
-      <h2 id="tp-tips">Get better results</h2>
-      <p class="tp-sub">Tips from how Timestamp Converter actually works, and mistakes worth avoiding.</p>
-      <div class="tp-tips-grid">
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg>Pro tips</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Keep a working copy of your input before running a destructive operation — undo is a browser back-button, not a history stack.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>When something looks wrong, check the start of the input first — most parsing errors cascade from one early character.</span></li>
-          <li class="tp-tip-item is-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.55 1 1.32 1 2.5h6c0-1.18.4-1.95 1-2.5A6 6 0 0 0 12 2z"/></svg><span>Bookmark this page. It is a static URL with no login, so it works the same way every time you need it.</span></li>
-        </ul>
-      </div>
-        <div class="tp-tips-col">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Common mistakes</h3>
-        <ul class="tp-tip-list">
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Assuming a paid tool would give a more &quot;official&quot; result — the underlying parsing logic is the same either way.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Not checking for trailing commas, smart quotes, or copy-pasted invisible characters — the most common source of a confusing error.</span></li>
-          <li class="tp-tip-item is-mistake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Working directly on the only copy of an important file instead of a duplicate.</span></li>
-        </ul>
-      </div>
-      </div>
+    <section class="tp-sec" aria-labelledby="tp-how">
+      <h2 id="tp-how">How to use Timestamp Converter</h2>
+      <p class="tp-sub">3 steps, no learning curve.</p>
+      <ol class="tp-steps">
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">1</span><div><h3>Paste a timestamp</h3><p>The unit is detected from its size.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">2</span><div><h3>Read the date</h3><p>Local time with your time zone, UTC and ISO.</p></div></li>
+        <li class="tp-step"><span class="tp-step-n" aria-hidden="true">3</span><div><h3>Or choose a date</h3><p>Say whether it is UTC or your local time and get seconds and milliseconds.</p></div></li>
+      </ol>
+    </section><section class="tp-sec tp-guide-text" aria-labelledby="tp-gt">
+      <h2 id="tp-gt">Good to know about Timestamp Converter</h2>
+      <h3>What the number means</h3><p>Seconds since midnight UTC on 1 January 1970. Ten digits are seconds and thirteen milliseconds for today’s dates; the tool tells you how it read your number.</p><h3>Time zones</h3><p>A timestamp has no time zone, it names one moment everywhere. Differences appear only when it is displayed. If a result is off by whole hours, a local time was treated as UTC or the other way round.</p><h3>The year 2038</h3><p>Systems that store seconds in a signed 32-bit number overflow on 19 January 2038. Use 64-bit values in new databases.</p><h3>In code</h3><p>JavaScript’s Date.now() gives milliseconds, Python’s time.time() and PHP’s time() give seconds. Forgetting the factor of 1,000 leads to dates in 1970 or far in the future.</p>
     </section>
 
     
@@ -373,9 +363,10 @@
     <section class="tp-sec tp-faq" aria-labelledby="tp-faq-h">
       <h2 id="tp-faq-h">Frequently asked questions</h2>
       <p class="tp-sub">About Timestamp Converter and how Tarumak Studio works.</p>
-      <details><summary>What is a UNIX timestamp?</summary><p>A UNIX timestamp is the number of seconds that have elapsed since January 1, 1970, at 00:00:00 UTC. It is the standard way computers represent moments in time.</p></details>
-      <details><summary>Why does the tool auto-detect seconds vs milliseconds?</summary><p>JavaScript uses milliseconds, most backend systems use seconds. If the input is 13 digits or more it is treated as milliseconds and divided by 1000 automatically.</p></details>
-      <details><summary>Can I convert a specific date to a UNIX timestamp?</summary><p>Yes — use the Human to Unix section to pick any date and time and get the corresponding UNIX timestamp in both seconds and milliseconds.</p></details>
+      <details><summary>Can timestamps be negative?</summary><p>Yes, for dates before 1970.</p></details>
+      <details><summary>Are leap seconds counted?</summary><p>No, Unix time ignores them.</p></details>
+      <details><summary>Which format should I store?</summary><p>A timestamp or ISO 8601 in UTC. Convert to local time only for display.</p></details>
+      <details><summary>Is daylight saving time considered?</summary><p>Yes, for your own time zone at the date in question.</p></details>
       <details><summary>Is Timestamp Converter really free?</summary><p>Yes — completely free, with no usage limits, no watermarks and no premium wall. Every tool on Tarumak Studio is free to use.</p></details>
       <details><summary>Is my input sent to a server?</summary><p>No. Timestamp Converter processes everything you type or paste locally in your browser — nothing is ever sent to a server.</p></details>
     </section>

@@ -293,11 +293,11 @@ INIT['og-image-gen']=function(panel){
   var OW=1200,OH=630;
   panel.innerHTML='<div class="row" style="grid-template-columns:1fr 1fr">'
     +'<div><label for="og-title" style="font-size:12px;color:var(--text-dim)">Title</label><input id="og-title" type="text" value="Your Page Title" style="width:100%;margin-top:4px"></div>'
-    +'<div><label for="og-sub" style="font-size:12px;color:var(--text-dim)">Subtitle</label><input id="og-sub" type="text" value="tarumak.com" style="width:100%;margin-top:4px"></div>'
+    +'<div><label for="og-sub" style="font-size:12px;color:var(--text-dim)">Subtitle</label><input id="og-sub" type="text" value="yourwebsite.com" style="width:100%;margin-top:4px"></div>'
     +'<div><label for="og-bg" style="font-size:12px;color:var(--text-dim)">Background Color</label><input id="og-bg" type="color" value="#0f172a" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
     +'<div><label for="og-ac" style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="og-ac" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
     +'<div><label for="og-tc" style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="og-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
-    +'<div><label for="og-logo" style="font-size:12px;color:var(--text-dim)">Logo Text (optional)</label><input id="og-logo" type="text" value="TARUMAK" style="width:100%;margin-top:4px"></div></div>'
+    +'<div><label for="og-logo" style="font-size:12px;color:var(--text-dim)">Logo Text (optional)</label><input id="og-logo" type="text" value="YOUR BRAND" style="width:100%;margin-top:4px"></div></div>'
     +'<canvas id="og-canvas" style="max-width:100%;border-radius:12px;display:block;margin:14px auto;border:1px solid var(--border)"></canvas>'
     +'<div class="controls"><span style="font-size:12px;color:var(--text-faint);flex:1">1200 \u00d7 630 px (OG standard)</span><button class="btn btn-primary" id="og-dl">Download PNG</button></div>';
   var cv=document.getElementById('og-canvas'),ctx=cv.getContext('2d');
@@ -344,42 +344,46 @@ INIT['pdf-lead-magnet']=function(panel){
     +'<textarea id="lm-items" rows="8" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text);font-size:13px;resize:vertical;line-height:1.6" placeholder="Compress images before uploading\nUse WebP format for web images\nRemove EXIF data for privacy\nResize to actual display dimensions"></textarea></div>'
     +'<button class="btn btn-primary" id="lm-gen" style="width:100%">Generate PDF Lead Magnet</button>';
   document.getElementById('lm-gen').onclick=function(){
-    var title=document.getElementById('lm-title').value||'Your Guide',brand=document.getElementById('lm-brand').value||'Your Brand';
+    var title=document.getElementById('lm-title').value.trim()||'Your Guide',brand=document.getElementById('lm-brand').value.trim()||'Your Brand';
     var col=document.getElementById('lm-col').value,tpl=document.getElementById('lm-tpl').value;
-    var items=document.getElementById('lm-items').value.trim().split('\n').filter(function(l){return l.trim();});
+    var items=document.getElementById('lm-items').value.split('\n').map(function(l){return l.trim();}).filter(Boolean);
     if(!items.length){toast('Please add at least one item','err');return;}
+    /* The built-in PDF font has Western European letters only */
+    var odd=(title+brand+items.join('')).match(/[^\x20-\x7e\xa0-\xff€‘’“”•–—…™ŒœŠšŸŽž]/u);
+    if(odd){toast('The PDF font cannot show “'+odd[0]+'”. Use Western European letters, without emoji.','err');return;}
     var {jsPDF}=window.jspdf;var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var W=210,H=297,m=20,cr=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)];
-    // Header band
-    doc.setFillColor(cr[0],cr[1],cr[2]);doc.rect(0,0,W,52,'F');
-    // Left accent
-    doc.setFillColor(255,255,255,0.3);
-    // Title
-    doc.setTextColor(255,255,255);doc.setFontSize(22);doc.setFont('helvetica','bold');
-    doc.text(title,m,28,{maxWidth:W-m*2});
-    // Tpl type badge
-    var badgeLabels={checklist:'Checklist',guide:'Step-by-Step Guide',cheatsheet:'Cheatsheet',resources:'Resource List'};
+    var W=210,H=297,m=20,LH=6,cr=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)];
+    /* White or black text, whichever is readable on the accent colour */
+    var ink=(cr[0]*299+cr[1]*587+cr[2]*114)/1000>150?[20,20,20]:[255,255,255];
+    function accent(){doc.setFillColor(cr[0],cr[1],cr[2]);doc.setDrawColor(cr[0],cr[1],cr[2]);}
+    function onAccent(){doc.setTextColor(ink[0],ink[1],ink[2]);}
+    /* Header band grows with the title */
+    doc.setFont('helvetica','bold');doc.setFontSize(22);
+    var tl=doc.splitTextToSize(title,W-m*2),head=32+tl.length*9+8;
+    accent();doc.rect(0,0,W,head,'F');onAccent();
+    tl.forEach(function(l,i){doc.text(l,m,26+i*9);});
+    var badge={checklist:'Checklist',guide:'Step-by-Step Guide',cheatsheet:'Cheatsheet',resources:'Resource List'}[tpl];
     doc.setFontSize(10);doc.setFont('helvetica','normal');
-    doc.text(badgeLabels[tpl].toUpperCase()+' \u2022 '+brand,m,44);
-    // Items
-    doc.setTextColor(30,30,30);var y=70;var symbols={checklist:'\u25a1',guide:'',cheatsheet:'\u2022',resources:'\u2192'};
+    doc.text(doc.splitTextToSize(badge.toUpperCase()+' • '+brand,W-m*2)[0],m,head-8);
+    var y=head+18,tx=m+(tpl==='guide'?13:9);
+    function body(){doc.setFontSize(12);doc.setFont('helvetica',tpl==='guide'?'bold':'normal');}
+    function page(){doc.addPage();accent();doc.rect(0,0,W,10,'F');y=26;body();}
     items.forEach(function(item,i){
-      if(y>H-30){doc.addPage();doc.setFillColor(cr[0],cr[1],cr[2]);doc.rect(0,0,W,10,'F');y=25;}
-      if(tpl==='guide'){
-        doc.setFillColor(cr[0],cr[1],cr[2]);doc.circle(m+4,y-1,4,'F');
-        doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(String(i+1),m+4,y+1,{align:'center'});
-        doc.setTextColor(30,30,30);doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text(item,m+12,y+2,{maxWidth:W-m-20});
-      }else{
-        doc.setFillColor(cr[0],cr[1],cr[2]);if(tpl==='checklist'){doc.rect(m,y-5,5,5,'S');}
-        doc.setTextColor(30,30,30);doc.setFontSize(12);doc.setFont('helvetica','normal');
-        doc.text((tpl!=='checklist'?symbols[tpl]+' ':' ')+item,m+(tpl==='checklist'?8:0),y,{maxWidth:W-m*2-8});
-      }
-      y+=14;if(tpl==='guide')y+=4;
+      body();
+      var lines=doc.splitTextToSize(item,W-m-tx);
+      /* Keep an item together when it fits on one page */
+      if(y+(lines.length-1)*LH>H-24&&lines.length*LH<H-60)page();
+      accent();doc.setLineWidth(.6);
+      if(tpl==='checklist')doc.rect(m,y-4.2,5,5,'S');
+      else if(tpl==='cheatsheet')doc.circle(m+2,y-1.5,1.2,'F');
+      else if(tpl==='resources'){doc.line(m,y-1.5,m+4,y-1.5);doc.triangle(m+3.4,y-3,m+6,y-1.5,m+3.4,y,'F');}
+      else{doc.circle(m+4,y-1.5,4.2,'F');onAccent();doc.setFontSize(9);doc.text(String(i+1),m+4,y-.4,{align:'center'});doc.setFontSize(12);}
+      lines.forEach(function(l,k){if(y>H-24)page();doc.setTextColor(30,30,30);doc.text(l,tx,y);if(k<lines.length-1)y+=LH;});
+      y+=tpl==='guide'?14:11;
     });
-    // Footer
     var pages=doc.getNumberOfPages();
-    for(var p=1;p<=pages;p++){doc.setPage(p);doc.setFillColor(cr[0],cr[1],cr[2]);doc.rect(0,H-12,W,12,'F');doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(brand+' \u2022 tarumak.com',m,H-4);doc.text('Page '+p+' of '+pages,W-m,H-4,{align:'right'});}
-    doc.save(title.toLowerCase().replace(/\s+/g,'-')+'.pdf');
+    for(var p=1;p<=pages;p++){doc.setPage(p);accent();doc.rect(0,H-12,W,12,'F');onAccent();doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(doc.splitTextToSize(brand,W-m*2-40)[0],m,H-4.5);doc.text('Page '+p+' of '+pages,W-m,H-4.5,{align:'right'});}
+    doc.save((title.toLowerCase().replace(/[^a-z0-9À-ÿ]+/g,'-').replace(/^-+|-+$/g,'')||'lead-magnet')+'.pdf');
     toast('PDF downloaded!','ok');
   };
 };

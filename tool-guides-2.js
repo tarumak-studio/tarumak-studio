@@ -641,13 +641,13 @@ module.exports = {
     ],
     sections: [
       ['Short and useful wins', 'A one-page checklist that saves somebody an hour is worth more than a 30-page e-book nobody opens. Solve one concrete problem and name it in the title.'],
-      ['Keep items short', 'Each line gets a fixed space. Items of up to about 80 characters fit on one line; longer ones can run into the next.'],
-      ['Letters the PDF knows', 'The built-in font covers Western European languages. Other scripts and emoji are not displayed correctly.'],
+      ['Keep items short', 'Long items wrap onto further lines, but a checklist is easiest to use when each point fits on one, about 80 characters.'],
+      ['Letters the PDF knows', 'The built-in font covers Western European languages. If your text contains other scripts or emoji, the tool names the character instead of making a broken file.'],
       ['Delivering it', 'Link the file in the welcome e-mail instead of the thank-you page, so that the address has to be real.']
     ],
     faq: [
       ['Can I add my logo?', 'Only your brand name as text.'],
-      ['Is there any branding from this site?', 'The footer contains a short site address next to your brand. Remove it with a PDF editor if you do not want it.'],
+      ['Is there any branding from this site?', 'No. The footer shows only your brand and the page number.'],
       ['Which page size is used?', 'A4.'],
       ['Can I edit the PDF later?', 'Change the text here and generate it again.']
     ]
@@ -676,7 +676,7 @@ module.exports = {
     lead: 'Get a shuffled set of established hashtags for design, marketing, photography, business or technology posts and copy them in one click.',
     howTo: [
       ['Choose a category', 'Five are available.'],
-      ['Say how many you want', 'Each category holds 15 tags.'],
+      ['Say how many you want', 'Each category holds up to 30.'],
       ['Generate and copy', 'Press again for a different selection.']
     ],
     sections: [
@@ -687,7 +687,7 @@ module.exports = {
     ],
     faq: [
       ['Can I enter my own topic?', 'No, choose one of the five categories.'],
-      ['Why do I get only 15?', 'That is all a category contains.'],
+      ['How many tags does a category have?', '30. If you ask for more, you get all 30.'],
       ['Are banned hashtags filtered?', 'The lists contain common professional tags, but platforms change their rules. Check if a post gets unusually little reach.'],
       ['Caption or first comment?', 'Both work on Instagram. Choose whichever you find tidier.']
     ]

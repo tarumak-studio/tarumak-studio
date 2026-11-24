@@ -95,7 +95,7 @@
 
 ### Image Tools
 
-- [JPG vs PNG vs WebP: Which Image Format Should You Use in 2026?](https://tarumakstudio.com/article-jpg-vs-png-vs-webp): Choosing between JPG, PNG and WebP affects your website speed, quality and SEO. Here is the definitive guide.
+- [JPG vs PNG vs WebP: Which Image Format Should You Use in 2026?](https://tarumakstudio.com/article-jpg-vs-png-vs-webp): JPG, PNG or WebP? Compare them with measured file sizes of a real photo and a text image, see where AVIF and SVG fit, and choose the right format by purpose.
 - [How to Compress Images Without Losing Quality](https://tarumakstudio.com/article-compress-images-without-losing-quality): How far can you compress a photo before it shows? Measured results for JPG, WebP and AVIF, what lossless really means, and the order of steps that works.
 - [20 Best Free Online Tools for Graphic Designers in 2026](https://tarumakstudio.com/article-best-free-tools-designers-2026): Twenty free browser tools for graphic and web designers and freelancers, sorted by task, with honest limits and five workflows from logo to final delivery.
 - [How to Add a Watermark to Photos Online — Protect Your Work](https://tarumakstudio.com/article-add-watermark-photos): Where to put a watermark, how strong to make it, when to tile it, and what it can and cannot protect. With settings for portfolios, proofs and product photos.
@@ -111,7 +111,7 @@
 
 ### Marketing Designer
 
-- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026): Every social media image size for Instagram, Facebook, Twitter, LinkedIn, YouTube and Pinterest — updated for 2026.
+- [Social Media Image Sizes 2026 — Complete Cheatsheet](https://tarumakstudio.com/article-social-media-image-sizes-2026): Image sizes for Instagram, Facebook, X, LinkedIn, YouTube, Pinterest and WhatsApp in one table, with safe areas, file formats and a way to design once.
 - [UTM Links Explained: How to Build and Track Campaign URLs](https://tarumakstudio.com/article-utm-link-builder-guide): What each UTM parameter means, a naming scheme your whole team can follow, the mistakes that spoil your data, and where to find the results in GA4.
 - [Open Graph Images: What They Are and How to Create One](https://tarumakstudio.com/article-what-is-open-graph-image): What an Open Graph image is, the size and tags to use, how to design one that reads at thumbnail size, and how to fix a preview that is missing or outdated.
 - [How to Create a PDF Lead Magnet That Grows Your Email List](https://tarumakstudio.com/article-create-pdf-lead-magnet): How to choose a topic, write a one-page PDF that earns a sign-up, deliver it properly and find out whether it works, with examples and a checklist.
@@ -119,12 +119,12 @@
 - [Hashtag Strategy for Instagram and Twitter in 2026 — Free Generator](https://tarumakstudio.com/article-hashtag-strategy-instagram): What hashtags still do, how many to use on each network, how to research your own set in half an hour and how to find out whether they bring you anything.
 - [How to Create a Brand Color Palette — Complete Guide for Designers](https://tarumakstudio.com/article-color-palette-brand-guide): Build a brand palette that works on screens and paper: choose a main colour, add neutrals and states, test contrast, and hand it over as CSS variables.
 - [Instagram Story Size 2026 — Dimensions, Templates and Best Practices](https://tarumakstudio.com/article-instagram-story-size-guide): The right size for Instagram Stories and Reels covers, where the interface covers your design, how to adapt landscape photos, and a checklist before posting.
-- [Best Free Marketing Tools for Designers and Creators in 2026](https://tarumakstudio.com/article-best-free-marketing-tools): The best free marketing tools for designers and content creators in 2026 — social media resizer, UTM builder, OG image generator, ad copy generator an
+- [Best Free Marketing Tools for Designers and Creators in 2026](https://tarumakstudio.com/article-best-free-marketing-tools): Eight free browser tools for campaigns, from link previews and tracked links to lead magnets, with what each does well, its limits and three campaign plans.
 
 ### Developer Tools
 
 - [Favicon Size Guide: What Size Should Your Favicon Be in 2026?](https://tarumakstudio.com/article-best-favicon-size): The favicon sizes that matter, the HTML to add them, how to design an icon that works at 16 pixels, and why browsers and Google keep showing the old one.
-- [Meta Tags for SEO — Complete Guide with Examples (2026)](https://tarumakstudio.com/article-meta-tags-seo-guide): Learn how to write title tags, meta descriptions, and Open Graph tags for better SEO and social media sharing. Includes examples and character limits.
+- [Meta Tags for SEO — Complete Guide with Examples (2026)](https://tarumakstudio.com/article-meta-tags-seo-guide): Title, description, canonical, robots and Open Graph tags explained with examples: what Google uses, what it ignores, and how to check your own pages.
 
 ### Converter Tools
 

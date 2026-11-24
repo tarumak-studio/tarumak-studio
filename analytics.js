@@ -28,7 +28,7 @@
  * "Mark as key event"). This file makes sure the events exist and fire
  * correctly with the right names; someone with access to the GA4
  * property still has to flip that switch for tool_process_completed,
- * tool_download, and newsletter_signup. Exact steps in the delivery
+ * and tool_download. Exact steps in the delivery
  * notes, not repeated here to avoid this comment going stale.
  */
 (function () {

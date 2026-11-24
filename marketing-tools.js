@@ -298,10 +298,11 @@ INIT['og-image-gen']=function(panel){
     +'<div><label for="og-ac" style="font-size:12px;color:var(--text-dim)">Accent Color</label><input id="og-ac" type="color" value="#6366f1" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
     +'<div><label for="og-tc" style="font-size:12px;color:var(--text-dim)">Text Color</label><input id="og-tc" type="color" value="#ffffff" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);margin-top:4px"></div>'
     +'<div><label for="og-logo" style="font-size:12px;color:var(--text-dim)">Logo Text (optional)</label><input id="og-logo" type="text" value="YOUR BRAND" style="width:100%;margin-top:4px"></div></div>'
-    +'<canvas id="og-canvas" style="max-width:100%;border-radius:12px;display:block;margin:14px auto;border:1px solid var(--border)"></canvas>'
+    +'<canvas id="og-canvas" style="width:600px;max-width:100%;height:auto;border-radius:12px;display:block;margin:14px auto;border:1px solid var(--border)"></canvas>'
     +'<div class="controls"><span style="font-size:12px;color:var(--text-faint);flex:1">1200 \u00d7 630 px (OG standard)</span><button class="btn btn-primary" id="og-dl">Download PNG</button></div>';
   var cv=document.getElementById('og-canvas'),ctx=cv.getContext('2d');
-  var DW=Math.min(600,panel.offsetWidth-32||600),DH=Math.round(DW*OH/OW);
+  /* Drawn at full size and only displayed smaller, so the download is what you see */
+  var DW=OW,DH=OH;
   cv.width=DW;cv.height=DH;
   function draw(){
     var bg=document.getElementById('og-bg').value,ac=document.getElementById('og-ac').value,tc=document.getElementById('og-tc').value;
@@ -329,9 +330,7 @@ INIT['og-image-gen']=function(panel){
   ['og-title','og-sub','og-bg','og-ac','og-tc','og-logo'].forEach(function(id){document.getElementById(id).addEventListener('input',draw);});
   draw();
   document.getElementById('og-dl').onclick=function(){
-    var fc=document.createElement('canvas');fc.width=OW;fc.height=OH;var c2=fc.getContext('2d');
-    var prev={w:DW,h:DH};cv.width=OW;cv.height=OH;draw();fc.width=OW;fc.height=OH;c2.drawImage(cv,0,0);cv.width=prev.w;cv.height=prev.h;draw();
-    fc.toBlob(function(b){download(b,'og-image-1200x630.png');});};
+    cv.toBlob(function(b){download(b,'og-image-1200x630.png');});};
 };
 
 INIT['pdf-lead-magnet']=function(panel){
